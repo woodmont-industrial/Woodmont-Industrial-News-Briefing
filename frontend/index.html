@@ -102,7 +102,8 @@
     const { useState, useEffect, useMemo, useCallback } = React;
 
     const regions = ["All", "NJ", "PA", "FL", "TX"];
-    const API_BASE = window.location.hostname === 'localhost' ? '' : '';
+    const IS_STATIC = window.location.hostname !== 'localhost';
+    const API_BASE = '';
 
     const Header = ({ timeframe, theme, setTheme }) => {
       const period = (() => {
@@ -211,6 +212,7 @@
               >
                   {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
               </button>
+              {!IS_STATIC && (
               <button
                   onClick={() => setViewMode(viewMode === "admin" ? "articles" : "admin")}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
@@ -221,6 +223,7 @@
                 >
                   ⚙️ Admin
               </button>
+              )}
             </div>
             <button
               onClick={onRefresh}
@@ -936,9 +939,25 @@
       const fetchItems = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);
         try {
-          const res = await fetch((API_BASE || '') + '/api/articles');
+          // Use feed.json for static GitHub Pages, /api/articles for local server
+          const url = IS_STATIC ? 'feed.json' : '/api/articles';
+          const res = await fetch(url);
           const data = await res.json();
-          setItems(Array.isArray(data.items) ? data.items : []);
+          // Handle both JSON Feed format (items array) and API format
+          const articles = IS_STATIC 
+            ? (data.items || []).map(item => ({
+                ...item,
+                link: item.url || item.link,
+                pubDate: item.date_published || item.pubDate,
+                description: item.content_text || item.content_html || item.description,
+                source: item.author?.name || item.source,
+                category: (item.tags?.[0] || 'relevant').toLowerCase().includes('transaction') ? 'transaction' 
+                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('availab') ? 'availabilities'
+                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('people') ? 'people' 
+                  : 'relevant'
+              }))
+            : (Array.isArray(data.items) ? data.items : []);
+          setItems(articles);
           if (data.generatedAt) {
             const d = new Date(data.generatedAt);
             setLastUpdated(d.toLocaleString());
@@ -955,8 +974,9 @@
       }, []);
 
       const fetchLastFetchInfo = useCallback(async () => {
+        if (IS_STATIC) return; // Skip for static mode
         try {
-          const res = await fetch((API_BASE || '') + '/api/last-fetch');
+          const res = await fetch('/api/last-fetch');
           const data = await res.json();
           setLastFetchInfo(data);
         } catch (e) {
@@ -965,10 +985,15 @@
       }, []);
 
       const onRefresh = useCallback(async () => {
+        if (IS_STATIC) {
+          // In static mode, just reload the page to get latest feed.json
+          window.location.reload();
+          return;
+        }
         setRefreshLoading(true);
         try {
           console.log('Starting refresh...');
-          const refreshResponse = await fetch((API_BASE || '') + '/api/refresh');
+          const refreshResponse = await fetch('/api/refresh');
           console.log('Refresh API completed, fetching updated articles...');
           await fetchItems(true);
           await fetchLastFetchInfo();
