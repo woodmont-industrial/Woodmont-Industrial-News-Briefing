@@ -119,46 +119,13 @@ export const RSS_FEEDS: FeedConfig[] = [
     timeout: 30000
   },
 
-  // 5. GLOBEST - Using alternative feed URL
-  {
-    url: "https://www.globest.com/feed/",
-    name: "GlobeSt",
-    region: "US",
-    source: "GlobeSt",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
-
-  // 6. NAIOP - Using blog feed
+  // 5. NAIOP - Using blog feed
   {
     url: "https://blog.naiop.org/feed/",
     name: "NAIOP Blog",
     region: "US",
     source: "NAIOP",
     type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
-
-  // 7. COMMERCIAL PROPERTY EXECUTIVE - Using main feed
-  {
-    url: "https://www.cpexecutive.com/feed/",
-    name: "Commercial Property Executive",
-    region: "US",
-    source: "CPE",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
-
-  // 8. SOUTH FL BUSINESS JOURNAL - Multiple attempts
-  {
-    url: "https://www.bizjournals.com/southflorida/news/feed",
-    name: "South FL Business Journal",
-    region: "FL",
-    source: "BizJournals",
-    type: FEED_TYPES.NEWS,
     timeout: 30000,
     headers: BROWSER_HEADERS
   },
@@ -176,18 +143,7 @@ export const RSS_FEEDS: FeedConfig[] = [
     timeout: 30000
   },
 
-  // 11. DAILY RECORD NJ - Alternative feeds
-  {
-    url: "https://www.northjersey.com/arcio/rss/category/news/morris/",
-    name: "North Jersey Morris",
-    region: "NJ",
-    source: "Daily Record",
-    type: FEED_TYPES.NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
-
-  // 12. NJBIZ ✅ - Working
+  // 11. NJBIZ ✅ - Working
   {
     url: "https://njbiz.com/feed/",
     name: "NJBIZ",

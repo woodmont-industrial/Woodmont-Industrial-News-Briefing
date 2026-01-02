@@ -1,4 +1,4 @@
-import * as Parser from 'rss-parser';
+import Parser from 'rss-parser';
 import axios from 'axios';
 import * as xml2js from 'xml2js';
 import { RSS_FEEDS, BROWSER_HEADERS } from './config.js';
@@ -356,17 +356,18 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
 
         for (const item of parsed.items) {
             try {
+                const extractedLink = extractLink(item) || item.link || item.guid || '';
                 const normalized: NormalizedItem = {
-                    id: computeId(item.link || item.guid || ''),
+                    id: computeId(extractedLink || ''),
                     guid: item.guid || '',
-                    canonicalUrl: normalizeUrl(item.link || item.guid || ''),
+                    canonicalUrl: normalizeUrl(extractedLink),
                     title: item.title || '',
-                    link: normalizeUrl(item.link || item.guid || ''),
+                    link: normalizeUrl(extractedLink),
                     source: feed.name,
                     regions: [feed.region || 'US'],
                     pubDate: new Date(item.pubDate || item.published || new Date()).toISOString(),
                     description: stripHtmlTags(item.description || item['content:encoded'] || ''),
-                    author: item.creator || item.author || '',
+                    author: typeof (item.creator || item.author) === 'string' ? (item.creator || item.author) : '',
                     publisher: feed.name,
                     image: extractImageFromItem(item),
                     thumbnailUrl: extractImageFromItem(item),

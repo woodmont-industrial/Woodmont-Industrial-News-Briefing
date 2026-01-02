@@ -1,4 +1,10 @@
 import * as http from 'http';
+import * as path from 'path';
+import * as fs from 'fs';
+import Parser from 'rss-parser';
+import axios from 'axios';
+import * as xml2js from 'xml2js';
+import * as nodeCrypto from 'crypto';
 import { handleRequest } from './src/server/endpoints.js';
 import { fetchAllRSSArticles } from './src/feeds/fetcher.js';
 import { saveArticlesToFile, loadArticlesFromFile } from './src/store/storage.js';
@@ -2619,15 +2625,21 @@ async function buildStaticRSS() {
             };
             const categoryLabel = categoryLabels[category] || 'RELEVANT ARTICLES — Macro Trends & Industrial Real Estate News';
 
+            // Ensure author is a string
+            let authorString = '';
+            if (item.author) {
+                authorString = typeof item.author === 'string' ? item.author : String(item.author);
+            }
+
             return `\n    <item>
       <title><![CDATA[${item.title || 'Untitled'}]]></title>
-      <link>${item.link}</link>
-      <guid isPermaLink="true">${item.link}</guid>
+      <link>${item.link || '#'}</link>
+      <guid isPermaLink="true">${item.link || item.id || '#'}</guid>
       <pubDate>${item.pubDate ? new Date(item.pubDate).toUTCString() : new Date().toUTCString()}</pubDate>
       <description><![CDATA[${item.description || ''}]]></description>
       <category><![CDATA[${categoryLabel}]]></category>
       <source><![CDATA[${item.source || item.publisher || 'Unknown'}]]></source>
-      ${item.author ? `<author><![CDATA[${item.author}]]></author>` : ''}
+      ${authorString ? `<author><![CDATA[${authorString}]]></author>` : ''}
       ${item.image ? `<enclosure url="${(Array.isArray(item.image) ? item.image[0] : item.image || '').replace(/&/g, '&amp;')}" type="image/jpeg" />` : ''}
     </item>`;
         }).join('');
@@ -2799,12 +2811,9 @@ if (require.main === module) {
     if (args.includes('--build-static')) {
         // Build static files for GitHub Pages
         console.log('🏗️ Building static files for GitHub Pages...');
-        // Import and run buildStaticRSS from fetcher
-        import('./src/feeds/fetcher.js').then(({ buildStaticRSS }) => {
-            buildStaticRSS().catch(err => {
-                console.error('Build failed:', err);
-                process.exit(1);
-            });
+        buildStaticRSS().catch(err => {
+            console.error('Build failed:', err);
+            process.exit(1);
         });
     } else if (args.includes('--send-newsletter')) {
         // Manual newsletter sending
