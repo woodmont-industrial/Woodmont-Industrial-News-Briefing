@@ -2,14 +2,14 @@ name: Update RSS Feed
 
 on:
   schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
+    # Run every 6 hours (4 times a day) - more reasonable for GitHub Actions
+    - cron: '0 */6 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   update-feed:
     runs-on: ubuntu-latest
-    timeout-minutes: 10  # Prevent hanging forever
+    timeout-minutes: 8  # Total job timeout
 
     steps:
       - name: Checkout repository
@@ -24,9 +24,13 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        timeout-minutes: 2
 
       - name: Generate static RSS feed
         run: npm run build
+        timeout-minutes: 5
+        env:
+          NODE_OPTIONS: '--max-old-space-size=512'
 
       - name: Check for changes
         id: verify-changed-files
@@ -42,6 +46,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add docs/
-          git commit -m "Update RSS feed [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+          git add docs/ articles.json
+          git commit -m "🔄 Update RSS feed [$(date -u +'%Y-%m-%d %H:%M UTC')]"
           git push
