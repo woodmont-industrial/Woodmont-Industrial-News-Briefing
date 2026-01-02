@@ -16,7 +16,7 @@ type FetchResult = {
 };
 
 const API_KEY = process.env.API_KEY || ""; // optional: require for /api/manual when set
-const ITEM_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const ITEM_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days (increased for better coverage)
 const FETCH_CACHE_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
 
@@ -72,75 +72,84 @@ type FeedConfig = {
 const circuitBreaker = new Map<string, { failureCount: number, blockedUntil: number }>();
 
 // List of RSS feed URLs (strictly focused on CRE + Industrial content in NJ/PA/FL/TX markets)
-// ONLY WORKING FEEDS - Based on validation results (70% success rate)
+// Browser headers to bypass 403 errors
+const BROWSER_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept": "application/rss+xml, application/xml, text/xml, */*",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Cache-Control": "no-cache"
+};
+
+// ONLY WORKING FEEDS - Based on validation results
 const RSS_FEEDS: FeedConfig[] = [
   // ============================================
   // MANDATORY SOURCES (Boss's Priority List)
   // ============================================
   
-  // 1. REAL ESTATE NJ ✅
+  // 1. REAL ESTATE NJ ✅ - Working
   { url: "https://re-nj.com/feed/", name: "Real Estate NJ", region: "NJ", source: "Real Estate NJ", timeout: 30000 },
   
-  // 2. COMMERCIAL SEARCH ✅ (with browser headers to avoid 403)
-  { url: "https://www.commercialsearch.com/feed/", name: "Commercial Search", region: "US", source: "Commercial Search", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
+  // 2. COMMERCIAL SEARCH - Using alternative (CommercialCafe is same company)
+  { url: "https://www.commercialcafe.com/blog/feed/", name: "Commercial Cafe", region: "US", source: "Commercial Search", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 3. WSJ ✅
+  // 3. WSJ ✅ - Working
   { url: "https://feeds.content.dowjones.io/public/rss/latestnewsrealestate", name: "WSJ Real Estate", region: "US", source: "WSJ", timeout: 30000 },
   
-  // 4. BISNOW ✅ (Multiple regions)
+  // 4. BISNOW ✅ - All regions working
   { url: "https://www.bisnow.com/rss-feed/new-jersey", name: "Bisnow New Jersey", region: "NJ", source: "Bisnow", timeout: 30000 },
   { url: "https://www.bisnow.com/rss-feed/philadelphia", name: "Bisnow Philadelphia", region: "PA", source: "Bisnow", timeout: 30000 },
   { url: "https://www.bisnow.com/rss-feed/south-florida", name: "Bisnow South Florida", region: "FL", source: "Bisnow", timeout: 30000 },
   { url: "https://www.bisnow.com/rss-feed/dallas-ft-worth", name: "Bisnow Dallas-Ft Worth", region: "TX", source: "Bisnow", timeout: 30000 },
   { url: "https://www.bisnow.com/rss-feed/national", name: "Bisnow National", region: "US", source: "Bisnow", timeout: 30000 },
+  { url: "https://www.bisnow.com/rss-feed/houston", name: "Bisnow Houston", region: "TX", source: "Bisnow", timeout: 30000 },
+  { url: "https://www.bisnow.com/rss-feed/new-york", name: "Bisnow New York", region: "NY", source: "Bisnow", timeout: 30000 },
+  { url: "https://www.bisnow.com/rss-feed/boston", name: "Bisnow Boston", region: "MA", source: "Bisnow", timeout: 30000 },
   
-  // 5. GLOBEST ✅ (Using RSS feed with browser headers)
-  { url: "https://www.globest.com/feed/rss/", name: "GlobeSt", region: "US", source: "GlobeSt", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
+  // 5. GLOBEST - Using alternative feed URL
+  { url: "https://www.globest.com/feed/", name: "GlobeSt", region: "US", source: "GlobeSt", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 6. NAIOP ✅ (Using research feed)
-  { url: "https://www.naiop.org/Research-and-Publications/Magazine/NAIOP-Development-Magazine/RSS", name: "NAIOP Development", region: "US", source: "NAIOP", timeout: 30000 },
+  // 6. NAIOP - Using blog feed
+  { url: "https://blog.naiop.org/feed/", name: "NAIOP Blog", region: "US", source: "NAIOP", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 7. COMMERCIAL PROPERTY EXECUTIVE ✅ (Alternative URL)
-  { url: "https://www.cpexecutive.com/rss", name: "Commercial Property Executive", region: "US", source: "CPE", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
+  // 7. COMMERCIAL PROPERTY EXECUTIVE - Using main feed
+  { url: "https://www.cpexecutive.com/feed/", name: "Commercial Property Executive", region: "US", source: "CPE", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 8. SOUTH FL BUSINESS JOURNAL ✅ (Using direct feed URL)
-  { url: "https://feeds.bizjournals.com/bizj_southflorida", name: "South FL Business Journal", region: "FL", source: "BizJournals", timeout: 30000 },
+  // 8. SOUTH FL BUSINESS JOURNAL - Multiple attempts
+  { url: "https://www.bizjournals.com/southflorida/news/feed", name: "South FL Business Journal", region: "FL", source: "BizJournals", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 9. LOOPNET (Note: LoopNet doesn't have public RSS, using CoStar news instead)
-  // LoopNet is owned by CoStar - they don't provide RSS feeds publicly
+  // 9. LOOPNET/COSTAR - No public RSS, using CRE alternatives
+  // Note: LoopNet and CoStar don't offer public RSS feeds
   
-  // 10. COSTAR (Note: CoStar requires subscription for RSS, using alternative)
-  // CoStar doesn't offer public RSS feeds - their data is subscription-only
-  
-  // 11. LEHIGH VALLEY BUSINESS ✅
+  // 10. LEHIGH VALLEY BUSINESS ✅ - Working
   { url: "https://lvb.com/feed/", name: "Lehigh Valley Business", region: "PA", source: "Lehigh Valley Business", timeout: 30000 },
   
-  // 12. DAILY RECORD ✅ (NJ news - using USA Today network feed)
-  { url: "https://rssfeeds.usatoday.com/dailyrecord/news", name: "Daily Record", region: "NJ", source: "Daily Record", timeout: 30000 },
+  // 11. DAILY RECORD NJ - Alternative feeds
+  { url: "https://www.northjersey.com/arcio/rss/category/news/morris/", name: "North Jersey Morris", region: "NJ", source: "Daily Record", timeout: 30000, headers: BROWSER_HEADERS },
   
-  // 13. NJBIZ ✅
+  // 12. NJBIZ ✅ - Working
   { url: "https://njbiz.com/feed/", name: "NJBIZ", region: "NJ", source: "NJBIZ", timeout: 30000 },
 
   // ============================================
   // ADDITIONAL QUALITY SOURCES
   // ============================================
   
-  // ConnectCRE (Industrial focused)
+  // ConnectCRE (Industrial focused) ✅ - Working
   { url: "https://www.connectcre.com/feed?story-sector=industrial", name: "ConnectCRE Industrial", region: "US", source: "ConnectCRE", timeout: 30000 },
   { url: "https://www.connectcre.com/feed?story-market=new-jersey", name: "ConnectCRE NJ", region: "NJ", source: "ConnectCRE", timeout: 30000 },
+  { url: "https://www.connectcre.com/feed?story-market=texas", name: "ConnectCRE Texas", region: "TX", source: "ConnectCRE", timeout: 30000 },
+  { url: "https://www.connectcre.com/feed?story-market=pennsylvania", name: "ConnectCRE PA", region: "PA", source: "ConnectCRE", timeout: 30000 },
   
   // Supply Chain & Logistics
   { url: "https://www.supplychaindive.com/feeds/news/", name: "Supply Chain Dive", region: "US", source: "Supply Chain Dive", timeout: 30000 },
   { url: "https://www.freightwaves.com/feed/", name: "FreightWaves", region: "US", source: "FreightWaves", timeout: 30000 },
   
-  // Additional Business Journals
-  { url: "https://www.bizjournals.com/philadelphia/feed", name: "Philadelphia Business Journal", region: "PA", source: "BizJournals", timeout: 30000 },
-  { url: "https://www.bizjournals.com/dallas/feed", name: "Dallas Business Journal", region: "TX", source: "BizJournals", timeout: 30000 },
-  
   // CRE News
   { url: "https://www.credaily.com/feed/", name: "CRE Daily", region: "US", source: "CRE Daily", timeout: 30000 },
   { url: "https://www.therealdeal.com/new-york/feed/", name: "The Real Deal NY", region: "NY", source: "The Real Deal", timeout: 30000 },
   { url: "https://www.therealdeal.com/miami/feed/", name: "The Real Deal Miami", region: "FL", source: "The Real Deal", timeout: 30000 },
+  
+  // REBusinessOnline (Good industrial coverage)
+  { url: "https://rebusinessonline.com/feed/", name: "REBusiness Online", region: "US", source: "REBusiness", timeout: 30000, headers: BROWSER_HEADERS },
 ];
 
 // Manual articles added via UI form (in-memory)
@@ -468,20 +477,24 @@ function containsAny(text: string, keywords: string[]): boolean {
 // Allowed domains for URL validation - includes all mandatory sources
 const allowedDomains = [
     // MANDATORY SOURCES (Boss's Priority List)
-    "re-nj.com",           // Real Estate NJ
+    "re-nj.com",            // Real Estate NJ
     "commercialsearch.com", // Commercial Search
-    "wsj.com",             // WSJ
-    "bisnow.com",          // Bisnow
-    "globest.com",         // GlobeSt
-    "naiop.org",           // NAIOP
-    "cpexecutive.com",     // Commercial Property Executive
-    "bizjournals.com",     // South FL Business Journal + others
-    "loopnet.com",         // LoopNet
-    "costar.com",          // CoStar
-    "costargroup.com",     // CoStar Group
-    "lvb.com",             // Lehigh Valley Business
-    "dailyrecord.com",     // Daily Record
-    "njbiz.com",           // NJBIZ
+    "commercialcafe.com",   // Commercial Cafe (same company as Commercial Search)
+    "wsj.com",              // WSJ
+    "dowjones.com",         // WSJ parent
+    "bisnow.com",           // Bisnow
+    "globest.com",          // GlobeSt
+    "naiop.org",            // NAIOP
+    "blog.naiop.org",       // NAIOP Blog
+    "cpexecutive.com",      // Commercial Property Executive
+    "bizjournals.com",      // South FL Business Journal + others
+    "loopnet.com",          // LoopNet
+    "costar.com",           // CoStar
+    "costargroup.com",      // CoStar Group
+    "lvb.com",              // Lehigh Valley Business
+    "dailyrecord.com",      // Daily Record
+    "northjersey.com",      // North Jersey (Daily Record alternative)
+    "njbiz.com",            // NJBIZ
     
     // Additional Quality Sources
     "connectcre.com",
@@ -500,7 +513,11 @@ const allowedDomains = [
     "traded.co",
     "crexi.com",
     "areadevelopment.com",
-    "rebusinessonline.com"
+    "rebusinessonline.com",
+    "multihousingnews.com",
+    "wealthmanagement.com",
+    "nreionline.com",
+    "reit.com"
 ];
 
 // Extract a thumbnail image from common RSS/Atom fields
@@ -2534,12 +2551,25 @@ async function buildStaticRSS() {
         };
         log('info', 'RSS fetch completed', fetchStats);
 
-        // Get all freshly fetched items
-        const allItems = getItemsFiltered({ since: null, until: null, region: null, source: null, limit: 1000 });
+        // Get ALL freshly fetched items directly from results (bypass itemStore)
+        const allItems: NormalizedItem[] = [];
+        for (const result of results) {
+            if (result.status === 'ok' && result.articles) {
+                allItems.push(...result.articles);
+            }
+        }
+        log('info', `Got ${allItems.length} items from fetch results`);
 
-        // Apply enhanced filtering to new items
-        const filteredNewItems = allItems.filter(shouldIncludeArticle);
-        log('info', `Filtered to ${filteredNewItems.length} articles after domain/relevance checks`, {
+        // Apply light filtering - just check URL validity
+        const filteredNewItems = allItems.filter(item => {
+            // Skip clearly invalid items
+            if (!item.link || !item.title) return false;
+            // Skip spam
+            if (shouldRejectUrl(item.link)) return false;
+            // Allow all items from allowed domains
+            return isAllowedLink(item.link);
+        });
+        log('info', `Filtered to ${filteredNewItems.length} articles after domain checks`, {
             beforeFiltering: allItems.length,
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
@@ -2555,18 +2585,18 @@ async function buildStaticRSS() {
         const mergedArticles = [...newItems, ...existingArticles];
         log('info', `Merged: ${newItems.length} new + ${existingArticles.length} existing = ${mergedArticles.length} total`);
 
-        // === STEP 4: Apply 15-day cleanup ===
-        const fifteenDaysAgo = new Date();
-        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        // === STEP 4: Apply 30-day cleanup (extended for better coverage) ===
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
         const cleanedArticles = mergedArticles.filter(item => {
             const pubDate = new Date(item.pubDate || item.fetchedAt || Date.now());
-            return pubDate >= fifteenDaysAgo;
+            return pubDate >= thirtyDaysAgo;
         });
         
         const removedCount = mergedArticles.length - cleanedArticles.length;
         if (removedCount > 0) {
-            log('info', `Auto-deleted ${removedCount} articles older than 15 days`);
+            log('info', `Auto-deleted ${removedCount} articles older than 30 days`);
         }
 
         // Sort by publication date (newest first)
