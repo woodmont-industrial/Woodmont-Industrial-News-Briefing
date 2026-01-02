@@ -31,10 +31,16 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      background: white;
+      background: white !important;
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .dark .container {
+      background: #1e293b !important;
     }
     
     .newsletter-content .section {
@@ -944,20 +950,39 @@
           // Use feed.json for static GitHub Pages, /api/articles for local server
           const url = IS_STATIC ? 'feed.json' : '/api/articles';
           const res = await fetch(url);
+          if (!res.ok) {
+            throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+          }
           const data = await res.json();
           // Handle both JSON Feed format (items array) and API format
           const articles = IS_STATIC 
-            ? (data.items || []).map(item => ({
-                ...item,
-                link: item.url || item.link,
-                pubDate: item.date_published || item.pubDate,
-                description: item.content_text || item.content_html || item.description,
-                source: item.author?.name || item.source,
-                category: (item.tags?.[0] || 'relevant').toLowerCase().includes('transaction') ? 'transaction' 
-                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('availab') ? 'availabilities'
-                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('people') ? 'people' 
-                  : 'relevant'
-              }))
+            ? (data.items || []).map(item => {
+                // Handle author - can be object or string
+                let authorName = '';
+                if (item.author) {
+                  authorName = typeof item.author === 'string' ? item.author : (item.author.name || '');
+                }
+                if (!authorName) {
+                  authorName = item.source || 'Unknown';
+                }
+                
+                // Determine category from tags
+                const firstTag = item.tags?.[0] || '';
+                const tagLower = firstTag.toLowerCase();
+                let category = 'relevant';
+                if (tagLower.includes('transaction')) category = 'transaction';
+                else if (tagLower.includes('availab')) category = 'availabilities';
+                else if (tagLower.includes('people')) category = 'people';
+                
+                return {
+                  ...item,
+                  link: item.url || item.link || '',
+                  pubDate: item.date_published || item.pubDate || new Date().toISOString(),
+                  description: item.content_text || item.content_html || item.description || '',
+                  source: authorName,
+                  category: category
+                };
+              })
             : (Array.isArray(data.items) ? data.items : []);
           setItems(articles);
           if (data.generatedAt) {
@@ -967,9 +992,11 @@
             setLastUpdated(new Date().toLocaleString());
           }
         } catch (e) {
-          console.error(e);
+          console.error('Error fetching items:', e);
           setItems([]);
           setLastUpdated("");
+          // Show error to user
+          alert('Failed to load articles. Please refresh the page.');
         } finally {
           if (showLoading) setLoading(false);
         }

@@ -2652,18 +2652,38 @@ async function buildStaticRSS() {
                     availabilities: 'AVAILABILITIES — New Industrial Properties for Sale/Lease',
                     people: 'PEOPLE NEWS — Personnel Moves in Industrial Brokerage/Development'
                 };
+                
+                // Handle image - can be string or array
+                let imageUrl = null;
+                if (item.image) {
+                    imageUrl = Array.isArray(item.image) ? item.image[0] : item.image;
+                }
+                
+                // Handle author - ensure it's a string
+                let authorName = '';
+                if (item.author) {
+                    authorName = typeof item.author === 'string' ? item.author : (item.author.name || '');
+                }
+                if (!authorName) {
+                    authorName = item.source || item.publisher || 'Unknown';
+                }
+                
+                // Handle description
+                const description = item.description || item.content || '';
+                const summary = description ? (description.substring(0, 200) + (description.length > 200 ? '...' : '')) : '';
+                
                 return {
                     id: item.id,
-                    url: item.link,
-                    title: item.title,
-                    content_html: item.description,
-                    content_text: item.description,
-                    summary: item.description?.substring(0, 200) + '...',
-                    date_published: item.pubDate,
-                    date_modified: item.fetchedAt,
-                    image: item.image,
+                    url: item.link || item.url || '',
+                    title: item.title || 'Untitled',
+                    content_html: description,
+                    content_text: description,
+                    summary: summary,
+                    date_published: item.pubDate || item.date_published || new Date().toISOString(),
+                    date_modified: item.fetchedAt || item.date_modified || new Date().toISOString(),
+                    image: imageUrl,
                     author: {
-                        name: item.author || item.source || item.publisher
+                        name: authorName
                     },
                     tags: [categoryLabels[category] || category, ...(item.regions || [])]
                 };
