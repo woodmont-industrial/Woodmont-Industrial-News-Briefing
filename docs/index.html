@@ -1,1424 +1,692 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Woodmont Industrial News Feed</title>
-  <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    body { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 20px;
-    }
-    .card-anim { transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
-    .card-anim:hover { transform: translateY(-4px); box-shadow: 0 16px 35px rgba(15,23,42,0.12); opacity: 0.98; }
-    .img-anim { transition: transform 200ms ease; }
-    .card-anim:hover .img-anim { transform: scale(1.03); }
-    .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-
-    /* Dark theme styles */
-    .dark { background-color: #0f172a; color: #f1f5f9; }
-    .dark .card-anim { background-color: #1e293b; border-color: #334155; }
-    .dark .card-anim:hover { background-color: #334155; }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    
-    .newsletter-content .section {
-      margin-bottom: 35px;
-    }
-    .newsletter-content .section-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #667eea;
-    }
-    .newsletter-content .section-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      font-weight: bold;
-      color: white;
-    }
-    .newsletter-content .article-item {
-            margin-bottom: 20px;
-      padding: 16px;
-      background: #f8fafc;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-    }
-    .newsletter-content .article-title {
-      font-size: 16px;
-            font-weight: 600;
-      margin-bottom: 8px;
-      color: #1e293b;
-    }
-    .newsletter-content .article-meta {
-            font-size: 14px;
-      color: #64748b;
-            margin-bottom: 8px;
-    }
-    .newsletter-content .article-summary {
-            font-size: 14px;
-      color: #475569;
-      line-height: 1.5;
-    }
-    .newsletter-content .transaction-highlight {
-      background: #fef3c7;
-      border-left-color: #f59e0b;
-    }
-    .newsletter-content .availability-highlight {
-      background: #ecfdf5;
-      border-left-color: #10b981;
-    }
-    .newsletter-content .people-highlight {
-      background: #fef3c7;
-      border-left-color: #f59e0b;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woodmont Industrial News Feed</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .article { border: 1px solid #ddd; margin-bottom: 15px; padding: 15px; border-radius: 5px; }
+        .article-title { margin: 0 0 10px 0; }
+        .article-title a { text-decoration: none; color: #0066cc; }
+        .article-title a:hover { text-decoration: underline; }
+        .article-meta { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .article-description { color: #333; line-height: 1.4; }
+        .last-updated { text-align: center; color: #666; margin-top: 30px; font-size: 0.9em; }
     </style>
 </head>
 <body>
-  <div id="root"></div>
+    <div class="header">
+        <h1>🏭 Woodmont Industrial Partners</h1>
+        <h2>Daily Industrial News Feed</h2>
+        <p>Latest industrial real estate news across NJ, PA, FL, and TX</p>
+        <p><a href="rss.xml">📡 RSS Feed</a> | <a href="feed.json">📄 JSON Feed</a></p>
+    </div>
 
-  <script type="text/babel" data-type="module">
-    const { useState, useEffect, useMemo, useCallback } = React;
-
-    const regions = ["All", "NJ", "PA", "FL", "TX"];
-    const IS_STATIC = window.location.hostname !== 'localhost';
-    const API_BASE = '';
-
-    const Header = ({ timeframe, theme, setTheme }) => {
-      const period = (() => {
-        const days = parseInt(timeframe, 10);
-        if (days === 1) return "Last 24 Hours";
-        if (days === 7) return "Last 7 Days";
-        if (days === 30) return "Last 30 Days";
-        if (days === 90) return "Last 90 Days";
-        if (days === 180) return "Last 6 Months";
-        return "All Time";
-      })();
-
-      return (
-        <header className="relative overflow-hidden">
-          <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)'}}></div>
-          <div className="relative px-6 py-8 text-center text-white">
-            <div className="flex items-center justify-center gap-4">
-              <div>
-                <h1 className="text-3xl font-semibold mb-2">🏭 Woodmont Industrial Partners</h1>
-                <p className="text-base opacity-90">Daily Industrial News Feed</p>
-                <div className="text-sm opacity-80 mt-1">Coverage Period: {period}</div>
-                <div className="text-sm opacity-80">Focus Markets: NJ, PA, FL, TX</div>
-              </div>
-              <button 
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
-                className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-              >
-                {theme === 'light' ? '🌙' : '☀️'}
-              </button>
-            </div>
-          </div>
-        </header>
-      );
-    };
-
-    const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => (
-      <>
-        <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1 flex gap-3 flex-wrap">
-            <input
-              className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
-              placeholder="Search title or summary"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <select
-              className="w-36 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              {regions.map(r => <option key={r} value={r === "All" ? "" : r}>{r}</option>)}
-            </select>
-            <select
-              className="w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Category: All</option>
-              <option value="relevant">RELEVANT ARTICLES</option>
-              <option value="transaction">TRANSACTIONS</option>
-              <option value="availabilities">AVAILABILITIES</option>
-              <option value="people">PEOPLE NEWS</option>
-            </select>
-            <select
-              className="w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-            >
-              <option value="">Source: All</option>
-              {sources.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select
-              className="w-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-            </select>
-            <select
-              className="w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-            >
-              <option value="1">Last 24 hours</option>
-              <option value="3">Last 3 days</option>
-              <option value="7">Last 7 days</option>
-              <option value="14">Last 14 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-            </select>
-          </div>
-          <div className="flex gap-3 items-center">
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              {stats.filtered} of {stats.total} articles • Updated {stats.updated}
-            </div>
-              <div className="flex gap-2">
-              <button
-                  onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                  viewMode === "articles"
-                      ? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-                      : "bg-blue-500 text-white"
-                }`}
-              >
-                  {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
-              </button>
-              {!IS_STATIC && (
-              <button
-                  onClick={() => setViewMode(viewMode === "admin" ? "articles" : "admin")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    viewMode === "admin"
-                      ? "bg-purple-500 text-white"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  ⚙️ Admin
-              </button>
-              )}
-            </div>
-            <button
-              onClick={onRefresh}
-              disabled={refreshLoading}
-              className="px-4 py-2 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-            >
-              {refreshLoading ? (
-                <>
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  🔄 Refresh
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-4 pb-4">
-          {lastFetchInfo && (
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm border border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-600 dark:text-slate-400">Last fetched:</span>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">
-                    {lastFetchInfo.timestamp ? new Date(lastFetchInfo.timestamp).toLocaleString() : 'Never'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-green-600 font-medium">{lastFetchInfo.totalFetched || lastFetchInfo.fetched || 0}</span>
-                    <span className="text-slate-600 dark:text-slate-400">fetched</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    <span className="text-blue-600 font-medium">{lastFetchInfo.totalKept || lastFetchInfo.kept || 0}</span>
-                    <span className="text-slate-600 dark:text-slate-400">kept</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                    <span className="text-purple-600 font-medium">{lastFetchInfo.sourcesProcessed || lastFetchInfo.sources || 0}</span>
-                    <span className="text-slate-600 dark:text-slate-400">sources</span>
-                  </span>
-                </div>
-                {lastFetchInfo && (lastFetchInfo.lastArticle || lastFetchInfo.latestTitle) && (
-                  <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-slate-600 dark:text-slate-400">Latest:</span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100 max-w-xs truncate" title={lastFetchInfo.lastArticle?.title || lastFetchInfo.latestTitle}>
-                      {lastFetchInfo.lastArticle?.title || lastFetchInfo.latestTitle || 'N/A'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </>
-    );
-
-    const ArticleCard = ({ item, onClick }) => {
-      const fallback = "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400&h=300&fit=crop&crop=center";
-      const [imgSrc, setImgSrc] = useState(item.image || fallback);
-
-      const published = item.pubDate ? new Date(item.pubDate) : null;
-      const isValidDate = published && !isNaN(published.getTime());
-
-      return (
-        <article
-          className="card-anim bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-slate-300 dark:focus-within:ring-slate-600 cursor-pointer hover:shadow-lg transition-shadow"
-          onClick={() => onClick && onClick(item)}
-        >
-          <div className="relative aspect-video bg-slate-100 dark:bg-slate-900 overflow-hidden">
-            <img
-              src={imgSrc || fallback}
-              alt={item.title || 'Article image'}
-              className="img-anim w-full h-full object-cover"
-              loading="lazy"
-              onError={() => setImgSrc(fallback)}
-            />
-            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 opacity-60 pointer-events-none"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
-            <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
-              <span className="bg-white/85 dark:bg-slate-700/85 text-slate-900 dark:text-slate-100 text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wide">
-                {item.source || item.publisher || 'Source'}
-              </span>
-            </div>
-          </div>
-          <div className="p-4 flex flex-col gap-3 flex-1">
-            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
-              {isValidDate && <span>{published.toLocaleDateString()}</span>}
-              {item.category && (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  item.category === 'transaction' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                  item.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
-                  'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-                }`}>
-                  {item.category === 'transaction' ? 'TRANSACTIONS' :
-                   item.category === 'availabilities' ? 'AVAILABILITIES' :
-                   item.category === 'people' ? 'PEOPLE NEWS' :
-                   'RELEVANT ARTICLES'}&nbsp;
-                  {item.category}
-                </span>
-              )}
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight clamp-2">
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                {item.title}
-              </a>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/investor-duo-sells-avondale-usps-distribution-center-for-89-8m/" target="_blank">Investor Duo Sells Avondale USPS Distribution Center for $89.8M</a>
             </h3>
-            {item.description && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1">
-                {item.description}
-              </p>
-            )}
-            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700">
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-              >
-                Read more →
-              </a>
+            <div class="article-meta">
+                ConnectCRE Industrial •
+                1/2/2026 •
+                Relevant
             </div>
-          </div>
-        </article>
-      );
-    };
-
-    const ArticleGrid = ({ items, loading, onArticleClick }) => (
-      <div className="max-w-6xl mx-auto px-4">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin text-4xl mb-4">⟳</div>
-            <p className="text-slate-600 dark:text-slate-400">Loading articles...</p>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {items.map(item => <ArticleCard key={item.id || item.link} item={item} onClick={onArticleClick} />)}
-          </div>
-        )}
-      </div>
-    );
-
-    const ArticlePreview = ({ article, onClose, onBlacklist }) => {
-      if (!article) return null;
-
-      const published = article.pubDate ? new Date(article.pubDate) : null;
-      const isValidDate = published && !isNaN(published.getTime());
-
-        return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 leading-tight">
-                    {article.title}
-                  </h2>
-                  <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                    <span className="font-medium">{article.publisher || article.source}</span>
-                    {isValidDate && <span>{published.toLocaleDateString()}</span>}
-                    {article.category && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        article.category === 'transaction' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                        article.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                        article.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
-                        'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-                      }`}>
-                        {article.category === 'transaction' ? 'TRANSACTIONS' :
-                         article.category === 'availabilities' ? 'AVAILABILITIES' :
-                         article.category === 'people' ? 'PEOPLE NEWS' :
-                         'RELEVANT ARTICLES'}&nbsp;
-                        {article.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
+            <div class="article-description">
+                Westfield and RGA ReCap offloaded the Fairway Commerce Center in Avondale, a 450,000 square foot distribution center. The $89.8 million sale features a 10-year triple-net lease with the United States Postal Service. It represents one of the most significant industrial transactions in the West Valley...
             </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              {article.image && (
-                <div className="mb-6">
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-
-              {article.description && (
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
-                    {article.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Article Metadata */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">Source:</span>
-                    <span className="ml-2 text-slate-600 dark:text-slate-400">{article.source || article.publisher}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">Published:</span>
-                    <span className="ml-2 text-slate-600 dark:text-slate-400">
-                      {isValidDate ? published.toLocaleString() : 'Unknown'}
-                    </span>
-                  </div>
-                  {article.regions && article.regions.length > 0 && (
-                    <div>
-                      <span className="font-medium text-slate-900 dark:text-slate-100">Regions:</span>
-                      <span className="ml-2 text-slate-600 dark:text-slate-400">{article.regions.join(', ')}</span>
-                    </div>
-                  )}
-                  {article.topics && article.topics.length > 0 && (
-                    <div>
-                      <span className="font-medium text-slate-900 dark:text-slate-100">Topics:</span>
-                      <span className="ml-2 text-slate-600 dark:text-slate-400">{article.topics.join(', ')}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-              <div className="flex justify-between items-center">
-                <div>
-                  {onBlacklist && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Blacklist this article? It will be hidden from the feed.')) {
-                          onBlacklist(article.id);
-                          onClose();
-                        }
-                      }}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
-                    >
-                      Blacklist Article
-                    </button>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <a
-                    href={article.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                  >
-                    Read Full Article →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
-        );
-    };
-
-    const AdminPanel = ({ manualTitle, setManualTitle, manualUrl, setManualUrl, manualSummary, setManualSummary, manualCategory, setManualCategory, manualSource, setManualSource, showManualForm, setShowManualForm, onAddManualArticle, newsletterRecipients, setNewsletterRecipients, reviewMode, setReviewMode, filteredArticles, fetchFilteredArticles, approveArticle, blacklistArticle, reviewCategory, setReviewCategory }) => {
-      return (
-        <div className="max-w-6xl mx-auto px-4 pb-12">
-          {/* Article Review Section */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">🔍 Review Filtered Articles</h2>
-              <button
-                onClick={() => {
-                  setReviewMode(!reviewMode);
-                  if (!reviewMode) fetchFilteredArticles();
-                }}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors"
-              >
-                {reviewMode ? 'Hide Review' : 'Show Review'}
-              </button>
-            </div>
-
-            {reviewMode && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Filter by category:</label>
-                  <select
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                    value={reviewCategory}
-                    onChange={(e) => {
-                      setReviewCategory(e.target.value);
-                      fetchFilteredArticles();
-                    }}
-                  >
-                    <option value="not relevant">Not Relevant ({filteredArticles.filter(a => a.category === 'not relevant').length})</option>
-                    <option value="excluded">Excluded ({filteredArticles.filter(a => a.category === 'excluded').length})</option>
-                    <option value="unapproved source">Unapproved Source ({filteredArticles.filter(a => a.category === 'unapproved source').length})</option>
-                  </select>
-                  <span className="text-sm text-slate-600 dark:text-slate-400">
-                    Showing {filteredArticles.filter(a => a.category === reviewCategory).length} articles
-                  </span>
-                </div>
-
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {filteredArticles.filter(a => a.category === reviewCategory).map(article => (
-                    <div key={article.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2 line-clamp-2">{article.title}</h4>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 line-clamp-2">{article.description}</p>
-                          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-500">
-                            <span>Source: {article.source || article.publisher}</span>
-                            <span>Date: {new Date(article.pubDate || article.fetchedAt).toLocaleDateString()}</span>
-                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{article.category}</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <select
-                            className="text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-slate-900 dark:text-white"
-                            defaultValue=""
-                            onChange={(e) => {
-                              if (e.target.value && confirm(`Approve this article as ${e.target.value}?`)) {
-                                approveArticle(article.id, e.target.value);
-                              }
-                            }}
-                          >
-                            <option value="" disabled>Approve as...</option>
-                            <option value="relevant">RELEVANT ARTICLES</option>
-                            <option value="transaction">TRANSACTIONS</option>
-                            <option value="availabilities">AVAILABILITIES</option>
-                            <option value="people">PEOPLE NEWS</option>
-                          </select>
-                          <button
-                            onClick={() => blacklistArticle(article.id)}
-                            className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                          >
-                            Blacklist
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredArticles.filter(a => a.category === reviewCategory).length === 0 && (
-                    <p className="text-center text-slate-500 dark:text-slate-400 py-8">No articles found for this category.</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Manual Article Addition */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📝 Add Manual Article</h2>
-                <button
-                  onClick={() => setShowManualForm(!showManualForm)}
-                  className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
-                >
-                  {showManualForm ? 'Hide' : 'Show'} Form
-                </button>
-              </div>
-
-              {showManualForm && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title *</label>
-                    <input
-                      type="text"
-                      value={manualTitle}
-                      onChange={(e) => setManualTitle(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                      placeholder="Article title"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL *</label>
-                    <input
-                      type="url"
-                      value={manualUrl}
-                      onChange={(e) => setManualUrl(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                      placeholder="https://example.com/article"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Summary</label>
-                    <textarea
-                      value={manualSummary}
-                      onChange={(e) => setManualSummary(e.target.value)}
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                      placeholder="Brief summary of the article"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
-                      <select
-                        value={manualCategory}
-                        onChange={(e) => setManualCategory(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                      >
-                        <option value="relevant">RELEVANT ARTICLES</option>
-                        <option value="transaction">TRANSACTIONS</option>
-                        <option value="availabilities">AVAILABILITIES</option>
-                        <option value="people">PEOPLE NEWS</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Source</label>
-                      <input
-                        type="text"
-                        value={manualSource}
-                        onChange={(e) => setManualSource(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                        placeholder="Source name"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={onAddManualArticle}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
-                  >
-                    ➕ Add Article
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Newsletter Recipients */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">📧 Newsletter Recipients</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Addresses</label>
-                  <textarea
-                    value={newsletterRecipients}
-                    onChange={(e) => setNewsletterRecipients(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                    placeholder="email1@company.com, email2@company.com&#10;Separate multiple emails with commas"
-                  />
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400">
-                  <p>• Separate multiple recipients with commas</p>
-                  <p>• Recipients will be saved automatically</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      );
-    };
-    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading }) => {
-      const [showTemplate, setShowTemplate] = useState(false);
-      const [sendingEmail, setSendingEmail] = useState(false);
-      
-      const downloadNewsletter = useCallback(async () => {
-        if (!html) return;
-        
-        try {
-          // Create a temporary container
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = html;
-          tempDiv.style.width = '210mm'; // A4 width
-          tempDiv.style.padding = '20mm';
-          tempDiv.style.backgroundColor = '#ffffff';
-          tempDiv.style.position = 'absolute';
-          tempDiv.style.left = '-9999px';
-          tempDiv.style.top = '0';
-          document.body.appendChild(tempDiv);
-          
-          // Wait for images to load
-          const images = tempDiv.getElementsByTagName('img');
-          await Promise.all(Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise((resolve, reject) => {
-              img.onload = resolve;
-              img.onerror = resolve; // Continue even if image fails
-              setTimeout(resolve, 3000); // Timeout after 3 seconds
-            });
-          }));
-          
-          // Generate canvas
-          const canvas = await html2canvas(tempDiv, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: '#ffffff',
-            width: tempDiv.scrollWidth,
-            height: tempDiv.scrollHeight,
-            windowWidth: tempDiv.scrollWidth,
-            windowHeight: tempDiv.scrollHeight
-          });
-
-          // Remove temporary container
-          document.body.removeChild(tempDiv);
-          
-          // Create PDF
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-          });
-
-          const imgData = canvas.toDataURL('image/png');
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-          
-          // Add image to PDF, handling multi-page if needed
-          let heightLeft = pdfHeight;
-          let position = 0;
-          
-          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-          heightLeft -= pdf.internal.pageSize.getHeight();
-          
-          while (heightLeft >= 0) {
-            position = heightLeft - pdfHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pdf.internal.pageSize.getHeight();
-          }
-          
-          // Save PDF
-          const date = new Date().toISOString().split('T')[0];
-          pdf.save(`industrial-newsletter-${date}.pdf`);
-        } catch (error) {
-          console.error('Error generating PDF:', error);
-          alert('Error generating PDF. Please try again.');
-        }
-      }, [html]);
-
-      if (loading) {
-        return (
-          <div className="max-w-6xl mx-auto px-4 pb-12">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-8 animate-pulse">
-              <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
-              <div className="space-y-4">
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6"></div>
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/5"></div>
-              </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/giant-closing-fulfillment-centers-as-it-adjusts-ecommerce-operations/" target="_blank">Giant closing fulfillment centers as it adjusts ecommerce operations</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/30/2025 •
+                Other
             </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="max-w-6xl mx-auto px-4 pb-12">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 mb-6">
-            <div className="flex flex-wrap items-center gap-4 justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📧 Newsletter Generator</h2>
-                {generated && (
-                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full">
-                    ✓ Generated
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-slate-600 dark:text-slate-400">Timeframe:</label>
-                  <select
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
-                    value={timeframe}
-                    onChange={(e) => setTimeframe(e.target.value)}
-                  >
-                    <option value="1">Last 24 hours</option>
-                    <option value="3">Last 3 days</option>
-                    <option value="7">Last 7 days</option>
-                    <option value="14">Last 14 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="90">Last 90 days</option>
-                  </select>
-                </div>
-                
-                <button
-                  onClick={onGenerate}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                >
-                  Generate Newsletter
-                </button>
-                
-                {generated && (
-                  <>
-                    <button
-                      onClick={downloadNewsletter}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
-                    >
-                      📄 Download PDF
-                    </button>
-                    {!IS_STATIC && (
-                    <button
-                      onClick={onSendEmail}
-                      disabled={emailLoading}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                    >
-                      {emailLoading ? (
-                        <>
-                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                          Sending...
-                        </>
-                      ) : (
-                        <>📧 Send Email</>
-                      )}
-                    </button>
-                    )}
-                <button
-                      onClick={onClear}
-                      className="px-4 py-2 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
-                    >
-                      Clear
-                </button>
-                  </>
-            )}
-              </div>
+            <div class="article-description">
+                Giant will close its Coopersburg and other PA fulfillment centers as it shifts to store-based picking and third-party delivery to offer faster ecommerce service.
             </div>
-          </div>
-
-          {html && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Preview</h3>
-              <button
-                onClick={() => setShowTemplate(!showTemplate)}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-              >
-                    {showTemplate ? 'Hide Template' : 'Show Template'}
-              </button>
-            </div>
-          </div>
-              <div className="p-6">
-                {showTemplate ? (
-                  <div className="newsletter-content" dangerouslySetInnerHTML={{ __html: html }} />
-                ) : (
-                  <iframe
-                    srcDoc={`<html><head><style>body{font-family:Arial,sans-serif;margin:20px;background:white;} .newsletter-content{max-width:800px;margin:0 auto;}</style></head><body><div class="newsletter-content">${html}</div></body></html>`}
-                    className="w-full h-96 border border-slate-200 dark:border-slate-700 rounded-lg"
-                    title="Newsletter Preview"
-                  />
-                )}
-              </div>
-            </div>
-          )}
         </div>
-      );
-    };
-
-    const App = () => {
-      const [items, setItems] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [query, setQuery] = useState("");
-      const [region, setRegion] = useState("");
-      const [category, setCategory] = useState("");
-      const [source, setSource] = useState("");
-      const [sort, setSort] = useState("newest");
-      const [timeframe, setTimeframe] = useState(""); // Show all articles by default
-      const [lastUpdated, setLastUpdated] = useState("");
-      const [viewMode, setViewMode] = useState("articles");
-      const [theme, setTheme] = useState("light");
-      const [newsletterHTML, setNewsletterHTML] = useState("");
-      const [newsletterGenerated, setNewsletterGenerated] = useState(false);
-      const [newsletterTimeframe, setNewsletterTimeframe] = useState("7");
-      const [newsletterRecipients, setNewsletterRecipients] = useState("");
-      const [refreshLoading, setRefreshLoading] = useState(false);
-      const [lastFetchInfo, setLastFetchInfo] = useState(null);
-      const [manualTitle, setManualTitle] = useState('');
-      const [manualUrl, setManualUrl] = useState('');
-      const [manualSummary, setManualSummary] = useState('');
-      const [manualCategory, setManualCategory] = useState('relevant');
-      const [manualSource, setManualSource] = useState('');
-      const [showManualForm, setShowManualForm] = useState(false);
-      const [emailLoading, setEmailLoading] = useState(false);
-      const [selectedArticle, setSelectedArticle] = useState(null);
-      const [showArticlePreview, setShowArticlePreview] = useState(false);
-      const [reviewMode, setReviewMode] = useState(false);
-      const [filteredArticles, setFilteredArticles] = useState([]);
-      const [reviewCategory, setReviewCategory] = useState('not relevant');
-
-      const fetchItems = useCallback(async (showLoading = true) => {
-        if (showLoading) setLoading(true);
-        try {
-          // Use feed.json for static GitHub Pages, /api/articles for local server
-          const url = IS_STATIC ? 'feed.json' : '/api/articles';
-          const res = await fetch(url);
-          const data = await res.json();
-          // Handle both JSON Feed format (items array) and API format
-          const articles = IS_STATIC 
-            ? (data.items || []).map(item => ({
-                ...item,
-                link: item.url || item.link,
-                pubDate: item.date_published || item.pubDate,
-                description: item.content_text || item.content_html || item.description,
-                source: item.author?.name || item.source,
-                category: (item.tags?.[0] || 'relevant').toLowerCase().includes('transaction') ? 'transaction' 
-                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('availab') ? 'availabilities'
-                  : (item.tags?.[0] || 'relevant').toLowerCase().includes('people') ? 'people' 
-                  : 'relevant'
-              }))
-            : (Array.isArray(data.items) ? data.items : []);
-          setItems(articles);
-          if (data.generatedAt) {
-            const d = new Date(data.generatedAt);
-            setLastUpdated(d.toLocaleString());
-          } else {
-            setLastUpdated(new Date().toLocaleString());
-          }
-        } catch (e) {
-          console.error(e);
-          setItems([]);
-          setLastUpdated("");
-        } finally {
-          if (showLoading) setLoading(false);
-        }
-      }, []);
-
-      const fetchLastFetchInfo = useCallback(async () => {
-        if (IS_STATIC) return; // Skip for static mode
-        try {
-          const res = await fetch('/api/last-fetch');
-          const data = await res.json();
-          setLastFetchInfo(data);
-        } catch (e) {
-          console.error('Error fetching last fetch info:', e);
-        }
-      }, []);
-
-      const onRefresh = useCallback(async () => {
-        if (IS_STATIC) {
-          // In static mode, just reload the page to get latest feed.json
-          window.location.reload();
-          return;
-        }
-        setRefreshLoading(true);
-        try {
-          console.log('Starting refresh...');
-          const refreshResponse = await fetch('/api/refresh');
-          console.log('Refresh API completed, fetching updated articles...');
-          await fetchItems(true);
-          await fetchLastFetchInfo();
-          console.log('Refresh completed successfully');
-        } catch (e) {
-          console.error('Error refreshing:', e);
-        } finally {
-          setRefreshLoading(false);
-        }
-      }, [fetchItems, fetchLastFetchInfo]);
-
-      // Client-side newsletter HTML generator for static mode
-      const buildNewsletterHTML = (articles, days) => {
-        const now = new Date();
-        const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-        const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
-        
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
-        const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
-        const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
-        const people = articles.filter(a => a.category === 'people').slice(0, 5);
-        
-        const renderArticle = (item) => {
-          const region = item.regions?.[0] || 'US';
-          const desc = (item.description || '').substring(0, 150) + '...';
-          return `<div class="article-card">
-            <div class="article-header">
-              <span class="badge badge-location">${region}</span>
-              <span class="badge badge-source">${item.source || 'Unknown'}</span>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/aec-industry-2025-growth-challenges-and-technology-trends/" target="_blank">AEC industry 2025: growth, challenges, and technology trends</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/30/2025 •
+                Other
             </div>
-            <div class="article-content">${desc}</div>
-            <div class="article-source">
-              <a href="${item.link}" class="source-link" target="_blank">📖 Read Full Article – ${item.source || 'Source'}</a>
+            <div class="article-description">
+                Looking back at 2025, the AEC industry saw AI adoption, sustainable materials, digital twins, and collaboration, yet labor and housing challenges remain.
             </div>
-          </div>`;
-        };
-        
-        const renderSection = (title, icon, items) => {
-          const content = items.length > 0 
-            ? items.map(renderArticle).join('') 
-            : '<div class="empty-section">No articles available for this section.</div>';
-          return `<div class="section">
-            <div class="section-header">
-              <div class="section-icon">${icon}</div>
-              <div class="section-title">${title}</div>
-            </div>
-            ${content}
-          </div>`;
-        };
-        
-        return `<!DOCTYPE html><html><head><style>
-          *{margin:0;padding:0;box-sizing:border-box}
-          body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px}
-          .container{max-width:800px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-          .header{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;padding:40px 30px;text-align:center}
-          .header h1{font-size:28px;margin-bottom:10px}.header .subtitle{font-size:16px;opacity:.9;margin-bottom:8px}
-          .header .date-range{font-size:14px;opacity:.8;font-style:italic}
-          .content{padding:30px}.section{margin-bottom:35px}
-          .section-header{display:flex;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:3px solid #667eea}
-          .section-icon{width:40px;height:40px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-right:15px;font-size:20px}
-          .section-title{font-size:20px;color:#1e3c72;font-weight:600}
-          .article-card{background:#f8f9fa;border-left:4px solid #667eea;padding:20px;margin-bottom:15px;border-radius:8px}
-          .article-header{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-          .badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase}
-          .badge-location{background:#e3f2fd;color:#1976d2}.badge-source{background:#e8f5e9;color:#388e3c}
-          .article-content{color:#333;line-height:1.6;margin-bottom:10px}
-          .article-source{margin-top:12px;padding-top:12px;border-top:1px solid #dee2e6}
-          .source-link{color:#667eea;text-decoration:none;font-weight:500;font-size:14px}
-          .empty-section{background:#f8f9fa;padding:20px;border-radius:8px;text-align:center;color:#666;font-style:italic}
-          .footer{background:#f8f9fa;padding:25px 30px;text-align:center;color:#666;font-size:14px;border-top:1px solid #dee2e6}
-        </style></head><body><div class="container">
-          <div class="header">
-            <h1>🏭 Woodmont Industrial Partners</h1>
-            <div class="subtitle">Daily Industrial News Briefing</div>
-            <div class="date-range">Coverage Period: ${dateRange}</div>
-            <div class="date-range">Focus Markets: NJ, PA, FL, TX</div>
-          </div>
-          <div class="content">
-            ${renderSection('RELEVANT ARTICLES — Macro Trends & Industrial Real Estate News', '📰', relevant)}
-            ${renderSection('TRANSACTIONS — Notable Sales/Leases (≥100K SF or ≥$25M)', '💼', transactions)}
-            ${renderSection('AVAILABILITIES — New Industrial Properties for Sale/Lease', '🏢', availabilities)}
-            ${renderSection('PEOPLE NEWS — Personnel Moves in Industrial Brokerage/Development', '👥', people)}
-          </div>
-          <div class="footer">
-            <strong>Woodmont Industrial Partners</strong><br>
-            Daily Industrial News Briefing – Confidential & Proprietary<br>
-            © 2025 All Rights Reserved
-          </div>
-        </div></body></html>`;
-      };
-
-      const generateNewsletter = useCallback(async () => {
-        setLoading(true);
-        try {
-          if (IS_STATIC) {
-            // Generate newsletter client-side using loaded articles
-            const days = parseInt(newsletterTimeframe, 10);
-            const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-            const recentArticles = items.filter(item => {
-              const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
-              return pubDate >= cutoff;
-            });
-            const html = buildNewsletterHTML(recentArticles, days);
-            setNewsletterHTML(html);
-            setNewsletterGenerated(true);
-          } else {
-            const res = await fetch(`/api/newsletter?days=${newsletterTimeframe}`);
-            const data = await res.json();
-            setNewsletterHTML(data.html || '');
-            setNewsletterGenerated(true);
-          }
-        } catch (e) {
-          console.error('Error generating newsletter:', e);
-          setNewsletterHTML('<p>Error generating newsletter. Please try again.</p>');
-        } finally {
-          setLoading(false);
-        }
-      }, [newsletterTimeframe, items]);
-
-      const clearNewsletter = useCallback(() => {
-        setNewsletterHTML('');
-        setNewsletterGenerated(false);
-      }, []);
-
-      const addManualArticle = useCallback(async () => {
-        if (!manualTitle.trim() || !manualUrl.trim()) {
-          alert('Title and URL are required');
-          return;
-        }
-
-        try {
-          const response = await fetch((API_BASE || '') + '/api/manual', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + (localStorage.getItem('api_key') || 'demo-key')
-            },
-            body: JSON.stringify({
-              title: manualTitle,
-              url: manualUrl,
-              summary: manualSummary,
-              category: manualCategory,
-              source: manualSource || 'Manual Entry'
-            })
-          });
-
-          if (response.ok) {
-            alert('Article added successfully!');
-            setManualTitle('');
-            setManualUrl('');
-            setManualSummary('');
-            setManualCategory('relevant');
-            setManualSource('');
-            setShowManualForm(false);
-            // Refresh articles
-            fetchItems(true);
-          } else {
-            const error = await response.text();
-            alert('Error adding article: ' + error);
-          }
-        } catch (error) {
-          console.error('Error adding manual article:', error);
-          alert('Error adding article. Check console for details.');
-        }
-      }, [manualTitle, manualUrl, manualSummary, manualCategory, manualSource, fetchItems]);
-
-      const sendNewsletterEmail = useCallback(async () => {
-        if (!newsletterHTML) {
-          alert('Generate newsletter first');
-          return;
-        }
-
-        setEmailLoading(true);
-        try {
-          const response = await fetch((API_BASE || '') + '/api/send-newsletter', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              html: newsletterHTML,
-              timeframe: newsletterTimeframe,
-              recipients: newsletterRecipients.split(',').map(r => r.trim()).filter(r => r)
-            })
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            const recipientCount = result.recipients || 1;
-            alert(`Newsletter sent successfully to ${recipientCount} recipient${recipientCount > 1 ? 's' : ''}!`);
-          } else {
-            const error = await response.text();
-            alert('Error sending newsletter: ' + error);
-          }
-        } catch (error) {
-          console.error('Error sending newsletter:', error);
-          alert('Error sending newsletter. Check console for details.');
-        } finally {
-          setEmailLoading(false);
-        }
-      }, [newsletterHTML, newsletterTimeframe, newsletterRecipients]);
-
-      const handleArticleClick = useCallback((article) => {
-        setSelectedArticle(article);
-        setShowArticlePreview(true);
-      }, []);
-
-      const closeArticlePreview = useCallback(() => {
-        setSelectedArticle(null);
-        setShowArticlePreview(false);
-      }, []);
-
-      const fetchFilteredArticles = useCallback(async () => {
-        try {
-          const res = await fetch((API_BASE || '') + '/api/articles');
-          const data = await res.json();
-          const allArticles = Array.isArray(data.items) ? data.items : [];
-          const filtered = allArticles.filter(it => it.category === reviewCategory);
-          setFilteredArticles(filtered);
-        } catch (e) {
-          console.error('Error fetching filtered articles:', e);
-          setFilteredArticles([]);
-        }
-      }, [reviewCategory]);
-
-      const approveArticle = useCallback(async (articleId, newCategory) => {
-        try {
-          const response = await fetch((API_BASE || '') + '/api/approve-article', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              articleId,
-              newCategory
-            })
-          });
-
-          if (response.ok) {
-            alert('Article approved successfully!');
-            fetchItems(true);
-            fetchFilteredArticles();
-          } else {
-            const error = await response.text();
-            alert('Error approving article: ' + error);
-          }
-        } catch (error) {
-          console.error('Error approving article:', error);
-          alert('Error approving article. Check console for details.');
-        }
-      }, [fetchItems, fetchFilteredArticles]);
-
-      const blacklistArticle = useCallback(async (articleId) => {
-        if (!confirm('Are you sure you want to blacklist this article?')) return;
-        
-        try {
-          const response = await fetch((API_BASE || '') + '/api/blacklist-article', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              articleId
-            })
-          });
-
-          if (response.ok) {
-            alert('Article blacklisted successfully!');
-            fetchItems(true);
-            fetchFilteredArticles();
-          } else {
-            const error = await response.text();
-            alert('Error blacklisting article: ' + error);
-          }
-        } catch (error) {
-          console.error('Error blacklisting article:', error);
-          alert('Error blacklisting article. Check console for details.');
-        }
-      }, [fetchItems, fetchFilteredArticles]);
-
-      useEffect(() => { 
-          fetchItems(); 
-        fetchLastFetchInfo();
-        
-        const interval = setInterval(() => {
-          if (viewMode === "articles") {
-            fetchItems(false);
-          }
-        }, 5 * 60 * 1000); // 5 minutes
-
-        return () => clearInterval(interval);
-      }, [fetchItems, fetchLastFetchInfo, viewMode]);
-
-      const sources = useMemo(() => {
-        const uniqueSources = new Set(items.map(item => item.source || item.publisher).filter(Boolean));
-        return Array.from(uniqueSources).sort();
-      }, [items]);
-
-      const filtered = useMemo(() => {
-        let list = [...items];
-        
-        // Filter out articles with "not relevant", "excluded", and "blacklisted" categories
-        list = list.filter(it => it.category !== 'not relevant' && it.category !== 'excluded' && it.category !== 'blacklisted');
-        
-        if (timeframe) {
-          const daysAgo = parseInt(timeframe, 10);
-          const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-          list = list.filter(it => {
-            const pubDate = new Date(it.pubDate || it.fetchedAt || 0);
-            return pubDate >= cutoffDate;
-          });
-        }
-        
-        if (query) {
-          const q = query.toLowerCase();
-          list = list.filter(it =>
-            (it.title && it.title.toLowerCase().includes(q)) ||
-            (it.description && it.description.toLowerCase().includes(q))
-          );
-        }
-
-        if (region) {
-          list = list.filter(it => {
-            const r = region.toLowerCase();
-            return (it.title + " " + it.description).toLowerCase().includes(r);
-          });
-        }
-
-        if (category) {
-          list = list.filter(it => it.category === category);
-        }
-
-        if (source) {
-          list = list.filter(it => (it.source || it.publisher) === source);
-        }
-
-        if (sort === "newest") {
-          list.sort((a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0));
-        } else {
-          list.sort((a, b) => new Date(a.pubDate || a.fetchedAt || 0) - new Date(b.pubDate || b.fetchedAt || 0));
-        }
-
-        return list;
-      }, [items, query, region, category, source, sort, timeframe]);
-
-      return (
-        <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
-          <div className="container">
-          <Header timeframe={timeframe} theme={theme} setTheme={setTheme} />
-          <FiltersBar
-            query={query} setQuery={setQuery}
-            region={region} setRegion={setRegion}
-            category={category} setCategory={setCategory}
-            source={source} setSource={setSource}
-            sort={sort} setSort={setSort}
-            timeframe={timeframe} setTimeframe={setTimeframe}
-            sources={sources}
-            onRefresh={onRefresh}
-            stats={{ filtered: filtered.length, total: items.length, updated: lastUpdated }}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-              lastFetchInfo={lastFetchInfo}
-              refreshLoading={refreshLoading}
-          />
-          {viewMode === "articles" ? (
-              <ArticleGrid items={filtered} loading={loading || refreshLoading} onArticleClick={handleArticleClick} />
-            ) : viewMode === "newsletter" ? (
-            <NewsletterPreview 
-              html={newsletterHTML} 
-              loading={loading}
-              timeframe={newsletterTimeframe}
-              setTimeframe={setNewsletterTimeframe}
-              onGenerate={generateNewsletter}
-              onClear={clearNewsletter}
-              generated={newsletterGenerated}
-              newsletterRecipients={newsletterRecipients}
-              setNewsletterRecipients={setNewsletterRecipients}
-                onSendEmail={sendNewsletterEmail}
-                emailLoading={emailLoading}
-              />
-            ) : (
-              <AdminPanel
-                manualTitle={manualTitle}
-                setManualTitle={setManualTitle}
-                manualUrl={manualUrl}
-                setManualUrl={setManualUrl}
-                manualSummary={manualSummary}
-                setManualSummary={setManualSummary}
-                manualCategory={manualCategory}
-                setManualCategory={setManualCategory}
-                manualSource={manualSource}
-                setManualSource={setManualSource}
-                showManualForm={showManualForm}
-                setShowManualForm={setShowManualForm}
-                onAddManualArticle={addManualArticle}
-                newsletterRecipients={newsletterRecipients}
-                setNewsletterRecipients={setNewsletterRecipients}
-                reviewMode={reviewMode}
-                setReviewMode={setReviewMode}
-                filteredArticles={filteredArticles}
-                fetchFilteredArticles={fetchFilteredArticles}
-                approveArticle={approveArticle}
-                blacklistArticle={blacklistArticle}
-                reviewCategory={reviewCategory}
-                setReviewCategory={setReviewCategory}
-              />
-            )}
-
-            {/* Article Preview Modal */}
-            {showArticlePreview && (
-              <ArticlePreview
-                article={selectedArticle}
-                onClose={closeArticlePreview}
-                onBlacklist={blacklistArticle}
-              />
-            )}
-          </div>
         </div>
-      );
-    };
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/back-to-office-orders-can-bring-complications-for-workforce/" target="_blank">Back-to-office orders can bring complications for workforce</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/30/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Lehigh Valley companies are enhancing amenities and flexible workspace options as businesses push for a return to office, aiming to attract and retain employees in 2025.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/whiteboard-the-power-of-local-philanthropy/" target="_blank">Whiteboard: The Power of Local Philanthropy</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/29/2025 •
+                People
+            </div>
+            <div class="article-description">
+                Philanthropy is one of the greatest forces for good in our communities. It fuels the programs that strengthen neighborhoods, supports scholarships that help students achieve their dreams, and powers the [&#8230;]
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/pennsylvania-homes-get-more-expensive-in-november/" target="_blank">Pennsylvania homes get more expensive in November</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/29/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Pennsylvania home prices rose 5.2% in November while sales dipped and inventory grew slightly, according to the latest report from the Pennsylvania Association of Realtors.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/powering-pennsylvanias-future-requires-durable-predictable-permitting-2/" target="_blank">Whiteboard: Powering Pennsylvania’s future requires durable, predictable permitting</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/29/2025 •
+                People
+            </div>
+            <div class="article-description">
+                Pennsylvania’s energy growth depends on permitting reform to meet rising power demand, support jobs and ensure affordable, reliable energy statewide.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/honeywell-new-lehigh-valley-office-will-help-meet-global-lng-demand/" target="_blank">Honeywell: New Lehigh Valley office will help meet global LNG demand</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/29/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Honeywell opens a new Lehigh Valley office to grow its LNG business after acquiring Air Products’ LNG unit, boosting global energy security and innovation.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/give-with-a-plan-how-to-make-the-most-of-your-charitable-giving/" target="_blank">Give with a Plan: How to make the most of your charitable giving</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/26/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Year-end planning has become even more essential this year due to the passage of the One Big Beautiful Bill Act (OBBBA)
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/in-memoriam-2025-remembering-those-we-lost-in-new-jersey-commercial-real-estate/" target="_blank">In memoriam 2025: Remembering those we lost in New Jersey commercial real estate</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/26/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                We said goodbye in 2025 to several key figures in New Jersey’s commercial real estate community. Some were industry icons whose careers spanned more than half a century, but all were remembered by colleagues as valued friends and team members. Here is a look back at our coverage and the tributes tha...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/powering-pennsylvanias-future-requires-durable-predictable-permitting/" target="_blank">Powering Pennsylvania’s future requires durable, predictable permitting</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/26/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                In the Keystone State, natural gas and oil supports 400,000 jobs and adds $40 billion to the state’s economy every year.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/the-power-of-local-philanthropy/" target="_blank">The power of local philanthropy</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/26/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                At its best, philanthropy connects us. It gives us purpose, reminds us that we belong to one another, and turns compassion into action.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/redcom-starts-construction-for-56000-sq-ft-marlboro-logistics-facility/" target="_blank">REDCOM starts construction for 56,000 sq. ft. Marlboro logistics facility</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/24/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                REDCOM Design &#038; Construction has broken ground on a project that will bring more than 56,000 square feet of new industrial space to Monmouth County.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/cranford-rental-property-more-than-70-percent-leased-as-hartz-eyes-strong-demand-in-2026/" target="_blank">Cranford rental property more than 70 percent leased as Hartz eyes strong demand in 2026</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/24/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Hartz Mountain Industries has rented more than 70 percent of a new 250-unit rental property in Cranford, citing continued demand for upscale apartments and sustained headwinds in the for-sale housing sector.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/sheldon-gross-title-firm-recommits-to-millburn-office-space-five-years-after-moving-in/" target="_blank">Sheldon Gross: Title firm recommits to Millburn office space five years after moving in</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/24/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                A title insurance agency has signed a lease renewal in Millburn as part of a newly announced office deal by Sheldon Gross Realty.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/td-bank-sells-vacant-monmouth-county-branch-locations-in-deals-totaling-4-3-million/" target="_blank">RIPCO: TD Bank sells vacant Monmouth County branches in deals totaling $4.3 million</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/23/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                TD Bank has sold two vacant former branch buildings in Monmouth County for a combined $4.3 million, in a set of deals arranged by RIPCO Real Estate.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/houston/news/deal-sheet/constellation-plans-2-industrial-developments-the-houston-deal-sheet-132515" target="_blank">Constellation Plans 2 Industrial Developments: The Houston Deal Sheet</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Houston •
+                12/23/2025 •
+                People
+            </div>
+            <div class="article-description">
+                Constellation Real Estate Partners acquired 29 acres at 6339 S. Sam Houston Parkway E. for the development of Constellation Southbelt, a three-building, 376K SF speculative industrial project. Additionally, the firm acquired 20 acres at 13814 Cullen...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/small-businesses-being-squeezed-by-rising-tariffs/" target="_blank">Small businesses being squeezed by rising tariffs</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/23/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Rising tariffs are squeezing small businesses faster than anyone expected, a new analysis from the Joint Economic Committee reveals.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://lvb.com/the-sound-and-fury-of-novembers-stock-market-signifying-nothing/" target="_blank">The sound and fury of November’s stock market, signifying nothing</a>
+            </h3>
+            <div class="article-meta">
+                Lehigh Valley Business •
+                12/23/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                November tested that principle as traders whipsawed themselves trying to react to every headline, while long-term investors watched the show from the sidelines.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/boston/news/retail/solomon-pond-mall-sells-for-less-than-9m-132506" target="_blank">Solomon Pond Mall Sells For Less Than $9M After $30M Valuation In 2023</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Boston •
+                12/23/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Another shopping mall has sold at a severe discount, adding to the malaise surrounding New England mall properties. Solomon Pond Mall in Marlborough sold for $8.5M to Cleveland-based Industrial Commercial Properties, according to public records. The...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/jll-seagis-closes-176-million-refi-for-1-22-million-sq-ft-warehouse-portfolio-in-new-jersey-florida/" target="_blank">JLL: Seagis closes $176 million refi for 1.22 million sq. ft warehouse portfolio in New Jersey, Florida</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/22/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Seagis Property Group has secured $176 million in permanent financing for more than 1.2 million square feet of industrial space across six buildings in New Jersey and Florida.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/denholtz-launches-first-delaware-statutory-trust-offering-touting-strong-demand-from-investors/" target="_blank">Denholtz launches first Delaware Statutory Trust offering, touting strong demand from investors</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/22/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Denholtz has unveiled its first Delaware Statutory Trust offering, allowing investors to buy a piece of a nearly 226,000-square-foot industrial complex in Central Florida.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/russo-tops-90-percent-leased-at-new-272-unit-new-brunswick-rental-project/" target="_blank">Russo tops 90 percent leased at new 272-unit New Brunswick rental project</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Russo Development is on the path to leasing up a new 272-unit luxury multifamily project in New Brunswick, where it has brought fresh life to what was an aging highway retail site.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/grocery-supplier-takes-21000-sq-ft-in-middlesex-industrial-deal-sheldon-gross-says/" target="_blank">Grocery supplier takes 21,000 sq. ft. in Middlesex industrial deal, Sheldon Gross says</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/22/2025 •
+                Transaction
+            </div>
+            <div class="article-description">
+                A grocery supplier has leased 21,000 square feet of warehouse space in Middlesex Borough, in a newly announced deal by Sheldon Gross Realty.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://re-nj.com/wellness-lounge-coming-to-livingston-town-center-in-2500-sq-ft-deal-by-azarian/" target="_blank">Wellness lounge coming to Livingston Town Center in 2,500 sq. ft. deal by Azarian</a>
+            </h3>
+            <div class="article-meta">
+                Real Estate NJ •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                A wellness franchise has found a new location in New Jersey with a nearly 2,500-square-foot lease at Livingston Town Center, in a transaction arranged by Azarian Realty Co.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/philadelphia/news/healthcare/christianacare-bond-issuance-hospital-delaware-132499" target="_blank">ChristianaCare Considers Borrowing $355M For Capital Improvements</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Philadelphia •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Delaware’s largest hospital system may borrow a hefty sum to support its capital plan as it expands its footprint in the region.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/boston/news/deal-sheet/pembroke-acquires-280-unit-cambridge-property-for-170m-the-boston-deal-sheet-132492" target="_blank">Pembroke Acquires 280-Unit Cambridge Property For $170M: The Boston Deal Sheet</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Boston •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                The real estate arm of the parent company of Fidelity Investments acquired the 280-unit Proto in Kendall Square in Cambridge.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/south-florida/news/deal-sheet/affinus-provides-250m-construction-loan-for-brickell-apartment-tower-the-south-florida-deal-sheet-132490" target="_blank">Chicago Developers Land $250M Loan For Brickell Apartments: The South Florida Deal Sheet</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow South Florida •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Affinius Capital got into the holiday spirit by providing a $250M construction loan for a 39-story Brickell apartment tower.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/new-york/news/economy/mamdanis-appointments-are-the-beginnings-of-a-very-interesting-administration-132489" target="_blank">CRE Exhales As Mamdani Taps Adams, De Blasio Vets For Key Roles</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow New York •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                New York City's commercial real estate industry has been on edge as it waits to see who Mayor-elect Zohran Mamdani will take with him to City Hall when he is sworn into office in less than two weeks. Now, with a handful of senior appointments to...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/dallas-ft-worth/news/deal-sheet/texas-instruments-begins-production-at-semiconductor-facility-in-sherman-the-dfw-deal-sheet-132487" target="_blank">Texas Instruments Begins Production At Semiconductor Facility In Sherman: The DFW Deal Sheet</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Dallas-Ft Worth •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                A major player in North Texas’ growing semiconductor industry opened its first manufacturing facility in the city that helped the region earn its Silicon Prairie designation.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/union-pacifics-rosenberg-warehouse-project-could-top-20m-sf/" target="_blank">Union Pacific’s Rosenberg Warehouse Project Could Top 20M SF</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/22/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Union Pacific Railroad is developing a 2,000-acre, master-planned industrial park in Rosenberg, Texas. Mainline Texas Industrial Park has the potential to total 20 million square feet. Commercial Edge reports 1,300 acres will be Union Pacific rail-accessible, while 700 acres will instead target non-...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/forman-arranges-construction-loan-for-houston-retail-center/" target="_blank">Forman Arranges Construction Loan for Houston Retail Center</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Forman Capital closed a $37.1 million construction loan for the development of The Oaks of District West, a new open-air retail, restaurant and entertainment destination in the Richmond submarket of the Houston MSA. The project is being developed by Ferguson Family Partners and is located at 21711 F...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/mesirow-adds-450-unit-plano-rental-property-to-dfw-portfolio/" target="_blank">Mesirow Adds 450-Unit Plano Rental Property to DFW Portfolio</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/22/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Mesirow Financial acquired Riachi at One21, a 450-unit multifamily property in Plano. Banner Real Estate Group sold the asset. Mesirow took out a $77 million Fannie Mae loan originated by Walker &#38; Dunlop. Commercial Edge reports the property previously traded in September 2011, when Banner acqui...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/los-angeles/news/multifamily/pimco-witkoff-default-400-million-santa-monica-apartments-132462" target="_blank">Pimco, Witkoff Group Default On $405M Santa Monica Apartments</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Los Angeles •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Pimco and Witkoff Group are in default on a more than $400M loan for an apartment complex in downtown Santa Monica. The property is The Park Santa Monica, a 249-unit complex at 500 Broadway, according to Bloomberg. The Park Santa Monica was...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/greystone-provides-36-6m-refi-for-vintage-houston-apartments/" target="_blank">Greystone Provides $36.6M Refi for Vintage Houston Apartments</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Greystone provided a $36.6 million Freddie Mac loan to refinance a 476-unit garden-style multifamily community located in Houston, Texas. Located at 4010 Linkwood Drive, Houston, The Stratford House was developed in 1966. The property offers renovated apartments and townhomes with one-, two- and thr...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/sa-developer-to-reposition-former-healthcare-center-apartments-on-way/" target="_blank">SA Developer to Reposition Former Healthcare Center, Add Apartments</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                The San Antonio Historic and Design Review Commission okayed a tax break for a developer looking to convert a historic underperforming healthcare facility into apartments with ground-floor retail. Innjoy acquired the building in 2019, a year after the hospital that occupied it shut down. Innjoy Hosp...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/south-florida/news/office/related-ross-scores-largest-construction-loan-in-floridas-history-132456" target="_blank">Stephen Ross Gets Largest Construction Loan In Florida History From Ares-Led Group</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow South Florida •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Related Ross is closing out the year with a record $772M construction loan from a trio of private credit lenders for two upcoming office towers in downtown West Palm Beach.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/south-florida/news/commercial-real-estate/wellness-amenities-bisnow-events-studiob-132453" target="_blank">Learn How Wellness Amenities Are Shaping CRE At Bisnow’s South Florida Event</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow South Florida •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                It’s no secret that hotel guests, office tenants and multifamily residents expect the most out of their spaces today. If their buildings are lacking, so is their desire to be there. In residential buildings, renters and owners are looking for spaces equipped...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/philadelphia/news/multifamily/hahnemann-hospital-redevelopment-jay-young-dwight-city-group-132451" target="_blank">Bill To Ban Housing On Former Hospital Campus Creates Roadblock For Conversion Plan</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Philadelphia •
+                12/19/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                In October, Dwight City Group bought several former Hahnemann University Hospital buildings with plans to build hundreds of apartments. Now, the project could be in peril after the Philadelphia neighborhood’s council member, Jeffery "Jay" Young Jr.,...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/keating-buys-shuttered-1m-sf-waco-glass-plant/" target="_blank">Keating Buys Shuttered 1M-SF Waco Glass Plant</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/19/2025 •
+                People
+            </div>
+            <div class="article-description">
+                Keating Resources has purchased a 1,060,000 square foot manufacturing and distribution building located on 56 acres of Interstate 35 in Waco. The seller was Owens-Illinois, who has a glass plant at the location between 1943 and 2023. Alec Keating, President of Keating Resources, said the company is ...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/south-florida/news/land/plans-for-trump-library-on-prime-miami-site-back-on-track-after-judge-lifts-block-132444" target="_blank">Land Gift For Trump Library Back On Track After Judge Lifts Block</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow South Florida •
+                12/18/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                President Donald Trump’s presidential library is set to start moving forward again after a judge dismissed the lawsuit that blocked Miami Dade College’s decision to transfer a 2.6-acre site in Downtown Miami to the state.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/new-york/news/life-sciences/ai-tenants-may-solve-the-life-science-problem-developers-will-have-to-spend-even-more-to-lure-them-132442" target="_blank">AI-Powered Biotech Firms Might Fill The Lab Glut. Luring Them Will Be Expensive</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow New York •
+                12/18/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                A glut of space paired with a lack of demand has plagued the life sciences real estate market, and developers are banking on the rise of artificial intelligence to be their cure. New technologies are having a structural impact on the way research is...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/atlanta/news/commercial-real-estate/10-stories-that-defined-atlanta-cre-in-2025-132441" target="_blank">10 Stories That Defined Atlanta CRE In 2025</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Atlanta •
+                12/18/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                Atlanta’s commercial real estate sector in 2025 got unusually political. Between data center blowback and immigration raids, the CRE community often found itself factoring the day’s headlines into future plans. Atlanta’s CRE scene was also...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/boston/news/office/bxp-needham-campus-trades-for-132m-132437" target="_blank">409K SF Needham Campus Trades For $132M</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Boston •
+                12/18/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                BXP has sold a Needham office campus as part of its larger sell-off plans. The Boston-based office REIT sold its 409K SF 140 Kendrick St. campus in Needham for $132M, according to a press release. Lincoln Property Co. and Cross Ocean Partners acquired...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/stream-closes-on-recap-for-7-texas-industrial-properties/" target="_blank">Stream Closes on Recap for 7 Texas Industrial Properties</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/18/2025 •
+                People
+            </div>
+            <div class="article-description">
+                Stream Realty Partners closed on the recapitalization of a portfolio of&#160;seven&#160;Class A industrial assets in Texas.&#160; The industrial parks were developed by Stream and a foreign investor from 2021 to 2024 and comprise 4.4 million square feet of Class A industrial space catering to a vari...
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.bisnow.com/dallas-ft-worth/news/life-sciences/denton-aims-for-life-sciences-growth-with-280m-investment-from-novartis-132433" target="_blank">Denton Seeks $280M Investment From Novartis To Grow Life Sciences</a>
+            </h3>
+            <div class="article-meta">
+                Bisnow Dallas-Ft Worth •
+                12/18/2025 •
+                Relevant
+            </div>
+            <div class="article-description">
+                A Swiss pharmaceutical company has zeroed in on an empty facility in Denton, which it wants to turn into its latest U.S. manufacturing facility.
+            </div>
+        </div>
+    
+        <div class="article">
+            <h3 class="article-title">
+                <a href="https://www.connectcre.com/stories/oxford-picks-up-1m-sf-of-austin-area-retail-properties/" target="_blank">Oxford Picks Up 1M-SF of Austin-Area Retail Properties</a>
+            </h3>
+            <div class="article-meta">
+                ConnectCRE Texas •
+                12/18/2025 •
+                Other
+            </div>
+            <div class="article-description">
+                Oxford Properties acquired Lakeline Plaza and Lakeline Village in Cedar Park, as well as Wolf Ranch Town Center (shown) in Georgetown. Washington Prime Group was the seller of a group of properties, which total over 1 million square feet. Oxford Properties partnered with Pine Tree for these deals. P...
+            </div>
+        </div>
+    
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+    <div class="last-updated">
+        Last updated: 1/2/2026, 10:34:54 AM •
+        Showing 47 of 47 articles
+    </div>
 </body>
 </html>

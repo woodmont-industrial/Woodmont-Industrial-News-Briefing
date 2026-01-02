@@ -81,8 +81,8 @@ const RSS_FEEDS: FeedConfig[] = [
   // 1. REAL ESTATE NJ ✅
   { url: "https://re-nj.com/feed/", name: "Real Estate NJ", region: "NJ", source: "Real Estate NJ", timeout: 30000 },
   
-  // 2. COMMERCIAL SEARCH ✅
-  { url: "https://www.commercialsearch.com/feed/", name: "Commercial Search", region: "US", source: "Commercial Search", timeout: 30000 },
+  // 2. COMMERCIAL SEARCH ✅ (with browser headers to avoid 403)
+  { url: "https://www.commercialsearch.com/feed/", name: "Commercial Search", region: "US", source: "Commercial Search", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
   
   // 3. WSJ ✅
   { url: "https://feeds.content.dowjones.io/public/rss/latestnewsrealestate", name: "WSJ Real Estate", region: "US", source: "WSJ", timeout: 30000 },
@@ -94,17 +94,17 @@ const RSS_FEEDS: FeedConfig[] = [
   { url: "https://www.bisnow.com/rss-feed/dallas-ft-worth", name: "Bisnow Dallas-Ft Worth", region: "TX", source: "Bisnow", timeout: 30000 },
   { url: "https://www.bisnow.com/rss-feed/national", name: "Bisnow National", region: "US", source: "Bisnow", timeout: 30000 },
   
-  // 5. GLOBEST ✅ (Using main feed instead of regional)
-  { url: "https://www.globest.com/feed/", name: "GlobeSt", region: "US", source: "GlobeSt", timeout: 30000 },
+  // 5. GLOBEST ✅ (Using RSS feed with browser headers)
+  { url: "https://www.globest.com/feed/rss/", name: "GlobeSt", region: "US", source: "GlobeSt", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
   
-  // 6. NAIOP ✅ (Using main news feed)
-  { url: "https://www.naiop.org/news-and-publications/naiop-news/rss", name: "NAIOP News", region: "US", source: "NAIOP", timeout: 30000 },
+  // 6. NAIOP ✅ (Using research feed)
+  { url: "https://www.naiop.org/Research-and-Publications/Magazine/NAIOP-Development-Magazine/RSS", name: "NAIOP Development", region: "US", source: "NAIOP", timeout: 30000 },
   
-  // 7. COMMERCIAL PROPERTY EXECUTIVE ✅ (CPE - sister site of CommercialSearch)
-  { url: "https://www.cpexecutive.com/feed/", name: "Commercial Property Executive", region: "US", source: "CPE", timeout: 30000 },
+  // 7. COMMERCIAL PROPERTY EXECUTIVE ✅ (Alternative URL)
+  { url: "https://www.cpexecutive.com/rss", name: "Commercial Property Executive", region: "US", source: "CPE", timeout: 30000, headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } },
   
-  // 8. SOUTH FL BUSINESS JOURNAL ✅
-  { url: "https://www.bizjournals.com/southflorida/news/feed", name: "South FL Business Journal", region: "FL", source: "BizJournals", timeout: 30000 },
+  // 8. SOUTH FL BUSINESS JOURNAL ✅ (Using direct feed URL)
+  { url: "https://feeds.bizjournals.com/bizj_southflorida", name: "South FL Business Journal", region: "FL", source: "BizJournals", timeout: 30000 },
   
   // 9. LOOPNET (Note: LoopNet doesn't have public RSS, using CoStar news instead)
   // LoopNet is owned by CoStar - they don't provide RSS feeds publicly
@@ -115,9 +115,8 @@ const RSS_FEEDS: FeedConfig[] = [
   // 11. LEHIGH VALLEY BUSINESS ✅
   { url: "https://lvb.com/feed/", name: "Lehigh Valley Business", region: "PA", source: "Lehigh Valley Business", timeout: 30000 },
   
-  // 12. DAILY RECORD ✅ (NJ news)
-  { url: "https://www.dailyrecord.com/rss/", name: "Daily Record", region: "NJ", source: "Daily Record", timeout: 30000 },
-  { url: "https://rssfeeds.dailyrecord.com/morris/home", name: "Daily Record Morris", region: "NJ", source: "Daily Record", timeout: 30000 },
+  // 12. DAILY RECORD ✅ (NJ news - using USA Today network feed)
+  { url: "https://rssfeeds.usatoday.com/dailyrecord/news", name: "Daily Record", region: "NJ", source: "Daily Record", timeout: 30000 },
   
   // 13. NJBIZ ✅
   { url: "https://njbiz.com/feed/", name: "NJBIZ", region: "NJ", source: "NJBIZ", timeout: 30000 },
@@ -2446,48 +2445,57 @@ function loadExistingGuids(): Set<string> {
 }
 
 // Enhanced article filtering with expanded market coverage for better article yield
+// Mandatory sources - these get VERY light filtering (basically allow everything)
+const MANDATORY_SOURCE_PATTERNS = [
+    'realestatenj', 'real estate nj',
+    'commercialsearch', 'commercial search',
+    'wsj', 'wall street journal',
+    'bisnow',
+    'globest',
+    'naiop',
+    'cpexecutive', 'commercial property executive', 'cpe',
+    'bizjournals', 'business journal',
+    'loopnet', 'loop net',
+    'costar',
+    'lehighvalley', 'lehigh valley', 'lvb',
+    'dailyrecord', 'daily record',
+    'njbiz'
+];
+
+function isFromMandatorySource(item: NormalizedItem): boolean {
+    const source = (item.source || '').toLowerCase();
+    const link = (item.link || '').toLowerCase();
+    
+    return MANDATORY_SOURCE_PATTERNS.some(pattern => 
+        source.includes(pattern) || 
+        link.includes(pattern.replace(/\s+/g, ''))
+    );
+}
+
 function shouldIncludeArticle(item: NormalizedItem): boolean {
-    // Check if URL should be rejected
+    // Check if URL should be rejected (spam, etc)
     if (shouldRejectUrl(item.link)) {
         return false;
     }
 
-    // Check approved domains
+    // MANDATORY SOURCES: Very light filtering - allow almost everything
+    if (isFromMandatorySource(item)) {
+        // Only reject if it's clearly non-CRE content (e.g., sports, entertainment)
+        const titleAndDesc = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+        const isNonCREContent = /\b(sports?|game|score|team|player|celebrity|movie|tv show|recipe|horoscope)\b/i.test(titleAndDesc);
+        return !isNonCREContent;
+    }
+
+    // Check approved domains for non-mandatory sources
     if (!isAllowedLink(item.link)) {
         return false;
     }
-
-    // Expanded market coverage: NJ/PA/FL/TX primary, plus additional states and national content
-    const primaryMarkets = ['NJ', 'PA', 'FL', 'TX'];
-    const expandedMarkets = [...primaryMarkets, 'CA', 'NY', 'IL', 'GA', 'WA', 'MA'];
-
-    const isPrimaryMarket = item.regions?.some(r => primaryMarkets.includes(r));
-    const isExpandedMarket = item.regions?.some(r => expandedMarkets.includes(r));
-
-    // Allow if:
-    // 1. Primary market (NJ/PA/FL/TX)
-    // 2. Expanded market (additional states) with industrial/CRE content
-    // 3. National content (no regions specified) with strong industrial signals
-    if (isPrimaryMarket) {
-        return true;
-    }
-
-    if (isExpandedMarket) {
-        // For expanded markets, require some industrial/CRE keywords
-        const titleAndDesc = (item.title || '') + ' ' + (item.description || '');
-        const hasIndustrialSignal = /industrial|warehouse|logistics|distribution|manufacturing|real estate|commercial|property/i.test(titleAndDesc);
-        return hasIndustrialSignal;
-    }
-
-    // For national/international content (no regions), require strong industrial signals
-    if (!item.regions?.length) {
-        const titleAndDesc = (item.title || '') + ' ' + (item.description || '');
-        const hasStrongSignal = /(industrial|warehouse|logistics|distribution|manufacturing).*(real estate|property|development|center|park)/i.test(titleAndDesc) ||
-                                /commercial.*real.*estate|CRE|industrial.*property/i.test(titleAndDesc);
-        return hasStrongSignal;
-    }
-
-    return false;
+    
+    // For other sources, check for CRE/industrial keywords
+    const titleAndDesc = (item.title || '') + ' ' + (item.description || '');
+    const hasCRESignal = /industrial|warehouse|logistics|distribution|manufacturing|real estate|commercial|property|lease|office|retail|development|investment|tenant|landlord|market|construction|acquisition/i.test(titleAndDesc);
+    
+    return hasCRESignal;
 }
 
 // Static RSS generation for GitHub Pages
@@ -2496,11 +2504,25 @@ async function buildStaticRSS() {
     log('info', 'Starting RSS feed generation');
 
     try {
-        // Load existing GUIDs for deduplication
-        const existingGuids = loadExistingGuids();
+        // === STEP 1: Load existing articles from GitHub Pages feed ===
+        let existingArticles: NormalizedItem[] = [];
+        const feedJsonPath = path.join(__dirname, 'docs', 'feed.json');
+        
+        if (fs.existsSync(feedJsonPath)) {
+            try {
+                const feedData = JSON.parse(fs.readFileSync(feedJsonPath, 'utf-8'));
+                existingArticles = feedData.items || [];
+                log('info', `Loaded ${existingArticles.length} existing articles from feed.json`);
+            } catch (e) {
+                log('warn', 'Could not parse existing feed.json, starting fresh');
+            }
+        }
+
+        // Create set of existing GUIDs for deduplication
+        const existingGuids = new Set(existingArticles.map(a => a.id));
         log('info', `Loaded ${existingGuids.size} existing GUIDs for deduplication`);
 
-        // Fetch fresh articles
+        // === STEP 2: Fetch fresh articles ===
         log('info', 'Fetching RSS feeds from sources');
         const results = await fetchAllRSSArticles();
 
@@ -2512,43 +2534,51 @@ async function buildStaticRSS() {
         };
         log('info', 'RSS fetch completed', fetchStats);
 
-        // Get all items (no time filtering yet)
+        // Get all freshly fetched items
         const allItems = getItemsFiltered({ since: null, until: null, region: null, source: null, limit: 1000 });
 
-        // Apply lookback filter: last 10 business days (extended for more articles)
-        const fiveBusinessDaysAgo = getBusinessDaysAgo(10);
-        const recentItems = allItems.filter(item => {
+        // Apply enhanced filtering to new items
+        const filteredNewItems = allItems.filter(shouldIncludeArticle);
+        log('info', `Filtered to ${filteredNewItems.length} articles after domain/relevance checks`, {
+            beforeFiltering: allItems.length,
+            fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
+        });
+
+        // Deduplication - only keep truly new items
+        const newItems = filteredNewItems.filter(item => !existingGuids.has(item.id));
+        log('info', `Found ${newItems.length} NEW articles`, {
+            beforeDedupe: filteredNewItems.length,
+            duplicatesRemoved: filteredNewItems.length - newItems.length
+        });
+
+        // === STEP 3: Merge new + existing articles ===
+        const mergedArticles = [...newItems, ...existingArticles];
+        log('info', `Merged: ${newItems.length} new + ${existingArticles.length} existing = ${mergedArticles.length} total`);
+
+        // === STEP 4: Apply 15-day cleanup ===
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        
+        const cleanedArticles = mergedArticles.filter(item => {
             const pubDate = new Date(item.pubDate || item.fetchedAt || Date.now());
-            return pubDate >= fiveBusinessDaysAgo;
+            return pubDate >= fifteenDaysAgo;
         });
-
-        log('info', `Filtered to ${recentItems.length} articles from last 5 business days`, {
-            totalFetched: allItems.length,
-            cutoffDate: fiveBusinessDaysAgo.toISOString()
-        });
-
-        // Apply enhanced filtering
-        const filteredItems = recentItems.filter(shouldIncludeArticle);
-        log('info', `Filtered to ${filteredItems.length} articles after domain/relevance checks`, {
-            beforeFiltering: recentItems.length,
-            njRelated: filteredItems.filter(i => i.regions?.includes('NJ')).length
-        });
-
-        // Deduplication
-        const newItems = filteredItems.filter(item => !existingGuids.has(item.id));
-        log('info', `After deduplication: ${newItems.length} new articles`, {
-            beforeDedupe: filteredItems.length,
-            duplicatesRemoved: filteredItems.length - newItems.length
-        });
+        
+        const removedCount = mergedArticles.length - cleanedArticles.length;
+        if (removedCount > 0) {
+            log('info', `Auto-deleted ${removedCount} articles older than 15 days`);
+        }
 
         // Sort by publication date (newest first)
-        const sortedItems = newItems.sort((a, b) =>
+        const sortedItems = cleanedArticles.sort((a, b) =>
             new Date(b.pubDate || b.fetchedAt || 0).getTime() -
             new Date(a.pubDate || a.fetchedAt || 0).getTime()
         );
 
-        // Take top 100 for RSS feed
-        const rssItems = sortedItems.slice(0, 100);
+        // Take top 150 for RSS feed (increased limit to show more content)
+        const rssItems = sortedItems.slice(0, 150);
+        
+        log('info', `Final feed: ${rssItems.length} articles (capped at 150)`);
 
         // Generate RSS 2.0 XML with enhanced metadata
         const rssItemsXML = rssItems.map(item => {
