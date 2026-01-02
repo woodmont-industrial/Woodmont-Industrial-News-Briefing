@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Test</title>
+</head>
+<body>
+  <h1>Testing API Connection</h1>
+  <div id="status">Loading...</div>
+  <div id="data"></div>
+  
+  <script>
+    fetch('/api/articles')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('status').innerHTML = 'SUCCESS! Got ' + data.items.length + ' items';
+        document.getElementById('data').innerHTML = '<pre>' + JSON.stringify(data.items[0], null, 2) + '</pre>';
+      })
+      .catch(err => {
+        document.getElementById('status').innerHTML = 'ERROR: ' + err.message;
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

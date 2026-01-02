@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug - RSS Feed</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .success { color: #4ec9b0; }
+    .error { color: #f48771; }
+    .info { color: #569cd6; }
+    pre { background: #252526; padding: 10px; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>RSS Feed Debug Console</h1>
+  
+  <h2>1. Testing API Connection</h2>
+  <div id="api-test">Testing...</div>
+  
+  <h2>2. API Response Sample</h2>
+  <pre id="api-data">Loading...</pre>
+  
+  <h2>3. React Libraries</h2>
+  <div id="react-check">Checking...</div>
+  
+  <h2>4. DOM Ready</h2>
+  <div id="dom-check">Checking...</div>
+  
+  <script>
+    // Test 1: API Connection
+    fetch('/api/articles')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('api-test').innerHTML = 
+          `<span class="success">✓ API Working! Got ${data.items.length} items</span>`;
+        document.getElementById('api-data').textContent = 
+          JSON.stringify(data.items[0], null, 2);
+      })
+      .catch(err => {
+        document.getElementById('api-test').innerHTML = 
+          `<span class="error">✗ API Error: ${err.message}</span>`;
+        document.getElementById('api-data').textContent = err.stack;
+      });
+    
+    // Test 2: React Libraries
+    setTimeout(() => {
+      const reactCheck = document.getElementById('react-check');
+      let status = [];
+      
+      if (typeof React !== 'undefined') {
+        status.push('<span class="success">✓ React loaded</span>');
+      } else {
+        status.push('<span class="error">✗ React NOT loaded</span>');
+      }
+      
+      if (typeof ReactDOM !== 'undefined') {
+        status.push('<span class="success">✓ ReactDOM loaded</span>');
+      } else {
+        status.push('<span class="error">✗ ReactDOM NOT loaded</span>');
+      }
+      
+      if (typeof Babel !== 'undefined') {
+        status.push('<span class="success">✓ Babel loaded</span>');
+      } else {
+        status.push('<span class="error">✗ Babel NOT loaded</span>');
+      }
+      
+      reactCheck.innerHTML = status.join('<br>');
+    }, 2000);
+    
+    // Test 3: DOM
+    document.getElementById('dom-check').innerHTML = 
+      '<span class="success">✓ DOM Ready</span>';
+    
+    // Console capture
+    const originalLog = console.log;
+    const originalError = console.error;
+    const logs = [];
+    
+    console.log = function(...args) {
+      logs.push({type: 'log', msg: args.join(' ')});
+      originalLog.apply(console, args);
+    };
+    
+    console.error = function(...args) {
+      logs.push({type: 'error', msg: args.join(' ')});
+      originalError.apply(console, args);
+    };
+  </script>
+  
+  <h2>5. Console Output</h2>
+  <div id="console-output">
+    <p class="info">Open browser DevTools (F12) to see full console</p>
+  </div>
+</body>
+</html>

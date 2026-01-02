@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Woodmont Industrial News Feed</title>
+  <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    .card-anim { transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
+    .card-anim:hover { transform: translateY(-4px); box-shadow: 0 16px 35px rgba(15,23,42,0.12); opacity: 0.98; }
+    .img-anim { transition: transform 200ms ease; }
+    .card-anim:hover .img-anim { transform: scale(1.03); }
+    .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+    /* Dark theme styles */
+    .dark { background-color: #0f172a; color: #f1f5f9; }
+    .dark .card-anim { background-color: #1e293b; border-color: #334155; }
+    .dark .card-anim:hover { background-color: #334155; }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .newsletter-content .section {
+      margin-bottom: 35px;
+    }
+    .newsletter-content .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+    .newsletter-content .section-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-weight: bold;
+      color: white;
+    }
+    .newsletter-content .article-item {
+            margin-bottom: 20px;
+      padding: 16px;
+      background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+    }
+    .newsletter-content .article-title {
+      font-size: 16px;
+            font-weight: 600;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+    .newsletter-content .article-meta {
+            font-size: 14px;
+      color: #64748b;
+            margin-bottom: 8px;
+    }
+    .newsletter-content .article-summary {
+            font-size: 14px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .newsletter-content .transaction-highlight {
+      background: #fef3c7;
+      border-left-color: #f59e0b;
+    }
+    .newsletter-content .availability-highlight {
+      background: #ecfdf5;
+      border-left-color: #10b981;
+    }
+    .newsletter-content .people-highlight {
+      background: #fef3c7;
+      border-left-color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useEffect, useMemo, useCallback } = React;
+
+    const regions = ["All", "NJ", "PA", "FL", "TX"];
+    const API_BASE = window.location.hostname === 'localhost' ? '' : '';
+
+    const Header = ({ timeframe, theme, setTheme }) => {
+      const period = (() => {
+        const days = parseInt(timeframe, 10);
+        if (days === 1) return "Last 24 Hours";
+        if (days === 7) return "Last 7 Days";
+        if (days === 30) return "Last 30 Days";
+        if (days === 90) return "Last 90 Days";
+        if (days === 180) return "Last 6 Months";
+        return "All Time";
+      })();
+
+      return (
+        <header className="relative overflow-hidden">
+          <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)'}}></div>
+          <div className="relative px-6 py-8 text-center text-white">
+            <div className="flex items-center justify-center gap-4">
+              <div>
+                <h1 className="text-3xl font-semibold mb-2">🏭 Woodmont Industrial Partners</h1>
+                <p className="text-base opacity-90">Daily Industrial News Feed</p>
+                <div className="text-sm opacity-80 mt-1">Coverage Period: {period}</div>
+                <div className="text-sm opacity-80">Focus Markets: NJ, PA, FL, TX</div>
+              </div>
+              <button 
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
+                className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+              >
+                {theme === 'light' ? '🌙' : '☀️'}
+              </button>
+            </div>
+          </div>
+        </header>
+      );
+    };
+
+    const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => (
+      <>
+        <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1 flex gap-3 flex-wrap">
+            <input
+              className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
+              placeholder="Search title or summary"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <select
+              className="w-36 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
+              {regions.map(r => <option key={r} value={r === "All" ? "" : r}>{r}</option>)}
+            </select>
+            <select
+              className="w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="">Category: All</option>
+              <option value="relevant">RELEVANT ARTICLES</option>
+              <option value="transaction">TRANSACTIONS</option>
+              <option value="availabilities">AVAILABILITIES</option>
+              <option value="people">PEOPLE NEWS</option>
+            </select>
+            <select
+              className="w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+            >
+              <option value="">Source: All</option>
+              {sources.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select
+              className="w-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+            </select>
+            <select
+              className="w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+            >
+              <option value="1">Last 24 hours</option>
+              <option value="3">Last 3 days</option>
+              <option value="7">Last 7 days</option>
+              <option value="14">Last 14 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </div>
+          <div className="flex gap-3 items-center">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+              {stats.filtered} of {stats.total} articles • Updated {stats.updated}
+            </div>
+              <div className="flex gap-2">
+              <button
+                  onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  viewMode === "articles"
+                      ? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      : "bg-blue-500 text-white"
+                }`}
+              >
+                  {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
+              </button>
+              <button
+                  onClick={() => setViewMode(viewMode === "admin" ? "articles" : "admin")}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                    viewMode === "admin"
+                      ? "bg-purple-500 text-white"
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  ⚙️ Admin
+              </button>
+            </div>
+            <button
+              onClick={onRefresh}
+              disabled={refreshLoading}
+              className="px-4 py-2 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            >
+              {refreshLoading ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  🔄 Refresh
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 pb-4">
+          {lastFetchInfo && (
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-600 dark:text-slate-400">Last fetched:</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {lastFetchInfo.timestamp ? new Date(lastFetchInfo.timestamp).toLocaleString() : 'Never'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="text-green-600 font-medium">{lastFetchInfo.totalFetched || lastFetchInfo.fetched || 0}</span>
+                    <span className="text-slate-600 dark:text-slate-400">fetched</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span className="text-blue-600 font-medium">{lastFetchInfo.totalKept || lastFetchInfo.kept || 0}</span>
+                    <span className="text-slate-600 dark:text-slate-400">kept</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span className="text-purple-600 font-medium">{lastFetchInfo.sourcesProcessed || lastFetchInfo.sources || 0}</span>
+                    <span className="text-slate-600 dark:text-slate-400">sources</span>
+                  </span>
+                </div>
+                {lastFetchInfo && (lastFetchInfo.lastArticle || lastFetchInfo.latestTitle) && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-slate-600 dark:text-slate-400">Latest:</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100 max-w-xs truncate" title={lastFetchInfo.lastArticle?.title || lastFetchInfo.latestTitle}>
+                      {lastFetchInfo.lastArticle?.title || lastFetchInfo.latestTitle || 'N/A'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+
+    const ArticleCard = ({ item, onClick }) => {
+      const fallback = "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400&h=300&fit=crop&crop=center";
+      const [imgSrc, setImgSrc] = useState(item.image || fallback);
+
+      const published = item.pubDate ? new Date(item.pubDate) : null;
+      const isValidDate = published && !isNaN(published.getTime());
+
+      return (
+        <article
+          className="card-anim bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-slate-300 dark:focus-within:ring-slate-600 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => onClick && onClick(item)}
+        >
+          <div className="relative aspect-video bg-slate-100 dark:bg-slate-900 overflow-hidden">
+            <img
+              src={imgSrc || fallback}
+              alt={item.title || 'Article image'}
+              className="img-anim w-full h-full object-cover"
+              loading="lazy"
+              onError={() => setImgSrc(fallback)}
+            />
+            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 opacity-60 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
+            <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+              <span className="bg-white/85 dark:bg-slate-700/85 text-slate-900 dark:text-slate-100 text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wide">
+                {item.source || item.publisher || 'Source'}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 flex flex-col gap-3 flex-1">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
+              {isValidDate && <span>{published.toLocaleDateString()}</span>}
+              {item.category && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  item.category === 'transaction' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                  item.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
+                  'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                }`}>
+                  {item.category === 'transaction' ? 'TRANSACTIONS' :
+                   item.category === 'availabilities' ? 'AVAILABILITIES' :
+                   item.category === 'people' ? 'PEOPLE NEWS' :
+                   'RELEVANT ARTICLES'}&nbsp;
+                  {item.category}
+                </span>
+              )}
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight clamp-2">
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                {item.title}
+              </a>
+            </h3>
+            {item.description && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1">
+                {item.description}
+              </p>
+            )}
+            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700">
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              >
+                Read more →
+              </a>
+            </div>
+          </div>
+        </article>
+      );
+    };
+
+    const ArticleGrid = ({ items, loading, onArticleClick }) => (
+      <div className="max-w-6xl mx-auto px-4">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin text-4xl mb-4">⟳</div>
+            <p className="text-slate-600 dark:text-slate-400">Loading articles...</p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {items.map(item => <ArticleCard key={item.id || item.link} item={item} onClick={onArticleClick} />)}
+          </div>
+        )}
+      </div>
+    );
+
+    const ArticlePreview = ({ article, onClose }) => {
+      if (!article) return null;
+
+      const published = article.pubDate ? new Date(article.pubDate) : null;
+      const isValidDate = published && !isNaN(published.getTime());
+
+        return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 leading-tight">
+                    {article.title}
+                  </h2>
+                  <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                    <span className="font-medium">{article.publisher || article.source}</span>
+                    {isValidDate && <span>{published.toLocaleDateString()}</span>}
+                    {article.category && (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        article.category === 'transaction' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                        article.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                        article.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
+                        'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                      }`}>
+                        {article.category === 'transaction' ? 'TRANSACTIONS' :
+                         article.category === 'availabilities' ? 'AVAILABILITIES' :
+                         article.category === 'people' ? 'PEOPLE NEWS' :
+                         'RELEVANT ARTICLES'}&nbsp;
+                        {article.category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {article.image && (
+                <div className="mb-6">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {article.description && (
+                <div className="prose dark:prose-invert max-w-none">
+                  <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
+                    {article.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Article Metadata */}
+              <div className="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">Source:</span>
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">{article.source || article.publisher}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">Published:</span>
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">
+                      {isValidDate ? published.toLocaleString() : 'Unknown'}
+                    </span>
+                  </div>
+                  {article.regions && article.regions.length > 0 && (
+                    <div>
+                      <span className="font-medium text-slate-900 dark:text-slate-100">Regions:</span>
+                      <span className="ml-2 text-slate-600 dark:text-slate-400">{article.regions.join(', ')}</span>
+                    </div>
+                  )}
+                  {article.topics && article.topics.length > 0 && (
+                    <div>
+                      <span className="font-medium text-slate-900 dark:text-slate-100">Topics:</span>
+                      <span className="ml-2 text-slate-600 dark:text-slate-400">{article.topics.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                >
+                  Close
+                </button>
+                <a
+                  href={article.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Read Full Article →
+                </a>
+              </div>
+            </div>
+          </div>
+          </div>
+        );
+    };
+
+    const AdminPanel = ({ manualTitle, setManualTitle, manualUrl, setManualUrl, manualSummary, setManualSummary, manualCategory, setManualCategory, manualSource, setManualSource, showManualForm, setShowManualForm, onAddManualArticle, newsletterRecipients, setNewsletterRecipients }) => {
+      return (
+        <div className="max-w-6xl mx-auto px-4 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Manual Article Addition */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📝 Add Manual Article</h2>
+                <button
+                  onClick={() => setShowManualForm(!showManualForm)}
+                  className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
+                >
+                  {showManualForm ? 'Hide' : 'Show'} Form
+                </button>
+              </div>
+
+              {showManualForm && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title *</label>
+                    <input
+                      type="text"
+                      value={manualTitle}
+                      onChange={(e) => setManualTitle(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                      placeholder="Article title"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL *</label>
+                    <input
+                      type="url"
+                      value={manualUrl}
+                      onChange={(e) => setManualUrl(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                      placeholder="https://example.com/article"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Summary</label>
+                    <textarea
+                      value={manualSummary}
+                      onChange={(e) => setManualSummary(e.target.value)}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                      placeholder="Brief summary of the article"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                      <select
+                        value={manualCategory}
+                        onChange={(e) => setManualCategory(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                      >
+                        <option value="relevant">RELEVANT ARTICLES</option>
+                        <option value="transaction">TRANSACTIONS</option>
+                        <option value="availabilities">AVAILABILITIES</option>
+                        <option value="people">PEOPLE NEWS</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Source</label>
+                      <input
+                        type="text"
+                        value={manualSource}
+                        onChange={(e) => setManualSource(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                        placeholder="Source name"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={onAddManualArticle}
+                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+                  >
+                    ➕ Add Article
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Newsletter Recipients */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">📧 Newsletter Recipients</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Addresses</label>
+                  <textarea
+                    value={newsletterRecipients}
+                    onChange={(e) => setNewsletterRecipients(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                    placeholder="email1@company.com, email2@company.com&#10;Separate multiple emails with commas"
+                  />
+                </div>
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  <p>• Separate multiple recipients with commas</p>
+                  <p>• Recipients will be saved automatically</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading }) => {
+      const [showTemplate, setShowTemplate] = useState(false);
+      const [sendingEmail, setSendingEmail] = useState(false);
+      
+      const downloadNewsletter = useCallback(async () => {
+        if (!html) return;
+        
+        try {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          
+          tempDiv.style.width = '8.5in';
+          tempDiv.style.fontSize = '12px';
+          tempDiv.style.lineHeight = '1.4';
+          
+          const canvas = await html2canvas(tempDiv, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff'
+          });
+
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'in',
+            format: 'letter'
+          });
+
+          const imgProps = pdf.getImageProperties(imgData);
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          pdf.save(`industrial-newsletter-${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (error) {
+          console.error('Error generating PDF:', error);
+          alert('Error generating PDF. Please try again.');
+        }
+      }, [html]);
+
+      if (loading) {
+        return (
+          <div className="max-w-6xl mx-auto px-4 pb-12">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-8 animate-pulse">
+              <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
+              <div className="space-y-4">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/5"></div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="max-w-6xl mx-auto px-4 pb-12">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 mb-6">
+            <div className="flex flex-wrap items-center gap-4 justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📧 Newsletter Generator</h2>
+                {generated && (
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full">
+                    ✓ Generated
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-600 dark:text-slate-400">Timeframe:</label>
+                  <select
+                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 outline-none text-slate-900 dark:text-white"
+                    value={timeframe}
+                    onChange={(e) => setTimeframe(e.target.value)}
+                  >
+                    <option value="1">Last 24 hours</option>
+                    <option value="3">Last 3 days</option>
+                    <option value="7">Last 7 days</option>
+                    <option value="14">Last 14 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                  </select>
+                </div>
+                
+                <button
+                  onClick={onGenerate}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Generate Newsletter
+                </button>
+                
+                {generated && (
+                  <>
+                    <button
+                      onClick={downloadNewsletter}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+                    >
+                      📄 Download PDF
+                    </button>
+                    <button
+                      onClick={onSendEmail}
+                      disabled={emailLoading}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    >
+                      {emailLoading ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        <>📧 Send Email</>
+                      )}
+                    </button>
+                <button
+                      onClick={onClear}
+                      className="px-4 py-2 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
+                    >
+                      Clear
+                </button>
+                  </>
+            )}
+              </div>
+            </div>
+          </div>
+
+          {html && (
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Preview</h3>
+              <button
+                onClick={() => setShowTemplate(!showTemplate)}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                    {showTemplate ? 'Hide Template' : 'Show Template'}
+              </button>
+            </div>
+          </div>
+              <div className="p-6">
+                {showTemplate ? (
+                  <div className="newsletter-content" dangerouslySetInnerHTML={{ __html: html }} />
+                ) : (
+                  <iframe
+                    srcDoc={`<html><head><style>body{font-family:Arial,sans-serif;margin:20px;background:white;} .newsletter-content{max-width:800px;margin:0 auto;}</style></head><body><div class="newsletter-content">${html}</div></body></html>`}
+                    className="w-full h-96 border border-slate-200 dark:border-slate-700 rounded-lg"
+                    title="Newsletter Preview"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [items, setItems] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [query, setQuery] = useState("");
+      const [region, setRegion] = useState("");
+      const [category, setCategory] = useState("");
+      const [source, setSource] = useState("");
+      const [sort, setSort] = useState("newest");
+      const [timeframe, setTimeframe] = useState(""); // Show all articles by default
+      const [lastUpdated, setLastUpdated] = useState("");
+      const [viewMode, setViewMode] = useState("articles");
+      const [theme, setTheme] = useState("light");
+      const [newsletterHTML, setNewsletterHTML] = useState("");
+      const [newsletterGenerated, setNewsletterGenerated] = useState(false);
+      const [newsletterTimeframe, setNewsletterTimeframe] = useState("7");
+      const [newsletterRecipients, setNewsletterRecipients] = useState("");
+      const [refreshLoading, setRefreshLoading] = useState(false);
+      const [lastFetchInfo, setLastFetchInfo] = useState(null);
+      const [manualTitle, setManualTitle] = useState('');
+      const [manualUrl, setManualUrl] = useState('');
+      const [manualSummary, setManualSummary] = useState('');
+      const [manualCategory, setManualCategory] = useState('relevant');
+      const [manualSource, setManualSource] = useState('');
+      const [showManualForm, setShowManualForm] = useState(false);
+      const [emailLoading, setEmailLoading] = useState(false);
+      const [selectedArticle, setSelectedArticle] = useState(null);
+      const [showArticlePreview, setShowArticlePreview] = useState(false);
+
+      const fetchItems = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
+        try {
+          const res = await fetch((API_BASE || '') + '/api/articles');
+          const data = await res.json();
+          setItems(Array.isArray(data.items) ? data.items : []);
+          if (data.generatedAt) {
+            const d = new Date(data.generatedAt);
+            setLastUpdated(d.toLocaleString());
+          } else {
+            setLastUpdated(new Date().toLocaleString());
+          }
+        } catch (e) {
+          console.error(e);
+          setItems([]);
+          setLastUpdated("");
+        } finally {
+          if (showLoading) setLoading(false);
+        }
+      }, []);
+
+      const fetchLastFetchInfo = useCallback(async () => {
+        try {
+          const res = await fetch((API_BASE || '') + '/api/last-fetch');
+          const data = await res.json();
+          setLastFetchInfo(data);
+        } catch (e) {
+          console.error('Error fetching last fetch info:', e);
+        }
+      }, []);
+
+      const onRefresh = useCallback(async () => {
+        setRefreshLoading(true);
+        try {
+          console.log('Starting refresh...');
+          const refreshResponse = await fetch((API_BASE || '') + '/api/refresh');
+          console.log('Refresh API completed, fetching updated articles...');
+          await fetchItems(true);
+          await fetchLastFetchInfo();
+          console.log('Refresh completed successfully');
+        } catch (e) {
+          console.error('Error refreshing:', e);
+        } finally {
+          setRefreshLoading(false);
+        }
+      }, [fetchItems, fetchLastFetchInfo]);
+
+      const generateNewsletter = useCallback(async () => {
+        setLoading(true);
+        try {
+          const res = await fetch((API_BASE || '') + `/api/newsletter?days=${newsletterTimeframe}`);
+          const data = await res.json();
+          setNewsletterHTML(data.html || '');
+          setNewsletterGenerated(true);
+        } catch (e) {
+          console.error('Error generating newsletter:', e);
+          setNewsletterHTML('<p>Error generating newsletter. Please try again.</p>');
+        } finally {
+          setLoading(false);
+        }
+      }, [newsletterTimeframe]);
+
+      const clearNewsletter = useCallback(() => {
+        setNewsletterHTML('');
+        setNewsletterGenerated(false);
+      }, []);
+
+      const addManualArticle = useCallback(async () => {
+        if (!manualTitle.trim() || !manualUrl.trim()) {
+          alert('Title and URL are required');
+          return;
+        }
+
+        try {
+          const response = await fetch((API_BASE || '') + '/api/manual', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + (localStorage.getItem('api_key') || 'demo-key')
+            },
+            body: JSON.stringify({
+              title: manualTitle,
+              url: manualUrl,
+              summary: manualSummary,
+              category: manualCategory,
+              source: manualSource || 'Manual Entry'
+            })
+          });
+
+          if (response.ok) {
+            alert('Article added successfully!');
+            setManualTitle('');
+            setManualUrl('');
+            setManualSummary('');
+            setManualCategory('relevant');
+            setManualSource('');
+            setShowManualForm(false);
+            // Refresh articles
+            fetchItems(true);
+          } else {
+            const error = await response.text();
+            alert('Error adding article: ' + error);
+          }
+        } catch (error) {
+          console.error('Error adding manual article:', error);
+          alert('Error adding article. Check console for details.');
+        }
+      }, [manualTitle, manualUrl, manualSummary, manualCategory, manualSource, fetchItems]);
+
+      const sendNewsletterEmail = useCallback(async () => {
+        if (!newsletterHTML) {
+          alert('Generate newsletter first');
+          return;
+        }
+
+        setEmailLoading(true);
+        try {
+          const response = await fetch((API_BASE || '') + '/api/send-newsletter', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              html: newsletterHTML,
+              timeframe: newsletterTimeframe,
+              recipients: newsletterRecipients.split(',').map(r => r.trim()).filter(r => r)
+            })
+          });
+
+          if (response.ok) {
+            alert('Newsletter sent successfully!');
+          } else {
+            const error = await response.text();
+            alert('Error sending newsletter: ' + error);
+          }
+        } catch (error) {
+          console.error('Error sending newsletter:', error);
+          alert('Error sending newsletter. Check console for details.');
+        } finally {
+          setEmailLoading(false);
+        }
+      }, [newsletterHTML, newsletterTimeframe, newsletterRecipients]);
+
+      const handleArticleClick = useCallback((article) => {
+        setSelectedArticle(article);
+        setShowArticlePreview(true);
+      }, []);
+
+      const closeArticlePreview = useCallback(() => {
+        setSelectedArticle(null);
+        setShowArticlePreview(false);
+      }, []);
+
+      useEffect(() => { 
+          fetchItems(); 
+        fetchLastFetchInfo();
+        
+        const interval = setInterval(() => {
+          if (viewMode === "articles") {
+            fetchItems(false);
+          }
+        }, 5 * 60 * 1000); // 5 minutes
+
+        return () => clearInterval(interval);
+      }, [fetchItems, fetchLastFetchInfo, viewMode]);
+
+      const sources = useMemo(() => {
+        const uniqueSources = new Set(items.map(item => item.source || item.publisher).filter(Boolean));
+        return Array.from(uniqueSources).sort();
+      }, [items]);
+
+      const filtered = useMemo(() => {
+        let list = [...items];
+        
+        if (timeframe) {
+          const daysAgo = parseInt(timeframe, 10);
+          const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+          list = list.filter(it => {
+            const pubDate = new Date(it.pubDate || it.fetchedAt || 0);
+            return pubDate >= cutoffDate;
+          });
+        }
+        
+        if (query) {
+          const q = query.toLowerCase();
+          list = list.filter(it =>
+            (it.title && it.title.toLowerCase().includes(q)) ||
+            (it.description && it.description.toLowerCase().includes(q))
+          );
+        }
+
+        if (region) {
+          list = list.filter(it => {
+            const r = region.toLowerCase();
+            return (it.title + " " + it.description).toLowerCase().includes(r);
+          });
+        }
+
+        if (category) {
+          list = list.filter(it => it.category === category);
+        }
+
+        if (source) {
+          list = list.filter(it => (it.source || it.publisher) === source);
+        }
+
+        if (sort === "newest") {
+          list.sort((a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0));
+        } else {
+          list.sort((a, b) => new Date(a.pubDate || a.fetchedAt || 0) - new Date(b.pubDate || b.fetchedAt || 0));
+        }
+
+        return list;
+      }, [items, query, region, category, source, sort, timeframe]);
+
+      return (
+        <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
+          <div className="container">
+          <Header timeframe={timeframe} theme={theme} setTheme={setTheme} />
+          <FiltersBar
+            query={query} setQuery={setQuery}
+            region={region} setRegion={setRegion}
+            category={category} setCategory={setCategory}
+            source={source} setSource={setSource}
+            sort={sort} setSort={setSort}
+            timeframe={timeframe} setTimeframe={setTimeframe}
+            sources={sources}
+            onRefresh={onRefresh}
+            stats={{ filtered: filtered.length, total: items.length, updated: lastUpdated }}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+              lastFetchInfo={lastFetchInfo}
+              refreshLoading={refreshLoading}
+          />
+          {viewMode === "articles" ? (
+              <ArticleGrid items={filtered} loading={loading || refreshLoading} onArticleClick={handleArticleClick} />
+            ) : viewMode === "newsletter" ? (
+            <NewsletterPreview 
+              html={newsletterHTML} 
+              loading={loading}
+              timeframe={newsletterTimeframe}
+              setTimeframe={setNewsletterTimeframe}
+              onGenerate={generateNewsletter}
+              onClear={clearNewsletter}
+              generated={newsletterGenerated}
+              newsletterRecipients={newsletterRecipients}
+              setNewsletterRecipients={setNewsletterRecipients}
+                onSendEmail={sendNewsletterEmail}
+                emailLoading={emailLoading}
+              />
+            ) : (
+              <AdminPanel
+                manualTitle={manualTitle}
+                setManualTitle={setManualTitle}
+                manualUrl={manualUrl}
+                setManualUrl={setManualUrl}
+                manualSummary={manualSummary}
+                setManualSummary={setManualSummary}
+                manualCategory={manualCategory}
+                setManualCategory={setManualCategory}
+                manualSource={manualSource}
+                setManualSource={setManualSource}
+                showManualForm={showManualForm}
+                setShowManualForm={setShowManualForm}
+                onAddManualArticle={addManualArticle}
+                newsletterRecipients={newsletterRecipients}
+                setNewsletterRecipients={setNewsletterRecipients}
+              />
+            )}
+
+            {/* Article Preview Modal */}
+            {showArticlePreview && (
+              <ArticlePreview
+                article={selectedArticle}
+                onClose={closeArticlePreview}
+              />
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

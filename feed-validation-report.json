@@ -1,0 +1,185 @@
+{
+  "timestamp": "2025-12-30T16:00:39.057Z",
+  "summary": {
+    "working": 14,
+    "failing": 6,
+    "redirected": 0,
+    "total": 20
+  },
+  "feeds": [
+    {
+      "name": "Real Estate NJ",
+      "url": "https://re-nj.com/feed/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=UTF-8",
+      "articleCount": 10,
+      "lastArticle": "In memoriam 2025: Remembering those we lost in New Jersey commercial real estate"
+    },
+    {
+      "name": "Bisnow New Jersey",
+      "url": "https://www.bisnow.com/rss-feed/new-jersey",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "text/xml; charset=UTF-8",
+      "articleCount": 30,
+      "lastArticle": "153 Linden St., A Newly Renovated Asset Redefining Logistics In Northern New Jersey"
+    },
+    {
+      "name": "Bisnow Philadelphia",
+      "url": "https://www.bisnow.com/rss-feed/philadelphia",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "text/xml; charset=UTF-8",
+      "articleCount": 30,
+      "lastArticle": "ChristianaCare Considers Borrowing $355M For Capital Improvements"
+    },
+    {
+      "name": "Bisnow South Florida",
+      "url": "https://www.bisnow.com/rss-feed/south-florida",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "text/xml; charset=UTF-8",
+      "articleCount": 30,
+      "lastArticle": "All The Records South Florida CRE Broke In 2025"
+    },
+    {
+      "name": "Bisnow Dallas-Ft Worth",
+      "url": "https://www.bisnow.com/rss-feed/dallas-ft-worth",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "text/xml; charset=UTF-8",
+      "articleCount": 30,
+      "lastArticle": "The 4 CRE Trends That Defined 2025 For Dallas-Fort Worth"
+    },
+    {
+      "name": "WSJ Real Estate",
+      "url": "https://feeds.content.dowjones.io/public/rss/latestnewsrealestate",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/xml; charset=utf-8",
+      "articleCount": 35,
+      "lastArticle": "Los Angeles Tightens Rent Controls for First Time in Four Decades"
+    },
+    {
+      "name": "CoStar",
+      "url": "https://www.costar.com/rss.xml",
+      "status": "failing",
+      "statusCode": 0,
+      "contentType": "",
+      "error": "timeout of 10000ms exceeded"
+    },
+    {
+      "name": "LoopNet",
+      "url": "https://www.loopnet.com/rss",
+      "status": "failing",
+      "statusCode": 0,
+      "contentType": "",
+      "error": "timeout of 10000ms exceeded"
+    },
+    {
+      "name": "South FL Business Journal",
+      "url": "https://feeds.bizjournals.com/southflorida",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml",
+      "articleCount": 25,
+      "lastArticle": "Pop singer sells Miami Beach mansion for $17 million"
+    },
+    {
+      "name": "Lehigh Valley Business",
+      "url": "https://lvb.com/feed/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=UTF-8",
+      "articleCount": 10,
+      "lastArticle": "AEC industry 2025: growth, challenges, and technology trends"
+    },
+    {
+      "name": "NJBIZ",
+      "url": "https://njbiz.com/feed/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=UTF-8",
+      "articleCount": 10,
+      "lastArticle": "OceanFirst to buy Flushing Bank in $579M merger"
+    },
+    {
+      "name": "GlobeSt Industrial",
+      "url": "https://www.globest.com/feed/industrial/",
+      "status": "failing",
+      "statusCode": 404,
+      "contentType": "",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "ConnectCRE Industrial",
+      "url": "https://www.connectcre.com/feed?story-sector=industrial",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=UTF-8",
+      "articleCount": 10,
+      "lastArticle": "Eldridge, Starwood Capital Lend on Residential Project in London’s Nine Elms"
+    },
+    {
+      "name": "Commercial Property Executive",
+      "url": "https://www.commercialsearch.com/news/feed/",
+      "status": "failing",
+      "statusCode": 403,
+      "contentType": "",
+      "error": "Request failed with status code 403"
+    },
+    {
+      "name": "National Real Estate Investor",
+      "url": "https://nreionline.com/feed/",
+      "status": "failing",
+      "statusCode": 503,
+      "contentType": "",
+      "error": "Request failed with status code 503"
+    },
+    {
+      "name": "Bloomberg Markets",
+      "url": "https://feeds.bloomberg.com/markets/news.rss",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=utf-8",
+      "articleCount": 30,
+      "lastArticle": "Arini Contests Use of Ardagh’s Unsecured Bonds in CDS Auction"
+    },
+    {
+      "name": "Reuters Real Estate",
+      "url": "https://www.reuters.com/business/real-estate/rss",
+      "status": "failing",
+      "statusCode": 401,
+      "contentType": "",
+      "error": "Request failed with status code 401"
+    },
+    {
+      "name": "Supply Chain Dive",
+      "url": "https://www.supplychaindive.com/feeds/news/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=utf-8",
+      "articleCount": 10,
+      "lastArticle": "US plans fresh China semiconductor tariffs for 2027"
+    },
+    {
+      "name": "FreightWaves",
+      "url": "https://www.freightwaves.com/feed/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=UTF-8",
+      "articleCount": 50,
+      "lastArticle": "FMCSA signals no fast track for teen-driver program extension"
+    },
+    {
+      "name": "DC Velocity",
+      "url": "https://www.dcvelocity.com/rss/",
+      "status": "working",
+      "statusCode": 200,
+      "contentType": "application/rss+xml; charset=utf-8",
+      "articleCount": 30,
+      "lastArticle": "Taking a high-tech approach to reverse logistics"
+    }
+  ]
+}

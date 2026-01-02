@@ -1,0 +1,67 @@
+# Microsoft Copilot Agent Configuration
+# This file configures the Copilot Agent to monitor and send emails
+
+agent:
+  name: "Woodmont Newsletter Agent"
+  description: "Monitors GitHub repository and sends daily newsletters and weekly reviews"
+
+triggers:
+  # Daily email trigger (Monday-Friday at 9 AM EST)
+  daily:
+    schedule: "0 14 * * 1-5"  # 9 AM EST = 14:00 UTC
+    action: "send_daily_newsletter"
+    
+  # Weekly review trigger (Fridays at 4 PM EST)
+  weekly:
+    schedule: "0 21 * * 5"  # 4 PM EST = 21:00 UTC
+    action: "send_weekly_review"
+    
+  # Manual trigger for testing
+  manual:
+    event: "workflow_dispatch"
+    action: "send_daily_newsletter"
+
+actions:
+  send_daily_newsletter:
+    description: "Fetches latest articles and sends daily newsletter"
+    steps:
+      - name: "Fetch articles from GitHub"
+        url: "https://[username].github.io/[repo]/articles.json"
+        
+      - name: "Generate newsletter HTML"
+        template: "newsletter-template.html"
+        
+      - name: "Send email via Microsoft Graph API"
+        recipients:
+          - "pratiyush.casley@woodmontproperties.com"
+          # Add more recipients as needed
+        subject: "Woodmont Daily Industrial News Briefing - {{date}}"
+        
+  send_weekly_review:
+    description: "Sends weekly summary of all articles"
+    steps:
+      - name: "Fetch week's articles"
+        url: "https://[username].github.io/[repo]/articles.json"
+        filter: "last_7_days"
+        
+      - name: "Generate weekly summary"
+        template: "weekly-review-template.html"
+        
+      - name: "Send email"
+        recipients:
+          - "pratiyush.casley@woodmontproperties.com"
+        subject: "Woodmont Weekly Industrial News Review - {{week_ending}}"
+
+email_settings:
+  provider: "microsoft_graph"
+  auth_method: "oauth2"
+  # These should be configured as secrets in your Copilot environment
+  client_id: "${MICROSOFT_GRAPH_CLIENT_ID}"
+  client_secret: "${MICROSOFT_GRAPH_CLIENT_SECRET}"
+  tenant_id: "${MICROSOFT_GRAPH_TENANT_ID}"
+  from_email: "operationssupport@woodmontproperties.com"
+
+monitoring:
+  github_repo: "[username]/[repo]"
+  check_interval: "5m"
+  webhook_url: "https://api.github.com/repos/[username]/[repo]/dispatches"

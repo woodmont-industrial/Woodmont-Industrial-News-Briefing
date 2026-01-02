@@ -1,0 +1,74 @@
+name: Send Daily Newsletter
+
+on:
+  schedule:
+    # Run Monday-Friday at 8:00 AM EST (13:00 UTC)
+    - cron: '0 13 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test mode (sends to single test recipient)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build fresh RSS data
+        run: npm run build
+      
+      - name: Send Newsletter Email
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          TEST_MODE: ${{ github.event.inputs.test_mode }}
+        run: |
+          echo "📧 Sending daily newsletter..."
+          echo "From: $EMAIL_FROM"
+          echo "To: $EMAIL_TO"
+          npx tsx rssfeed.ts --send-newsletter
+      
+      - name: Commit updated articles
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/ articles.json
+          git diff --staged --quiet || git commit -m "📧 Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
+      
+      - name: Report Success
+        if: success()
+        run: |
+          echo "✅ Newsletter sent successfully!"
+          echo "📊 Check email inbox for delivery"
+      
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "❌ Newsletter send failed!"
+          echo "Check the logs above for error details"
+
