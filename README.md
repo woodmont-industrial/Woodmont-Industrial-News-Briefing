@@ -2,6 +2,10 @@
 
 RSS feed aggregator for industrial and commercial real estate news across key regions (NJ, PA, TX, FL). Includes newsletter preview generation, PDF export, and theme support.
 
+## 🔐 Security Notice
+
+**This repository is public** but contains an **internal Woodmont Industrial Partners tool**. The code is designed for internal use only and should not be used to scrape or redistribute content from paywalled sources without proper licensing. The system only stores **title, URL, date, and source** information - no full article text is scraped or stored.
+
 ## 🚀 Quick Start (Local Testing)
 
 ```bash
@@ -97,10 +101,10 @@ Toggle between default (light) and dark themes using the moon/sun icon in the he
    git push -u origin main
    ```
 
-2. **Update RSS URLs** in `rssfeed.ts`:
+2. **Update RSS URLs** in `src/feeds/fetcher.ts`:
    - Replace `YOUR_USERNAME` with `prcasley`
    - Replace `YOUR_REPO` with `Woodmont-Industrial-News-Briefing`
-   - Lines to update: ~line 1100 (in the RSS XML generation)
+   - Lines to update: ~line 800 (in the RSS XML generation)
 
 ### Step 2: Enable GitHub Pages
 
@@ -109,23 +113,31 @@ Toggle between default (light) and dark themes using the moon/sun icon in the he
 3. Select **main** branch and **/docs** folder
 4. Click **Save**
 
+### Step 3: Required GitHub Actions File
+
+**✅ Required file: `.github/workflows/update-rss.yml`**
+
+The GitHub Action is already configured and will automatically:
+- ✅ Run every 30 minutes (cron: `*/30 * * * *`)
+- ✅ Fetch latest articles from RSS sources
+- ✅ Apply deduplication, filtering, and business day limits
+- ✅ Generate updated `docs/rss.xml`, `docs/feed.json`, and `docs/index.html`
+- ✅ Commit changes back to the main branch
+- ✅ GitHub Pages serves the updated files automatically
+
+**Required permissions:** The workflow uses `secrets.GITHUB_TOKEN` which has write access to the repository.
+
+### Step 4: Initial Build
+
 ```bash
 # Generate static RSS files
-npm run build
+npm run build-static
 
 # Commit and push the generated files
 git add docs/
 git commit -m "Initial RSS build"
 git push
 ```
-
-The GitHub Action will automatically:
-- ✅ Run every 30 minutes
-- ✅ Fetch latest articles from RSS sources
-- ✅ Apply deduplication, filtering, and business day limits
-- ✅ Generate updated `docs/rss.xml`, `docs/feed.json`, and `docs/index.html`
-- ✅ Commit changes back to the main branch
-- ✅ GitHub Pages serves the updated files automatically
 
 ## 🔗 Your Public RSS URL
 

@@ -1,10 +1,8 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const xml2js = require('xml2js');
-const nodeCrypto = require('crypto');
-const Parser = require('rss-parser');
+import * as http from 'http';
+import { handleRequest } from './src/server/endpoints.js';
+import { fetchAllRSSArticles } from './src/feeds/fetcher.js';
+import { saveArticlesToFile, loadArticlesFromFile } from './src/store/storage.js';
+import { log } from './src/server/logging.js';
 
 const PORT = process.env.PORT || 8080;
 
@@ -2801,29 +2799,35 @@ if (require.main === module) {
     if (args.includes('--build-static')) {
         // Build static files for GitHub Pages
         console.log('🏗️ Building static files for GitHub Pages...');
-        buildStaticRSS().catch(err => {
-            console.error('Build failed:', err);
-            process.exit(1);
+        // Import and run buildStaticRSS from fetcher
+        import('./src/feeds/fetcher.js').then(({ buildStaticRSS }) => {
+            buildStaticRSS().catch(err => {
+                console.error('Build failed:', err);
+                process.exit(1);
+            });
         });
     } else if (args.includes('--send-newsletter')) {
         // Manual newsletter sending
         console.log('Sending manual newsletter...');
-        sendDailyNewsletter().then(success => {
-            if (success) {
-                console.log('Newsletter sent successfully!');
-                process.exit(0);
-            } else {
-                console.error('Failed to send newsletter');
+        // Import and run sendDailyNewsletter from server/email
+        import('./src/server/email.js').then(({ sendDailyNewsletter }) => {
+            sendDailyNewsletter().then(success => {
+                if (success) {
+                    console.log('Newsletter sent successfully!');
+                    process.exit(0);
+                } else {
+                    console.error('Failed to send newsletter');
+                    process.exit(1);
+                }
+            }).catch(err => {
+                console.error('Error sending newsletter:', err);
                 process.exit(1);
-            }
-        }).catch(err => {
-            console.error('Error sending newsletter:', err);
-            process.exit(1);
+            });
         });
     } else {
         // Load articles from file on startup
         const loadedCount = loadArticlesFromFile();
-        
+
         const server = http.createServer((req: any, res: any) => {
             handleRequest(req, res);
         });
@@ -2835,7 +2839,12 @@ if (require.main === module) {
             // Check for no-browser flag or environment variable to skip auto-opening
             if (!noBrowserFlag) {
                 console.log('Opening browser... (use --no-browser flag to disable)');
-                setTimeout(() => openBrowser(`http://localhost:${PORT}`), 1000);
+                setTimeout(() => {
+                    // Import and call openBrowser
+                    import('./src/server/browser.js').then(({ openBrowser }) => {
+                        openBrowser(`http://localhost:${PORT}`);
+                    });
+                }, 1000);
             } else {
                 console.log('Browser auto-open disabled (--no-browser flag or NO_BROWSER=true)');
             }
@@ -2852,12 +2861,12 @@ if (require.main === module) {
                     console.error('❌ Initial fetch failed:', err.message);
                 }
             }, 2000); // Wait 2 seconds after server start
-            
+
             // Save articles every minute (more aggressive persistence)
             setInterval(() => {
                 saveArticlesToFile();
             }, 60 * 1000);
-            
+
             // Fetch RSS feeds every 15 minutes in background
             setInterval(async () => {
                 try {
@@ -2870,34 +2879,8 @@ if (require.main === module) {
                     console.error('❌ Background fetch failed:', err.message);
                 }
             }, 15 * 60 * 1000);
-
-            // Clean up old articles every 6 hours (removes articles that no longer pass filtering)
-            setInterval(async () => {
-                try {
-                    console.log('🧹 Background: Cleaning up old/filtered articles...');
-                    const allItems = Array.from(itemStore.values());
-                    let cleanupCount = 0;
-
-                    for (const item of allItems) {
-                        if (!shouldIncludeArticle(item)) {
-                            itemStore.delete(item.id);
-                            cleanupCount++;
-                        }
-                    }
-
-                    if (cleanupCount > 0) {
-                        console.log(`🧹 Cleaned up ${cleanupCount} articles that no longer pass filtering`);
-                        // Save the cleaned state
-                        saveArticlesToFile();
-                    } else {
-                        console.log('🧹 No articles needed cleanup');
-                    }
-                } catch (err: any) {
-                    console.error('❌ Background cleanup failed:', err.message);
-                }
-            }, 6 * 60 * 60 * 1000); // Every 6 hours
         });
-        
+
         // Save articles on graceful shutdown
         process.on('SIGINT', () => {
             log('info', 'Server shutting down (SIGINT)');

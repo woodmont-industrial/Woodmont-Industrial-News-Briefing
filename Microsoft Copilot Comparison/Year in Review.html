@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tools Roadmap 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            padding: 40px 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #1e293b;
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875em;
+            color: white;
+        }
+
+        th:nth-child(1) { width: 15%; }
+        th:nth-child(2) { width: 18%; }
+        th:nth-child(3) { width: 25%; }
+        th:nth-child(4) { width: 17%; }
+        th:nth-child(5) { width: 25%; }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 14px 16px;
+            vertical-align: top;
+            font-size: 0.875em;
+            line-height: 1.5;
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: #475569;
+        }
+
+        td:nth-child(2) {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        td:nth-child(3), td:nth-child(5) {
+            color: #64748b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.813em;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pilot {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-planned {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-research {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-testing {
+            background: #e9d5ff;
+            color: #6b21a8;
+        }
+
+        @media (max-width: 1200px) {
+            body {
+                padding: 20px 10px;
+            }
+            
+            th, td {
+                padding: 10px 12px;
+                font-size: 0.813em;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Tools & Technology Roadmap 2026</h1>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team / Area</th>
+                        <th>Tool / App</th>
+                        <th>What It Improves (Speed/Accuracy)</th>
+                        <th>Current Status</th>
+                        <th>2026 Next Step</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Enterprise (cross-functional)</td>
+                        <td>Microsoft Copilot (Free)</td>
+                        <td>Drafting/ideation, quick Q&A, basic productivity support</td>
+                        <td><span class="status-badge status-active">Available / in use</span></td>
+                        <td>Clarify "approved use" guidance + baseline enablement</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise (cross-functional)</td>
+                        <td>Microsoft 365 Copilot (Licensed / Pro)</td>
+                        <td>Faster work inside Word/Excel/Outlook/Teams; better consistency and repeatable workflows</td>
+                        <td><span class="status-badge status-pilot">Pilot + feedback surveys</span></td>
+                        <td>Expand licenses where ROI is clear; standard training by role; define "agent" roadmap</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise (cross-functional)</td>
+                        <td>ChatGPT (current)</td>
+                        <td>Rapid drafting, summarization, analysis support, workflow experimentation</td>
+                        <td><span class="status-badge status-pilot">In use (pilot/enablement)</span></td>
+                        <td>Standardize use patterns; build reusable assistants/workflows</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise (cross-functional)</td>
+                        <td>ChatGPT Business → Enterprise</td>
+                        <td>Scale secure usage, governance, and shared assistants across departments</td>
+                        <td><span class="status-badge status-planned">2026 goal</span></td>
+                        <td>Select tier + rollout plan; usage policy alignment; curated internal "approved assistants" library</td>
+                    </tr>
+                    <tr>
+                        <td>BI / Tech Solutions (enablement)</td>
+                        <td>CREGPT (custom assistant)</td>
+                        <td>CRE-specific drafting, summarizing, process help; reduces repeat questions</td>
+                        <td><span class="status-badge status-pilot">Prototype (optional to include)</span></td>
+                        <td>Decide whether to formalize under governance; expand to a vetted "approved assistant" model</td>
+                    </tr>
+                    <tr>
+                        <td>Meetings / Productivity</td>
+                        <td>Fathom</td>
+                        <td>Meeting summaries, action items, follow-ups</td>
+                        <td><span class="status-badge status-pilot">Pilot; survey results pending</span></td>
+                        <td>Decide on standardization vs. limited use; publish quick guidance</td>
+                    </tr>
+                    <tr>
+                        <td>Property Mgmt / Leasing Ops</td>
+                        <td>EliseAI / Monty</td>
+                        <td>Faster responses, operational consistency, resident/prospect experience</td>
+                        <td><span class="status-badge status-active">In progress / ongoing</span></td>
+                        <td>Confirm next steps + process ownership; measure adoption + outcomes</td>
+                    </tr>
+                    <tr>
+                        <td>Process Documentation</td>
+                        <td>Scribe</td>
+                        <td>Faster SOP creation; reduces training time and errors</td>
+                        <td><span class="status-badge status-active">Rolled out/used</span></td>
+                        <td>Expand to high-volume processes; create SOP library standards</td>
+                    </tr>
+                    <tr>
+                        <td>Marketing / Comms</td>
+                        <td>Hootsuite</td>
+                        <td>Faster scheduling/reporting; consistency in posting cadence</td>
+                        <td><span class="status-badge status-active">Rolled out/used</span></td>
+                        <td>Standardize workflows + reporting cadence; integrate with content planning</td>
+                    </tr>
+                    <tr>
+                        <td>Marketing / Internal Comms</td>
+                        <td>Viva Engage (Communities)</td>
+                        <td>Faster internal info retrieval; reduces time searching emails</td>
+                        <td><span class="status-badge status-planned">In setup / governance alignment pending</span></td>
+                        <td>Align stakeholder approvals; launch communities + content model; define admin/content expert roles</td>
+                    </tr>
+                    <tr>
+                        <td>Training / Enablement</td>
+                        <td>AI Innovation Series</td>
+                        <td>Increases adoption; reduces "how do I use this?" friction</td>
+                        <td><span class="status-badge status-active">Ongoing program</span></td>
+                        <td>Continue series; publish "tool playbooks"; identify training gaps and close them</td>
+                    </tr>
+                    <tr>
+                        <td>Construction</td>
+                        <td>Procore (newer modules / AI-enabled features where applicable)</td>
+                        <td>Better field/reporting workflows; fewer manual steps; consistency</td>
+                        <td><span class="status-badge status-planned">Limited progress; dependent on data/process readiness</span></td>
+                        <td>Confirm module scope; ensure data/process readiness; then pilot AI features intentionally</td>
+                    </tr>
+                    <tr>
+                        <td>Construction Accounting</td>
+                        <td>Sage Intacct</td>
+                        <td>Standardized accounting workflows; reporting consistency</td>
+                        <td><span class="status-badge status-active">Started; continues into 2026</span></td>
+                        <td>Implement/expand; align reporting and controls</td>
+                    </tr>
+                    <tr>
+                        <td>Accounting</td>
+                        <td>Yardi add-ons (AP, recurring entries, reporting)</td>
+                        <td>Faster AP processing; fewer errors; faster monthly close</td>
+                        <td><span class="status-badge status-research">Under consideration</span></td>
+                        <td>Confirm add-ons + scope; pilot in one workflow; document process + training</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise Systems (Foundation)</td>
+                        <td>Yardi 7S → Voyager 8 upgrade</td>
+                        <td>Platform consistency; improved reporting readiness; foundation for automation</td>
+                        <td><span class="status-badge status-planned">Planned/ongoing</span></td>
+                        <td>Complete upgrade; standardize data/processes; enable add-ons/automation</td>
+                    </tr>
+                    <tr>
+                        <td>Risk / Insurance</td>
+                        <td>Docutrax</td>
+                        <td>Faster certificate/insurance tracking; fewer misses</td>
+                        <td><span class="status-badge status-active">In flight into 2026</span></td>
+                        <td>Complete rollout; define reporting + ownership</td>
+                    </tr>
+                    <tr>
+                        <td>Commercial/Industrial (Risk/Compliance)</td>
+                        <td>Tenant insurance (Commercial/Industrial)</td>
+                        <td>Reduces manual follow-up; improves compliance coverage</td>
+                        <td><span class="status-badge status-active">In progress (Prop Mgmt done in 2025)</span></td>
+                        <td>Complete Commercial/Industrial implementation + monitoring</td>
+                    </tr>
+                    <tr>
+                        <td>Legal / Industrial (Research pipeline)</td>
+                        <td>Spellbook</td>
+                        <td>Faster drafting/review support; consistency</td>
+                        <td><span class="status-badge status-testing">Testing</span></td>
+                        <td>Decide on fit + governance; define approved use cases</td>
+                    </tr>
+                    <tr>
+                        <td>Legal / Industrial (Research pipeline)</td>
+                        <td>Kira, Luminance, eBrevia, Leverton, ThoughtRiver</td>
+                        <td>Document review/comparison speed + accuracy</td>
+                        <td><span class="status-badge status-research">Research initiated</span></td>
+                        <td>Shortlist + demos; run structured evaluation; recommend pilot(s)</td>
+                    </tr>
+                    <tr>
+                        <td>Resident Experience / Smart Buildings</td>
+                        <td>Tulu, Elevate</td>
+                        <td>Amenity access + service experience; operational efficiency</td>
+                        <td><span class="status-badge status-research">On radar / in evaluation</span></td>
+                        <td>Define target properties + success metrics; pilot + measure</td>
+                    </tr>
+                    <tr>
+                        <td>Resident Experience / Smart Buildings</td>
+                        <td>Smart building/data insights (thermostats at Randolph)</td>
+                        <td>Better comfort/energy outcomes; data-driven operations</td>
+                        <td><span class="status-badge status-pilot">Pilot underway</span></td>
+                        <td>Evaluate results; decide scale-up plan + data strategy</td>
+                    </tr>
+                    <tr>
+                        <td>Training / L&D</td>
+                        <td>Viva Learning (Copilot training resources)</td>
+                        <td>Faster enablement; reduces support burden</td>
+                        <td><span class="status-badge status-active">Available</span></td>
+                        <td>Curate "Woodmont pathways"; align with Copilot free vs licensed tracks</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

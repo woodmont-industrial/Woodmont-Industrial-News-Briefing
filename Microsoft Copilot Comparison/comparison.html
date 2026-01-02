@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Copilot Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 50px 40px;
+        }
+        
+        .section {
+            margin-bottom: 60px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+            font-size: 1.15em;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .tier-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            border: 3px solid #e0e0e0;
+        }
+        
+        .tier-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tier-card.free {
+            border-color: #56ab2f;
+        }
+        
+        .tier-card.licensed {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+        }
+        
+        .tier-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tier-header h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .tier-card.free .tier-header h3 {
+            color: #56ab2f;
+        }
+        
+        .tier-card.licensed .tier-header h3 {
+            color: #667eea;
+        }
+        
+        .price {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .tier-card.free .price {
+            color: #56ab2f;
+        }
+        
+        .tier-card.licensed .price {
+            color: #667eea;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+        
+        .feature-list li {
+            padding: 12px 0;
+            padding-left: 35px;
+            position: relative;
+            font-size: 1.05em;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+        
+        .tier-card.free .feature-list li:before {
+            color: #56ab2f;
+        }
+        
+        .tier-card.licensed .feature-list li:before {
+            color: #667eea;
+        }
+        
+        .feature-list li.no:before {
+            content: "✗";
+            color: #ff4757;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .comparison-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f0f4ff;
+        }
+        
+        .comparison-table td:first-child {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .role-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .role-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .role-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .role-card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .role-card li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .bonus-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+        
+        .bonus-section h3 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+        
+        .bonus-card {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .bonus-card h4 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .decision-box {
+            background: white;
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .decision-box strong {
+            color: #667eea;
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            margin: 40px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bonus-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Microsoft Copilot Comparison</h1>
+            <p>Free vs Licensed (Pro / Microsoft 365 Copilot)</p>
+        </div>
+        
+        <div class="content">
+            <!-- Executive Summary -->
+            <div class="section">
+                <div class="summary-box">
+                    <strong>The Bottom Line:</strong> Copilot Free helps you think faster with general AI assistance. Microsoft 365 Copilot (Licensed) helps you work faster inside your company's data with enterprise security and compliance.
+                </div>
+            </div>
+
+            <!-- Side-by-Side Comparison Cards -->
+            <div class="comparison-grid">
+                <div class="tier-card free">
+                    <div class="tier-header">
+                        <h3>Copilot Free</h3>
+                        <div class="price">$0</div>
+                        <p>For personal use & learning</p>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Web, Edge sidebar, mobile app access</li>
+                        <li>GPT-powered AI chat</li>
+                        <li>15 image generations/day</li>
+                        <li>Public web summaries</li>
+                        <li>Brainstorming & idea generation</li>
+                        <li class="no">No access to company data</li>
+                        <li class="no">Not embedded in Microsoft 365 apps</li>
+                        <li class="no">Basic security (not enterprise-compliant)</li>
+                        <li class="no">Manual copy-paste workflows</li>
+                    </ul>
+                </div>
+                
+                <div class="tier-card licensed">
+                    <div class="tier-header">
+                        <h3>Microsoft 365 Copilot</h3>
+                        <div class="price">~$30</div>
+                        <p style="color: #666;">per user/month</p>
+                    </div>
+                    <ul class="feature-list">
+                        <li>Integrated into Word, Excel, Outlook, Teams, PowerPoint</li>
+                        <li>GPT-5 with enterprise integration</li>
+                        <li>Unlimited image generation + advanced editing</li>
+                        <li>Full access to Microsoft Graph & business data</li>
+                        <li>Enterprise-grade security & compliance</li>
+                        <li>Deep workflow automation in apps</li>
+                        <li>Excel formulas, Word drafting, Teams summaries</li>
+                        <li>Respects all existing permissions</li>
+                        <li>Works with your files, emails, calendars, meetings</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Detailed Comparison Table -->
+            <div class="section">
+                <h2>Feature-by-Feature Comparison</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Copilot Free</th>
+                            <th>Microsoft 365 Copilot (Licensed)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Access Location</td>
+                            <td>Web, Edge sidebar, mobile app</td>
+                            <td>Integrated into Word, Excel, Outlook, Teams, PowerPoint</td>
+                        </tr>
+                        <tr>
+                            <td>AI Model</td>
+                            <td>GPT-powered (latest during non-peak)</td>
+                            <td>GPT-5 with enterprise-grade integration</td>
+                        </tr>
+                        <tr>
+                            <td>Image Generation</td>
+                            <td>15 boosts/day</td>
+                            <td>Unlimited boosts + advanced editing</td>
+                        </tr>
+                        <tr>
+                            <td>Company Data Access</td>
+                            <td>❌ No</td>
+                            <td>✅ Full integration with Microsoft Graph</td>
+                        </tr>
+                        <tr>
+                            <td>Security & Compliance</td>
+                            <td>Basic (not enterprise-compliant)</td>
+                            <td>Enterprise-grade security, compliance, privacy</td>
+                        </tr>
+                        <tr>
+                            <td>Workflow Automation</td>
+                            <td>Limited (manual copy-paste)</td>
+                            <td>Deep automation inside apps (formulas, drafting, summaries)</td>
+                        </tr>
+                        <tr>
+                            <td>Excel Analysis</td>
+                            <td>Basic public data only</td>
+                            <td>Full analysis of your spreadsheets & business data</td>
+                        </tr>
+                        <tr>
+                            <td>Email Drafting</td>
+                            <td>Generic drafts only</td>
+                            <td>Contextual drafting based on your emails & calendar</td>
+                        </tr>
+                        <tr>
+                            <td>Teams Meeting Summaries</td>
+                            <td>❌ No</td>
+                            <td>✅ Automatic transcripts & action items</td>
+                        </tr>
+                        <tr>
+                            <td>Best For</td>
+                            <td>Casual use, personal learning, web research</td>
+                            <td>Business workflows, productivity at scale</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Role-Based Benefits -->
+            <div class="section">
+                <h2>How Licensed Copilot Benefits Each Department</h2>
+                <div class="role-grid">
+                    <div class="role-card">
+                        <h4>💰 Accounting & Finance</h4>
+                        <ul>
+                            <li>Automate financial reporting & forecasting</li>
+                            <li>Detect spending anomalies</li>
+                            <li>Generate CFO dashboards</li>
+                            <li>Speed up audit prep</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>👥 HR / People Division</h4>
+                        <ul>
+                            <li>Draft job descriptions & screen resumes</li>
+                            <li>Automate onboarding workflows</li>
+                            <li>Answer employee FAQs via Teams</li>
+                            <li>Generate performance review templates</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>📢 Marketing</h4>
+                        <ul>
+                            <li>Create campaign copy & social posts</li>
+                            <li>Analyze campaign performance trends</li>
+                            <li>Summarize brainstorming sessions</li>
+                            <li>Assign tasks automatically</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>💼 Sales & Leasing</h4>
+                        <ul>
+                            <li>Draft personalized proposals</li>
+                            <li>Automate CRM updates</li>
+                            <li>Prioritize leads intelligently</li>
+                            <li>Generate sales forecasts</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>🏗️ Construction & Logistics</h4>
+                        <ul>
+                            <li>Create project timelines</li>
+                            <li>Resource allocation planning</li>
+                            <li>Summarize site meeting notes</li>
+                            <li>Automate safety checklists</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>⚖️ Legal</h4>
+                        <ul>
+                            <li>Draft contracts, NDAs & compliance docs</li>
+                            <li>Summarize lengthy legal texts</li>
+                            <li>Extract key clauses automatically</li>
+                            <li>Track regulatory changes</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>💻 Development / IT</h4>
+                        <ul>
+                            <li>Code generation & debugging</li>
+                            <li>Automate DevOps tasks</li>
+                            <li>Create technical documentation</li>
+                            <li>Generate scripts</li>
+                        </ul>
+                    </div>
+                    <div class="role-card">
+                        <h4>👔 Executive (CFO/CIO)</h4>
+                        <ul>
+                            <li>Real-time financial dashboards</li>
+                            <li>Risk analysis & scenario modeling</li>
+                            <li>Monitor IT performance</li>
+                            <li>AI governance integration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus Features Section -->
+            <div class="bonus-section">
+                <h3>🎁 Bonus: Additional Capabilities with Licensed Copilot</h3>
+                <p style="margin-bottom: 20px; font-size: 1.1em;">With Microsoft 365 Copilot, you also unlock access to these advanced features (additional licensing may apply):</p>
+                
+                <div class="bonus-grid">
+                    <div class="bonus-card">
+                        <h4>🤖 Copilot Studio (Agents)</h4>
+                        <p>Build custom AI agents for specific tasks like lease abstraction, invoice Q&A, or vendor management. Requires tenant billing with capacity credits or pay-as-you-go.</p>
+                    </div>
+                    <div class="bonus-card">
+                        <h4>⚡ Power Automate</h4>
+                        <p>Orchestrate complex workflows across apps. Automate approvals, notifications, and data sync. Can call Copilot Studio agents via APIs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decision Guide -->
+            <div class="section">
+                <h2>Which One Should You Choose?</h2>
+                <div class="decision-box">
+                    <strong>Choose Copilot Free if:</strong>
+                    <p>You want basic AI assistance for personal learning, brainstorming, or casual use. You don't need to access company files or work with sensitive business data.</p>
+                </div>
+                <div class="decision-box">
+                    <strong>Choose Microsoft 365 Copilot (Licensed) if:</strong>
+                    <p>Your work involves company data, workflows, or reporting. You need AI embedded directly in Word, Excel, Outlook, and Teams. You require enterprise-grade security and compliance. You want to boost productivity at scale across your organization.</p>
+                </div>
+            </div>
+
+            <!-- Rollout Strategy -->
+            <div class="section">
+                <h2>Recommended Rollout Approach</h2>
+                <div class="summary-box">
+                    <strong>Phase 1:</strong> Free for Everyone → Train organization on Copilot Chat; build AI literacy at zero cost
+                </div>
+                <div class="summary-box">
+                    <strong>Phase 2:</strong> Licensed Pilot (10-20%) → Finance, BI/IT, Executives, power users in Leasing/Marketing
+                </div>
+                <div class="summary-box">
+                    <strong>Phase 3:</strong> Full Rollout + Advanced Features → Expand licenses where ROI is proven; add Copilot Studio agents and Power Automate workflows as needed
+                </div>
+            </div>
+
+            <!-- Key Takeaway -->
+            <div class="highlight-box">
+                <strong style="font-size: 1.3em; display: block; margin-bottom: 15px;">💡 The Key Decision:</strong>
+                Does your work involve company data, workflows, or business-critical tasks?<br>
+                <strong>YES → Microsoft 365 Copilot (Licensed)</strong><br>
+                <strong>NO → Copilot Free is sufficient</strong>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

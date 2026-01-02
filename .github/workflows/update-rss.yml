@@ -2,50 +2,47 @@ name: Update RSS Feed
 
 on:
   schedule:
-    # Run every 6 hours (4 times a day) - more reasonable for GitHub Actions
-    - cron: '0 */6 * * *'
-  workflow_dispatch: # Allow manual trigger
+    # Run every 30 minutes (you can adjust this)
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/index.html'
 
 jobs:
   update-feed:
     runs-on: ubuntu-latest
-    timeout-minutes: 8  # Total job timeout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Fetch full history for proper git operations
+        fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
-        timeout-minutes: 2
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Generate static RSS feed
-        run: npm run build
-        timeout-minutes: 5
-        env:
-          NODE_OPTIONS: '--max-old-space-size=512'
+    - name: Fetch RSS feeds and build static files
+      run: npm run build-static
+      env:
+        NODE_ENV: production
 
-      - name: Check for changes
-        id: verify-changed-files
-        run: |
-          if [ -n "$(git status --porcelain docs/)" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push changes
-        if: steps.verify-changed-files.outputs.changed == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add docs/ articles.json
-          git commit -m "🔄 Update RSS feed [$(date -u +'%Y-%m-%d %H:%M UTC')]"
-          git push
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add docs/
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update RSS feed and static files [$(date +'%Y-%m-%d %H:%M UTC')]"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

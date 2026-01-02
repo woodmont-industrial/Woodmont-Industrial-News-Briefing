@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npx tsx rssfeed.ts",
     "build": "npx tsx rssfeed.ts --build-static",
+    "build-static": "npx tsx rssfeed.ts --build-static",
     "dev": "npx tsx rssfeed.ts"
   },
   "dependencies": {

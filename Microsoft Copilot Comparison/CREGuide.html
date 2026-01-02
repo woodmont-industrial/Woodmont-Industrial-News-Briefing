@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Criteria Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .card h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-item {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .case-study {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #00acc1;
+        }
+
+        .case-study h4 {
+            color: #00838f;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.8;
+        }
+
+        .stat-highlight {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Development Criteria Guide</h1>
+            <p class="subtitle">Data Centers | Industrial | Multifamily Developments</p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('datacenter')">Data Centers</button>
+            <button class="tab-btn" onclick="showTab('industrial')">Industrial</button>
+            <button class="tab-btn" onclick="showTab('multifamily')">Multifamily</button>
+            <button class="tab-btn" onclick="showTab('russo')">Russo Development</button>
+        </div>
+
+        <!-- Data Center Section -->
+        <div id="datacenter" class="content-section active">
+            <div class="card">
+                <h2>Data Center Development</h2>
+                
+                <h3>Capacity and Land Requirements</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Electrical Capacity</th>
+                            <th>Land Requirements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Small/Enterprise</strong></td>
+                            <td>1–10 MW</td>
+                            <td>Often retrofit in existing buildings; minimal land required</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Medium/Edge</strong></td>
+                            <td>10–30 MW</td>
+                            <td>A few acres near population centers</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Large/Hyperscale</strong></td>
+                            <td>40+ MW (often 100+ MW)</td>
+                            <td>~10 acres (7 football fields) to hundreds of acres</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="highlight-box">
+                    <strong>💡 Key Insight:</strong> Data center capacity is measured in megawatts rather than floor area because IT equipment requirements depend on power delivery and cooling capacity. A 40+ MW facility requires electricity equivalent to <span class="stat-highlight">36,000 homes</span>.
+                </div>
+
+                <h3>Site Selection Criteria</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>⚡ Power & Reliability</strong>
+                        Access to abundant, redundant electricity is foundational. Many hyperscale sites require new substations or on-site generation.
+                    </div>
+                    <div class="info-item">
+                        <strong>🌐 Network Connectivity</strong>
+                        Proximity to fiber networks and internet exchange points lowers latency and reduces build-out costs.
+                    </div>
+                    <div class="info-item">
+                        <strong>💧 Cooling & Water</strong>
+                        High-density computing generates significant heat. AI-focused facilities can consume millions of gallons of water per day.
+                    </div>
+                    <div class="info-item">
+                        <strong>🏞️ Land & Expansion</strong>
+                        Large campuses require extensive acreage. Feasible sites usually start at ~40 acres for at least two buildings and infrastructure.
+                    </div>
+                    <div class="info-item">
+                        <strong>💰 Tax Incentives</strong>
+                        Jurisdictions offering sales/use-tax exemptions on equipment or property tax abatements are attractive.
+                    </div>
+                    <div class="info-item">
+                        <strong>📋 Regulatory Environment</strong>
+                        Developers prefer sites where data centers are approved uses. Rezoning can add time and risk.
+                    </div>
+                </div>
+
+                <h3>How Companies Prioritize</h3>
+                <div class="info-grid">
+                    <div class="case-study">
+                        <h4>Hyperscalers (Amazon, Google, Meta)</h4>
+                        Prioritize power above all else due to grid capacity scarcity. Often partner with energy providers or build on-site generation. Favor low-cost renewable energy for sustainability targets.
+                    </div>
+                    <div class="case-study">
+                        <h4>Cloud Colocation Providers</h4>
+                        Focus on network connectivity and market access, clustering around major internet exchange points and dense fiber infrastructure.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Industrial Section -->
+        <div id="industrial" class="content-section">
+            <div class="card">
+                <h2>Industrial & Warehouse Development</h2>
+                
+                <h3>Land and Power Requirements</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project Type</th>
+                            <th>Land Requirement</th>
+                            <th>Utility Requirements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Mega Manufacturing Sites</strong></td>
+                            <td>500+ acres</td>
+                            <td>100+ MW power, water, wastewater; rail connectivity</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mid-Size Manufacturing</strong></td>
+                            <td>100–500 acres</td>
+                            <td>Moderate utilities; industrial road connectivity</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Light Industrial/Warehousing</strong></td>
+                            <td>&lt;100 acres (10–20+ acres typical)</td>
+                            <td>Benign utilities; road transport focused</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="highlight-box">
+                    <strong>📦 Warehouse Standards:</strong> Typical distribution centers are <span class="stat-highlight">400,000–600,000 sq ft</span> with high dock ratios, <span class="stat-highlight">32–40 ft ceilings</span>, and 40×40 ft column spacing.
+                </div>
+
+                <h3>Site Selection Drivers</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>🚛 Transportation Access</strong>
+                        Proximity to highways, ports, airports, and rail reduces logistics costs by up to 50% and improves delivery speed by 20%.
+                    </div>
+                    <div class="info-item">
+                        <strong>⚡ Utility Availability</strong>
+                        Industries consume ~21% of global energy. Reliable electricity, water, natural gas, and broadband are essential.
+                    </div>
+                    <div class="info-item">
+                        <strong>👷 Workforce Availability</strong>
+                        After logistics, workforce is the primary driver for manufacturers. Access to skilled labor influences costs and success.
+                    </div>
+                    <div class="info-item">
+                        <strong>📋 Zoning & Regulations</strong>
+                        Sites must allow industrial use with clear permitting paths to avoid costly setbacks.
+                    </div>
+                    <div class="info-item">
+                        <strong>🌱 Environmental Factors</strong>
+                        Contamination, wetlands, and topography are evaluated. Brownfield redevelopment may offer tax credits.
+                    </div>
+                    <div class="info-item">
+                        <strong>📍 Market Proximity</strong>
+                        Being close to customers and suppliers reduces transportation costs and improves supply chain efficiency.
+                    </div>
+                </div>
+
+                <h3>Company Priorities</h3>
+                <div class="case-study">
+                    <h4>Manufacturers</h4>
+                    Emphasize power and utilities. Advanced facilities need more than acreage—early utility coordination is essential. Battery and semiconductor plants may consume huge amounts of power and water.
+                </div>
+                <div class="case-study">
+                    <h4>Logistics/Warehousing Developers</h4>
+                    Prioritize transportation access, high dock ratios, and flexibility. New multilevel distribution centers maximize throughput with clear heights and high dock ratios.
+                </div>
+            </div>
+        </div>
+
+        <!-- Multifamily Section -->
+        <div id="multifamily" class="content-section">
+            <div class="card">
+                <h2>Multifamily Residential Development</h2>
+                
+                <h3>Density and Units Per Acre</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Development Type</th>
+                            <th>Units per Acre</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Single-Story Duplexes</td>
+                            <td>6–8</td>
+                            <td>Low-density suburban product</td>
+                        </tr>
+                        <tr>
+                            <td>Cluster (Manor) Homes</td>
+                            <td>10–12</td>
+                            <td>Detached housing around courtyards, 1–2 stories</td>
+                        </tr>
+                        <tr>
+                            <td>Townhomes/Rowhouses</td>
+                            <td>12–18</td>
+                            <td>Attached row houses with garage parking, 2–3 stories</td>
+                        </tr>
+                        <tr>
+                            <td>Garden Apartments</td>
+                            <td>19–25</td>
+                            <td>Typical suburban, 2–3 story walk-ups, surface parking</td>
+                        </tr>
+                        <tr>
+                            <td>Village Cluster/Urban-Suburban</td>
+                            <td>26–40</td>
+                            <td>3–4 story buildings, street-oriented</td>
+                        </tr>
+                        <tr>
+                            <td>4-Story with Central Garage</td>
+                            <td>41–75</td>
+                            <td>Wood construction wrapped around parking ("Texas Donut")</td>
+                        </tr>
+                        <tr>
+                            <td>5-Story with Central Garage</td>
+                            <td>80–95</td>
+                            <td>Five stories over central garage</td>
+                        </tr>
+                        <tr>
+                            <td>4–5 Stories Over Podium</td>
+                            <td>90–115</td>
+                            <td>Residential floors atop podium parking</td>
+                        </tr>
+                        <tr>
+                            <td>Mid-Rise (7–8 Stories)</td>
+                            <td>116–150</td>
+                            <td>Used for transit-oriented developments</td>
+                        </tr>
+                        <tr>
+                            <td>High-Rise (8+ Stories)</td>
+                            <td>140–300+</td>
+                            <td>Steel/concrete construction, maximum density</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Site Evaluation Factors</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>📊 Market Demand</strong>
+                        Understanding demographics, job growth, income levels, and competitive supply is critical.
+                    </div>
+                    <div class="info-item">
+                        <strong>📏 Zoning Compatibility</strong>
+                        Site must be zoned for intended units and height. Setbacks, FAR, and height limits dictate buildable area.
+                    </div>
+                    <div class="info-item">
+                        <strong>🏗️ Buildable Area</strong>
+                        Topography, hazards, easements, and setbacks determine developable land. 25–30% often reserved for infrastructure.
+                    </div>
+                    <div class="info-item">
+                        <strong>💧 Utilities</strong>
+                        Adequate water, sewer, electricity, and stormwater capacity are required.
+                    </div>
+                    <div class="info-item">
+                        <strong>🌍 Environmental Risks</strong>
+                        Phase-I studies, wetlands, or floodplains can reduce buildable area and increase costs.
+                    </div>
+                    <div class="info-item">
+                        <strong>⏱️ Entitlement Timeline</strong>
+                        Projects often require rezoning or special permits. Community acceptance influences feasibility.
+                    </div>
+                </div>
+
+                <h3>Developer Priorities</h3>
+                <div class="info-grid">
+                    <div class="case-study">
+                        <h4>Affordable/Build-to-Rent</h4>
+                        Balance density with cost. Often select sites allowing 20–40 units per acre using wood construction (garden apartments, village clusters).
+                    </div>
+                    <div class="case-study">
+                        <h4>Urban Infill/Transit-Oriented</h4>
+                        Prioritize public transit access and high allowable density. Use podium or mid-rise configurations (90–150 units per acre).
+                    </div>
+                    <div class="case-study">
+                        <h4>Luxury/High-Rise</h4>
+                        Seek premium locations near employment centers. Build 8+ story towers (140–300 units per acre) to support high land costs.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Russo Development Section -->
+        <div id="russo" class="content-section">
+            <div class="card">
+                <h2>Russo Development Case Studies</h2>
+                <p style="font-size: 1.1em; margin-bottom: 30px;">A New Jersey-based developer specializing in mission-critical data centers, industrial distribution facilities, and multifamily projects.</p>
+                
+                <h3>Data Center Projects</h3>
+                
+                <div class="case-study">
+                    <h4>777 Central Boulevard (Carlstadt, NJ)</h4>
+                    <ul>
+                        <li><strong>Site:</strong> ~300,000 sq ft on 12 acres</li>
+                        <li><strong>Power:</strong> Dedicated 25-MW substation</li>
+                        <li><strong>Strategy:</strong> Ensured abundant dedicated power for backup operations serving large financial, medical, and technology tenants</li>
+                    </ul>
+                </div>
+
+                <div class="case-study">
+                    <h4>760 Washington Avenue (Carlstadt, NJ)</h4>
+                    <ul>
+                        <li><strong>Site:</strong> 172,000 sq ft with 36-ft ceiling height</li>
+                        <li><strong>Power:</strong> 5-MW utility capacity</li>
+                        <li><strong>Location:</strong> ~7 miles from George Washington Bridge and Lincoln Tunnel</li>
+                        <li><strong>Strategy:</strong> Prioritized proximity to NYC and major fiber routes for enterprise customers</li>
+                    </ul>
+                </div>
+
+                <div class="case-study">
+                    <h4>50 Madison Road (Totowa, NJ)</h4>
+                    <ul>
+                        <li><strong>Site:</strong> 150,000 sq ft with 32-ft ceiling</li>
+                        <li><strong>Power:</strong> 16-MW utility capacity</li>
+                        <li><strong>Location:</strong> ~20 miles from NYC</li>
+                        <li><strong>Strategy:</strong> Significant power and height to handle IT equipment, proximity to metropolitan hubs for latency-sensitive users</li>
+                    </ul>
+                </div>
+
+                <div class="case-study">
+                    <h4>Purpose-Built Data Center (Mahwah, NJ)</h4>
+                    <ul>
+                        <li><strong>Site:</strong> Large greenfield site, 395,000 sq ft</li>
+                        <li><strong>Power:</strong> Dual 138 kV transmission lines in ring-bus configuration</li>
+                        <li><strong>Infrastructure:</strong> Dual municipal water mains, dark fiber connectivity</li>
+                        <li><strong>Tenant:</strong> Major financial institution</li>
+                        <li><strong>Strategy:</strong> Selected site with abundant high-voltage power and redundant utilities, proximity to Manhattan</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <strong>🎯 Key Takeaway:</strong> Russo emphasizes dedicated power capacity (5–25 MW), redundant utility infrastructure, and proximity to NYC for connectivity and market access. Buildings feature high clear heights and reinforced floor loads for heavy equipment.
+                </div>
+
+                <h3>Industrial & Distribution Projects</h3>
+                
+                <div class="case-study">
+                    <h4>Sawmill Park (Kearny, NJ)</h4>
+                    <ul>
+                        <li><strong>Site:</strong> Redeveloped brownfield into two 300,000+ sq ft Class A facilities</li>
+                        <li><strong>Tenants:</strong> Pepsi Bottling and HD Smith</li>
+                        <li><strong>Location:</strong> Tremendous access to NJ/NY highway network in Urban Enterprise Zone</li>
+                        <li><strong>Incentives:</strong> Tax credits and financing incentives</li>
+                        <li><strong>Strategy:</strong> Managed environmental remediation, leveraged tax-advantaged zone and prime highway access for logistics efficiency</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <strong>🎯 Key Takeaway:</strong> Russo leverages transportation access and economic incentives, transforming brownfields in Urban Enterprise Zones. Focus on near-market locations reduces delivery times and logistics costs.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Smooth scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

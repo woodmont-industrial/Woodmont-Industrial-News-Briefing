@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woodmont Industrial Partners - Daily Briefing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .header .date-range {
+            font-size: 14px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+        
+        .article-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .article-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .article-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-location {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .badge-category {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .badge-type {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .article-content {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .article-source {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .source-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .source-link:hover {
+            text-decoration: underline;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-decoration: none;
+            border: 1px solid #dee2e6;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .highlight-label {
+            font-weight: 600;
+            color: #d84315;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .highlight-text {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .empty-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            .article-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 Woodmont Industrial Partners</h1>
+            <div class="subtitle">Daily Industrial News Briefing</div>
+            <div class="date-range">Coverage Period: Thu, Dec 11 – Wed, Dec 17, 2025 (ET)</div>
+            <div class="date-range">Focus Markets: NJ, PA, FL, TX</div>
+        </div>
+        
+        <div class="content">
+            <!-- Section 1: Relevant Articles -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">📰</div>
+                    <div class="section-title">Market Intelligence & Policy Updates</div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">NJ</span>
+                        <span class="badge badge-category">Entitlements/Policy</span>
+                        <span class="badge badge-type">Warehouses</span>
+                    </div>
+                    <div class="article-content">
+                        NJ municipalities are tightening approval conditions (truck curfews/routes, road/noise controls) as industrial demand persists. This regulatory shift signals increasing scrutiny on warehouse development despite strong market fundamentals.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://njbiz.com/nj-towns-warehouse-approvals-industrial-demand/" class="source-link" target="_blank">📖 Read Full Article – NJBIZ</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">PA</span>
+                        <span class="badge badge-category">Investment/Development</span>
+                        <span class="badge badge-type">Market Shift</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>Lancaster & Berks Counties Emerge as Investment Hotspots:</strong> Constraints in Lehigh Valley, Northeast PA, and Harrisburg are redirecting capital flows. Recent investment volumes reached $419M in Lancaster and $381.7M in Berks, with multiple large-scale projects in the pipeline.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.bisnow.com/philadelphia/news/industrial/berks-lancaster-development-investment-warehouse-logistics-pennsylvania-132306" class="source-link" target="_blank">📖 Read Full Article – Bisnow</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">National</span>
+                        <span class="badge badge-category">Industrial Outdoor Storage</span>
+                        <span class="badge badge-type">Investment Thesis</span>
+                    </div>
+                    <div class="article-content">
+                        Institutional interest in Industrial Outdoor Storage (IOS) highlighted as resilient asset class. Relevant read-through for NJ port-adjacent IOS competition and investment opportunities.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.bisnow.com/industrial" class="source-link" target="_blank">📖 Read Full Article – Bisnow</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Transactions -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">💼</div>
+                    <div class="section-title">Major Transactions (≥100K SF or ≥$25M)</div>
+                </div>
+                
+                <div class="highlight-box">
+                    <div class="highlight-label">🔥 Featured Deal</div>
+                    <div class="highlight-text">
+                        <strong>Newark, NJ | 3.2M SF Mega-Site Sale</strong><br>
+                        Anheuser-Busch sold its iconic Newark brewery property to Goodman Group (price undisclosed). The ~3.2M SF site will be repurposed for industrial manufacturing and logistics uses. Brewery closure expected in 2026.
+                    </div>
+                </div>
+                <div class="article-source" style="margin-top: -5px; margin-bottom: 20px;">
+                    <a href="https://njbiz.com/iconic-newark-anheuser-busch-brewery-goodman-sale/" class="source-link" target="_blank">📖 Read Full Article – NJBIZ</a>
+                    <div class="action-buttons">
+                        <a href="#" class="action-btn">Track</a>
+                        <a href="#" class="action-btn">Share</a>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">Palm Beach Gardens, FL</span>
+                        <span class="badge badge-type">Lease</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>100K SF Lease:</strong> Ampera to occupy two buildings totaling 100K SF at Gardens Innovation Center (PGA National Commerce Park). Leasing handled by Colliers (Michael Falk). Move-in scheduled for next month.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.bisnow.com/south-florida/news/industrial/a-nuclear-energy-company-plants-global-hq-in-south-florida-132322" class="source-link" target="_blank">📖 Read Full Article – Bisnow</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">Warren & Morris Counties, NJ</span>
+                        <span class="badge badge-type">Multiple Leases</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>116,347 SF I-80 Corridor Activity:</strong> Resource Realty of Northern NJ reported activity across four I-80 corridor deals. Largest single user lease: 45K+ SF in Hackettstown.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://re-nj.com/i-80-corridor-shines-as-rrnnj-inks-warren-morris-industrial-deals-totaling-116000-sq-ft/" class="source-link" target="_blank">📖 Read Full Article – re-nj.com</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Availabilities -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">🏢</div>
+                    <div class="section-title">Notable Availabilities</div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">Jersey City, NJ</span>
+                        <span class="badge badge-type">For Lease</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>255,742 SF Warehouse + 5.0 AC IOS</strong><br>
+                        150 Pacific Ave – Port market positioning with outdoor storage component. Recent listing update.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.loopnet.com/Listing/150-Pacific-Ave-Jersey-City-NJ/27869140/" class="source-link" target="_blank">📖 View Listing – LoopNet</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">Parsippany, NJ</span>
+                        <span class="badge badge-type">Sublease</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>100,000 SF Industrial Space</strong><br>
+                        100 Jefferson Rd – Asking $18.00/SF/YR | Term through October 2031
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.loopnet.com/Listing/100-Jefferson-Rd-Parsippany-NJ/34820584/" class="source-link" target="_blank">📖 View Listing – LoopNet</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="badge badge-location">Newark, NJ</span>
+                        <span class="badge badge-type">IOS Yard Sublease</span>
+                    </div>
+                    <div class="article-content">
+                        <strong>9.1 Acres Industrial Outdoor Storage</strong><br>
+                        921 Delancy St – Near Port Newark with gate, power, and heavy-vehicle circulation features.
+                    </div>
+                    <div class="article-source">
+                        <a href="https://www.loopnet.com/Listing/921-Delancy-St-Newark-NJ/37930521/" class="source-link" target="_blank">📖 View Listing – LoopNet</a>
+                        <div class="action-buttons">
+                            <a href="#" class="action-btn">Track</a>
+                            <a href="#" class="action-btn">Share</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: People News -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">👥</div>
+                    <div class="section-title">People & Firm Movements</div>
+                </div>
+                
+                <div class="empty-section">
+                    No brokerage, development, or investment personnel updates reported this period.
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <strong>Woodmont Industrial Partners</strong><br>
+            Daily Industrial News Briefing – Confidential & Proprietary<br>
+            © 2025 All Rights Reserved
+        </div>
+    </div>
+</body>
+</html>
