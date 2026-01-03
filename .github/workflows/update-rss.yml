@@ -1,16 +1,21 @@
 name: Update RSS Feed
 
+# Workflow disabled - uncomment to re-enable
+# on:
+#   schedule:
+#     # Run every 30 minutes (you can adjust this)
+#     - cron: '*/30 * * * *'
+#   workflow_dispatch:
+#     # Allow manual triggering
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'docs/index.html'
+
 on:
-  schedule:
-    # Run every 30 minutes (you can adjust this)
-    - cron: '*/30 * * * *'
   workflow_dispatch:
-    # Allow manual triggering
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/index.html'
+    # Manual triggering only
 
 jobs:
   update-feed:
