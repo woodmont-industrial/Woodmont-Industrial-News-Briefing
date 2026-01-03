@@ -1,10 +1,10 @@
 import Parser from 'rss-parser';
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import * as xml2js from 'xml2js';
 import { RSS_FEEDS, BROWSER_HEADERS } from './config.js';
 import { classifyArticle } from '../filter/classifier.js';
 import { itemStore, feedStats, fetchCache, manualArticles, pruneItemStore, archiveOldArticles } from '../store/storage.js';
-import { FetchResult, FeedConfig, NormalizedItem, FeedStat } from '../types/index.js';
+import { FetchResult, FeedConfig, NormalizedItem, FeedStat, RawRSSItem, RSSLink, RSSEnclosure, RSSMediaContent } from '../types/index.js';
 
 const circuitBreaker = new Map<string, { failureCount: number, blockedUntil: number }>();
 const FETCH_CACHE_TTL_MS = 20 * 60 * 1000; // 20 minutes
@@ -32,23 +32,27 @@ const rssParser = new Parser({
 });
 
 // Helper functions
-function extractImage(item: any): string {
+function extractImage(item: RawRSSItem): string {
     if (!item) return "";
     const fields = [
         item["media:thumbnail"],
         item["media:content"],
         item.enclosure
-    ].filter(Boolean);
+    ].filter(Boolean) as (RSSMediaContent | RSSMediaContent[] | RSSEnclosure | RSSEnclosure[])[];
     for (const f of fields) {
         const node = Array.isArray(f) ? f[0] : f;
-        if (node && (node.url || (node.$ && node.$.url))) return node.url || node.$.url;
+        if (node && (node.url || (node.$ && node.$.url))) return node.url || node.$.url || "";
     }
-    if (item["content:encoded"] && item["content:encoded"][0]) {
-        const match = item["content:encoded"][0].match(/<img[^>]+src="([^"]+)"/i);
+    const contentEncoded = item["content:encoded"];
+    if (contentEncoded) {
+        const content = Array.isArray(contentEncoded) ? contentEncoded[0] : contentEncoded;
+        const match = content.match(/<img[^>]+src="([^"]+)"/i);
         if (match && match[1]) return match[1];
     }
-    if (item.description && item.description[0]) {
-        const match = item.description[0].match(/<img[^>]+src="([^"]+)"/i);
+    const desc = item.description;
+    if (desc) {
+        const description = Array.isArray(desc) ? desc[0] : desc;
+        const match = description.match(/<img[^>]+src="([^"]+)"/i);
         if (match && match[1]) return match[1];
     }
     return "";
@@ -62,7 +66,7 @@ function stripHtmlTags(html: string): string {
     return cleaned.replace(/\s+/g, ' ').trim();
 }
 
-function extractLink(item: any): string | null {
+function extractLink(item: RawRSSItem): string | null {
     if (!item) return "";
 
     // PRIORITY 1: Feedburner original link (GlobeSt uses this for actual article URLs)
@@ -86,24 +90,26 @@ function extractLink(item: any): string | null {
         for (const l of item.link) {
             if (!l) continue;
             if (typeof l === "string") return normalizeUrl(l);
-            const href = l.href || (l.$ && l.$.href);
-            const rel = l.rel || (l.$ && l.$.rel);
+            const linkObj = l as RSSLink;
+            const href = linkObj.href || (linkObj.$ && linkObj.$.href);
+            const rel = linkObj.rel || (linkObj.$ && linkObj.$.rel);
             if (href && (!rel || rel === "alternate")) return normalizeUrl(href);
         }
     }
 
     // PRIORITY 4: Handle atom:link with href
     if (item["atom:link"]) {
-        const atom = Array.isArray(item["atom:link"]) ? item["atom:link"][0] : item["atom:link"];
+        const atomLinks = item["atom:link"];
+        const atom = (Array.isArray(atomLinks) ? atomLinks[0] : atomLinks) as RSSLink;
         const href = atom?.$?.href;
         if (typeof href === "string") return normalizeUrl(href.trim());
     }
 
     // PRIORITY 5: guid as permalink (RSS permalinks)
     if (item.guid) {
-        const g = Array.isArray(item.guid) ? item.guid[0] : item.guid;
+        const g = item.guid;
         if (typeof g === "string" && g.startsWith("http")) return normalizeUrl(g);
-        if (g && g._ && g._.startsWith("http")) return normalizeUrl(g._);
+        if (typeof g === "object" && g._ && g._.startsWith("http")) return normalizeUrl(g._);
     }
 
     return null;
@@ -150,14 +156,16 @@ function computeId({ guid, canonicalUrl }: { guid?: string; canonicalUrl?: strin
     return require('crypto').createHash('sha1').update(basis).digest('hex');
 }
 
-async function fetchWithRetry(url: string, options: any, attempts = 3): Promise<any> {
-    let lastError;
+async function fetchWithRetry<T>(url: string, options: AxiosRequestConfig, attempts = 3): Promise<T> {
+    let lastError: Error | AxiosError | undefined;
     for (let i = 0; i < attempts; i++) {
         try {
-            return await axios.get(url, options);
-        } catch (err: any) {
-            lastError = err;
-            const status = err.response?.status;
+            const response = await axios.get<T>(url, options);
+            return response.data;
+        } catch (err) {
+            lastError = err as AxiosError;
+            const axiosErr = err as AxiosError;
+            const status = axiosErr.response?.status;
             if (status && status >= 400 && status < 500) {
                 // 4xx errors are non-retriable
                 throw err;
@@ -196,8 +204,9 @@ async function validateLink(link: string): Promise<{ ok: boolean; status: number
         const access = classifyAccess(resp.status, contentType, bodySample);
         const ok = resp.status >= 200 && resp.status < 400 && access !== "paywalled" && access !== "blocked";
         return { ok, status: resp.status, access };
-    } catch (err: any) {
-        const status = err && err.response ? err.response.status : 0;
+    } catch (err) {
+        const axiosErr = err as AxiosError;
+        const status = axiosErr.response?.status || 0;
         return { ok: false, status, access: "blocked" };
     }
 }
@@ -433,8 +442,9 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
             }
         };
 
-    } catch (error: any) {
-        console.error(`[${feed.name}] ERROR:`, error.message);
+    } catch (error) {
+        const err = error as Error;
+        console.error(`[${feed.name}] ERROR:`, err.message);
 
         // Update circuit breaker on error
         cb.failureCount++;
@@ -447,34 +457,49 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
         feedStats.set(feed.url, {
             lastFetch: new Date().toISOString(),
             lastSuccess: null,
-            lastError: error.message,
+            lastError: err.message,
             itemsFetched: 0
         });
 
         // Return last good articles if available
         const oldArticles = Array.from(itemStore.values()).filter(i => i.source === feed.name);
+        const axiosErr = error as AxiosError;
         return {
             status: 'error',
             articles: oldArticles,
-            error: { type: 'fetch_error', message: error.message, httpStatus: error.response?.status },
+            error: { type: 'fetch_error', message: err.message, httpStatus: axiosErr.response?.status },
             meta: { feed: feed.name, fetchedRaw: 0, kept: oldArticles.length, filteredOut: 0, durationMs: Date.now() - start }
         };
     }
 }
 
 // Helper function to extract image from rss-parser item
-function extractImageFromItem(item: any): string {
-    if (item.enclosure?.url && item.enclosure.type?.startsWith('image/')) {
-        return item.enclosure.url;
+function extractImageFromItem(item: RawRSSItem & { content?: string }): string {
+    const enclosure = item.enclosure;
+    if (enclosure) {
+        const enc = Array.isArray(enclosure) ? enclosure[0] : enclosure;
+        if (enc?.url && enc.type?.startsWith('image/')) {
+            return enc.url;
+        }
     }
-    if (item['media:content']?.url) {
-        return item['media:content'].url;
+    const mediaContent = item['media:content'];
+    if (mediaContent) {
+        const mc = Array.isArray(mediaContent) ? mediaContent[0] : mediaContent;
+        if (mc?.url) return mc.url;
+        if (mc?.$?.url) return mc.$.url;
     }
-    if (item['media:thumbnail']?.url) {
-        return item['media:thumbnail'].url;
+    const mediaThumbnail = item['media:thumbnail'];
+    if (mediaThumbnail) {
+        const mt = Array.isArray(mediaThumbnail) ? mediaThumbnail[0] : mediaThumbnail;
+        if (mt?.url) return mt.url;
+        if (mt?.$?.url) return mt.$.url;
     }
 
-    const content = item.content || item['content:encoded'] || item.description || '';
+    const contentEncoded = item['content:encoded'];
+    const desc = item.description;
+    const content = item.content ||
+        (Array.isArray(contentEncoded) ? contentEncoded[0] : contentEncoded) ||
+        (Array.isArray(desc) ? desc[0] : desc) || '';
     const imgMatch = content.match(/<img[^>]+src="([^"]+)"/);
     return imgMatch ? imgMatch[1] : '';
 }
