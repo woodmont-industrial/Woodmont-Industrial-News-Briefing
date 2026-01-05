@@ -13,6 +13,38 @@ import { NormalizedItem } from '../types/index.js';
 const DOCS_DIR = path.join(process.cwd(), 'docs');
 
 /**
+ * Normalize title for deduplication - lowercase, remove special chars
+ */
+function normalizeTitle(title: string): string {
+    if (!title) return '';
+    return title
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '') // Remove special characters
+        .replace(/\s+/g, ' ')    // Normalize whitespace
+        .trim();
+}
+
+/**
+ * Normalize URL for deduplication - strips tracking params and normalizes format
+ */
+function normalizeUrlForDedupe(url: string): string {
+    if (!url) return '';
+    try {
+        const u = new URL(url);
+        // Remove tracking parameters
+        const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 
+                                'fbclid', 'gclid', 'mc_cid', 'mc_eid', 'ref', 'source'];
+        trackingParams.forEach(p => u.searchParams.delete(p));
+        // Remove hash
+        u.hash = '';
+        // Normalize to lowercase hostname
+        return u.toString().toLowerCase();
+    } catch {
+        return url.toLowerCase();
+    }
+}
+
+/**
  * Build static RSS/JSON feeds for GitHub Pages deployment
  */
 export async function buildStaticRSS(): Promise<void> {
@@ -34,9 +66,10 @@ export async function buildStaticRSS(): Promise<void> {
             }
         }
 
-        // Create set of existing GUIDs for deduplication
+        // Create sets for deduplication - by ID AND by canonical URL
         const existingGuids = new Set(existingArticles.map(a => a.id));
-        log('info', `Loaded ${existingGuids.size} existing GUIDs for deduplication`);
+        const existingUrls = new Set(existingArticles.map(a => normalizeUrlForDedupe(a.link || a.canonicalUrl || '')));
+        log('info', `Loaded ${existingGuids.size} existing GUIDs and ${existingUrls.size} URLs for deduplication`);
 
         // === STEP 2: Fetch fresh articles ===
         log('info', 'Fetching RSS feeds from sources');
@@ -70,16 +103,63 @@ export async function buildStaticRSS(): Promise<void> {
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
 
-        // Deduplication - only keep truly new items
-        const newItems = filteredNewItems.filter(item => !existingGuids.has(item.id));
-        log('info', `Found ${newItems.length} NEW articles`, {
+        // Deduplication - only keep truly new items (check ID, URL, AND title)
+        const seenUrls = new Set<string>();
+        const seenTitles = new Set<string>();
+        const existingTitles = new Set(existingArticles.map(a => normalizeTitle(a.title || '')));
+        
+        const newItems = filteredNewItems.filter(item => {
+            const normalizedUrl = normalizeUrlForDedupe(item.link || item.canonicalUrl || '');
+            const normalizedTitle = normalizeTitle(item.title || '');
+            
+            // Skip if we've already seen this URL in this batch
+            if (seenUrls.has(normalizedUrl)) {
+                return false;
+            }
+            
+            // Skip if we've already seen this title in this batch (same article from different sources)
+            if (seenTitles.has(normalizedTitle)) {
+                return false;
+            }
+            
+            // Skip if exists in previous feed (by ID, URL, or title)
+            if (existingGuids.has(item.id) || existingUrls.has(normalizedUrl) || existingTitles.has(normalizedTitle)) {
+                return false;
+            }
+            
+            seenUrls.add(normalizedUrl);
+            seenTitles.add(normalizedTitle);
+            return true;
+        });
+        
+        log('info', `Found ${newItems.length} NEW unique articles`, {
             beforeDedupe: filteredNewItems.length,
             duplicatesRemoved: filteredNewItems.length - newItems.length
         });
 
         // === STEP 3: Merge new + existing articles ===
-        const mergedArticles = [...newItems, ...existingArticles];
-        log('info', `Merged: ${newItems.length} new + ${existingArticles.length} existing = ${mergedArticles.length} total`);
+        // First dedupe existing articles by title (in case duplicates exist from before)
+        const dedupedExisting: NormalizedItem[] = [];
+        const existingSeenTitles = new Set<string>();
+        const existingSeenUrls = new Set<string>();
+        
+        for (const article of existingArticles) {
+            const normTitle = normalizeTitle(article.title || '');
+            const normUrl = normalizeUrlForDedupe(article.link || '');
+            
+            if (!existingSeenTitles.has(normTitle) && !existingSeenUrls.has(normUrl)) {
+                existingSeenTitles.add(normTitle);
+                existingSeenUrls.add(normUrl);
+                dedupedExisting.push(article);
+            }
+        }
+        
+        if (dedupedExisting.length < existingArticles.length) {
+            log('info', `Removed ${existingArticles.length - dedupedExisting.length} duplicates from existing articles`);
+        }
+        
+        const mergedArticles = [...newItems, ...dedupedExisting];
+        log('info', `Merged: ${newItems.length} new + ${dedupedExisting.length} existing = ${mergedArticles.length} total`);
 
         // === STEP 4: Apply 30-day cleanup ===
         const thirtyDaysAgo = new Date();
@@ -151,23 +231,47 @@ function generateRSSXML(items: NormalizedItem[]): string {
         const category = item.category || 'relevant';
         const categoryLabel = categoryLabels[category] || categoryLabels.relevant;
 
+        // Extract author - clean up any object types
         let authorString = '';
         if (item.author) {
-            authorString = typeof item.author === 'string' ? item.author : String(item.author);
+            authorString = typeof item.author === 'string' ? item.author : 
+                          (typeof item.author === 'object' && (item.author as any).name) ? (item.author as any).name : '';
         }
 
-        const imageUrl = item.image || item.imageUrl || item.thumbnailUrl || '';
+        // Get website domain from URL for source attribution
+        let websiteDomain = item.publisher || item.source || 'Unknown';
+        try {
+            if (item.link) {
+                const urlObj = new URL(item.link);
+                websiteDomain = urlObj.hostname.replace(/^www\./, '');
+            }
+        } catch { /* keep original */ }
+
+        // Get image URL with fallback
+        let imageUrl = item.image || item.thumbnailUrl || '';
+        if (!imageUrl && item.link) {
+            // Generate fallback thumbnail
+            let hash = 0;
+            for (let i = 0; i < item.link.length; i++) {
+                hash = ((hash << 5) - hash) + item.link.charCodeAt(i);
+                hash = hash & hash;
+            }
+            imageUrl = `https://picsum.photos/seed/${Math.abs(hash).toString(36)}/640/360`;
+        }
+
+        // Validate link
+        const validLink = item.link && item.link.startsWith('http') ? item.link : '#';
 
         return `\n    <item>
       <title><![CDATA[${item.title || 'Untitled'}]]></title>
-      <link>${item.link || '#'}</link>
-      <guid isPermaLink="true">${item.link || item.id || '#'}</guid>
+      <link>${validLink}</link>
+      <guid isPermaLink="true">${validLink}</guid>
       <pubDate>${item.pubDate ? new Date(item.pubDate).toUTCString() : new Date().toUTCString()}</pubDate>
       <description><![CDATA[${item.description || ''}]]></description>
       <category><![CDATA[${categoryLabel}]]></category>
-      <source><![CDATA[${item.source || 'Unknown'}]]></source>
+      <source url="${validLink}"><![CDATA[${websiteDomain}]]></source>
       ${authorString ? `<author><![CDATA[${authorString}]]></author>` : ''}
-      ${imageUrl ? `<enclosure url="${imageUrl.replace(/&/g, '&amp;')}" type="image/jpeg" />` : ''}
+      ${imageUrl ? `<enclosure url="${imageUrl.replace(/&/g, '&amp;')}" type="image/jpeg" length="0" />` : ''}
     </item>`;
     }).join('');
 
@@ -209,22 +313,43 @@ function generateJSONFeed(items: NormalizedItem[]): object {
         },
         items: items.map(item => {
             const category = item.category || 'relevant';
-            const imageUrl = item.image || item.imageUrl || item.thumbnailUrl || null;
+            
+            // Get image with fallback
+            let imageUrl = item.image || item.thumbnailUrl || null;
+            if (!imageUrl && item.link) {
+                let hash = 0;
+                for (let i = 0; i < item.link.length; i++) {
+                    hash = ((hash << 5) - hash) + item.link.charCodeAt(i);
+                    hash = hash & hash;
+                }
+                imageUrl = `https://picsum.photos/seed/${Math.abs(hash).toString(36)}/640/360`;
+            }
 
+            // Extract author
             let authorName = '';
             if (item.author) {
-                authorName = typeof item.author === 'string' ? item.author : '';
+                authorName = typeof item.author === 'string' ? item.author : 
+                            (typeof item.author === 'object' && (item.author as any).name) ? (item.author as any).name : '';
             }
-            if (!authorName) {
-                authorName = item.source || 'Unknown';
-            }
+
+            // Get website domain
+            let websiteDomain = item.publisher || item.source || 'Unknown';
+            try {
+                if (item.link) {
+                    const urlObj = new URL(item.link);
+                    websiteDomain = urlObj.hostname.replace(/^www\./, '');
+                }
+            } catch { /* keep original */ }
 
             const description = item.description || '';
             const summary = description ? (description.substring(0, 200) + (description.length > 200 ? '...' : '')) : '';
 
+            // Validate link
+            const validLink = item.link && item.link.startsWith('http') ? item.link : '';
+
             return {
                 id: item.id,
-                url: item.link || '',
+                url: validLink,
                 title: item.title || 'Untitled',
                 content_html: description,
                 content_text: description,
@@ -232,8 +357,13 @@ function generateJSONFeed(items: NormalizedItem[]): object {
                 date_published: item.pubDate || new Date().toISOString(),
                 date_modified: item.fetchedAt || new Date().toISOString(),
                 image: imageUrl,
-                author: { name: authorName },
-                tags: [categoryLabels[category] || category, ...(item.regions || [])]
+                author: { name: authorName || websiteDomain },
+                _source: {
+                    name: item.source || 'Unknown',
+                    website: websiteDomain,
+                    url: validLink
+                },
+                tags: [categoryLabels[category] || category, websiteDomain, ...(item.regions || [])]
             };
         })
     };

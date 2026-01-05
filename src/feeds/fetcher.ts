@@ -270,6 +270,19 @@ function fallbackThumbnail(id: string): string {
     return `https://picsum.photos/seed/${id}/640/360`;
 }
 
+// Generate a consistent fallback thumbnail based on URL hash
+function generateFallbackThumbnail(url: string): string {
+    if (!url) return '';
+    // Create a simple hash from the URL for consistent placeholder images
+    let hash = 0;
+    for (let i = 0; i < url.length; i++) {
+        hash = ((hash << 5) - hash) + url.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    const seed = Math.abs(hash).toString(36);
+    return `https://picsum.photos/seed/${seed}/640/360`;
+}
+
 // Enhanced article filtering with expanded market coverage for better article yield
 // Mandatory sources - these get VERY light filtering (basically allow everything)
 const MANDATORY_SOURCE_PATTERNS = [
@@ -366,20 +379,48 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
         for (const item of parsed.items) {
             try {
                 const extractedLink = extractLink(item) || item.link || item.guid || '';
+                const normalizedLink = normalizeUrl(extractedLink);
+                
+                // Skip if we can't get a valid link
+                if (!normalizedLink) {
+                    console.warn(`[${feed.name}] Skipping item with no valid link: ${item.title}`);
+                    continue;
+                }
+                
+                // Extract author - handle various formats
+                let authorName = '';
+                if (item.creator) {
+                    authorName = typeof item.creator === 'string' ? item.creator : 
+                                 (Array.isArray(item.creator) ? item.creator[0] : '');
+                } else if (item.author) {
+                    authorName = typeof item.author === 'string' ? item.author :
+                                 (typeof item.author === 'object' && item.author.name) ? item.author.name : '';
+                }
+                
+                // Extract image with fallback
+                const imageUrl = extractImageFromItem(item) || generateFallbackThumbnail(normalizedLink);
+                
+                // Extract website domain for source attribution
+                let websiteDomain = '';
+                try {
+                    const urlObj = new URL(normalizedLink);
+                    websiteDomain = urlObj.hostname.replace(/^www\./, '');
+                } catch { websiteDomain = ''; }
+                
                 const normalized: NormalizedItem = {
-                    id: computeId(extractedLink || ''),
+                    id: computeId({ guid: item.guid, canonicalUrl: normalizedLink }),
                     guid: item.guid || '',
-                    canonicalUrl: normalizeUrl(extractedLink),
+                    canonicalUrl: normalizedLink,
                     title: item.title || '',
-                    link: normalizeUrl(extractedLink),
+                    link: normalizedLink,
                     source: feed.name,
+                    publisher: websiteDomain || feed.name,
                     regions: [feed.region || 'US'],
                     pubDate: new Date(item.pubDate || item.published || new Date()).toISOString(),
                     description: stripHtmlTags(item.description || item['content:encoded'] || ''),
-                    author: typeof (item.creator || item.author) === 'string' ? (item.creator || item.author) : '',
-                    publisher: feed.name,
-                    image: extractImageFromItem(item),
-                    thumbnailUrl: extractImageFromItem(item),
+                    author: authorName,
+                    image: imageUrl,
+                    thumbnailUrl: imageUrl,
                     access: 'public',
                     status: 200,
                     fetchedAt: new Date().toISOString(),
