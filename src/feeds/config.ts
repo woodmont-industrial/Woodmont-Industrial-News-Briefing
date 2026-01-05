@@ -252,5 +252,60 @@ export const RSS_FEEDS: FeedConfig[] = [
     type: FEED_TYPES.INDUSTRIAL_NEWS,
     timeout: 30000,
     headers: BROWSER_HEADERS
-  }
+  },
+
+    // GlobesSt (Commercial Real Estate News)
+  {
+      url: "https://www.globest.com/feed/",
+            name: "GlobesSt",
+            region: "US",
+            source: "GlobesSt",
+            type: FEED_TYPES.INDUSTRIAL_NEWS,
+            timeout: 30000,
+            headers: BROWSER_HEADERS
+},
+
+    // Reuters Business News
+{
+      url: "https://feeds.reuters.com/reuters/businessNews",
+            name: "Reuters Business",
+            region: "US",
+            source: "Reuters",
+            type: FEED_TYPES.NEWS,
+            timeout: 30000,
+            headers: BROWSER_HEADERS
+},
+
+    // AP News Business
+{
+      url: "https://apnews.com/hub/business/feed",
+            name: "AP News Business",
+            region: "US",
+            source: "AP News",
+            type: FEED_TYPES.NEWS,
+            timeout: 30000,
+            headers: BROWSER_HEADERS
+},
+
+    // Business Journals (Market-specific coverage)
+{
+      url: "https://www.bizjournals.com/newyork/feed/",
+            name: "Business Journal NY",
+            region: "NY",
+            source: "Business Journals",
+            type: FEED_TYPES.NEWS,
+            timeout: 30000,
+            headers: BROWSER_HEADERS
+},
+
+    // Traded.co - Commercial Real Estate Marketplace
+{
+      url: "https://www.traded.co/rss/",
+            name: "Traded.co",
+            region: "US",
+            source: "Traded",
+            type: FEED_TYPES.INDUSTRIAL_NEWS,
+            timeout: 30000,
+            headers: BROWSER_HEADERS
+}
 ];
