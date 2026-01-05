@@ -1,4 +1,5 @@
 import { NormalizedItem, FeedConfig, FeedType } from '../types/index.js';
+import { classifyArticleWithRules } from './rule-engine.js';
 
 // Industrial/Warehouse keyword filters - EXPANDED for better coverage
 export const INDUSTRIAL_KEYWORDS = [
@@ -185,7 +186,8 @@ export function containsAny(text: string, keywords: string[]): boolean {
 }
 
 // Classify article based on boss's four-section briefing format
-export function classifyArticle(title: string, description: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
+function classifyArticleOriginal330
+    , description: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
     const t = (title + " " + description + " " + link).toLowerCase();
 
     // APPROVED SOURCES - Only allow approved domains (same as before)
@@ -326,6 +328,27 @@ export function classifyArticle(title: string, description: string, link: string
     }
 
     return { isRelevant: false, category: "not relevant", score: 0 };
+}
+
+/**
+ * Wrapper for classifyArticle that uses the lightweight rule engine
+  * Falls back to original logic if rule engine fails
+   */
+export async function classifyArticle(
+      title: string,
+      description: string,
+      link: string,
+      source?: string,
+      feedType?: FeedType
+    ): Promise<{ isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' }> {
+      try {
+              // Try using the new lightweight rule engine
+              return await classifyArticleWithRules(title, description, link, source, feedType);
+      } catch (error) {
+              console.warn('Rule engine classification failed, falling back to original logic:', error);
+              // Fallback to original implementation if rule engine fails
+              return classifyArticleOriginal(title, description, link, source, feedType);
+      }
 }
 
 // Helper function to extract size from text
