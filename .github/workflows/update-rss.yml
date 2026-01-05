@@ -1,21 +1,15 @@
 name: Update RSS Feed
 
-# Workflow disabled - uncomment to re-enable
-# on:
-#   schedule:
-#     # Run every 30 minutes (you can adjust this)
-#     - cron: '*/30 * * * *'
-#   workflow_dispatch:
-#     # Allow manual triggering
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'docs/index.html'
-
 on:
+  schedule:
+    # Run every 30 minutes during business hours (8 AM - 6 PM EST, Mon-Fri)
+    - cron: '*/30 13-23 * * 1-5'
+    - cron: '*/30 0-1 * * 2-6'
   workflow_dispatch:
-    # Manual triggering only
+    # Allow manual triggering
+
+permissions:
+  contents: write
 
 jobs:
   update-feed:
@@ -25,29 +19,50 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # Fetch full history for proper git operations
         fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
+      run: npm install
 
     - name: Fetch RSS feeds and build static files
-      run: npm run build-static
+      run: |
+        echo "📰 Fetching RSS feeds..."
+        npm run build-static
+        echo "✅ Build completed"
       env:
         NODE_ENV: production
 
+    - name: Verify build output
+      run: |
+        if [ -f "docs/rss.xml" ]; then
+          echo "✅ rss.xml generated successfully"
+          echo "📊 File size: $(wc -c < docs/rss.xml) bytes"
+        else
+          echo "❌ rss.xml not found!"
+          exit 1
+        fi
+
     - name: Commit and push changes
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         git add docs/
-        git diff --quiet && git diff --staged --quiet || git commit -m "Update RSS feed and static files [$(date +'%Y-%m-%d %H:%M UTC')]"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if git diff --staged --quiet; then
+          echo "📋 No changes to commit"
+        else
+          git commit -m "🔄 Update RSS feed [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+          git push
+          echo "✅ Changes pushed"
+        fi
+
+    - name: Report Success
+      if: success()
+      run: |
+        echo "::notice::RSS feed updated successfully!"
+        echo "📊 Feed URL: https://prcasley.github.io/Woodmont-Industrial-News-Briefing/rss.xml"
