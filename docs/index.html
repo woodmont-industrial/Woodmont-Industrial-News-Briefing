@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Woodmont Industrial News Feed</title>
-  <style>
+    <title>Woodmont Industrial News Feed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f0f4f8;
             min-height: 100vh;
         }
@@ -16,7 +18,7 @@
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
-            padding: 40px 20px;
+            padding: 30px 20px;
             text-align: center;
         }
         
@@ -34,6 +36,45 @@
         }
         .header .links a:hover { background: rgba(255,255,255,0.3); }
         
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            background: white;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: #f0f4f8;
+            color: #1e3a5f;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover {
+            background: #e0e8f0;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -44,11 +85,11 @@
             background: white;
             padding: 15px 20px;
             border-radius: 10px;
-      margin-bottom: 20px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: flex;
+            display: flex;
             justify-content: space-between;
-      align-items: center;
+            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -75,25 +116,65 @@
         
         .filters input { width: 300px; max-width: 100%; }
         
-        .article-list { display: flex; flex-direction: column; gap: 15px; }
+        /* Article Grid */
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
         
-        .article {
+        .article-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            overflow: hidden;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
         }
         
-        .article:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
+        
+        .article-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e0e8f0;
+        }
+        
+        .article-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .article-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-source { background: #e8f4f8; color: #1e3a5f; }
+        .badge-category { background: #f0e6f8; color: #764ba2; }
+        .badge-author { background: #e3f2fd; color: #1976d2; }
         
         .article-title {
             font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            line-height: 1.4;
         }
         
         .article-title a {
@@ -101,36 +182,167 @@
             text-decoration: none;
         }
         
-        .article-title a:hover { color: #2d5a87; text-decoration: underline; }
-        
-        .article-meta {
-            font-size: 0.85rem;
-            color: #888;
-            margin-bottom: 10px;
-        }
-        
-        .article-meta .source {
-            background: #e8f4f8;
-            color: #1e3a5f;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-        
-        .article-meta .category {
-            background: #f0f0f0;
-            color: #666;
-            padding: 3px 10px;
-            border-radius: 12px;
-            margin-left: 8px;
-        }
+        .article-title a:hover { color: #667eea; }
         
         .article-description {
-            color: #555;
-            line-height: 1.6;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .article-footer {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .read-more {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .read-more:hover { text-decoration: underline; }
+        
+        /* Newsletter Generator Styles */
+        .newsletter-generator {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .generator-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        .generator-controls h2 {
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .control-row label {
+            font-weight: 500;
+            color: #444;
+        }
+        
+        .control-row select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 0.95rem;
         }
         
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Newsletter Preview Container */
+        .newsletter-preview-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        .preview-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-header h3 {
+            color: #1e3a5f;
+            font-size: 1.1rem;
+        }
+        
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .newsletter-preview {
+            max-height: 700px;
+            overflow-y: auto;
+        }
+        
+        .newsletter-preview iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        
+        .empty-preview {
+            padding: 60px 20px;
+            text-align: center;
+            color: #888;
+        }
+        
+        .empty-preview p {
+            margin-bottom: 15px;
+        }
+        
+        /* Loading and Empty States */
         .loading {
             text-align: center;
             padding: 60px 20px;
@@ -158,18 +370,12 @@
             color: #888;
         }
         
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
         @media (max-width: 768px) {
             .header h1 { font-size: 1.5rem; }
             .filters input { width: 100%; }
             .stats { flex-direction: column; align-items: flex-start; }
+            .article-grid { grid-template-columns: 1fr; }
+            .control-row { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -181,38 +387,104 @@
         <div class="links">
             <a href="rss.xml">📡 RSS Feed</a>
             <a href="feed.json">📄 JSON Feed</a>
-              </div>
-            </div>
+        </div>
+    </div>
     
-    <div class="container">
-        <div class="stats" id="stats">
-            <span>Loading articles...</span>
-              </div>
-              
-        <div class="filters">
-            <input type="text" id="search" placeholder="🔍 Search articles..." oninput="filterArticles()">
-            <select id="category" onchange="filterArticles()">
-                <option value="">All Categories</option>
-                <option value="relevant">Relevant</option>
-                <option value="transaction">Transactions</option>
-                <option value="availabilities">Availabilities</option>
-                <option value="people">People News</option>
-            </select>
-            <select id="source" onchange="filterArticles()">
-                <option value="">All Sources</option>
-                  </select>
-                </div>
-                
-        <div id="articles" class="article-list">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Loading articles...</p>
-              </div>
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('articles')">📰 Articles</button>
+        <button class="tab-btn" onclick="switchTab('newsletter')">📧 Newsletter Generator</button>
+    </div>
+    
+    <!-- Articles Tab -->
+    <div id="articles-tab" class="tab-content active">
+        <div class="container">
+            <div class="stats" id="stats">
+                <span>Loading articles...</span>
             </div>
-          </div>
+            
+            <div class="filters">
+                <input type="text" id="search" placeholder="🔍 Search articles..." oninput="filterArticles()">
+                <select id="category" onchange="filterArticles()">
+                    <option value="">All Categories</option>
+                    <option value="relevant">Relevant Articles</option>
+                    <option value="transaction">Transactions</option>
+                    <option value="availabilities">Availabilities</option>
+                    <option value="people">People News</option>
+                </select>
+                <select id="source" onchange="filterArticles()">
+                    <option value="">All Sources</option>
+                </select>
+            </div>
+            
+            <div id="articles" class="article-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading articles...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Newsletter Generator Tab -->
+    <div id="newsletter-tab" class="tab-content">
+        <div class="newsletter-generator">
+            <div class="generator-controls">
+                <h2>📧 Generate Newsletter</h2>
+                <div class="control-row">
+                    <label for="timeframe">Coverage Period:</label>
+                    <select id="timeframe">
+                        <option value="1">Last 24 hours</option>
+                        <option value="3">Last 3 days</option>
+                        <option value="7" selected>Last 7 days</option>
+                        <option value="14">Last 14 days</option>
+                        <option value="30">Last 30 days</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="generateNewsletter()">
+                        ✨ Generate Newsletter
+                    </button>
+                </div>
+            </div>
+            
+            <div class="newsletter-preview-container" id="preview-container" style="display: none;">
+                <div class="preview-header">
+                    <h3>📋 Newsletter Preview</h3>
+                    <div class="preview-actions">
+                        <button class="btn btn-success" onclick="downloadPDF()">📄 Download PDF</button>
+                        <button class="btn btn-secondary" onclick="clearNewsletter()">Clear</button>
+                    </div>
+                </div>
+                <div class="newsletter-preview" id="newsletter-preview">
+                </div>
+            </div>
+            
+            <div id="empty-preview" class="newsletter-preview-container">
+                <div class="empty-preview">
+                    <p style="font-size: 3rem;">📧</p>
+                    <p><strong>No newsletter generated yet</strong></p>
+                    <p>Select a timeframe and click "Generate Newsletter" to create a preview based on your newsletter.html template.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let allArticles = [];
+        let newsletterHTML = '';
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'articles') {
+                document.querySelector('.tab-btn:first-child').classList.add('active');
+                document.getElementById('articles-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:last-child').classList.add('active');
+                document.getElementById('newsletter-tab').classList.add('active');
+            }
+        }
         
         async function loadArticles() {
             const container = document.getElementById('articles');
@@ -224,32 +496,37 @@
                 
                 const data = await response.json();
                 allArticles = (data.items || []).map(item => {
-                // Handle author - can be object or string
-                    let source = 'Unknown';
-                if (item.author) {
-                        source = typeof item.author === 'string' ? item.author : (item.author.name || 'Unknown');
-                }
-                
-                // Determine category from tags
+                    // Handle author
+                    let authorName = '';
+                    if (item.author) {
+                        authorName = typeof item.author === 'string' ? item.author : (item.author.name || '');
+                    }
+                    
+                    // Handle source
+                    let source = item._source?.website || item._source?.name || authorName || 'Unknown';
+                    
+                    // Determine category from tags
                     const firstTag = (item.tags && item.tags[0]) || '';
-                const tagLower = firstTag.toLowerCase();
-                let category = 'relevant';
-                if (tagLower.includes('transaction')) category = 'transaction';
-                else if (tagLower.includes('availab')) category = 'availabilities';
-                else if (tagLower.includes('people')) category = 'people';
-                
-                return {
+                    const tagLower = firstTag.toLowerCase();
+                    let category = 'relevant';
+                    if (tagLower.includes('transaction')) category = 'transaction';
+                    else if (tagLower.includes('availab')) category = 'availabilities';
+                    else if (tagLower.includes('people')) category = 'people';
+                    
+                    return {
                         title: item.title || 'Untitled',
                         link: item.url || item.link || '#',
                         description: item.content_text || item.content_html || item.summary || '',
                         source: source,
+                        author: authorName,
                         category: category,
-                        pubDate: item.date_published || item.pubDate || new Date().toISOString()
+                        pubDate: item.date_published || item.pubDate || new Date().toISOString(),
+                        image: item.image || null
                     };
                 });
                 
                 // Populate source filter
-                const sources = [...new Set(allArticles.map(a => a.source))].sort();
+                const sources = [...new Set(allArticles.map(a => a.source))].filter(Boolean).sort();
                 const sourceSelect = document.getElementById('source');
                 sources.forEach(s => {
                     const opt = document.createElement('option');
@@ -266,10 +543,10 @@
                 
                 filterArticles();
                 
-        } catch (error) {
+            } catch (error) {
                 console.error('Error loading articles:', error);
                 container.innerHTML = `
-                    <div class="error">
+                    <div class="error" style="grid-column: 1/-1; background: #fee; color: #c00; padding: 20px; border-radius: 10px;">
                         <strong>Error loading articles:</strong> ${error.message}<br>
                         <small>Please try refreshing the page.</small>
                     </div>
@@ -301,7 +578,7 @@
             
             if (articles.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
+                    <div class="empty-state" style="grid-column: 1/-1;">
                         <p>No articles found matching your filters.</p>
                     </div>
                 `;
@@ -314,35 +591,241 @@
                     month: 'short', day: 'numeric', year: 'numeric' 
                 });
                 
-                const categoryLabel = {
+                const categoryLabels = {
                     'relevant': 'Relevant',
                     'transaction': 'Transaction',
                     'availabilities': 'Availability',
                     'people': 'People News'
-                }[article.category] || 'Relevant';
+                };
                 
-                const description = article.description.length > 250 
-                    ? article.description.substring(0, 250) + '...' 
+                const description = article.description.length > 150 
+                    ? article.description.substring(0, 150) + '...' 
                     : article.description;
                 
+                const imageUrl = article.image || `https://picsum.photos/seed/${encodeURIComponent(article.link)}/400/200`;
+                
                 return `
-                    <div class="article">
-                        <h3 class="article-title">
-                            <a href="${article.link}" target="_blank" rel="noopener">${article.title}</a>
-                        </h3>
-                        <div class="article-meta">
-                            <span class="source">${article.source}</span>
-                            <span class="category">${categoryLabel}</span>
-                            <span style="margin-left: 10px;">${dateStr}</span>
-          </div>
-                        <p class="article-description">${description}</p>
-        </div>
+                    <div class="article-card">
+                        <img src="${imageUrl}" alt="" class="article-image" onerror="this.src='https://picsum.photos/seed/${Math.random()}/400/200'">
+                        <div class="article-content">
+                            <div class="article-meta">
+                                <span class="badge badge-source">${article.source}</span>
+                                ${article.author ? `<span class="badge badge-author">By ${article.author}</span>` : ''}
+                            </div>
+                            <h3 class="article-title">
+                                <a href="${article.link}" target="_blank" rel="noopener">${article.title}</a>
+                            </h3>
+                            <p class="article-description">${description}</p>
+                            <div class="article-footer">
+                                <span>${dateStr}</span> · 
+                                <span class="badge badge-category">${categoryLabels[article.category] || 'Relevant'}</span>
+                                <a href="${article.link}" target="_blank" rel="noopener" class="read-more" style="float: right;">Read more →</a>
+                            </div>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
-
+        
+        // Newsletter Generation
+        function generateNewsletter() {
+            const days = parseInt(document.getElementById('timeframe').value);
+            const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+            
+            const recentArticles = allArticles.filter(article => {
+                const pubDate = new Date(article.pubDate);
+                return pubDate >= cutoff;
+            });
+            
+            newsletterHTML = buildNewsletterHTML(recentArticles, days);
+            
+            // Show preview
+            document.getElementById('empty-preview').style.display = 'none';
+            document.getElementById('preview-container').style.display = 'block';
+            
+            const previewEl = document.getElementById('newsletter-preview');
+            const iframe = document.createElement('iframe');
+            iframe.srcdoc = newsletterHTML;
+            previewEl.innerHTML = '';
+            previewEl.appendChild(iframe);
+        }
+        
+        function buildNewsletterHTML(articles, days) {
+            const now = new Date();
+            const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
+            
+            const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
+            const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
+            const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
+            const people = articles.filter(a => a.category === 'people').slice(0, 5);
+            
+            const renderArticle = (item, highlightClass = '') => {
+                const desc = (item.description || '').substring(0, 200) + (item.description?.length > 200 ? '...' : '');
+                return `
+                    <div class="article-card ${highlightClass}">
+                        <div class="article-header">
+                            <span class="badge badge-source">${item.source}</span>
+                            ${item.author ? `<span class="badge badge-author">By ${item.author}</span>` : ''}
+                        </div>
+                        <div class="article-content">${desc}</div>
+                        <div class="article-source">
+                            <a href="${item.link}" class="source-link" target="_blank">📖 Read Full Article – ${item.source}</a>
+                        </div>
+                    </div>
+                `;
+            };
+            
+            const renderSection = (title, icon, items, highlightClass = '') => {
+                const content = items.length > 0 
+                    ? items.map(item => renderArticle(item, highlightClass)).join('') 
+                    : '<div class="empty-section">No articles available for this section.</div>';
+                return `
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">${icon}</div>
+                            <div class="section-title">${title}</div>
+                        </div>
+                        ${content}
+                    </div>
+                `;
+            };
+            
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woodmont Industrial Partners - Daily Briefing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px 30px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; font-weight: 600; }
+        .header .subtitle { font-size: 16px; opacity: 0.9; margin-bottom: 8px; }
+        .header .date-range { font-size: 14px; opacity: 0.8; font-style: italic; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 35px; }
+        .section-header { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
+        .section-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 20px; }
+        .section-title { font-size: 18px; color: #1e3c72; font-weight: 600; }
+        .article-card { background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 15px; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; }
+        .article-card:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2); }
+        .article-header { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .badge-source { background: #e8f5e9; color: #388e3c; }
+        .badge-author { background: #e3f2fd; color: #1976d2; }
+        .article-content { color: #333; line-height: 1.6; margin-bottom: 10px; }
+        .article-source { margin-top: 12px; padding-top: 12px; border-top: 1px solid #dee2e6; }
+        .source-link { color: #667eea; text-decoration: none; font-weight: 500; font-size: 14px; }
+        .source-link:hover { text-decoration: underline; }
+        .empty-section { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; color: #666; font-style: italic; }
+        .footer { background: #f8f9fa; padding: 25px 30px; text-align: center; color: #666; font-size: 14px; border-top: 1px solid #dee2e6; }
+        .transaction-highlight { border-left-color: #f59e0b; background: #fffbeb; }
+        .availability-highlight { border-left-color: #10b981; background: #ecfdf5; }
+        .people-highlight { border-left-color: #8b5cf6; background: #f5f3ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 Woodmont Industrial Partners</h1>
+            <div class="subtitle">Daily Industrial News Briefing</div>
+            <div class="date-range">Coverage Period: ${dateRange}</div>
+            <div class="date-range">Focus Markets: NJ, PA, FL, TX</div>
+        </div>
+        <div class="content">
+            ${renderSection('RELEVANT ARTICLES — Macro Trends & Industrial Real Estate News', '📰', relevant)}
+            ${renderSection('TRANSACTIONS — Notable Sales/Leases (≥100K SF or ≥$25M)', '💼', transactions, 'transaction-highlight')}
+            ${renderSection('AVAILABILITIES — New Industrial Properties for Sale/Lease', '🏢', availabilities, 'availability-highlight')}
+            ${renderSection('PEOPLE NEWS — Personnel Moves in Industrial Brokerage/Development', '👥', people, 'people-highlight')}
+        </div>
+        <div class="footer">
+            <strong>Woodmont Industrial Partners</strong><br>
+            Daily Industrial News Briefing – Confidential & Proprietary<br>
+            © ${new Date().getFullYear()} All Rights Reserved
+        </div>
+    </div>
+</body>
+</html>`;
+        }
+        
+        function clearNewsletter() {
+            newsletterHTML = '';
+            document.getElementById('newsletter-preview').innerHTML = '';
+            document.getElementById('preview-container').style.display = 'none';
+            document.getElementById('empty-preview').style.display = 'block';
+        }
+        
+        async function downloadPDF() {
+            if (!newsletterHTML) {
+                alert('Generate newsletter first');
+                return;
+            }
+            
+            try {
+                // Create temporary container
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = newsletterHTML;
+                tempDiv.style.width = '800px';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '0';
+                tempDiv.style.background = 'white';
+                document.body.appendChild(tempDiv);
+                
+                // Wait a moment for styles to apply
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Generate canvas
+                const canvas = await html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: 800,
+                    windowWidth: 800
+                });
+                
+                document.body.removeChild(tempDiv);
+                
+                // Create PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                let heightLeft = pdfHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+                
+                while (heightLeft > 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+                
+                const date = new Date().toISOString().split('T')[0];
+                pdf.save(`woodmont-newsletter-${date}.pdf`);
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            }
+        }
+        
         // Load articles on page load
         loadArticles();
-  </script>
+    </script>
 </body>
 </html>
