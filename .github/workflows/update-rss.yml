@@ -1,22 +1,50 @@
-name: Update RSS
+name: Update RSS Feed
+
 on:
   schedule:
-      - cron: 0 13 * * 1-5
-          - cron: 0 1 * * 2-6
-            workflow_dispatch:
-            permissions:
-              contents: write
-              jobs:
-                update:
-                    runs-on: ubuntu-latest
-                        steps:
-                              - uses: actions/checkout@v4
-                                    - uses: actions/setup-node@v4
-                                            with:
-                                                      node-version: 20
-                                                            - run: npm install
-                                                                  - run: npm run build-static
-                                                                        - run: git config --local user.email "bot@github.com"
-                                                                              - run: git config --local user.name "GitHub Bot"
-                                                                                    - run: git add dist/ && git commit -m "Update" || true
-                                                                                          - run: git push
+    # Run every 30 minutes during business hours (Mon-Fri 7AM-7PM EST)
+    - cron: '*/30 12-23 * * 1-5'
+    - cron: '*/30 0-0 * * 2-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Build RSS feeds
+        run: npm run build-static
+        env:
+          NODE_ENV: production
+
+      - name: Setup Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit and push
+        run: |
+          git add docs/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update RSS feed - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi

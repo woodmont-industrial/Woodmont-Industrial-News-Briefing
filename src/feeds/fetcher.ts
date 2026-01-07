@@ -622,8 +622,8 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
                     score: 0
                 };
 
-                // Apply classification
-                const classification = classifyArticle(
+                // Apply classification (async)
+                const classification = await classifyArticle(
                     normalized.title,
                     normalized.description,
                     normalized.link,

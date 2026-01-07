@@ -31,12 +31,17 @@
   ],
 
     "keywords": {
-          "industrial": ["industrial", "warehouse", "distribution", "logistics", "fulfillment"],
-          "creIntent": ["real estate", "lease", "leasing", "cre", "acquisition", "development"]
+          "industrial": ["industrial", "warehouse", "distribution", "logistics", "fulfillment", "supply chain", "cold storage", "manufacturing"],
+          "creIntent": ["real estate", "lease", "leasing", "cre", "acquisition", "development", "property", "commercial"],
+          "exclusions": ["residential", "apartment", "condo", "single family", "hotel"]
     },
 
     "sourceOverrides": {
           "github.com": {"category": "github", "alwaysApply": true},
           "github.io": {"category": "github", "alwaysApply": true}
+    },
+
+    "scoring": {
+          "defaultThreshold": 2
     }
 }

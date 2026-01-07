@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { NormalizedItem, FeedType } from '../types/index.js';
 
 interface ClassificationRules {
@@ -19,9 +22,14 @@ async function loadRules(): Promise<ClassificationRules> {
           return rulesCache;
     }
     try {
-          const response = await fetch('./classification_rules.json');
-          rulesCache = await response.json();
-          return rulesCache;
+          // Get the directory of this file and resolve the JSON path
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = path.dirname(__filename);
+          const rulesPath = path.join(__dirname, 'classification_rules.json');
+
+          const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
+          rulesCache = JSON.parse(rulesContent);
+          return rulesCache!;
     } catch (error) {
           console.error('Failed to load classification rules:', error);
           throw new Error('Could not load classification rules');
