@@ -1,42 +1,22 @@
-name: Update RSS Feed
+name: Update RSS
 on:
   schedule:
-      - cron: '*/30 13-23 * * 1-5'
-          - cron: '*/30 0-1 * * 2-6'
+      - cron: 0 13 * * 1-5
+          - cron: 0 1 * * 2-6
             workflow_dispatch:
-
             permissions:
               contents: write
-
               jobs:
-                update-feed:
+                update:
                     runs-on: ubuntu-latest
-                        timeout-minutes: 15
-
-                            steps:
-                                  - name: Checkout repository
-                                          uses: actions/checkout@v4
-                                                  with:
-                                                            fetch-depth: 0
-
-                                                                  - name: Setup Node.js
-                                                                          uses: actions/setup-node@v4
-                                                                                  with:
-                                                                                            node-version: '20'
-
-                                                                                                  - name: Install dependencies
-                                                                                                          run: npm install
-                                                                                                          
-                                                                                                                - name: Build RSS feed
-                                                                                                                        run: npm run build-static
-                                                                                                                        
-                                                                                                                              - name: Configure git
-                                                                                                                                      run: |
-                                                                                                                                                git config --local user.email "action@github.com"
-                                                                                                                                                          git config --local user.name "GitHub Action"
-                                                                                                                                                          
-                                                                                                                                                                - name: Commit and push changes
-                                                                                                                                                                        run: |
-                                                                                                                                                                                  git add dist/
-                                                                                                                                                                                            git commit -m "Update RSS feed content" || true
-                                                                                                                                                                                                      git push
+                        steps:
+                              - uses: actions/checkout@v4
+                                    - uses: actions/setup-node@v4
+                                            with:
+                                                      node-version: 20
+                                                            - run: npm install
+                                                                  - run: npm run build-static
+                                                                        - run: git config --local user.email "bot@github.com"
+                                                                              - run: git config --local user.name "GitHub Bot"
+                                                                                    - run: git add dist/ && git commit -m "Update" || true
+                                                                                          - run: git push
