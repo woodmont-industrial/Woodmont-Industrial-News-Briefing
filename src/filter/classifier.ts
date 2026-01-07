@@ -187,7 +187,7 @@ export function containsAny(text: string, keywords: string[]): boolean {
 
 // Classify article based on boss's four-section briefing format
 function classifyArticleOriginal330(
-    ,description: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
+    ,escription: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
     const t = (title + " " + description + " " + link).toLowerCase();
 
     // APPROVED SOURCES - Only allow approved domains (same as before)
