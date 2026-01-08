@@ -10,6 +10,10 @@
  *   npx tsx rssfeed.ts --send-newsletter  - Send newsletter manually
  */
 
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
+
 import * as http from 'http';
 import { handleRequest } from './src/server/endpoints.js';
 import { fetchAllRSSArticles } from './src/feeds/fetcher.js';
