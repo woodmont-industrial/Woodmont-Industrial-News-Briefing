@@ -324,17 +324,20 @@ function generateJSONFeed(items: NormalizedItem[]): object {
             url: "https://prcasley.github.io/Woodmont-Industrial-News-Briefing/"
         },
         items: items.filter(item => {
-            // Only include items with valid links
-            return item.link && item.link.startsWith('http') && item.title;
+            // Only include items with valid links (check both 'link' and 'url' properties)
+            const itemUrl = item.link || item.url || '';
+            return itemUrl.startsWith('http') && item.title;
         }).map(item => {
             const category = item.category || 'relevant';
-            
+            // Normalize: use 'link' or 'url' property
+            const itemLink = item.link || item.url || '';
+
             // Generate unique hash from title for consistent fallback images
             const titleHash = (item.title || '').split('').reduce((hash, char) => {
                 return ((hash << 5) - hash) + char.charCodeAt(0) | 0;
             }, 0);
             const uniqueSeed = Math.abs(titleHash).toString(36);
-            
+
             // Get image with fallback based on title hash
             let imageUrl = item.image || item.thumbnailUrl || null;
             if (!imageUrl) {
@@ -344,14 +347,14 @@ function generateJSONFeed(items: NormalizedItem[]): object {
             // Extract author
             let authorName = '';
             if (item.author) {
-                authorName = typeof item.author === 'string' ? item.author : 
+                authorName = typeof item.author === 'string' ? item.author :
                             (typeof item.author === 'object' && (item.author as any).name) ? (item.author as any).name : '';
             }
 
             // Get website domain from link
             let websiteDomain = item.publisher || item.source || 'Unknown';
             try {
-                const urlObj = new URL(item.link);
+                const urlObj = new URL(itemLink);
                 websiteDomain = urlObj.hostname.replace(/^www\./, '');
             } catch { /* keep original */ }
 
@@ -360,7 +363,7 @@ function generateJSONFeed(items: NormalizedItem[]): object {
 
             return {
                 id: item.id || uniqueSeed,
-                url: item.link,
+                url: itemLink,
                 title: item.title || 'Untitled',
                 content_html: description,
                 content_text: description,
@@ -372,7 +375,7 @@ function generateJSONFeed(items: NormalizedItem[]): object {
                 _source: {
                     name: item.source || 'Unknown',
                     website: websiteDomain,
-                    url: item.link,
+                    url: itemLink,
                     feedName: item.source
                 },
                 category: category,
