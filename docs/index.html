@@ -696,14 +696,36 @@
             };
 
             const renderArticle = (item, category, highlightClass = '') => {
-                // Create a concise briefing-style summary
-                const desc = (item.description || item.title || '').substring(0, 250).trim();
-                const summary = desc.endsWith('.') ? desc : desc + '.';
+                const title = item.title || 'Untitled';
+                const region = item.regions && item.regions[0] ? item.regions[0] : 'US';
+                const source = item.source || 'Unknown';
+                const impactText = relevanceContext[category] || relevanceContext.relevant;
+
+                // Category display name
+                const categoryDisplay = {
+                    relevant: 'MACRO TRENDS',
+                    transaction: 'TRANSACTION',
+                    availabilities: 'AVAILABILITY',
+                    people: 'PEOPLE NEWS'
+                }[category] || 'NEWS';
 
                 return `
-                    <div class="article-item ${highlightClass}">
-                        <span class="article-summary">${summary}</span>
-                        <a href="${item.link}" class="source-track" target="_blank">Source [Track]</a>
+                    <div class="article-card ${highlightClass}">
+                        <h3 class="article-title">${title}</h3>
+                        <div class="article-badges">
+                            <span class="badge badge-region">${region}</span>
+                            <span class="badge badge-category">${categoryDisplay}</span>
+                            <span class="badge badge-source">${source}</span>
+                        </div>
+                        <p class="article-desc">Read the full article about: ${title}</p>
+                        <div class="impact-box">
+                            <span class="impact-icon">💡</span>
+                            <span class="impact-text"><strong>Impact:</strong> ${impactText}</span>
+                        </div>
+                        <div class="article-footer">
+                            <span class="source-label">📰 Source: <strong>${source}</strong></span>
+                            <a href="${item.link}" class="read-more" target="_blank">Read Full Article →</a>
+                        </div>
                     </div>
                 `;
             };
@@ -731,23 +753,38 @@
     <title>Woodmont Industrial Partners - Daily Briefing</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; text-align: center; }
-        .header h1 { font-size: 24px; margin-bottom: 8px; font-weight: 600; }
-        .header .subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 6px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; padding: 20px; }
+        .container { max-width: 850px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 35px; text-align: center; }
+        .header h1 { font-size: 26px; margin-bottom: 10px; font-weight: 600; }
+        .header .subtitle { font-size: 15px; opacity: 0.9; margin-bottom: 6px; }
         .header .date-range { font-size: 13px; opacity: 0.8; }
-        .content { padding: 25px 30px; }
-        .section { margin-bottom: 30px; }
-        .section-header { display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #1e3c72; }
-        .section-icon { font-size: 18px; margin-right: 10px; }
-        .section-title { font-size: 14px; color: #1e3c72; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .article-item { margin-bottom: 12px; padding-left: 15px; border-left: 3px solid #667eea; line-height: 1.6; }
-        .article-summary { color: #333; font-size: 14px; }
-        .source-track { color: #667eea; text-decoration: none; font-weight: 600; font-size: 13px; margin-left: 6px; }
-        .source-track:hover { text-decoration: underline; }
-        .empty-section { color: #666; font-style: italic; font-size: 14px; padding-left: 15px; }
-        .footer { background: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 35px; }
+        .section-header { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #1e3c72; }
+        .section-icon { font-size: 20px; margin-right: 12px; }
+        .section-title { font-size: 15px; color: #1e3c72; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Article Card Styles */
+        .article-card { background: white; border-left: 4px solid #667eea; padding: 20px 24px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .article-title { font-size: 17px; font-weight: 600; color: #1e293b; margin-bottom: 12px; line-height: 1.4; }
+        .article-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .badge-region { background: #dbeafe; color: #1d4ed8; }
+        .badge-category { background: #dcfce7; color: #15803d; }
+        .badge-source { background: #fef3c7; color: #b45309; }
+        .article-desc { color: #64748b; font-size: 14px; margin-bottom: 14px; line-height: 1.5; }
+        .impact-box { background: #fef9c3; border-left: 3px solid #facc15; padding: 12px 16px; margin-bottom: 16px; border-radius: 6px; display: flex; align-items: flex-start; gap: 10px; }
+        .impact-icon { font-size: 16px; }
+        .impact-text { color: #713f12; font-size: 13px; line-height: 1.5; }
+        .article-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid #e2e8f0; }
+        .source-label { color: #64748b; font-size: 13px; }
+        .read-more { color: #667eea; text-decoration: none; font-weight: 600; font-size: 13px; }
+        .read-more:hover { text-decoration: underline; }
+
+        .empty-section { color: #94a3b8; font-style: italic; font-size: 14px; padding: 20px; text-align: center; background: #f8fafc; border-radius: 8px; }
+        .footer { background: #f8f9fa; padding: 25px 30px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; }
+
         .transaction-highlight { border-left-color: #f59e0b; }
         .availability-highlight { border-left-color: #10b981; }
         .people-highlight { border-left-color: #8b5cf6; }
