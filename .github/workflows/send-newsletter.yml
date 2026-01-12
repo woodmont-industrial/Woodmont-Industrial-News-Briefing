@@ -61,9 +61,9 @@ jobs:
           git add docs/
           if git diff --staged --quiet; then
             echo "📋 No changes to commit"
-                      git pull --rebase || true
           else
             git commit -m "📧 Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase || true
             git push
           fi
       
