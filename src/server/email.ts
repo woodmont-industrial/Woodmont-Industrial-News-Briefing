@@ -124,13 +124,13 @@ export async function sendDailyNewsletter(): Promise<boolean> {
         console.log(`📬 Sending to ${recipients.length} recipient(s):`, recipients);
 
         // Generate subject with date
-        const today = new Date().toLocaleDateString('en-US', {
+        const todayFormatted = today.toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
-        const subject = `🏭 Woodmont Industrial News Briefing - ${today}`;
+        const subject = `🏭 Woodmont Industrial News Briefing - ${todayFormatted}`;
 
         // Send the email
         const success = await sendEmail(recipients, subject, html);
