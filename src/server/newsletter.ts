@@ -152,29 +152,31 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
         }
 
         .header {
-            background-color: #1e3c72;
+            background-color: #e8eef7;
             color: #1e3c72;
             padding: 40px 30px;
             text-align: center;
-            border-bottom: 4px solid #667eea;
+            border-bottom: 4px solid #1e3c72;
         }
 
         .header h1 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 10px;
             color: #1e3c72;
+            font-weight: 700;
         }
 
         .header .subtitle {
-            font-size: 16px;
+            font-size: 20px;
             margin-bottom: 8px;
-            color: #2a5298;
+            color: #1e3c72;
+            font-weight: 600;
         }
 
         .header .date-range {
             font-size: 14px;
             font-style: italic;
-            color: #4a6fa5;
+            color: #2a5298;
         }
 
         .content {
