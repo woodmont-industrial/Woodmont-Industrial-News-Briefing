@@ -72,16 +72,6 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
             // Get category from category field (set by classification)
             const category = it.category || 'relevant';
 
-            // Generate "Why This Matters" context based on category
-            const relevanceContext: Record<string, string> = {
-                transactions: '💡 <strong>Impact:</strong> This transaction signals market activity and pricing trends in the industrial sector.',
-                availabilities: '💡 <strong>Impact:</strong> New availability in the market - potential opportunity for expansion or investment.',
-                people: '💡 <strong>Impact:</strong> Personnel moves can indicate market shifts and new business opportunities.',
-                relevant: '💡 <strong>Impact:</strong> Macro trend affecting industrial real estate fundamentals and investment decisions.'
-            };
-
-            const whyItMatters = relevanceContext[category] || relevanceContext['relevant'];
-
             // Clean up category names for display
             const categoryLabels: Record<string, string> = {
                 relevant: 'MACRO TRENDS',
@@ -109,9 +99,6 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                 </div>
                 <div class="article-description">
                     <p>${fullSummary}</p>
-                </div>
-                <div class="article-context">
-                    ${whyItMatters}
                 </div>
                 <div class="article-source">
                     <div class="source-info">
@@ -261,16 +248,6 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
 
         .article-description p {
             margin: 0;
-        }
-
-        .article-context {
-            background: #fff8e1;
-            border-left: 3px solid #ffa726;
-            padding: 10px 14px;
-            margin-bottom: 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #555;
         }
 
         .badge {
