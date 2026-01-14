@@ -147,3 +147,100 @@ export async function sendDailyNewsletter(): Promise<boolean> {
         return false;
     }
 }
+
+/**
+ * Send weekly newsletter recap every Friday at noon
+ * Covers the last 5 days (Monday - Friday)
+ */
+export async function sendWeeklyNewsletter(): Promise<boolean> {
+    try {
+        console.log('📧 Preparing weekly newsletter recap...');
+
+        // Get the directory of this file
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+
+        // Load articles from feed.json
+        const feedPath = path.join(__dirname, '../../docs/feed.json');
+        console.log('📂 Loading articles from:', feedPath);
+
+        if (!fs.existsSync(feedPath)) {
+            console.error('❌ Feed file not found:', feedPath);
+            return false;
+        }
+
+        const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
+        const allArticles: NormalizedItem[] = feedData.items || [];
+
+        console.log(`📊 Total articles loaded: ${allArticles.length}`);
+
+        // Weekly recap covers last 5 days
+        const hoursBack = 5 * 24; // 5 days
+        const periodLabel = '5 days';
+
+        console.log(`📅 Weekly recap - covering last ${periodLabel}`);
+
+        // Filter for recent articles based on coverage period
+        const cutoffDate = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
+        const recentArticles = allArticles.filter(article => {
+            const pubDate = new Date(article.pubDate || article.date_published || 0);
+            return pubDate >= cutoffDate;
+        });
+
+        console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
+
+        // Categorize articles
+        const transactions = recentArticles.filter(a => a.category === 'transactions');
+        const availabilities = recentArticles.filter(a => a.category === 'availabilities');
+        const relevant = recentArticles.filter(a => a.category === 'relevant');
+        const people = recentArticles.filter(a => a.category === 'people');
+
+        console.log('📋 Article breakdown:');
+        console.log(`  - Transactions: ${transactions.length}`);
+        console.log(`  - Availabilities: ${availabilities.length}`);
+        console.log(`  - Relevant: ${relevant.length}`);
+        console.log(`  - People: ${people.length}`);
+
+        // Generate HTML newsletter
+        const html = buildBriefing({
+            transactions,
+            availabilities,
+            relevant,
+            people
+        }, periodLabel);
+
+        // Get recipient email addresses
+        const emailTo = process.env.EMAIL_TO || '';
+        if (!emailTo) {
+            console.error('❌ No EMAIL_TO configured in environment');
+            return false;
+        }
+
+        const recipients = emailTo.split(',').map(e => e.trim());
+        console.log(`📬 Sending to ${recipients.length} recipient(s):`, recipients);
+
+        // Generate subject with date range
+        const today = new Date();
+        const todayFormatted = today.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const subject = `📊 Woodmont Weekly Recap - ${todayFormatted}`;
+
+        // Send the email
+        const success = await sendEmail(recipients, subject, html);
+
+        if (success) {
+            console.log('✅ Weekly newsletter sent successfully!');
+        } else {
+            console.log('❌ Failed to send weekly newsletter');
+        }
+
+        return success;
+    } catch (error) {
+        console.error('❌ Error in sendWeeklyNewsletter:', error);
+        return false;
+    }
+}

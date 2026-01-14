@@ -35,12 +35,14 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
             const sourceName = sourceData.name && sourceData.name !== 'Unknown' ? sourceData.name : '';
             const sourceFeedName = sourceData.feedName || '';
 
+            // Get the article URL - check both 'url' and 'link' fields
+            const articleUrl = (it as any).url || it.link || '';
+
             // Extract domain from URL as fallback
-            const sourceUrl = it.link || '';
             let extractedDomain = '';
             try {
-                if (sourceUrl) {
-                    extractedDomain = new URL(sourceUrl).hostname.replace('www.', '');
+                if (articleUrl) {
+                    extractedDomain = new URL(articleUrl).hostname.replace('www.', '');
                 }
             } catch (e) {
                 extractedDomain = '';
@@ -49,7 +51,7 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
             // Priority: website domain > feedName > sourceName > extracted domain
             const publisher = sourceWebsite || sourceFeedName || sourceName || it.publisher || it.source || extractedDomain || 'Industry News';
 
-            const link = it.link || '#';
+            const link = articleUrl || '#';
 
             // Get description from multiple possible fields - NEVER show "No description available"
             const rawDescription = (it.description && it.description.trim()) ||

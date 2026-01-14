@@ -120,6 +120,27 @@ async function sendNewsletter(): Promise<void> {
     }
 }
 
+/**
+ * Send weekly newsletter recap manually
+ */
+async function sendWeeklyNewsletterCmd(): Promise<void> {
+    console.log('Sending weekly newsletter recap...');
+    try {
+        const { sendWeeklyNewsletter } = await import('./src/server/email.js');
+        const success = await sendWeeklyNewsletter();
+        if (success) {
+            console.log('Weekly newsletter sent successfully!');
+            process.exit(0);
+        } else {
+            console.error('Failed to send weekly newsletter');
+            process.exit(1);
+        }
+    } catch (err) {
+        console.error('Error sending weekly newsletter:', err);
+        process.exit(1);
+    }
+}
+
 // Main entry point
 if (require.main === module) {
     const args = process.argv.slice(2);
@@ -135,6 +156,9 @@ if (require.main === module) {
     } else if (args.includes('--send-newsletter')) {
         // Send newsletter manually
         sendNewsletter();
+    } else if (args.includes('--send-weekly-newsletter')) {
+        // Send weekly newsletter recap
+        sendWeeklyNewsletterCmd();
     } else {
         // Start the server
         startServer(!noBrowserFlag);
