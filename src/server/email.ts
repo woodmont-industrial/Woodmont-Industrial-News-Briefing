@@ -335,38 +335,54 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             return targetRegions.some(r => text.includes(r.toUpperCase()));
         };
 
-        // Use 24 hours for Goth version, expand to 48 if needed
+        // FILTER 1: Smart time period - 24h default, expand to 48h if low content
         const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
         let recentArticles = allArticles.filter(article => {
             const pubDate = new Date(article.pubDate || article.date_published || 0);
             return pubDate >= cutoff24h;
         });
 
-        // Filter to target regions
-        let filteredArticles = recentArticles.filter(isTargetRegion);
-
-        // If not enough regional articles, expand to 48 hours
+        // Check relevant count in 24h
+        const relevant24h = recentArticles.filter(a => a.category === 'relevant');
         let periodLabel = '24 hours';
-        if (filteredArticles.length < 8) {
-            console.log(`📈 Only ${filteredArticles.length} regional articles in 24h - expanding to 48 hours`);
+
+        if (relevant24h.length <= 3) {
+            console.log(`📈 Only ${relevant24h.length} relevant articles in 24h - expanding to 48 hours`);
             const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
             recentArticles = allArticles.filter(article => {
                 const pubDate = new Date(article.pubDate || article.date_published || 0);
                 return pubDate >= cutoff48h;
             });
-            filteredArticles = recentArticles.filter(isTargetRegion);
             periodLabel = '48 hours';
+        } else {
+            console.log(`✅ ${relevant24h.length} relevant articles in 24h - using 24 hour coverage`);
         }
 
-        console.log(`📅 Regional articles from last ${periodLabel}: ${filteredArticles.length}`);
+        console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
-        // Categorize articles
-        const transactions = filteredArticles.filter(a => a.category === 'transactions');
-        const availabilities = filteredArticles.filter(a => a.category === 'availabilities');
-        const relevant = filteredArticles.filter(a => a.category === 'relevant');
-        const people = filteredArticles.filter(a => a.category === 'people');
+        // Categorize articles first
+        const transactions = recentArticles.filter(a => a.category === 'transactions');
+        const availabilities = recentArticles.filter(a => a.category === 'availabilities');
+        let relevant = recentArticles.filter(a => a.category === 'relevant');
+        const people = recentArticles.filter(a => a.category === 'people');
 
-        console.log('📋 Article breakdown (regional focus):');
+        // FILTER 2: Regional filter - only apply if 5+ relevant articles
+        if (relevant.length >= 5) {
+            const filteredRelevant = relevant.filter(isTargetRegion);
+            console.log(`🎯 5+ relevant articles (${relevant.length}) - applying regional filter (NJ, NY, PA, TX, FL)`);
+            console.log(`   Filtered from ${relevant.length} to ${filteredRelevant.length} regional articles`);
+
+            // Only apply filter if we still have at least 3 articles after filtering
+            if (filteredRelevant.length >= 3) {
+                relevant = filteredRelevant;
+            } else {
+                console.log(`   ⚠️ Too few regional articles (${filteredRelevant.length}), keeping all ${relevant.length}`);
+            }
+        } else {
+            console.log(`📰 Fewer than 5 relevant articles (${relevant.length}) - keeping all without regional filter`);
+        }
+
+        console.log('📋 Article breakdown:');
         console.log(`  - Relevant: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
         console.log(`  - Availabilities: ${availabilities.length}`);
