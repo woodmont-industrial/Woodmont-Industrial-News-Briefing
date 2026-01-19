@@ -383,10 +383,24 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             return targetRegions.some(r => text.includes(r));
         };
 
-        // FILTER 1: Smart time period - 24h default, expand to 48h if low content
-        const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        // FILTER 1: STRICT time period - 24h default, expand to 48h if low content
+        // Helper to get valid date - returns null if invalid
+        const getValidDate = (article: NormalizedItem): Date | null => {
+            const dateStr = article.pubDate || article.date_published;
+            if (!dateStr) return null;
+            const date = new Date(dateStr);
+            // Check if date is valid and reasonable (not in future, not before 2020)
+            if (isNaN(date.getTime())) return null;
+            if (date > new Date()) return null; // Reject future dates
+            if (date < new Date('2020-01-01')) return null; // Reject very old dates
+            return date;
+        };
+
+        const now = new Date();
+        const cutoff24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         let recentArticles = allArticles.filter(article => {
-            const pubDate = new Date(article.pubDate || article.date_published || 0);
+            const pubDate = getValidDate(article);
+            if (!pubDate) return false; // Reject articles with no valid date
             return pubDate >= cutoff24h;
         });
 
@@ -396,9 +410,10 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         if (relevant24h.length <= 3) {
             console.log(`📈 Only ${relevant24h.length} relevant articles in 24h - expanding to 48 hours`);
-            const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
+            const cutoff48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);
             recentArticles = allArticles.filter(article => {
-                const pubDate = new Date(article.pubDate || article.date_published || 0);
+                const pubDate = getValidDate(article);
+                if (!pubDate) return false; // Reject articles with no valid date
                 return pubDate >= cutoff48h;
             });
             periodLabel = '48 hours';
@@ -623,13 +638,25 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             return targetRegions.some(r => text.includes(r));
         };
 
-        // Weekly recap covers last 5 days
+        // Weekly recap covers last 5 days with STRICT date validation
         const hoursBack = 5 * 24;
         const periodLabel = '5 days';
 
+        // Helper to get valid date - returns null if invalid
+        const getValidDate = (article: NormalizedItem): Date | null => {
+            const dateStr = article.pubDate || article.date_published;
+            if (!dateStr) return null;
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return null;
+            if (date > new Date()) return null; // Reject future dates
+            if (date < new Date('2020-01-01')) return null; // Reject very old dates
+            return date;
+        };
+
         const cutoffDate = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
         const recentArticles = allArticles.filter(article => {
-            const pubDate = new Date(article.pubDate || article.date_published || 0);
+            const pubDate = getValidDate(article);
+            if (!pubDate) return false; // Reject articles with no valid date
             return pubDate >= cutoffDate;
         });
 
