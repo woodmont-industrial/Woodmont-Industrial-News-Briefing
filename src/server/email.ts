@@ -360,16 +360,11 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
-        // Categorize articles first
-        const transactions = recentArticles.filter(a => a.category === 'transactions');
-        const availabilities = recentArticles.filter(a => a.category === 'availabilities');
-        let relevant = recentArticles.filter(a => a.category === 'relevant');
-
-        // Filter People News: exclude political content, focus on NAI/industrial personnel
+        // Content filter: exclude political content, focus on industrial/CRE
         const excludePolitical = ['trump', 'biden', 'president', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican'];
         const includeIndustrial = ['nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap', 'broker', 'industrial', 'warehouse', 'logistics', 'cre', 'commercial real estate', 'development', 'leasing', 'investment sales'];
 
-        const isIndustrialPeopleNews = (article: NormalizedItem): boolean => {
+        const isIndustrialContent = (article: NormalizedItem): boolean => {
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
             // Exclude if contains political terms
             if (excludePolitical.some(term => text.includes(term))) {
@@ -379,14 +374,29 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             return includeIndustrial.some(term => text.includes(term));
         };
 
+        // Helper to apply content filter with fallback
+        const applyContentFilter = (items: NormalizedItem[], sectionName: string): NormalizedItem[] => {
+            const filtered = items.filter(isIndustrialContent);
+            if (filtered.length > 0) {
+                console.log(`🔍 ${sectionName}: filtered from ${items.length} to ${filtered.length} (industrial focus, no political)`);
+                return filtered;
+            }
+            console.log(`🔍 ${sectionName}: keeping all ${items.length} (no industrial matches found)`);
+            return items;
+        };
+
+        // Categorize and filter all sections
+        let transactions = recentArticles.filter(a => a.category === 'transactions');
+        transactions = applyContentFilter(transactions, 'Transactions');
+
+        let availabilities = recentArticles.filter(a => a.category === 'availabilities');
+        availabilities = applyContentFilter(availabilities, 'Availabilities');
+
+        let relevant = recentArticles.filter(a => a.category === 'relevant');
+        relevant = applyContentFilter(relevant, 'Relevant');
+
         let people = recentArticles.filter(a => a.category === 'people');
-        const filteredPeople = people.filter(isIndustrialPeopleNews);
-        if (filteredPeople.length > 0) {
-            console.log(`👥 People News: filtered from ${people.length} to ${filteredPeople.length} (industrial/NAI focus)`);
-            people = filteredPeople;
-        } else {
-            console.log(`👥 People News: keeping all ${people.length} (no industrial matches found)`);
-        }
+        people = applyContentFilter(people, 'People News');
 
         // FILTER 2: Regional filter - only apply if 5+ relevant articles
         if (relevant.length >= 5) {
@@ -502,16 +512,11 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Regional articles from last ${periodLabel}: ${filteredArticles.length}`);
 
-        // Categorize articles
-        const transactions = filteredArticles.filter(a => a.category === 'transactions');
-        const availabilities = filteredArticles.filter(a => a.category === 'availabilities');
-        const relevant = filteredArticles.filter(a => a.category === 'relevant');
-
-        // Filter People News: exclude political content, focus on NAI/industrial personnel
+        // Content filter: exclude political content, focus on industrial/CRE
         const excludePolitical = ['trump', 'biden', 'president', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican'];
         const includeIndustrial = ['nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap', 'broker', 'industrial', 'warehouse', 'logistics', 'cre', 'commercial real estate', 'development', 'leasing', 'investment sales'];
 
-        const isIndustrialPeopleNews = (article: NormalizedItem): boolean => {
+        const isIndustrialContent = (article: NormalizedItem): boolean => {
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
             if (excludePolitical.some(term => text.includes(term))) {
                 return false;
@@ -519,16 +524,31 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             return includeIndustrial.some(term => text.includes(term));
         };
 
-        let people = filteredArticles.filter(a => a.category === 'people');
-        const filteredPeople = people.filter(isIndustrialPeopleNews);
-        if (filteredPeople.length > 0) {
-            console.log(`👥 People News: filtered from ${people.length} to ${filteredPeople.length} (industrial/NAI focus)`);
-            people = filteredPeople;
-        } else {
-            console.log(`👥 People News: keeping all ${people.length} (no industrial matches found)`);
-        }
+        // Helper to apply content filter with fallback
+        const applyContentFilter = (items: NormalizedItem[], sectionName: string): NormalizedItem[] => {
+            const filtered = items.filter(isIndustrialContent);
+            if (filtered.length > 0) {
+                console.log(`🔍 ${sectionName}: filtered from ${items.length} to ${filtered.length} (industrial focus, no political)`);
+                return filtered;
+            }
+            console.log(`🔍 ${sectionName}: keeping all ${items.length} (no industrial matches found)`);
+            return items;
+        };
 
-        console.log('📋 Article breakdown (regional focus):');
+        // Categorize and filter all sections
+        let transactions = filteredArticles.filter(a => a.category === 'transactions');
+        transactions = applyContentFilter(transactions, 'Transactions');
+
+        let availabilities = filteredArticles.filter(a => a.category === 'availabilities');
+        availabilities = applyContentFilter(availabilities, 'Availabilities');
+
+        let relevant = filteredArticles.filter(a => a.category === 'relevant');
+        relevant = applyContentFilter(relevant, 'Relevant');
+
+        let people = filteredArticles.filter(a => a.category === 'people');
+        people = applyContentFilter(people, 'People News');
+
+        console.log('📋 Article breakdown (regional focus, industrial content):');
         console.log(`  - Relevant: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
         console.log(`  - Availabilities: ${availabilities.length}`);
