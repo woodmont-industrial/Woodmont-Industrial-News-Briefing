@@ -360,43 +360,85 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
-        // Content filter: exclude political content, focus on industrial/CRE
-        const excludePolitical = ['trump', 'biden', 'president', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican'];
-        const includeIndustrial = ['nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap', 'broker', 'industrial', 'warehouse', 'logistics', 'cre', 'commercial real estate', 'development', 'leasing', 'investment sales'];
+        // ===== STRICT CONTENT FILTERS (no fallback - empty is OK) =====
 
-        const isIndustrialContent = (article: NormalizedItem): boolean => {
-            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
-            // Exclude if contains political terms
-            if (excludePolitical.some(term => text.includes(term))) {
-                return false;
-            }
-            // Include if contains industrial/NAI terms
-            return includeIndustrial.some(term => text.includes(term));
+        // Political exclusion - applies to ALL sections
+        const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
+
+        // Section-specific keywords based on boss criteria:
+
+        // RELEVANT ARTICLES: macro trends (rates, inflation, freight, construction inputs, labor) + industrial RE news
+        const relevantKeywords = [
+            // Macro trends
+            'interest rate', 'fed ', 'federal reserve', 'inflation', 'cpi', 'lending', 'financing', 'capital markets',
+            'freight', 'shipping', 'trucking', 'supply chain', 'port', 'cargo', 'container',
+            'construction cost', 'material cost', 'steel', 'concrete', 'lumber', 'labor cost', 'labor market',
+            // Industrial RE
+            'industrial', 'warehouse', 'distribution', 'fulfillment', 'cold storage', 'logistics', 'flex space',
+            'manufacturing', 'last mile', 'e-commerce', 'spec development', 'industrial park',
+            // CRE general
+            'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate'
+        ];
+
+        // TRANSACTIONS: industrial land/building sales or leases
+        const transactionKeywords = [
+            'sale', 'sold', 'lease', 'leased', 'acquired', 'acquisition', 'purchase', 'bought',
+            'deal', 'transaction', 'tenant', 'signed', 'closed', 'sf', 'square feet', 'acre',
+            'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex'
+        ];
+
+        // AVAILABILITIES: industrial land/building for sale or lease
+        const availabilityKeywords = [
+            'available', 'for sale', 'for lease', 'listing', 'marketed', 'offering', 'development site',
+            'spec', 'speculative', 'proposed', 'planned', 'under construction', 'delivering',
+            'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex', 'land'
+        ];
+
+        // PEOPLE NEWS: personnel moves in industrial brokerage, development, investment
+        const peopleKeywords = [
+            // Actions
+            'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
+            // Titles
+            'broker', 'director', 'vp', 'vice president', 'president', 'ceo', 'coo', 'cfo', 'partner',
+            'managing director', 'principal', 'executive', 'head of', 'leader',
+            // Companies
+            'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
+            'prologis', 'duke', 'link', 'rexford', 'first industrial', 'stag', 'terreno',
+            // Industrial focus
+            'industrial', 'logistics', 'warehouse', 'distribution', 'development', 'investment sales', 'capital markets'
+        ];
+
+        const getText = (article: NormalizedItem): string =>
+            `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
+
+        const containsAny = (text: string, keywords: string[]): boolean =>
+            keywords.some(kw => text.includes(kw));
+
+        const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
+
+        // Strict filter helper - no fallback, empty sections are OK
+        const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                return containsAny(text, keywords);
+            });
+            console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict industrial filter)`);
+            return filtered;
         };
 
-        // Helper to apply content filter with fallback
-        const applyContentFilter = (items: NormalizedItem[], sectionName: string): NormalizedItem[] => {
-            const filtered = items.filter(isIndustrialContent);
-            if (filtered.length > 0) {
-                console.log(`🔍 ${sectionName}: filtered from ${items.length} to ${filtered.length} (industrial focus, no political)`);
-                return filtered;
-            }
-            console.log(`🔍 ${sectionName}: keeping all ${items.length} (no industrial matches found)`);
-            return items;
-        };
+        // Categorize and apply section-specific filters
+        let relevant = recentArticles.filter(a => a.category === 'relevant');
+        relevant = applyStrictFilter(relevant, relevantKeywords, 'Relevant');
 
-        // Categorize and filter all sections
         let transactions = recentArticles.filter(a => a.category === 'transactions');
-        transactions = applyContentFilter(transactions, 'Transactions');
+        transactions = applyStrictFilter(transactions, transactionKeywords, 'Transactions');
 
         let availabilities = recentArticles.filter(a => a.category === 'availabilities');
-        availabilities = applyContentFilter(availabilities, 'Availabilities');
-
-        let relevant = recentArticles.filter(a => a.category === 'relevant');
-        relevant = applyContentFilter(relevant, 'Relevant');
+        availabilities = applyStrictFilter(availabilities, availabilityKeywords, 'Availabilities');
 
         let people = recentArticles.filter(a => a.category === 'people');
-        people = applyContentFilter(people, 'People News');
+        people = applyStrictFilter(people, peopleKeywords, 'People News');
 
         // FILTER 2: Regional filter - only apply if 5+ relevant articles
         if (relevant.length >= 5) {
@@ -512,43 +554,87 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Regional articles from last ${periodLabel}: ${filteredArticles.length}`);
 
-        // Content filter: exclude political content, focus on industrial/CRE
-        const excludePolitical = ['trump', 'biden', 'president', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican'];
-        const includeIndustrial = ['nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap', 'broker', 'industrial', 'warehouse', 'logistics', 'cre', 'commercial real estate', 'development', 'leasing', 'investment sales'];
+        // ===== STRICT CONTENT FILTERS (no fallback - empty is OK) =====
 
-        const isIndustrialContent = (article: NormalizedItem): boolean => {
-            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
-            if (excludePolitical.some(term => text.includes(term))) {
-                return false;
-            }
-            return includeIndustrial.some(term => text.includes(term));
+        // Political exclusion - applies to ALL sections
+        const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
+
+        // Section-specific keywords based on boss criteria:
+
+        // RELEVANT ARTICLES: macro trends (rates, inflation, freight, construction inputs, labor) + industrial RE news
+        const relevantKeywords = [
+            // Macro trends
+            'interest rate', 'fed ', 'federal reserve', 'inflation', 'cpi', 'lending', 'financing', 'capital markets',
+            'freight', 'shipping', 'trucking', 'supply chain', 'port', 'cargo', 'container',
+            'construction cost', 'material cost', 'steel', 'concrete', 'lumber', 'labor cost', 'labor market',
+            // Industrial RE
+            'industrial', 'warehouse', 'distribution', 'fulfillment', 'cold storage', 'logistics', 'flex space',
+            'manufacturing', 'last mile', 'e-commerce', 'spec development', 'industrial park',
+            // CRE general
+            'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate'
+        ];
+
+        // TRANSACTIONS: industrial land/building sales or leases
+        const transactionKeywords = [
+            'sale', 'sold', 'lease', 'leased', 'acquired', 'acquisition', 'purchase', 'bought',
+            'deal', 'transaction', 'tenant', 'signed', 'closed', 'sf', 'square feet', 'acre',
+            'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex'
+        ];
+
+        // AVAILABILITIES: industrial land/building for sale or lease
+        const availabilityKeywords = [
+            'available', 'for sale', 'for lease', 'listing', 'marketed', 'offering', 'development site',
+            'spec', 'speculative', 'proposed', 'planned', 'under construction', 'delivering',
+            'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex', 'land'
+        ];
+
+        // PEOPLE NEWS: personnel moves in industrial brokerage, development, investment
+        const peopleKeywords = [
+            // Actions
+            'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
+            // Titles
+            'broker', 'director', 'vp', 'vice president', 'president', 'ceo', 'coo', 'cfo', 'partner',
+            'managing director', 'principal', 'executive', 'head of', 'leader',
+            // Companies
+            'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
+            'prologis', 'duke', 'link', 'rexford', 'first industrial', 'stag', 'terreno',
+            // Industrial focus
+            'industrial', 'logistics', 'warehouse', 'distribution', 'development', 'investment sales', 'capital markets'
+        ];
+
+        const getText = (article: NormalizedItem): string =>
+            `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
+
+        const containsAny = (text: string, keywords: string[]): boolean =>
+            keywords.some(kw => text.includes(kw));
+
+        const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
+
+        // Strict filter helper - no fallback, empty sections are OK
+        const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                return containsAny(text, keywords);
+            });
+            console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict industrial filter)`);
+            return filtered;
         };
 
-        // Helper to apply content filter with fallback
-        const applyContentFilter = (items: NormalizedItem[], sectionName: string): NormalizedItem[] => {
-            const filtered = items.filter(isIndustrialContent);
-            if (filtered.length > 0) {
-                console.log(`🔍 ${sectionName}: filtered from ${items.length} to ${filtered.length} (industrial focus, no political)`);
-                return filtered;
-            }
-            console.log(`🔍 ${sectionName}: keeping all ${items.length} (no industrial matches found)`);
-            return items;
-        };
+        // Categorize and apply section-specific filters
+        let relevant = filteredArticles.filter(a => a.category === 'relevant');
+        relevant = applyStrictFilter(relevant, relevantKeywords, 'Relevant');
 
-        // Categorize and filter all sections
         let transactions = filteredArticles.filter(a => a.category === 'transactions');
-        transactions = applyContentFilter(transactions, 'Transactions');
+        transactions = applyStrictFilter(transactions, transactionKeywords, 'Transactions');
 
         let availabilities = filteredArticles.filter(a => a.category === 'availabilities');
-        availabilities = applyContentFilter(availabilities, 'Availabilities');
-
-        let relevant = filteredArticles.filter(a => a.category === 'relevant');
-        relevant = applyContentFilter(relevant, 'Relevant');
+        availabilities = applyStrictFilter(availabilities, availabilityKeywords, 'Availabilities');
 
         let people = filteredArticles.filter(a => a.category === 'people');
-        people = applyContentFilter(people, 'People News');
+        people = applyStrictFilter(people, peopleKeywords, 'People News');
 
-        console.log('📋 Article breakdown (regional focus, industrial content):');
+        console.log('📋 Article breakdown (regional + industrial filter):');
         console.log(`  - Relevant: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
         console.log(`  - Availabilities: ${availabilities.length}`);
