@@ -322,17 +322,49 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Today is ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dayOfWeek]}`);
 
-        // Target regions - strict focus on NJ, PA, TX, FL
-        const targetRegions = ['NJ', 'PA', 'FL', 'New Jersey', 'Pennsylvania', 'Florida'];
+        // Target regions - STRICT focus on NJ, PA, FL ONLY
+        const targetRegions = ['NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA', 'PHILADELPHIA', 'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE'];
+
+        // Exclude articles primarily about OTHER states
+        const excludeRegions = [
+            'TEXAS', 'TX', 'HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO',
+            'MARYLAND', 'MD', 'BALTIMORE',
+            'VIRGINIA', 'VA', 'RICHMOND', 'NORFOLK',
+            'GEORGIA', 'GA', 'ATLANTA',
+            'CALIFORNIA', 'CA', 'LOS ANGELES', 'SAN FRANCISCO', 'SAN DIEGO',
+            'NEW YORK', 'NY', 'MANHATTAN', 'BROOKLYN', 'LONG ISLAND',
+            'NORTH CAROLINA', 'NC', 'CHARLOTTE', 'RALEIGH',
+            'SOUTH CAROLINA', 'SC', 'CHARLESTON',
+            'TENNESSEE', 'TN', 'NASHVILLE', 'MEMPHIS',
+            'ARIZONA', 'AZ', 'PHOENIX',
+            'NEVADA', 'NV', 'LAS VEGAS',
+            'COLORADO', 'CO', 'DENVER',
+            'OHIO', 'COLUMBUS', 'CLEVELAND', 'CINCINNATI',
+            'ILLINOIS', 'IL', 'CHICAGO',
+            'MICHIGAN', 'DETROIT',
+            'INDIANA', 'INDIANAPOLIS',
+            'WISCONSIN', 'MILWAUKEE',
+            'MINNESOTA', 'MINNEAPOLIS'
+        ];
 
         const isTargetRegion = (article: NormalizedItem): boolean => {
+            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
+
+            // EXCLUDE if article mentions other states/cities prominently
+            const mentionsExcludedRegion = excludeRegions.some(r => text.includes(r));
+            if (mentionsExcludedRegion) {
+                return false; // Reject articles about other states
+            }
+
+            // Check regions array if available
             if (article.regions && article.regions.length > 0) {
                 return article.regions.some(r =>
-                    targetRegions.some(tr => r.toUpperCase().includes(tr.toUpperCase()))
+                    targetRegions.some(tr => r.toUpperCase().includes(tr))
                 );
             }
-            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
-            return targetRegions.some(r => text.includes(r.toUpperCase()));
+
+            // Check text for target region mentions
+            return targetRegions.some(r => text.includes(r));
         };
 
         // FILTER 1: Smart time period - 24h default, expand to 48h if low content
@@ -360,7 +392,11 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
-        // ===== STRICT CONTENT FILTERS (no fallback - empty is OK) =====
+        // ===== STRICT FILTERS: Regional (NJ, PA, FL) + Content + No Political =====
+
+        // STEP 1: Apply regional filter FIRST to ALL articles (strict - NJ, PA, FL only)
+        const regionalArticles = recentArticles.filter(isTargetRegion);
+        console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
         // Political exclusion - applies to ALL sections
         const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
@@ -416,47 +452,31 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
 
-        // Strict filter helper - no fallback, empty sections are OK
+        // STEP 2: Apply content filter to each section (strict - no fallback, empty OK)
         const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
                 if (isPolitical(text)) return false;
                 return containsAny(text, keywords);
             });
-            console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict industrial filter)`);
+            console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (content filter)`);
             return filtered;
         };
 
-        // Categorize and apply section-specific filters
-        let relevant = recentArticles.filter(a => a.category === 'relevant');
+        // Categorize from REGIONAL articles only, then apply content filters
+        let relevant = regionalArticles.filter(a => a.category === 'relevant');
         relevant = applyStrictFilter(relevant, relevantKeywords, 'Relevant');
 
-        let transactions = recentArticles.filter(a => a.category === 'transactions');
+        let transactions = regionalArticles.filter(a => a.category === 'transactions');
         transactions = applyStrictFilter(transactions, transactionKeywords, 'Transactions');
 
-        let availabilities = recentArticles.filter(a => a.category === 'availabilities');
+        let availabilities = regionalArticles.filter(a => a.category === 'availabilities');
         availabilities = applyStrictFilter(availabilities, availabilityKeywords, 'Availabilities');
 
-        let people = recentArticles.filter(a => a.category === 'people');
+        let people = regionalArticles.filter(a => a.category === 'people');
         people = applyStrictFilter(people, peopleKeywords, 'People News');
 
-        // FILTER 2: Regional filter - only apply if 5+ relevant articles
-        if (relevant.length >= 5) {
-            const filteredRelevant = relevant.filter(isTargetRegion);
-            console.log(`🎯 5+ relevant articles (${relevant.length}) - applying regional filter (NJ, PA, FL)`);
-            console.log(`   Filtered from ${relevant.length} to ${filteredRelevant.length} regional articles`);
-
-            // Only apply filter if we still have at least 3 articles after filtering
-            if (filteredRelevant.length >= 3) {
-                relevant = filteredRelevant;
-            } else {
-                console.log(`   ⚠️ Too few regional articles (${filteredRelevant.length}), keeping all ${relevant.length}`);
-            }
-        } else {
-            console.log(`📰 Fewer than 5 relevant articles (${relevant.length}) - keeping all without regional filter`);
-        }
-
-        console.log('📋 Article breakdown:');
+        console.log('📋 Final article breakdown (NJ, PA, FL + industrial content):');
         console.log(`  - Relevant: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
         console.log(`  - Availabilities: ${availabilities.length}`);
@@ -526,17 +546,49 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 
         console.log(`📊 Total articles loaded: ${allArticles.length}`);
 
-        // Target regions - strict focus on NJ, PA, TX, FL
-        const targetRegions = ['NJ', 'PA', 'FL', 'New Jersey', 'Pennsylvania', 'Florida'];
+        // Target regions - STRICT focus on NJ, PA, FL ONLY
+        const targetRegions = ['NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA', 'PHILADELPHIA', 'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE'];
+
+        // Exclude articles primarily about OTHER states
+        const excludeRegions = [
+            'TEXAS', 'TX', 'HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO',
+            'MARYLAND', 'MD', 'BALTIMORE',
+            'VIRGINIA', 'VA', 'RICHMOND', 'NORFOLK',
+            'GEORGIA', 'GA', 'ATLANTA',
+            'CALIFORNIA', 'CA', 'LOS ANGELES', 'SAN FRANCISCO', 'SAN DIEGO',
+            'NEW YORK', 'NY', 'MANHATTAN', 'BROOKLYN', 'LONG ISLAND',
+            'NORTH CAROLINA', 'NC', 'CHARLOTTE', 'RALEIGH',
+            'SOUTH CAROLINA', 'SC', 'CHARLESTON',
+            'TENNESSEE', 'TN', 'NASHVILLE', 'MEMPHIS',
+            'ARIZONA', 'AZ', 'PHOENIX',
+            'NEVADA', 'NV', 'LAS VEGAS',
+            'COLORADO', 'CO', 'DENVER',
+            'OHIO', 'COLUMBUS', 'CLEVELAND', 'CINCINNATI',
+            'ILLINOIS', 'IL', 'CHICAGO',
+            'MICHIGAN', 'DETROIT',
+            'INDIANA', 'INDIANAPOLIS',
+            'WISCONSIN', 'MILWAUKEE',
+            'MINNESOTA', 'MINNEAPOLIS'
+        ];
 
         const isTargetRegion = (article: NormalizedItem): boolean => {
+            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
+
+            // EXCLUDE if article mentions other states/cities prominently
+            const mentionsExcludedRegion = excludeRegions.some(r => text.includes(r));
+            if (mentionsExcludedRegion) {
+                return false; // Reject articles about other states
+            }
+
+            // Check regions array if available
             if (article.regions && article.regions.length > 0) {
                 return article.regions.some(r =>
-                    targetRegions.some(tr => r.toUpperCase().includes(tr.toUpperCase()))
+                    targetRegions.some(tr => r.toUpperCase().includes(tr))
                 );
             }
-            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
-            return targetRegions.some(r => text.includes(r.toUpperCase()));
+
+            // Check text for target region mentions
+            return targetRegions.some(r => text.includes(r));
         };
 
         // Weekly recap covers last 5 days
