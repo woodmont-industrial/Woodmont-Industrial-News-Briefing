@@ -365,22 +365,43 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         const isTargetRegion = (article: NormalizedItem): boolean => {
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
+            const url = (article.url || article.link || '').toLowerCase();
 
-            // EXCLUDE if article mentions other states/cities prominently
-            const mentionsExcludedRegion = excludeRegions.some(r => text.includes(r));
-            if (mentionsExcludedRegion) {
-                return false; // Reject articles about other states
+            // INCLUDE if from a NJ/PA/FL regional source (by URL)
+            const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey', 'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
+            const isFromRegionalSource = regionalSources.some(s => url.includes(s));
+
+            // Check if article PRIMARILY mentions target regions (count occurrences)
+            const targetCount = targetRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+            // Only check major out-of-state locations (not every state abbreviation which causes false positives)
+            const majorExcludeRegions = ['HOUSTON', 'DALLAS', 'AUSTIN', 'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX', 'CHARLOTTE', 'NASHVILLE', 'BALTIMORE'];
+            const excludeCount = majorExcludeRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+            // If from a regional source (re-nj.com, lvb.com, etc.), include unless PRIMARILY about another location
+            if (isFromRegionalSource) {
+                // Only exclude if more excluded regions than target regions AND multiple mentions
+                if (excludeCount > targetCount && excludeCount >= 2) {
+                    return false;
+                }
+                return true;
             }
 
-            // Check regions array if available
+            // For non-regional sources, require explicit target region mention
             if (article.regions && article.regions.length > 0) {
-                return article.regions.some(r =>
+                const hasTarget = article.regions.some(r =>
                     targetRegions.some(tr => r.toUpperCase().includes(tr))
                 );
+                if (hasTarget) return true;
             }
 
-            // Check text for target region mentions
-            return targetRegions.some(r => text.includes(r));
+            // Check text for target region mentions, allow if target count >= exclude count
+            const hasTargetRegion = targetRegions.some(r => text.includes(r));
+            if (hasTargetRegion && targetCount >= excludeCount) {
+                return true;
+            }
+
+            return hasTargetRegion && excludeCount === 0;
         };
 
         // FILTER 1: STRICT time period - 24h default, expand to 48h if low content
@@ -466,7 +487,9 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         // Must have BOTH: a personnel action AND an industrial context
         const peopleActionKeywords = [
             'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
-            'hires', 'appoints', 'promotes', 'names', 'adds'
+            'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
+            'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
+            'movers', 'shakers', 'leadership', 'executive', 'move'
         ];
         const industrialContextKeywords = [
             // Industrial CRE companies
@@ -475,10 +498,14 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
             // Industrial focus keywords
             'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
-            'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage'
+            'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
+            // Broader real estate / development terms (allow more people news)
+            'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
+            'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
+            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda'
         ];
-        // Exclude residential/non-industrial
-        const excludeFromPeople = ['residential', 'elliman', 'compass', 'redfin', 'zillow', 'bank', 'lending', 'mortgage', 'retail', 'multifamily', 'apartment', 'hotel', 'hospitality'];
+        // Exclude residential/non-industrial (be more specific to reduce false exclusions)
+        const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
 
         const getText = (article: NormalizedItem): string =>
             `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
@@ -641,22 +668,43 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 
         const isTargetRegion = (article: NormalizedItem): boolean => {
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
+            const url = (article.url || article.link || '').toLowerCase();
 
-            // EXCLUDE if article mentions other states/cities prominently
-            const mentionsExcludedRegion = excludeRegions.some(r => text.includes(r));
-            if (mentionsExcludedRegion) {
-                return false; // Reject articles about other states
+            // INCLUDE if from a NJ/PA/FL regional source (by URL)
+            const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey', 'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
+            const isFromRegionalSource = regionalSources.some(s => url.includes(s));
+
+            // Check if article PRIMARILY mentions target regions (count occurrences)
+            const targetCount = targetRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+            // Only check major out-of-state locations (not every state abbreviation which causes false positives)
+            const majorExcludeRegions = ['HOUSTON', 'DALLAS', 'AUSTIN', 'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX', 'CHARLOTTE', 'NASHVILLE', 'BALTIMORE'];
+            const excludeCount = majorExcludeRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+            // If from a regional source (re-nj.com, lvb.com, etc.), include unless PRIMARILY about another location
+            if (isFromRegionalSource) {
+                // Only exclude if more excluded regions than target regions AND multiple mentions
+                if (excludeCount > targetCount && excludeCount >= 2) {
+                    return false;
+                }
+                return true;
             }
 
-            // Check regions array if available
+            // For non-regional sources, require explicit target region mention
             if (article.regions && article.regions.length > 0) {
-                return article.regions.some(r =>
+                const hasTarget = article.regions.some(r =>
                     targetRegions.some(tr => r.toUpperCase().includes(tr))
                 );
+                if (hasTarget) return true;
             }
 
-            // Check text for target region mentions
-            return targetRegions.some(r => text.includes(r));
+            // Check text for target region mentions, allow if target count >= exclude count
+            const hasTargetRegion = targetRegions.some(r => text.includes(r));
+            if (hasTargetRegion && targetCount >= excludeCount) {
+                return true;
+            }
+
+            return hasTargetRegion && excludeCount === 0;
         };
 
         // Weekly recap covers last 5 days with STRICT date validation
@@ -724,7 +772,9 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         // Must have BOTH: a personnel action AND an industrial context
         const peopleActionKeywords = [
             'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
-            'hires', 'appoints', 'promotes', 'names', 'adds'
+            'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
+            'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
+            'movers', 'shakers', 'leadership', 'executive', 'move'
         ];
         const industrialContextKeywords = [
             // Industrial CRE companies
@@ -733,10 +783,14 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
             // Industrial focus keywords
             'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
-            'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage'
+            'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
+            // Broader real estate / development terms (allow more people news)
+            'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
+            'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
+            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda'
         ];
-        // Exclude residential/non-industrial
-        const excludeFromPeople = ['residential', 'elliman', 'compass', 'redfin', 'zillow', 'bank', 'lending', 'mortgage', 'retail', 'multifamily', 'apartment', 'hotel', 'hospitality'];
+        // Exclude residential/non-industrial (be more specific to reduce false exclusions)
+        const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
 
         const getText = (article: NormalizedItem): string =>
             `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
