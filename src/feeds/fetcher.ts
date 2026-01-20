@@ -608,7 +608,7 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
                     source: feed.name,
                     publisher: websiteDomain || feed.name,
                     regions: [feed.region || 'US'],
-                    pubDate: new Date(item.pubDate || item.published || new Date()).toISOString(),
+                    pubDate: (item.pubDate || item.published) ? new Date(item.pubDate || item.published).toISOString() : '',
                     description: stripHtmlTags(item.description || item['content:encoded'] || ''),
                     author: authorName,
                     image: imageUrl,

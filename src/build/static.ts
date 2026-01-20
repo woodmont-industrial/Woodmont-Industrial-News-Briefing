@@ -324,9 +324,19 @@ function generateJSONFeed(items: NormalizedItem[]): object {
             url: "https://prcasley.github.io/Woodmont-Industrial-News-Briefing/"
         },
         items: items.filter(item => {
-            // Only include items with valid links (check both 'link' and 'url' properties)
+            // Only include items with valid links and valid publication dates
             const itemUrl = item.link || item.url || '';
-            return itemUrl.startsWith('http') && item.title;
+            const hasValidUrl = itemUrl.startsWith('http') && item.title;
+
+            // STRICT: Require valid pubDate - reject articles without dates
+            const pubDateStr = item.pubDate;
+            if (!pubDateStr) return false;
+            const pubDate = new Date(pubDateStr);
+            if (isNaN(pubDate.getTime())) return false;
+            if (pubDate > new Date()) return false; // Reject future dates
+            if (pubDate < new Date('2020-01-01')) return false; // Reject very old dates
+
+            return hasValidUrl;
         }).map(item => {
             const category = item.category || 'relevant';
             // Normalize: use 'link' or 'url' property
