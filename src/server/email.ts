@@ -109,42 +109,59 @@ export async function sendDailyNewsletter(): Promise<boolean> {
 
         console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
-        // Categorize articles
-        const transactions = recentArticles.filter(a => a.category === 'transactions');
-        const availabilities = recentArticles.filter(a => a.category === 'availabilities');
-        let relevant = recentArticles.filter(a => a.category === 'relevant');
-        const people = recentArticles.filter(a => a.category === 'people');
+        // Deal thresholds: ≥100,000 SF or ≥$25M
+        const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null } => {
+            const upperText = text.toUpperCase();
+            const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            let sizeSF: number | null = null;
+            if (sfMatch) sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+            const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
+            let priceMillion: number | null = null;
+            if (dollarMatch) priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            return { meetsSF: sizeSF !== null && sizeSF >= 100000, meetsDollar: priceMillion !== null && priceMillion >= 25, sizeSF };
+        };
+
+        // Property scope helpers
+        const excludeNonIndustrial = ['office lease', 'office building', 'multifamily', 'apartment', 'residential', 'retail', 'hotel', 'hospitality', 'self-storage'];
+        const industrialKeywords = ['warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage', 'fulfillment', 'industrial'];
+
+        const getText = (a: NormalizedItem) => `${a.title || ''} ${a.description || ''}`.toLowerCase();
+        const containsAny = (text: string, kw: string[]) => kw.some(k => text.includes(k));
+        const isIndustrialProperty = (text: string) => containsAny(text, industrialKeywords) || !containsAny(text, excludeNonIndustrial);
 
         // Target regions for strict filtering
         const targetRegions = ['NJ', 'PA', 'FL', 'New Jersey', 'Pennsylvania', 'Florida'];
 
         // Helper to check if article is in target regions
         const isTargetRegion = (article: NormalizedItem): boolean => {
-            // Check regions array
             if (article.regions && article.regions.length > 0) {
-                return article.regions.some(r =>
-                    targetRegions.some(tr => r.toUpperCase().includes(tr.toUpperCase()))
-                );
+                return article.regions.some(r => targetRegions.some(tr => r.toUpperCase().includes(tr.toUpperCase())));
             }
-            // Check title and description for region mentions
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
             return targetRegions.some(r => text.includes(r.toUpperCase()));
         };
 
-        // If 5+ relevant articles, apply strict regional filter for industrial news
-        if (relevant.length >= 5) {
-            const filteredRelevant = relevant.filter(isTargetRegion);
-            console.log(`🎯 5+ relevant articles (${relevant.length}) - applying regional filter (NJ, NY, PA, TX, FL)`);
-            console.log(`   Filtered from ${relevant.length} to ${filteredRelevant.length} regional articles`);
-            // Only apply filter if we still have at least 3 articles after filtering
-            if (filteredRelevant.length >= 3) {
-                relevant = filteredRelevant;
-            } else {
-                console.log(`   ⚠️ Too few regional articles (${filteredRelevant.length}), keeping all ${relevant.length}`);
-            }
-        } else {
-            console.log(`📰 Fewer than 5 relevant articles (${relevant.length}) - keeping all without regional filter`);
-        }
+        // Filter all articles by region first
+        const regionalArticles = recentArticles.filter(isTargetRegion);
+        console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
+
+        // Categorize with threshold filters
+        let transactions = regionalArticles.filter(a => a.category === 'transactions').filter(a => {
+            const text = getText(a);
+            if (!isIndustrialProperty(text)) return false;
+            const threshold = meetsDealThreshold(text);
+            return threshold.meetsSF || threshold.meetsDollar || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+        });
+
+        let availabilities = regionalArticles.filter(a => a.category === 'availabilities').filter(a => {
+            const text = getText(a);
+            if (!isIndustrialProperty(text)) return false;
+            const threshold = meetsDealThreshold(text);
+            return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+        });
+
+        let relevant = regionalArticles.filter(a => a.category === 'relevant');
+        const people = regionalArticles.filter(a => a.category === 'people');
 
         console.log('📋 Article breakdown:');
         console.log(`  - Transactions: ${transactions.length}`);
@@ -454,6 +471,57 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         // Political exclusion - applies to ALL sections
         const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
 
+        // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
+        const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
+            const upperText = text.toUpperCase();
+            // Extract SF values
+            const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            let sizeSF: number | null = null;
+            if (sfMatch) {
+                sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+            }
+
+            // Extract dollar values (millions)
+            const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
+            let priceMillion: number | null = null;
+            if (dollarMatch) {
+                priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            }
+
+            // Also check for plain dollar amounts (e.g., $25,000,000)
+            const bigDollarMatch = upperText.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
+            if (!priceMillion && bigDollarMatch) {
+                const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
+                if (rawAmount >= 25000000) {
+                    priceMillion = rawAmount / 1000000;
+                }
+            }
+
+            return {
+                meetsSF: sizeSF !== null && sizeSF >= 100000,
+                meetsDollar: priceMillion !== null && priceMillion >= 25,
+                sizeSF,
+                priceMillion
+            };
+        };
+
+        // Property scope: Industrial only (exclude office, multifamily, retail, hotels, self-storage, data centers unless industrial)
+        const excludeNonIndustrial = [
+            'office lease', 'office building', 'office tower', 'coworking',
+            'multifamily', 'apartment', 'residential', 'condo',
+            'retail', 'restaurant', 'shopping center', 'mall',
+            'hotel', 'hospitality', 'resort',
+            'self-storage', 'mini storage',
+            'senior living', 'nursing home', 'medical office'
+        ];
+
+        // Industrial property keywords
+        const industrialPropertyKeywords = [
+            'warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage',
+            'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land',
+            'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock'
+        ];
+
         // Section-specific keywords based on boss criteria:
 
         // RELEVANT ARTICLES: macro trends (rates, inflation, freight, construction inputs, labor) + industrial RE news
@@ -462,6 +530,8 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             'interest rate', 'fed ', 'federal reserve', 'inflation', 'cpi', 'lending', 'financing', 'capital markets',
             'freight', 'shipping', 'trucking', 'supply chain', 'port', 'cargo', 'container',
             'construction cost', 'material cost', 'steel', 'concrete', 'lumber', 'labor cost', 'labor market',
+            // Insurance (especially FL/TX)
+            'insurance', 'insurance cost', 'property insurance',
             // Industrial RE
             'industrial', 'warehouse', 'distribution', 'fulfillment', 'cold storage', 'logistics', 'flex space',
             'manufacturing', 'last mile', 'e-commerce', 'spec development', 'industrial park',
@@ -515,6 +585,14 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
         const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
 
+        // Helper to check if article is industrial property-focused
+        const isIndustrialProperty = (text: string): boolean => {
+            // Has industrial keywords
+            if (containsAny(text, industrialPropertyKeywords)) return true;
+            // Does NOT have non-industrial keywords
+            return !containsAny(text, excludeNonIndustrial);
+        };
+
         // STEP 2: Apply content filter to each section (strict - no fallback, empty OK)
         const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
             const filtered = items.filter(article => {
@@ -523,6 +601,40 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
                 return containsAny(text, keywords);
             });
             console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (content filter)`);
+            return filtered;
+        };
+
+        // Transaction filter - must meet threshold (≥100K SF OR ≥$25M) and be industrial
+        const applyTransactionFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+
+                const threshold = meetsDealThreshold(text);
+                // Include if meets threshold OR has clear transaction indicators with any size
+                const meetsThreshold = threshold.meetsSF || threshold.meetsDollar;
+                const hasAnySizeMentioned = threshold.sizeSF !== null && threshold.sizeSF > 0;
+
+                // Accept if meets threshold, or has size mentioned (smaller deals still relevant)
+                return meetsThreshold || hasAnySizeMentioned;
+            });
+            console.log(`🔍 Transactions: ${items.length} → ${filtered.length} (threshold filter: ≥100K SF or ≥$25M)`);
+            return filtered;
+        };
+
+        // Availability filter - prefer ≥100K SF but include notable smaller listings
+        const applyAvailabilityFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+
+                const threshold = meetsDealThreshold(text);
+                // Prefer ≥100K SF, but include any with size mentioned
+                return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+            });
+            console.log(`🔍 Availabilities: ${items.length} → ${filtered.length} (threshold filter: prefer ≥100K SF)`);
             return filtered;
         };
 
@@ -548,10 +660,10 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         relevant = applyStrictFilter(relevant, relevantKeywords, 'Relevant');
 
         let transactions = regionalArticles.filter(a => a.category === 'transactions');
-        transactions = applyStrictFilter(transactions, transactionKeywords, 'Transactions');
+        transactions = applyTransactionFilter(transactions);
 
         let availabilities = regionalArticles.filter(a => a.category === 'availabilities');
-        availabilities = applyStrictFilter(availabilities, availabilityKeywords, 'Availabilities');
+        availabilities = applyAvailabilityFilter(availabilities);
 
         let people = regionalArticles.filter(a => a.category === 'people');
         people = applyPeopleFilter(people);
@@ -740,37 +852,61 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         // Political exclusion - applies to ALL sections
         const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
 
+        // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
+        const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
+            const upperText = text.toUpperCase();
+            const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            let sizeSF: number | null = null;
+            if (sfMatch) {
+                sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+            }
+            const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
+            let priceMillion: number | null = null;
+            if (dollarMatch) {
+                priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            }
+            const bigDollarMatch = upperText.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
+            if (!priceMillion && bigDollarMatch) {
+                const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
+                if (rawAmount >= 25000000) {
+                    priceMillion = rawAmount / 1000000;
+                }
+            }
+            return { meetsSF: sizeSF !== null && sizeSF >= 100000, meetsDollar: priceMillion !== null && priceMillion >= 25, sizeSF, priceMillion };
+        };
+
+        // Property scope: Industrial only
+        const excludeNonIndustrial = ['office lease', 'office building', 'office tower', 'coworking', 'multifamily', 'apartment', 'residential', 'condo', 'retail', 'restaurant', 'shopping center', 'mall', 'hotel', 'hospitality', 'resort', 'self-storage', 'mini storage', 'senior living', 'nursing home', 'medical office'];
+        const industrialPropertyKeywords = ['warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage', 'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land', 'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock'];
+
         // Section-specific keywords based on boss criteria:
 
-        // RELEVANT ARTICLES: macro trends (rates, inflation, freight, construction inputs, labor) + industrial RE news
+        // RELEVANT ARTICLES: macro trends (rates, inflation, freight, construction inputs, labor, insurance) + industrial RE news
         const relevantKeywords = [
-            // Macro trends
             'interest rate', 'fed ', 'federal reserve', 'inflation', 'cpi', 'lending', 'financing', 'capital markets',
             'freight', 'shipping', 'trucking', 'supply chain', 'port', 'cargo', 'container',
             'construction cost', 'material cost', 'steel', 'concrete', 'lumber', 'labor cost', 'labor market',
-            // Industrial RE
+            'insurance', 'insurance cost', 'property insurance',
             'industrial', 'warehouse', 'distribution', 'fulfillment', 'cold storage', 'logistics', 'flex space',
             'manufacturing', 'last mile', 'e-commerce', 'spec development', 'industrial park',
-            // CRE general
             'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate'
         ];
 
-        // TRANSACTIONS: industrial land/building sales or leases
+        // TRANSACTIONS: industrial sales/leases meeting thresholds
         const transactionKeywords = [
             'sale', 'sold', 'lease', 'leased', 'acquired', 'acquisition', 'purchase', 'bought',
             'deal', 'transaction', 'tenant', 'signed', 'closed', 'sf', 'square feet', 'acre',
             'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex'
         ];
 
-        // AVAILABILITIES: industrial land/building for sale or lease
+        // AVAILABILITIES: industrial listings
         const availabilityKeywords = [
             'available', 'for sale', 'for lease', 'listing', 'marketed', 'offering', 'development site',
             'spec', 'speculative', 'proposed', 'planned', 'under construction', 'delivering',
             'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex', 'land'
         ];
 
-        // PEOPLE NEWS: personnel moves in industrial brokerage, development, investment
-        // Must have BOTH: a personnel action AND an industrial context
+        // PEOPLE NEWS: personnel moves
         const peopleActionKeywords = [
             'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
             'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
@@ -778,19 +914,15 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             'movers', 'shakers', 'leadership', 'executive', 'move'
         ];
         const industrialContextKeywords = [
-            // Industrial CRE companies
             'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
             'prologis', 'duke', 'link logistics', 'rexford', 'first industrial', 'stag', 'terreno',
             'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
-            // Industrial focus keywords
             'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
             'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
-            // Broader real estate / development terms (allow more people news)
             'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
             'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
             'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda'
         ];
-        // Exclude residential/non-industrial (be more specific to reduce false exclusions)
         const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
 
         const getText = (article: NormalizedItem): string =>
@@ -800,6 +932,11 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             keywords.some(kw => text.includes(kw));
 
         const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
+
+        const isIndustrialProperty = (text: string): boolean => {
+            if (containsAny(text, industrialPropertyKeywords)) return true;
+            return !containsAny(text, excludeNonIndustrial);
+        };
 
         // Strict filter helper - no fallback, empty sections are OK
         const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
@@ -812,7 +949,33 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             return filtered;
         };
 
-        // People News filter - trust classifier but exclude non-industrial and political
+        // Transaction filter with thresholds
+        const applyTransactionFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+                const threshold = meetsDealThreshold(text);
+                return threshold.meetsSF || threshold.meetsDollar || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+            });
+            console.log(`🔍 Transactions: ${items.length} → ${filtered.length} (threshold filter)`);
+            return filtered;
+        };
+
+        // Availability filter with thresholds
+        const applyAvailabilityFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+                const threshold = meetsDealThreshold(text);
+                return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+            });
+            console.log(`🔍 Availabilities: ${items.length} → ${filtered.length} (threshold filter)`);
+            return filtered;
+        };
+
+        // People News filter
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
@@ -820,7 +983,6 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
                 if (containsAny(text, excludeFromPeople)) return false;
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                // Accept if has action OR industrial context (classifier already validated)
                 return hasAction || hasIndustrial;
             });
             console.log(`🔍 People News: ${items.length} → ${filtered.length} (industrial filter)`);
@@ -832,10 +994,10 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         relevant = applyStrictFilter(relevant, relevantKeywords, 'Relevant');
 
         let transactions = filteredArticles.filter(a => a.category === 'transactions');
-        transactions = applyStrictFilter(transactions, transactionKeywords, 'Transactions');
+        transactions = applyTransactionFilter(transactions);
 
         let availabilities = filteredArticles.filter(a => a.category === 'availabilities');
-        availabilities = applyStrictFilter(availabilities, availabilityKeywords, 'Availabilities');
+        availabilities = applyAvailabilityFilter(availabilities);
 
         let people = filteredArticles.filter(a => a.category === 'people');
         people = applyPeopleFilter(people);

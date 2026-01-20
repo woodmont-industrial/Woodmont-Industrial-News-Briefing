@@ -145,14 +145,66 @@ export async function buildStaticRSS(): Promise<void> {
             'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE', 'WEST PALM', 'BOCA RATON',
             'CENTRAL JERSEY', 'NORTH JERSEY', 'SOUTH JERSEY', 'RARITAN', 'MONROE', 'MIDDLESEX'];
 
-        // Non-industrial content to EXCLUDE
+        // Non-industrial content to EXCLUDE (hard rule per boss)
+        // Property scope: Industrial only - warehouse, logistics, distribution, manufacturing, cold storage, last-mile, IOS, industrial land
+        // Exclude: office, multifamily, retail, hotels, self-storage (unless industrial portfolio), data centers (unless industrial/logistics)
         const excludeContent = [
+            // Sports & Entertainment
             'SOCCER', 'FOOTBALL', 'BASEBALL', 'BASKETBALL', 'SPORTS FRANCHISE', 'YOUTH SPORTS',
-            'RESTAURANT', 'COFFEE SHOP', 'RETAIL STORE', 'SHOPPING CENTER', 'MALL',
-            'RESIDENTIAL', 'APARTMENT', 'CONDO', 'SINGLE-FAMILY', 'HOMEBUILDER',
+            // Retail
+            'RESTAURANT', 'COFFEE SHOP', 'RETAIL STORE', 'SHOPPING CENTER', 'MALL', 'RETAIL LEASE',
+            // Residential/Multifamily
+            'RESIDENTIAL', 'APARTMENT', 'CONDO', 'SINGLE-FAMILY', 'HOMEBUILDER', 'MULTIFAMILY', 'TOWNHOME',
+            // Hospitality
             'HOTEL', 'HOSPITALITY', 'RESORT', 'CASINO', 'GAMING',
-            'SCHOOL', 'UNIVERSITY', 'HOSPITAL', 'MEDICAL CENTER', 'CHURCH'
+            // Office (exclude unless mixed-use with industrial)
+            'OFFICE LEASE', 'OFFICE BUILDING', 'OFFICE TOWER', 'OFFICE CAMPUS', 'COWORKING',
+            // Institutional
+            'SCHOOL', 'UNIVERSITY', 'HOSPITAL', 'MEDICAL CENTER', 'CHURCH', 'SENIOR LIVING', 'NURSING HOME',
+            // Self-storage (exclude standalone)
+            'SELF-STORAGE', 'MINI STORAGE'
         ];
+
+        // Industrial property keywords (what to INCLUDE)
+        const industrialKeywords = [
+            'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTION', 'MANUFACTURING', 'COLD STORAGE',
+            'LAST-MILE', 'LAST MILE', 'INDUSTRIAL OUTDOOR STORAGE', 'IOS', 'INDUSTRIAL LAND',
+            'FULFILLMENT', 'FLEX SPACE', 'SPEC INDUSTRIAL', 'INDUSTRIAL PARK', 'LOADING DOCK',
+            'TRUCK COURT', 'CROSS-DOCK', 'INDUSTRIAL DEVELOPMENT', 'INDUSTRIAL PORTFOLIO'
+        ];
+
+        // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
+        const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
+            // Extract SF values
+            const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            let sizeSF: number | null = null;
+            if (sfMatch) {
+                sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+            }
+
+            // Extract dollar values (millions)
+            const dollarMatch = text.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
+            let priceMillion: number | null = null;
+            if (dollarMatch) {
+                priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            }
+
+            // Also check for plain dollar amounts (e.g., $25,000,000)
+            const bigDollarMatch = text.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
+            if (!priceMillion && bigDollarMatch) {
+                const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
+                if (rawAmount >= 25000000) {
+                    priceMillion = rawAmount / 1000000;
+                }
+            }
+
+            return {
+                meetsSF: sizeSF !== null && sizeSF >= 100000,
+                meetsDollar: priceMillion !== null && priceMillion >= 25,
+                sizeSF,
+                priceMillion
+            };
+        };
 
         // Regional sources (always include if from these)
         const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey',
@@ -169,7 +221,12 @@ export async function buildStaticRSS(): Promise<void> {
 
             // Check for excluded content (non-industrial)
             const hasExcludedContent = excludeContent.some(c => text.includes(c));
-            if (hasExcludedContent) {
+
+            // Check if has industrial context (can override some exclusions)
+            const hasIndustrialContext = industrialKeywords.some(k => text.includes(k));
+
+            // Exclude non-industrial content UNLESS it has clear industrial context
+            if (hasExcludedContent && !hasIndustrialContext) {
                 log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
@@ -195,35 +252,69 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // Must mention target region OR have industrial content
-            const hasIndustrial = text.includes('INDUSTRIAL') || text.includes('WAREHOUSE') ||
-                text.includes('LOGISTICS') || text.includes('DISTRIBUTION') || text.includes('SQ. FT') ||
-                text.includes('SQUARE FEET') || text.includes('SF ') || text.includes(' SF');
-
-            return mentionsTargetRegion || hasIndustrial;
+            return mentionsTargetRegion || hasIndustrialContext;
         };
 
-        // Re-categorize articles based on content
+        // Re-categorize articles based on content (following boss's section rules)
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+            const textUpper = text.toUpperCase();
 
-            // SF/SQ feet → Transactions (unless availability)
-            const hasSizeSF = /\d+[,\d]*\s*(sq\.?\s*ft|sf|square\s*feet)/i.test(text);
+            // Check deal thresholds
+            const threshold = meetsDealThreshold(textUpper);
+
+            // Availability indicators (for sale/lease listings)
             const isAvailability = text.includes('for sale') || text.includes('for lease') ||
-                text.includes('available') || text.includes('listing');
+                text.includes('available') || text.includes('listing') || text.includes('on the market') ||
+                text.includes('asking') || text.includes('newly marketed');
 
-            if (hasSizeSF && !isAvailability) {
-                item.category = 'transactions';
-            }
+            // Transaction indicators (completed deals)
+            const isTransaction = text.includes('sold') || text.includes('sale of') || text.includes('acquired') ||
+                text.includes('closed') || text.includes('signed') || text.includes('leased') ||
+                text.includes('deal') || text.includes('transaction') || text.includes('financing');
 
-            // NAI, Investor, brokerage mentions → People News
-            const hasBrokerage = /\b(nai|cbre|jll|cushman|colliers|newmark|marcus|millichap)\b/i.test(text);
-            const hasInvestor = /\b(investor|buys|buyer|sells|seller|acquires|acquired)\b/i.test(text);
-            const hasPeopleAction = /\b(named|appointed|hired|promoted|joined|taps|nabs|adds|welcomes)\b/i.test(text);
+            // People News indicators
+            const hasPeopleAction = /\b(named|appointed|hired|promoted|joined|taps|nabs|adds|welcomes|recruits|elevated|hires|appoints|promotes|leads|heads|chair)\b/i.test(text);
+            const hasBrokerage = /\b(nai|cbre|jll|cushman|colliers|newmark|marcus|millichap|sior|ccim|prologis|duke|link logistics|rexford|exeter|blackstone|brookfield|dermody|hillwood|panattoni)\b/i.test(text);
+            const hasPersonRole = /\b(ceo|president|director|partner|principal|vice president|managing director|broker|agent|executive|chairman|head of|chief)\b/i.test(text);
 
-            if ((hasBrokerage || hasInvestor) && (hasPeopleAction || hasBrokerage)) {
+            // Macro/Relevant indicators
+            const isMacro = /\b(interest rate|fed |federal reserve|inflation|cpi|lending|capital markets|freight|shipping|trucking|supply chain|port|cargo|container|construction cost|material cost|labor market|vacancy rate|absorption|rent growth|cap rate)\b/i.test(text);
+
+            // Apply categorization rules in order of priority:
+
+            // 1. PEOPLE NEWS - personnel moves in industrial CRE
+            if (hasPeopleAction && (hasBrokerage || hasPersonRole)) {
                 item.category = 'people';
+                return item;
             }
 
+            // 2. AVAILABILITIES - listings ≥100K SF (for sale/lease)
+            if (isAvailability && threshold.meetsSF) {
+                item.category = 'availabilities';
+                return item;
+            }
+
+            // 3. TRANSACTIONS - deals meeting threshold (≥100K SF OR ≥$25M)
+            if (isTransaction && (threshold.meetsSF || threshold.meetsDollar)) {
+                item.category = 'transactions';
+                return item;
+            }
+
+            // 4. For articles with SF that don't meet threshold but have transaction words
+            // Still categorize as transactions if clearly a deal
+            if (isTransaction && threshold.sizeSF && threshold.sizeSF > 0) {
+                item.category = 'transactions';
+                return item;
+            }
+
+            // 5. RELEVANT ARTICLES - macro trends affecting industrial CRE
+            if (isMacro) {
+                item.category = 'relevant';
+                return item;
+            }
+
+            // Keep original category if none of the above apply
             return item;
         };
 
