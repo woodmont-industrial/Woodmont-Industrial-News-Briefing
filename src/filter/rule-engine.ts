@@ -129,62 +129,71 @@ export async function classifyArticleWithRules(
       const industrialScore = scoreKeywords(text, rules.keywords.industrial, 1.2);
           const creScore = scoreKeywords(text, rules.keywords.creIntent, 1.1);
 
-      // 5. Score each category
+      // 5. Score each category - ORDER MATTERS: more specific categories first
       let bestMatch = { category: 'not relevant', score: 0, tier: 'C' as const };
 
-      // RELEVANT ARTICLES (Macro + Industrial)
-      if (industrialScore > 0 && creScore > 0) {
-              const relevantScore = (industrialScore + creScore) / 2;
-              if (relevantScore > bestMatch.score) {
-                        bestMatch = { category: 'relevant', score: relevantScore, tier: 'A' };
-              }
+      // Check for availability signals FIRST (to exclude from transactions)
+      const availabilityKeywords = ['for sale', 'for lease', 'available', 'listing', 'on the market', 'now available', 'space available'];
+      const isAvailability = availabilityKeywords.some(kw => text.includes(kw));
+
+      // PEOPLE NEWS - Check first for NAI, investor, brokerage mentions
+      const peopleKeywords = [
+          'appointed', 'named', 'joined', 'hired', 'promoted', 'executive', 'ceo', 'president',
+          'taps', 'nabs', 'welcomes', 'adds', 'brings on', 'recruits', 'partner', 'vice president',
+          'managing director', 'director', 'chairman', 'board', 'leadership', 'movers', 'shakers'
+      ];
+      const brokerageKeywords = ['nai', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap', 'sior', 'ccim'];
+      const investorKeywords = ['investor', 'buys', 'buyer', 'acquires', 'sells', 'seller', 'portfolio'];
+
+      const hasPeopleAction = peopleKeywords.some(kw => text.includes(kw));
+      const hasBrokerageContext = brokerageKeywords.some(kw => text.includes(kw));
+      const hasInvestorContext = investorKeywords.some(kw => text.includes(kw)) && !isAvailability;
+
+      // NAI or investor mentions with action words → People News
+      if ((hasBrokerageContext || hasInvestorContext) && hasPeopleAction) {
+          bestMatch = { category: 'people', score: 8, tier: 'A' };
       }
 
-      // TRANSACTIONS (Deals, Sales, Leases) - TIGHTENED to reduce false positives
-      const transactionScore = scoreKeywords(
-              text,
-              ['sells', 'sold', 'acquires', 'acquired', 'lease', 'leased', 'sale', 'transaction', 'closes on', 'closed deal'],
-              1
-            );
+      // TRANSACTIONS - Any article with SF/SQ feet (unless it's availability)
+      const hasSizeInText = hasSizeSignals(text);
+      const transactionKeywords = ['sells', 'sold', 'acquires', 'acquired', 'lease', 'leased', 'leases',
+                                   'sale', 'transaction', 'closes on', 'closed deal', 'signs', 'signed',
+                                   'deal', 'tenant', 'occupies', 'moves into', 'relocates'];
+      const hasTransactionWord = transactionKeywords.some(kw => text.includes(kw));
 
       // Exclude non-real estate transactions
       const nonRealEstateSignals = ['stock', 'shares', 'software', 'technology', 'retail sales', 'consumer spending', 'revenue', 'earnings'];
       const hasNonRealEstate = nonRealEstateSignals.some(signal => text.includes(signal));
 
-      if (transactionScore > 0 && !hasNonRealEstate && industrialScore > 0 && creScore > 0 && (hasPriceSignals(text) || hasSizeSignals(text))) {
-                  const txScore = transactionScore + (hasPriceSignals(text) ? 2 : 0) + (hasSizeSignals(text) ? 2 : 0);
-                  if (txScore > bestMatch.score) {
-                            bestMatch = {
-                                        category: 'transactions',
-                                        score: Math.min(txScore, 9),
-                                        tier: txScore >= 9 ? 'A' : 'B'
-                            };
-                  }
+      // SF/SQ feet + transaction words (not availability) → Transactions
+      if (!hasNonRealEstate && !isAvailability && bestMatch.category !== 'people') {
+          if (hasSizeInText && hasTransactionWord) {
+              const txScore = 9;
+              bestMatch = { category: 'transactions', score: txScore, tier: 'A' };
+          } else if (hasSizeInText && (industrialScore > 0 || creScore > 0)) {
+              // Size signal with industrial/CRE context → likely a transaction
+              bestMatch = { category: 'transactions', score: 7, tier: 'B' };
+          } else if (hasTransactionWord && industrialScore > 0 && (hasPriceSignals(text) || hasSizeInText)) {
+              const txScore = 6 + (hasPriceSignals(text) ? 2 : 0) + (hasSizeInText ? 2 : 0);
+              bestMatch = { category: 'transactions', score: Math.min(txScore, 9), tier: txScore >= 8 ? 'A' : 'B' };
           }
+      }
 
-      // AVAILABILITIES (For Lease, For Sale)
-      const availScore = scoreKeywords(
-              text,
-              ['for sale', 'for lease', 'available', 'listing', 'on the market'],
-              1
-            );
-          if (availScore > 0 && industrialScore > 0) {
-                  if (availScore > bestMatch.score) {
-                            bestMatch = { category: 'availabilities', score: availScore, tier: 'B' };
-                  }
-          }
+      // AVAILABILITIES (For Lease, For Sale) - only if not already categorized
+      if (bestMatch.category === 'not relevant' && isAvailability && industrialScore > 0) {
+          bestMatch = { category: 'availabilities', score: 7, tier: 'B' };
+      }
 
-      // PEOPLE NEWS (Executive moves)
-      const peopleScore = scoreKeywords(
-              text,
-              ['appointed', 'named', 'joined', 'hired', 'promoted', 'executive', 'ceo', 'president'],
-              1
-            );
-          if (peopleScore > 0 && (industrialScore > 0 || creScore > 0)) {
-                  if (peopleScore > bestMatch.score) {
-                            bestMatch = { category: 'people', score: peopleScore, tier: 'A' };
-                  }
-          }
+      // RELEVANT ARTICLES (Macro + Industrial) - fallback for uncategorized
+      if (bestMatch.category === 'not relevant' && industrialScore > 0 && creScore > 0) {
+          const relevantScore = (industrialScore + creScore) / 2;
+          bestMatch = { category: 'relevant', score: relevantScore, tier: 'A' };
+      }
+
+      // Final fallback for people news without brokerage context
+      if (bestMatch.category === 'not relevant' && hasPeopleAction && (industrialScore > 0 || creScore > 0)) {
+          bestMatch = { category: 'people', score: 6, tier: 'B' };
+      }
 
       return {
               isRelevant: bestMatch.score > rules.scoring.defaultThreshold,

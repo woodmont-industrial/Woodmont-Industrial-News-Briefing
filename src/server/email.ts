@@ -526,19 +526,20 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             return filtered;
         };
 
-        // Special strict filter for People News - requires BOTH action keyword AND industrial context
+        // People News filter - trust classifier but exclude non-industrial and political
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
                 if (isPolitical(text)) return false;
-                // Exclude non-industrial sectors
+                // Exclude clearly non-industrial sectors
                 if (containsAny(text, excludeFromPeople)) return false;
-                // Must have personnel action AND industrial context
+                // Trust the classifier - just verify it has SOME action or context
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                return hasAction && hasIndustrial;
+                // Accept if has action OR industrial context (classifier already validated)
+                return hasAction || hasIndustrial;
             });
-            console.log(`🔍 People News: ${items.length} → ${filtered.length} (strict industrial filter)`);
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (industrial filter)`);
             return filtered;
         };
 
@@ -811,7 +812,7 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             return filtered;
         };
 
-        // Special strict filter for People News - requires BOTH action keyword AND industrial context
+        // People News filter - trust classifier but exclude non-industrial and political
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
@@ -819,9 +820,10 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
                 if (containsAny(text, excludeFromPeople)) return false;
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                return hasAction && hasIndustrial;
+                // Accept if has action OR industrial context (classifier already validated)
+                return hasAction || hasIndustrial;
             });
-            console.log(`🔍 People News: ${items.length} → ${filtered.length} (strict industrial filter)`);
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (industrial filter)`);
             return filtered;
         };
 
