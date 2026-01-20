@@ -405,10 +405,10 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         };
 
         // FILTER 1: STRICT time period - 24h default, expand to 48h if low content
-        // Helper to get valid date - prefers fetchedAt (when we first saw it), falls back to pubDate
+        // Helper to get valid date - uses ACTUAL publication date, not fetch time
         const getValidDate = (article: NormalizedItem): Date | null => {
-            // Use date_modified (fetchedAt) first, then pubDate, then date_published
-            const dateStr = (article as any).date_modified || article.pubDate || (article as any).date_published;
+            // Use date_published (actual article date) first, NOT date_modified (fetch time)
+            const dateStr = (article as any).date_published || article.pubDate || (article as any).date_modified;
             if (!dateStr) return null;
             const date = new Date(dateStr);
             // Check if date is valid and reasonable (not in future, not before 2020)
@@ -712,9 +712,9 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         const hoursBack = 5 * 24;
         const periodLabel = '5 days';
 
-        // Helper to get valid date - prefers date_modified (fetchedAt), falls back to pubDate
+        // Helper to get valid date - uses ACTUAL publication date, not fetch time
         const getValidDate = (article: NormalizedItem): Date | null => {
-            const dateStr = (article as any).date_modified || article.pubDate || (article as any).date_published;
+            const dateStr = (article as any).date_published || article.pubDate || (article as any).date_modified;
             if (!dateStr) return null;
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return null;
