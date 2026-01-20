@@ -78,42 +78,11 @@ export const RSS_FEEDS: FeedConfig[] = [
     type: FEED_TYPES.INDUSTRIAL_NEWS,
     timeout: 30000
   },
-  {
-    url: "https://www.bisnow.com/rss-feed/dallas-ft-worth",
-    name: "Bisnow Dallas-Ft Worth",
-    region: "TX",
-    source: "Bisnow",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000
-  },
+  // Removed: Dallas, Houston (TX), New York (NY), Boston (MA) - focus on NJ, PA, FL only
   {
     url: "https://www.bisnow.com/rss-feed/national",
     name: "Bisnow National",
     region: "US",
-    source: "Bisnow",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000
-  },
-  {
-    url: "https://www.bisnow.com/rss-feed/houston",
-    name: "Bisnow Houston",
-    region: "TX",
-    source: "Bisnow",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000
-  },
-  {
-    url: "https://www.bisnow.com/rss-feed/new-york",
-    name: "Bisnow New York",
-    region: "NY",
-    source: "Bisnow",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000
-  },
-  {
-    url: "https://www.bisnow.com/rss-feed/boston",
-    name: "Bisnow Boston",
-    region: "MA",
     source: "Bisnow",
     type: FEED_TYPES.INDUSTRIAL_NEWS,
     timeout: 30000
@@ -177,15 +146,7 @@ export const RSS_FEEDS: FeedConfig[] = [
     timeout: 30000,
     headers: BROWSER_HEADERS
   },
-  {
-    url: "https://www.connectcre.com/feed?story-market=texas",
-    name: "ConnectCRE Texas",
-    region: "TX",
-    source: "ConnectCRE",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
+  // Removed: ConnectCRE Texas - focus on NJ, PA, FL only
   {
     url: "https://www.connectcre.com/feed?story-market=pennsylvania",
     name: "ConnectCRE PA",
@@ -224,15 +185,7 @@ export const RSS_FEEDS: FeedConfig[] = [
     type: FEED_TYPES.INDUSTRIAL_NEWS,
     timeout: 30000
   },
-  {
-    url: "https://www.therealdeal.com/new-york/feed/",
-    name: "The Real Deal NY",
-    region: "NY",
-    source: "The Real Deal",
-    type: FEED_TYPES.INDUSTRIAL_NEWS,
-    timeout: 30000,
-    headers: BROWSER_HEADERS
-  },
+  // Removed: The Real Deal NY - focus on NJ, PA, FL only
   {
     url: "https://www.therealdeal.com/miami/feed/",
     name: "The Real Deal Miami",
@@ -405,4 +358,118 @@ export const RSS_FEEDS: FeedConfig[] = [
     //   * ir.jll.com/news-releases
     //   * ir.cushmanwakefield.com/news
     //   * corporate.colliers.com/news
+
+    // ============================================
+    // ADDITIONAL LOGISTICS & INDUSTRIAL SOURCES
+    // ============================================
+
+    // SupplyChainBrain - Logistics & Supply Chain News
+,{
+      url: "https://www.supplychainbrain.com/rss/articles",
+      name: "SupplyChainBrain",
+      region: "US",
+      source: "SupplyChainBrain",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Logistics Management - Freight & Warehousing
+{
+      url: "https://www.logisticsmgmt.com/rss/all_content.xml",
+      name: "Logistics Management",
+      region: "US",
+      source: "Logistics Management",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Commercial Observer - CRE Transactions & News
+{
+      url: "https://commercialobserver.com/feed/",
+      name: "Commercial Observer",
+      region: "US",
+      source: "Commercial Observer",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // REJournals - Midwest/National CRE News
+{
+      url: "https://rejournals.com/feed/",
+      name: "REJournals",
+      region: "US",
+      source: "REJournals",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Modern Shipper - Freight & Logistics
+{
+      url: "https://www.freightwaves.com/modern-shipper/feed",
+      name: "Modern Shipper",
+      region: "US",
+      source: "Modern Shipper",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // JOC (Journal of Commerce) - Shipping & Freight
+{
+      url: "https://www.joc.com/rss/all",
+      name: "Journal of Commerce",
+      region: "US",
+      source: "JOC",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // DC Velocity - Distribution Center & Warehouse News
+{
+      url: "https://www.dcvelocity.com/rss/",
+      name: "DC Velocity",
+      region: "US",
+      source: "DC Velocity",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Construction Dive - Construction Inputs & Labor
+{
+      url: "https://www.constructiondive.com/feeds/news/",
+      name: "Construction Dive",
+      region: "US",
+      source: "Construction Dive",
+      type: FEED_TYPES.MACRO,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // SIOR - Industrial & Office Brokers Association
+{
+      url: "https://www.sior.com/feed",
+      name: "SIOR News",
+      region: "US",
+      source: "SIOR",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Prologis Blog - Industrial REIT Insights
+{
+      url: "https://www.prologis.com/news-research/feed",
+      name: "Prologis News",
+      region: "US",
+      source: "Prologis",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+}
 ];
