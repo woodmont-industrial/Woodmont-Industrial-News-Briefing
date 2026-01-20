@@ -103,14 +103,144 @@ export async function buildStaticRSS(): Promise<void> {
         }
         log('info', `Got ${allItems.length} items from fetch results`);
 
-        // Apply light filtering - just check URL validity
-        const filteredNewItems = allItems.filter(item => {
+        // === STRICT FILTERING: Regional + Content + Categorization ===
+
+        // States/regions to EXCLUDE (everything except NJ, PA, FL)
+        const excludeStates = [
+            'TEXAS', 'TX,', ', TX', 'VIRGINIA', 'VA,', ', VA', 'MARYLAND', 'MD,', ', MD',
+            'MONTANA', 'MT,', ', MT', 'GEORGIA', 'GA,', ', GA', 'CALIFORNIA', 'CA,', ', CA',
+            'NORTH CAROLINA', 'NC,', ', NC', 'SOUTH CAROLINA', 'SC,', ', SC',
+            'TENNESSEE', 'TN,', ', TN', 'OHIO', 'OH,', ', OH', 'ILLINOIS', 'IL,', ', IL',
+            'MICHIGAN', 'MI,', ', MI', 'INDIANA', 'IN,', ', IN', 'WISCONSIN', 'WI,', ', WI',
+            'MINNESOTA', 'MN,', ', MN', 'MISSOURI', 'MO,', ', MO', 'KENTUCKY', 'KY,', ', KY',
+            'ALABAMA', 'AL,', ', AL', 'LOUISIANA', 'LA,', ', LA', 'ARKANSAS', 'AR,', ', AR',
+            'OKLAHOMA', 'OK,', ', OK', 'KANSAS', 'KS,', ', KS', 'NEBRASKA', 'NE,', ', NE',
+            'IOWA', 'IA,', ', IA', 'COLORADO', 'CO,', ', CO', 'ARIZONA', 'AZ,', ', AZ',
+            'NEVADA', 'NV,', ', NV', 'UTAH', 'UT,', ', UT', 'NEW MEXICO', 'NM,', ', NM',
+            'WYOMING', 'WY,', ', WY', 'IDAHO', 'ID,', ', ID', 'WASHINGTON', 'WA,', ', WA',
+            'OREGON', 'OR,', ', OR', 'MASSACHUSETTS', 'MA,', ', MA', 'CONNECTICUT', 'CT,', ', CT',
+            'NEW HAMPSHIRE', 'NH,', ', NH', 'VERMONT', 'VT,', ', VT', 'MAINE', 'ME,', ', ME',
+            'RHODE ISLAND', 'RI,', ', RI', 'NEW YORK', 'NY,', ', NY', 'DELAWARE', 'DE,', ', DE'
+        ];
+
+        // Major cities in excluded states
+        const excludeCities = [
+            'HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO', 'FORT WORTH', 'EL PASO',
+            'ATLANTA', 'BALTIMORE', 'RICHMOND', 'NORFOLK', 'VIRGINIA BEACH', 'ROANOKE',
+            'LOS ANGELES', 'SAN FRANCISCO', 'SAN DIEGO', 'SACRAMENTO', 'SAN JOSE',
+            'SEATTLE', 'PORTLAND', 'DENVER', 'PHOENIX', 'LAS VEGAS', 'SALT LAKE',
+            'CHICAGO', 'DETROIT', 'CLEVELAND', 'CINCINNATI', 'COLUMBUS', 'INDIANAPOLIS',
+            'NASHVILLE', 'MEMPHIS', 'CHARLOTTE', 'RALEIGH', 'CHARLESTON', 'COLUMBIA',
+            'BOSTON', 'HARTFORD', 'PROVIDENCE', 'NEW HAVEN', 'ALBANY', 'BUFFALO',
+            'MINNEAPOLIS', 'MILWAUKEE', 'ST. LOUIS', 'KANSAS CITY', 'OMAHA',
+            'BIRMINGHAM', 'MOBILE', 'LITTLE ROCK', 'BATON ROUGE', 'NEW ORLEANS',
+            'OKLAHOMA CITY', 'TULSA', 'ALBUQUERQUE', 'TUCSON', 'BOISE', 'CHEYENNE',
+            'BEE CAVE', 'BOZEMAN', 'CHESTERFIELD COUNTY'
+        ];
+
+        // NJ/PA/FL target regions
+        const targetRegions = ['NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA',
+            'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'EDISON', 'ELIZABETH', 'PATERSON',
+            'PHILADELPHIA', 'PITTSBURGH', 'ALLENTOWN', 'BETHLEHEM', 'LEHIGH VALLEY', 'HARRISBURG',
+            'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE', 'WEST PALM', 'BOCA RATON',
+            'CENTRAL JERSEY', 'NORTH JERSEY', 'SOUTH JERSEY', 'RARITAN', 'MONROE', 'MIDDLESEX'];
+
+        // Non-industrial content to EXCLUDE
+        const excludeContent = [
+            'SOCCER', 'FOOTBALL', 'BASEBALL', 'BASKETBALL', 'SPORTS FRANCHISE', 'YOUTH SPORTS',
+            'RESTAURANT', 'COFFEE SHOP', 'RETAIL STORE', 'SHOPPING CENTER', 'MALL',
+            'RESIDENTIAL', 'APARTMENT', 'CONDO', 'SINGLE-FAMILY', 'HOMEBUILDER',
+            'HOTEL', 'HOSPITALITY', 'RESORT', 'CASINO', 'GAMING',
+            'SCHOOL', 'UNIVERSITY', 'HOSPITAL', 'MEDICAL CENTER', 'CHURCH'
+        ];
+
+        // Regional sources (always include if from these)
+        const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey',
+            'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
+
+        // Check if article should be included
+        const shouldIncludeArticle = (item: NormalizedItem): boolean => {
+            const text = `${item.title || ''} ${item.description || ''}`.toUpperCase();
+            // Check both 'link' (from fetcher) and 'url' (from feed.json)
+            const url = (item.link || item.url || '').toLowerCase();
+
+            // Always include from regional sources
+            const isRegionalSource = regionalSources.some(s => url.includes(s));
+
+            // Check for excluded content (non-industrial)
+            const hasExcludedContent = excludeContent.some(c => text.includes(c));
+            if (hasExcludedContent) {
+                log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // Check for excluded states/cities
+            const mentionsExcludedState = excludeStates.some(s => text.includes(s));
+            const mentionsExcludedCity = excludeCities.some(c => text.includes(c));
+            const mentionsTargetRegion = targetRegions.some(r => text.includes(r));
+
+            // If from regional source, only exclude if PRIMARILY about other state
+            if (isRegionalSource) {
+                if ((mentionsExcludedState || mentionsExcludedCity) && !mentionsTargetRegion) {
+                    log('info', `EXCLUDED (out-of-state from regional source): ${item.title?.substring(0, 60)}`);
+                    return false;
+                }
+                return true;
+            }
+
+            // For non-regional sources, exclude if mentions any excluded location
+            if (mentionsExcludedState || mentionsExcludedCity) {
+                log('info', `EXCLUDED (out-of-state): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // Must mention target region OR have industrial content
+            const hasIndustrial = text.includes('INDUSTRIAL') || text.includes('WAREHOUSE') ||
+                text.includes('LOGISTICS') || text.includes('DISTRIBUTION') || text.includes('SQ. FT') ||
+                text.includes('SQUARE FEET') || text.includes('SF ') || text.includes(' SF');
+
+            return mentionsTargetRegion || hasIndustrial;
+        };
+
+        // Re-categorize articles based on content
+        const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
+            const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+
+            // SF/SQ feet → Transactions (unless availability)
+            const hasSizeSF = /\d+[,\d]*\s*(sq\.?\s*ft|sf|square\s*feet)/i.test(text);
+            const isAvailability = text.includes('for sale') || text.includes('for lease') ||
+                text.includes('available') || text.includes('listing');
+
+            if (hasSizeSF && !isAvailability) {
+                item.category = 'transactions';
+            }
+
+            // NAI, Investor, brokerage mentions → People News
+            const hasBrokerage = /\b(nai|cbre|jll|cushman|colliers|newmark|marcus|millichap)\b/i.test(text);
+            const hasInvestor = /\b(investor|buys|buyer|sells|seller|acquires|acquired)\b/i.test(text);
+            const hasPeopleAction = /\b(named|appointed|hired|promoted|joined|taps|nabs|adds|welcomes)\b/i.test(text);
+
+            if ((hasBrokerage || hasInvestor) && (hasPeopleAction || hasBrokerage)) {
+                item.category = 'people';
+            }
+
+            return item;
+        };
+
+        // Apply URL validity filter first
+        const urlFilteredItems = allItems.filter(item => {
             if (!item.link || !item.title) return false;
             if (shouldRejectUrl(item.link)) return false;
             return isAllowedLink(item.link);
         });
-        log('info', `Filtered to ${filteredNewItems.length} articles after domain checks`, {
+
+        // Apply strict regional + content filter
+        const filteredNewItems = urlFilteredItems.filter(shouldIncludeArticle).map(recategorizeArticle);
+
+        log('info', `Filtered to ${filteredNewItems.length} articles after strict regional/content checks`, {
             beforeFiltering: allItems.length,
+            afterUrlFilter: urlFilteredItems.length,
+            afterStrictFilter: filteredNewItems.length,
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
 
@@ -170,19 +300,27 @@ export async function buildStaticRSS(): Promise<void> {
             log('info', `Removed ${existingArticles.length - dedupedExisting.length} duplicates from existing articles`);
         }
         
-        const mergedArticles = [...newItems, ...dedupedExisting];
-        log('info', `Merged: ${newItems.length} new + ${dedupedExisting.length} existing = ${mergedArticles.length} total`);
+        // Apply recategorization to ALL articles (including existing ones)
+        const recategorizedExisting = dedupedExisting.map(recategorizeArticle);
+        const mergedArticles = [...newItems, ...recategorizedExisting];
+        log('info', `Merged: ${newItems.length} new + ${recategorizedExisting.length} existing = ${mergedArticles.length} total`);
+
+        // Also filter out bad existing articles (out-of-state that slipped through before)
+        const cleanMerged = mergedArticles.filter(shouldIncludeArticle);
+        if (cleanMerged.length < mergedArticles.length) {
+            log('info', `Cleaned ${mergedArticles.length - cleanMerged.length} out-of-state articles from existing feed`);
+        }
 
         // === STEP 4: Apply 30-day cleanup ===
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const cleanedArticles = mergedArticles.filter(item => {
+        const cleanedArticles = cleanMerged.filter(item => {
             const pubDate = new Date(item.pubDate || item.fetchedAt || Date.now());
             return pubDate >= thirtyDaysAgo;
         });
 
-        const removedCount = mergedArticles.length - cleanedArticles.length;
+        const removedCount = cleanMerged.length - cleanedArticles.length;
         if (removedCount > 0) {
             log('info', `Auto-deleted ${removedCount} articles older than 30 days`);
         }
