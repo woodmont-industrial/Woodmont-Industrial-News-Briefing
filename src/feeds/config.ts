@@ -434,7 +434,7 @@ export const RSS_FEEDS: FeedConfig[] = [
 
     // Logistics Management - Freight & Warehousing (Using Feedburner)
 {
-      url: "https://feeds.feedburner.com/logisticsmgmt/all",
+      url: "https://feeds.feedburner.com/logisticsmgmt/latest",
       name: "Logistics Management",
       region: "US",
       source: "Logistics Management",
@@ -465,9 +465,9 @@ export const RSS_FEEDS: FeedConfig[] = [
       headers: BROWSER_HEADERS
 },
 
-    // Modern Shipper - Freight & Logistics
+    // Modern Shipper - Freight & Logistics (FreightWaves category feed)
 {
-      url: "https://www.freightwaves.com/modern-shipper/feed",
+      url: "https://www.freightwaves.com/news/category/modern-shipper/feed",
       name: "Modern Shipper",
       region: "US",
       source: "Modern Shipper",
@@ -502,6 +502,7 @@ export const RSS_FEEDS: FeedConfig[] = [
 },
 
     // SIOR - Industrial & Office Brokers Association
+    // NOTE: SIOR has no public RSS feed (email newsletter only)
 {
       url: "https://www.sior.com/feed",
       name: "SIOR News",
@@ -509,12 +510,13 @@ export const RSS_FEEDS: FeedConfig[] = [
       source: "SIOR",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
       timeout: 30000,
-      headers: BROWSER_HEADERS
+      headers: BROWSER_HEADERS,
+      enabled: false  // No RSS available - SIOR uses email newsletters only
 },
 
-    // Prologis - Try IR press releases RSS (different from marketing site)
+    // Prologis - IR Press Releases RSS
 {
-      url: "https://ir.prologis.com/rss/news.xml",
+      url: "https://ir.prologis.com/press-releases/rss",
       name: "Prologis IR",
       region: "US",
       source: "Prologis",

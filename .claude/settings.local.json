@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh workflow list:*)",
+      "Bash(gh run list:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nUpdate repo URLs for org transfer + bug fixes\n\n- Update all hardcoded URLs from prcasley to woodmont-industrial\n- Fix dynamic copyright year in newsletter \\(was hardcoded to 2025\\)\n- Remove duplicate fallbackThumbnail function in fetcher.ts\n\nFiles updated:\n- src/build/static.ts: RSS/JSON feed URLs\n- .github/workflows/update-articles.yml: Echo URLs\n- src/feeds/pipeline.ts: User-Agent header\n- README.md, GITHUB_SECRETS_SETUP.md, NEWSLETTER_SETUP.md: Doc links\n- docs/PROJECT_REVIEW.md: All references\n- copilot-agent.yml: Placeholder URLs\n- src/server/newsletter.ts: Dynamic copyright year\n- src/feeds/fetcher.ts: Remove unused function\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git rebase:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh api:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)",
+      "Bash(node -e:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx typescript:*)",
+      "Bash(ls:*)",
+      "WebSearch",
+      "WebFetch(domain:realestate.einnews.com)"
+    ]
+  }
+}
