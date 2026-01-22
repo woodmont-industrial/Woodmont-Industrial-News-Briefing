@@ -455,6 +455,14 @@ export async function buildStaticRSS(): Promise<void> {
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
         log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
 
+        // Copy frontend/index.html to docs/ for GitHub Pages
+        const frontendPath = path.join(process.cwd(), 'frontend', 'index.html');
+        const docsIndexPath = path.join(DOCS_DIR, 'index.html');
+        if (fs.existsSync(frontendPath)) {
+            fs.copyFileSync(frontendPath, docsIndexPath);
+            log('info', 'Copied frontend/index.html to docs/index.html');
+        }
+
         const duration = Date.now() - startTime;
         log('info', 'Static build completed successfully', {
             durationMs: duration,
