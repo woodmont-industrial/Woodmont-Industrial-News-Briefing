@@ -441,8 +441,16 @@
                         <option value="14">Last 14 days</option>
                         <option value="30">Last 30 days</option>
                     </select>
+                    <label for="theme" style="margin-left: 15px;">Theme:</label>
+                    <select id="theme">
+                        <option value="default" selected>Default (Colorful)</option>
+                        <option value="goth">Goth (Executive)</option>
+                    </select>
                     <button class="btn btn-primary" onclick="generateNewsletter()">
                         ✨ Generate Newsletter
+                    </button>
+                    <button class="btn" style="background: #8b5cf6; color: white; margin-left: 10px;" onclick="showFeedHealth()">
+                        📊 Feed Health
                     </button>
                 </div>
             </div>
@@ -465,6 +473,18 @@
                     <p><strong>No newsletter generated yet</strong></p>
                     <p>Select a timeframe and click "Generate Newsletter" to create a preview based on your newsletter.html template.</p>
                 </div>
+            </div>
+
+            <!-- Feed Health Report Section -->
+            <div id="feed-health-container" class="newsletter-preview-container" style="display: none; margin-top: 20px;">
+                <div class="preview-header">
+                    <h3>📊 Feed Health Report</h3>
+                    <div class="preview-actions">
+                        <button class="btn btn-secondary" onclick="hideFeedHealth()">Close</button>
+                    </div>
+                </div>
+                <div id="feed-health-summary" style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px;"></div>
+                <div id="feed-health-table" style="max-height: 400px; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
@@ -657,19 +677,23 @@
         // Newsletter Generation
         function generateNewsletter() {
             const days = parseInt(document.getElementById('timeframe').value);
+            const theme = document.getElementById('theme').value;
             const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-            
+
             const recentArticles = allArticles.filter(article => {
                 const pubDate = new Date(article.pubDate);
                 return pubDate >= cutoff;
             });
-            
-            newsletterHTML = buildNewsletterHTML(recentArticles, days);
-            
+
+            // Use selected theme
+            newsletterHTML = theme === 'goth'
+                ? buildGothNewsletterHTML(recentArticles, days)
+                : buildNewsletterHTML(recentArticles, days);
+
             // Show preview
             document.getElementById('empty-preview').style.display = 'none';
             document.getElementById('preview-container').style.display = 'block';
-            
+
             const previewEl = document.getElementById('newsletter-preview');
             const iframe = document.createElement('iframe');
             iframe.srcdoc = newsletterHTML;
@@ -887,6 +911,132 @@
             }
         }
         
+        // Goth theme newsletter builder - executive style, dark header
+        function buildGothNewsletterHTML(articles, days) {
+            const now = new Date();
+            const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
+
+            const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
+            const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
+            const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
+            const people = articles.filter(a => a.category === 'people').slice(0, 5);
+
+            const formatBullet = (item) => {
+                const title = item.title || 'Untitled';
+                const url = item.link || '#';
+                const source = item.source || 'Industry News';
+                const desc = (item.description || '').substring(0, 180) + (item.description && item.description.length > 180 ? '...' : '');
+
+                return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
+                    <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
+                    ${desc ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${desc}</p>` : ''}
+                    <div style="margin-top: 8px;">
+                        <a href="${url}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${source} →</a>
+                    </div>
+                </li>`;
+            };
+
+            const renderSection = (title, items) => {
+                if (!items || items.length === 0) {
+                    return `<div style="margin-bottom: 28px;">
+                        <h3 style="color: #1e3c72; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e8e8e8;">${title}</h3>
+                        <p style="color: #888; font-style: italic; margin-left: 20px;">No updates for this section.</p>
+                    </div>`;
+                }
+                return `<div style="margin-bottom: 28px;">
+                    <h3 style="color: #1e3c72; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e8e8e8;">${title}</h3>
+                    <ul style="margin: 0; padding-left: 0;">${items.map(formatBullet).join('')}</ul>
+                </div>`;
+            };
+
+            return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin: 0; padding: 20px; background: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif;">
+                <div style="max-width: 700px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; padding: 30px; text-align: center;">
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">🏭 Woodmont Industrial Partners</h1>
+                        <p style="margin: 0 0 4px 0; font-size: 14px; opacity: 0.9;">Daily Industrial News Briefing — Executive Summary</p>
+                        <p style="margin: 0; font-size: 12px; opacity: 0.7;">${dateRange} | Focus: NJ, PA, FL, TX</p>
+                    </div>
+                    <div style="padding: 24px;">
+                        ${renderSection('📰 MARKET INTELLIGENCE', relevant)}
+                        ${renderSection('💼 TRANSACTIONS (≥100K SF or ≥$25M)', transactions)}
+                        ${renderSection('🏢 AVAILABILITIES', availabilities)}
+                        ${renderSection('👥 PEOPLE MOVES', people)}
+                    </div>
+                    <div style="background: #f8f8f8; padding: 20px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #e8e8e8;">
+                        <strong>Woodmont Industrial Partners</strong><br>
+                        Daily Industrial News Briefing – Confidential & Proprietary<br>
+                        © ${new Date().getFullYear()} All Rights Reserved
+                    </div>
+                </div>
+            </body></html>`;
+        }
+
+        // Feed Health Functions
+        async function showFeedHealth() {
+            try {
+                const res = await fetch('feed-health.json');
+                if (!res.ok) throw new Error('Feed health report not found');
+                const data = await res.json();
+
+                // Show summary
+                const summary = document.getElementById('feed-health-summary');
+                summary.innerHTML = `
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <span>Generated: <strong>${new Date(data.generatedAt).toLocaleString()}</strong></span>
+                        <span style="color: green;">✓ ${data.successfulFeeds} OK</span>
+                        <span style="color: red;">✕ ${data.failedFeeds} Failed</span>
+                        <span>${data.totalArticlesFetched} fetched → ${data.totalArticlesKept} kept</span>
+                    </div>
+                `;
+
+                // Show table
+                const tableHtml = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #f0f4f8; text-align: left;">
+                                <th style="padding: 10px; border-bottom: 2px solid #ddd;">Feed Name</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #ddd;">Status</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align: right;">Fetched</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align: right;">Kept</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #ddd;">Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.feeds.map(feed => `
+                                <tr style="background: ${feed.status === 'failed' ? '#fff5f5' : 'white'};">
+                                    <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                                        <div style="font-weight: 600;">${feed.name}</div>
+                                        <div style="font-size: 11px; color: #888; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${feed.url}</div>
+                                    </td>
+                                    <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                                        <span style="padding: 3px 8px; border-radius: 4px; font-size: 12px; background: ${feed.status === 'ok' ? '#d4edda' : '#f8d7da'}; color: ${feed.status === 'ok' ? '#155724' : '#721c24'};">
+                                            ${feed.status === 'ok' ? 'OK' : 'FAILED'}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${feed.fetchedRaw}</td>
+                                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${feed.keptAfterFiltering}</td>
+                                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; color: #dc3545; max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${feed.lastError || ''}">
+                                        ${feed.lastError || '-'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('feed-health-table').innerHTML = tableHtml;
+                document.getElementById('feed-health-container').style.display = 'block';
+
+            } catch (e) {
+                console.error('Error fetching feed health:', e);
+                alert('Feed health report not available yet. It will be generated on the next scheduled RSS update.');
+            }
+        }
+
+        function hideFeedHealth() {
+            document.getElementById('feed-health-container').style.display = 'none';
+        }
+
         // Load articles on page load
         loadArticles();
     </script>
