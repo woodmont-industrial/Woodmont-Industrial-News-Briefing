@@ -370,7 +370,23 @@ const allowedDomains = [
     "multihousingnews.com",
     "wealthmanagement.com",
     "nreionline.com",
-    "reit.com"
+    "reit.com",
+
+    // Google News (for bypass feeds)
+    "news.google.com",
+    "google.com",
+
+    // Additional logistics/industrial sources
+    "supplychainbrain.com",
+    "inboundlogistics.com",
+    "logisticsmgmt.com",
+    "constructiondive.com",
+    "sior.com",
+    "prologis.com",
+    "commercialobserver.com",
+    "rejournals.com",
+    "naikeystone.com",
+    "naiplatform.com"
 ];
 
 // Generate a consistent fallback thumbnail based on URL hash

@@ -240,38 +240,63 @@ export const RSS_FEEDS: FeedConfig[] = [
     headers: BROWSER_HEADERS
   },
 
-    // GlobesSt (Commercial Real Estate News)
+    // ============================================
+    // GOOGLE NEWS RSS FEEDS (Bypass Cloudflare)
+    // ============================================
+
+    // Google News - Industrial Real Estate NJ/PA/FL
   {
-      url: "https://www.globest.com/feed/",
-            name: "GlobesSt",
-            region: "US",
-            source: "GlobesSt",
-            type: FEED_TYPES.INDUSTRIAL_NEWS,
-            timeout: 30000,
-            headers: BROWSER_HEADERS
-},
+      url: "https://news.google.com/rss/search?q=industrial+real+estate+New+Jersey+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial RE",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
 
-    // Reuters Business News
-{
-      url: "https://feeds.reuters.com/reuters/businessNews",
-            name: "Reuters Business",
-            region: "US",
-            source: "Reuters",
-            type: FEED_TYPES.NEWS,
-            timeout: 30000,
-            headers: BROWSER_HEADERS
-},
+    // Google News - Warehouse Logistics Development
+  {
+      url: "https://news.google.com/rss/search?q=warehouse+logistics+development+construction&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Warehouse",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
 
-    // AP News Business
-{
-      url: "https://apnews.com/hub/business/feed",
-            name: "AP News Business",
-            region: "US",
-            source: "AP News",
-            type: FEED_TYPES.NEWS,
-            timeout: 30000,
-            headers: BROWSER_HEADERS
-},
+    // Google News - Distribution Center News
+  {
+      url: "https://news.google.com/rss/search?q=distribution+center+lease+sale+development&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Distribution",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Commercial Real Estate Transactions
+  {
+      url: "https://news.google.com/rss/search?q=commercial+real+estate+transaction+sale+lease&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News CRE Transactions",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Industrial REIT News
+  {
+      url: "https://news.google.com/rss/search?q=industrial+REIT+Prologis+OR+Duke+OR+Rexford&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial REIT",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // ============================================
+    // CRE NEWS SOURCES
+    // ============================================
 
     // Business Journals (Market-specific coverage)
 {
@@ -407,9 +432,9 @@ export const RSS_FEEDS: FeedConfig[] = [
       headers: BROWSER_HEADERS
 },
 
-    // Logistics Management - Freight & Warehousing
+    // Logistics Management - Freight & Warehousing (Using Feedburner)
 {
-      url: "https://www.logisticsmgmt.com/rss/all_content.xml",
+      url: "https://feeds.feedburner.com/logisticsmgmt/all",
       name: "Logistics Management",
       region: "US",
       source: "Logistics Management",
@@ -451,16 +476,8 @@ export const RSS_FEEDS: FeedConfig[] = [
       headers: BROWSER_HEADERS
 },
 
-    // JOC (Journal of Commerce) - Shipping & Freight
-{
-      url: "https://www.joc.com/rss/all",
-      name: "Journal of Commerce",
-      region: "US",
-      source: "JOC",
-      type: FEED_TYPES.INDUSTRIAL_NEWS,
-      timeout: 30000,
-      headers: BROWSER_HEADERS
-},
+    // JOC (Journal of Commerce) - REMOVED: 404 Not Found, feed URL changed
+    // Alternative: Use Google News search for JOC content
 
     // DC Velocity - Distribution Center & Warehouse News
 {
