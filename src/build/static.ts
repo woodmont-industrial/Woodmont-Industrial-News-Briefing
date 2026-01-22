@@ -60,12 +60,20 @@ export async function buildStaticRSS(): Promise<void> {
             try {
                 const feedData = JSON.parse(fs.readFileSync(feedJsonPath, 'utf-8'));
                 const rawArticles = feedData.items || [];
-                // Filter out corrupted articles (those with empty URLs or invalid data)
-                existingArticles = rawArticles.filter((a: any) => {
-                    const hasValidUrl = a.url && a.url.startsWith('http');
-                    const hasTitle = a.title && a.title.trim();
-                    return hasValidUrl && hasTitle;
-                });
+                // Filter out corrupted articles and map fields
+                existingArticles = rawArticles
+                    .filter((a: any) => {
+                        const hasValidUrl = a.url && a.url.startsWith('http');
+                        const hasTitle = a.title && a.title.trim();
+                        return hasValidUrl && hasTitle;
+                    })
+                    .map((a: any) => ({
+                        ...a,
+                        // Map feed.json fields to NormalizedItem fields
+                        link: a.url || a.link,
+                        pubDate: a.date_published || a.pubDate,
+                        fetchedAt: a.date_modified || a.fetchedAt,
+                    }));
                 const corruptedCount = rawArticles.length - existingArticles.length;
                 if (corruptedCount > 0) {
                     log('info', `Filtered out ${corruptedCount} corrupted articles from existing feed`);
@@ -407,7 +415,7 @@ export async function buildStaticRSS(): Promise<void> {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const cleanedArticles = cleanMerged.filter(item => {
-            const pubDate = new Date(item.pubDate || item.fetchedAt || Date.now());
+            const pubDate = new Date(item.pubDate || item.date_published || item.fetchedAt || Date.now());
             return pubDate >= thirtyDaysAgo;
         });
 
@@ -418,8 +426,8 @@ export async function buildStaticRSS(): Promise<void> {
 
         // Sort by publication date (newest first)
         const sortedItems = cleanedArticles.sort((a, b) =>
-            new Date(b.pubDate || b.fetchedAt || 0).getTime() -
-            new Date(a.pubDate || a.fetchedAt || 0).getTime()
+            new Date(b.pubDate || b.date_published || b.fetchedAt || 0).getTime() -
+            new Date(a.pubDate || a.date_published || a.fetchedAt || 0).getTime()
         );
 
         // Take top 150 for RSS feed
@@ -507,7 +515,7 @@ function generateRSSXML(items: NormalizedItem[]): string {
       <title><![CDATA[${item.title || 'Untitled'}]]></title>
       <link>${validLink}</link>
       <guid isPermaLink="true">${validLink}</guid>
-      <pubDate>${item.pubDate ? new Date(item.pubDate).toUTCString() : new Date().toUTCString()}</pubDate>
+      <pubDate>${(item.pubDate || item.date_published) ? new Date(item.pubDate || item.date_published).toUTCString() : new Date().toUTCString()}</pubDate>
       <description><![CDATA[${item.description || ''}]]></description>
       <category><![CDATA[${categoryLabel}]]></category>
       <source url="${validLink}"><![CDATA[${websiteDomain}]]></source>
@@ -597,7 +605,7 @@ function generateJSONFeed(items: NormalizedItem[]): object {
                 content_html: description,
                 content_text: description,
                 summary: summary,
-                date_published: item.pubDate || new Date().toISOString(),
+                date_published: item.pubDate || item.date_published || new Date().toISOString(),
                 date_modified: item.fetchedAt || new Date().toISOString(),
                 image: imageUrl,
                 author: { name: authorName || item.source || websiteDomain },
