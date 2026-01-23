@@ -198,7 +198,23 @@ function classifyArticleOriginal330(description: string, link: string, source?: 
       // Additional Quality Sources
       'connectcre.com', 'credaily.com', 'therealdeal.com', 'freightwaves.com',
       'supplychaindive.com', 'bloomberg.com', 'reuters.com', 'apnews.com',
-      'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com', 'traded.co'
+      'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com', 'traded.co',
+      // Industry-Specific Sources
+      'dcvelocity.com', 'supplychainbrain.com', 'logisticsmgmt.com', 'inboundlogistics.com',
+      'manufacturing.net', 'industryweek.com', 'mbtmag.com', 'modernmaterialshandling.com',
+      'commercialcafe.com', 'commercialobserver.com', 'rejournals.com',
+      // Logistics & Warehousing
+      'logisticsmanagement.com', 'warehouseiq.com', 'supplychain247.com',
+      // Local/Regional CRE Markets
+      'njcre.com', 'philadelphiacre.com', 'southfloridacre.com', 'sfbj.com',
+      // Brokerage & Research
+      'newmarkkf.com', 'avisonyoung.com', 'leecorrentals.com', 'naimertz.com',
+      'naikeystone.com', 'naiplatform.com', 'sior.com', 'ccim.com',
+      // Wire Services & Aggregators
+      'prnewswire.com', 'globenewswire.com', 'businesswire.com',
+      // Industrial REIT Sources
+      'prologis.com', 'dfreit.com', 'rfreit.com', 'firstindustrial.com',
+      'stagindustrial.com', 'terreno.com', 'eastgroup.net'
     ];
 
     const hasApprovedSource = approvedDomains.some(domain => link.includes(domain)) ||

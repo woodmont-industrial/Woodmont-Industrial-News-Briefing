@@ -571,25 +571,35 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         ];
 
         // PEOPLE NEWS: personnel moves in industrial brokerage, development, investment
-        // Must have BOTH: a personnel action AND an industrial context
+        // RELAXED: Accept action keywords OR industrial context OR brokerage firm mention
         const peopleActionKeywords = [
             'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
             'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
             'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
-            'movers', 'shakers', 'leadership', 'executive', 'move'
+            'movers', 'shakers', 'leadership', 'executive', 'move',
+            // Additional action-like words
+            'announces', 'announced', 'selected', 'recognized', 'award', 'honored', 'featured',
+            'profile', 'spotlight', 'interview', 'q&a', 'power broker', 'rising star', 'top producer'
         ];
         const industrialContextKeywords = [
-            // Industrial CRE companies
+            // Industrial CRE companies - EXPANDED
             'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
             'prologis', 'duke', 'link logistics', 'rexford', 'first industrial', 'stag', 'terreno',
             'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
+            'avison young', 'lee & associates', 'kidder mathews', 'transwestern', 'savills', 'ngkf',
+            'eastdil', 'hff', 'walker & dunlop', 'berkadia', 'northmarq', 'keane', 'ware malcomb',
             // Industrial focus keywords
             'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
             'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
             // Broader real estate / development terms (allow more people news)
             'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
             'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
-            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda'
+            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda',
+            // Industry associations - NEW
+            'naiop', 'icsc', 'uli', 'boma', 'cbre institute', 'sior', 'ccim institute',
+            // Investor profile keywords - NEW
+            'investor', 'fund manager', 'private equity', 'institutional', 'family office', 'reit',
+            'investment firm', 'investment manager', 'allocation', 'fundraising', 'capital raise'
         ];
         // Exclude residential/non-industrial (be more specific to reduce false exclusions)
         const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
@@ -662,20 +672,29 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
             return filtered;
         };
 
-        // People News filter - trust classifier but exclude non-industrial and political
+        // People News filter - RELAXED: trust classifier, only exclude clearly non-industrial
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
+                const url = (article.url || article.link || '').toLowerCase();
                 if (isPolitical(text)) return false;
                 // Exclude clearly non-industrial sectors
                 if (containsAny(text, excludeFromPeople)) return false;
-                // Trust the classifier - just verify it has SOME action or context
+
+                // RELAXED: Accept if ANY of these conditions are met
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                // Accept if has action OR industrial context (classifier already validated)
-                return hasAction || hasIndustrial;
+
+                // Check if from a brokerage/industry source (trust the source)
+                const brokerageSources = ['bisnow.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
+                    'newmark', 'nai', 'sior.com', 'ccim.com', 'naiop.org', 're-nj.com', 'globest.com',
+                    'commercialsearch.com', 'cpexecutive.com', 'therealdeal.com'];
+                const isFromBrokerageSource = brokerageSources.some(s => url.includes(s));
+
+                // Accept if: has action keywords OR industrial context OR from trusted brokerage source
+                return hasAction || hasIndustrial || isFromBrokerageSource;
             });
-            console.log(`🔍 People News: ${items.length} → ${filtered.length} (industrial filter)`);
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (relaxed filter)`);
             return filtered;
         };
 
@@ -947,22 +966,33 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             'industrial', 'warehouse', 'distribution', 'logistics', 'manufacturing', 'flex', 'land'
         ];
 
-        // PEOPLE NEWS: personnel moves
+        // PEOPLE NEWS: personnel moves - RELAXED
         const peopleActionKeywords = [
             'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
             'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
             'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
-            'movers', 'shakers', 'leadership', 'executive', 'move'
+            'movers', 'shakers', 'leadership', 'executive', 'move',
+            // Additional action-like words
+            'announces', 'announced', 'selected', 'recognized', 'award', 'honored', 'featured',
+            'profile', 'spotlight', 'interview', 'q&a', 'power broker', 'rising star', 'top producer'
         ];
         const industrialContextKeywords = [
+            // Industrial CRE companies - EXPANDED
             'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
             'prologis', 'duke', 'link logistics', 'rexford', 'first industrial', 'stag', 'terreno',
             'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
+            'avison young', 'lee & associates', 'kidder mathews', 'transwestern', 'savills', 'ngkf',
+            'eastdil', 'hff', 'walker & dunlop', 'berkadia', 'northmarq', 'keane', 'ware malcomb',
             'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
             'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
             'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
             'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
-            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda'
+            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda',
+            // Industry associations
+            'naiop', 'icsc', 'uli', 'boma', 'cbre institute', 'sior', 'ccim institute',
+            // Investor profile keywords
+            'investor', 'fund manager', 'private equity', 'institutional', 'family office', 'reit',
+            'investment firm', 'investment manager', 'allocation', 'fundraising', 'capital raise'
         ];
         const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
 
@@ -1024,17 +1054,28 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
             return filtered;
         };
 
-        // People News filter
+        // People News filter - RELAXED: trust classifier, only exclude clearly non-industrial
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
+                const url = (article.url || article.link || '').toLowerCase();
                 if (isPolitical(text)) return false;
                 if (containsAny(text, excludeFromPeople)) return false;
+
+                // RELAXED: Accept if ANY of these conditions are met
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                return hasAction || hasIndustrial;
+
+                // Check if from a brokerage/industry source (trust the source)
+                const brokerageSources = ['bisnow.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
+                    'newmark', 'nai', 'sior.com', 'ccim.com', 'naiop.org', 're-nj.com', 'globest.com',
+                    'commercialsearch.com', 'cpexecutive.com', 'therealdeal.com'];
+                const isFromBrokerageSource = brokerageSources.some(s => url.includes(s));
+
+                // Accept if: has action keywords OR industrial context OR from trusted brokerage source
+                return hasAction || hasIndustrial || isFromBrokerageSource;
             });
-            console.log(`🔍 People News: ${items.length} → ${filtered.length} (industrial filter)`);
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (relaxed filter)`);
             return filtered;
         };
 
