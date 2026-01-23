@@ -82,16 +82,16 @@ export function buildGothBriefing(
         if (top5.length === 0) return '';
 
         return `
-        <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #4a9eff;">
-            <h2 style="color: #4a9eff; font-size: 12px; margin: 0 0 15px 0; font-weight: 600; letter-spacing: 1px;">
+        <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #1e3c72;">
+            <h2 style="color: #1e3c72; font-size: 12px; margin: 0 0 15px 0; font-weight: 600; letter-spacing: 1px;">
                 WEEK-IN-REVIEW — TOP 5 DEVELOPMENTS
             </h2>
-            <ol style="margin: 0; padding-left: 20px; color: #888;">
+            <ol style="margin: 0; padding-left: 20px; color: #475569;">
                 ${top5.map((item, i) => {
                     const title = item.title || 'Untitled';
                     const url = (item as any).url || item.link || '#';
                     return `<li style="margin-bottom: 12px; line-height: 1.5;">
-                        <a href="${url}" style="color: #ffffff; text-decoration: none; font-weight: 500;">${title}</a>
+                        <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600;">${title}</a>
                     </li>`;
                 }).join('')}
             </ol>
