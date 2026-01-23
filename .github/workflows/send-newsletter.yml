@@ -1,9 +1,9 @@
-name: Send Daily Newsletter
+name: Send Daily Newsletter (DISABLED - Use Goth version)
 
 on:
-  schedule:
-    # Run Monday-Friday at 7 AM EST / 8 AM EDT (12:00 UTC)
-    - cron: '0 12 * * 1-5'
+  # DISABLED: Using send-newsletter-daily-goth.yml instead
+  # schedule:
+  #   - cron: '0 12 * * 1-5'
   workflow_dispatch:
     inputs:
       test_mode:

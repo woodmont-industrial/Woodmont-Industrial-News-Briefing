@@ -2,8 +2,8 @@ name: Send Daily Newsletter (Goth)
 
 on:
   schedule:
-    # Run Monday-Friday at 7 AM EST (12:00 UTC)
-    - cron: '0 12 * * 1-5'
+    # Run Monday-Friday at 8 AM EST (13:00 UTC)
+    - cron: '0 13 * * 1-5'
   workflow_dispatch:
 
 permissions:

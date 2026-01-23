@@ -2,8 +2,8 @@ name: Update Articles and Deploy
 
 on:
   schedule:
-    # Run Monday-Friday at 8 AM EST (13:00 UTC)
-    - cron: '0 13 * * 1-5'
+    # Run Monday-Friday at 6 AM EST (11:00 UTC) - Pre-fetch before 8am newsletter
+    - cron: '0 11 * * 1-5'
   workflow_dispatch: # Allow manual trigger
 
 permissions:

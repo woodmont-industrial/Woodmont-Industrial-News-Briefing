@@ -1,9 +1,9 @@
-name: Update RSS Feed
+name: Update RSS Feed (DISABLED - Newsletter workflow handles this)
 
 on:
-  schedule:
-    # Run once daily at 8:00 AM EST (13:00 UTC) Monday-Friday
-    - cron: '0 13 * * 1-5'
+  # DISABLED: The newsletter workflow already builds fresh data before sending
+  # schedule:
+  #   - cron: '0 13 * * 1-5'
   workflow_dispatch:
 
 permissions:
