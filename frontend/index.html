@@ -1148,7 +1148,7 @@
         const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
         const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
 
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
+        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 10);
         const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
         const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
         const people = articles.filter(a => a.category === 'people').slice(0, 5);
@@ -1262,7 +1262,7 @@
         const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
         const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
 
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
+        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 10);
         const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
         const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
         const people = articles.filter(a => a.category === 'people').slice(0, 5);

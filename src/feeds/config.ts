@@ -345,6 +345,96 @@ export const RSS_FEEDS: FeedConfig[] = [
       timeout: 30000
   },
 
+    // Google News - New Jersey Industrial Specific
+  {
+      url: "https://news.google.com/rss/search?q=industrial+warehouse+%22New+Jersey%22+OR+%22Newark%22+OR+%22Jersey+City%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News NJ Industrial",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Pennsylvania Industrial Specific
+  {
+      url: "https://news.google.com/rss/search?q=industrial+warehouse+%22Pennsylvania%22+OR+%22Philadelphia%22+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News PA Industrial",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - South Florida Industrial Specific
+  {
+      url: "https://news.google.com/rss/search?q=industrial+warehouse+%22South+Florida%22+OR+%22Miami%22+OR+%22Fort+Lauderdale%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News FL Industrial",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Brokerage Research (Newmark, Cushman, CBRE, JLL)
+  {
+      url: "https://news.google.com/rss/search?q=%22Newmark%22+OR+%22Cushman+Wakefield%22+OR+%22CBRE%22+OR+%22JLL%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Brokerage",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Logistics & Supply Chain
+  {
+      url: "https://news.google.com/rss/search?q=logistics+facility+%22supply+chain%22+%22last+mile%22+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Logistics",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Industrial Development
+  {
+      url: "https://news.google.com/rss/search?q=%22industrial+development%22+OR+%22warehouse+development%22+OR+%22spec+industrial%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial Dev",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Port & Intermodal
+  {
+      url: "https://news.google.com/rss/search?q=port+logistics+%22intermodal%22+OR+%22Port+Newark%22+OR+%22Port+Miami%22+OR+%22Port+Everglades%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Ports",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - E-commerce Fulfillment
+  {
+      url: "https://news.google.com/rss/search?q=%22e-commerce%22+OR+%22ecommerce%22+fulfillment+warehouse+distribution&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News E-commerce",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
+    // Google News - Cold Storage & Food Logistics
+  {
+      url: "https://news.google.com/rss/search?q=%22cold+storage%22+OR+%22refrigerated+warehouse%22+OR+%22food+distribution%22&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Cold Storage",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+  },
+
     // ============================================
     // CRE NEWS SOURCES
     // ============================================

@@ -296,8 +296,8 @@ async function handleNewsletterEndpoint(req: IncomingMessage, res: ServerRespons
     availabilities = availabilities.slice(0, 8);
 
     // Increase limits to show more articles (was 2 each, now 5 each)
-    const finalTransactions = majorTransactions.slice(0, 5);
-    const finalPeople = people.slice(0, 5);
+    const finalTransactions = majorTransactions.slice(0, 8);
+    const finalPeople = people.slice(0, 8);
 
     console.log(`📊 Final counts: Market Intelligence: ${relevant.length}, Transactions: ${finalTransactions.length}, Availabilities: ${availabilities.length}, People: ${finalPeople.length}`);
 
@@ -599,8 +599,8 @@ async function handleSendNewsletterEndpoint(req: IncomingMessage, res: ServerRes
                 return isInTargetRegion || hasTargetGeography;
             }).slice(0, 8);
 
-            const finalTransactions = majorTransactions.slice(0, 5);
-            const finalPeople = people.slice(0, 5);
+            const finalTransactions = majorTransactions.slice(0, 8);
+            const finalPeople = people.slice(0, 8);
 
             console.log(`📊 Newsletter counts: Market Intelligence: ${relevant.length}, Transactions: ${finalTransactions.length}, Availabilities: ${availabilities.length}, People: ${finalPeople.length}`);
 

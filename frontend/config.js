@@ -79,12 +79,12 @@ export const ENDPOINTS = {
 // Polling interval (5 minutes)
 export const POLLING_INTERVAL = 5 * 60 * 1000;
 
-// Newsletter section limits
+// Newsletter section limits - INCREASED for more coverage
 export const NEWSLETTER_LIMITS = {
-    relevant: 6,
-    transaction: 5,
-    availabilities: 5,
-    people: 5
+    relevant: 10,
+    transaction: 8,
+    availabilities: 8,
+    people: 6
 };
 
 export default {

@@ -219,14 +219,25 @@ export async function buildStaticRSS(): Promise<void> {
         const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey',
             'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
 
+        // Trusted national sources (include if industrial context present)
+        const trustedNationalSources = ['news.google.com', 'bloomberg.com', 'wsj.com', 'reuters.com',
+            'freightwaves.com', 'supplychaindive.com', 'dcvelocity.com', 'areadevelopment.com',
+            'bisnow.com/national', 'globest.com', 'commercialcafe.com', 'prologis.com'];
+
         // Check if article should be included
         const shouldIncludeArticle = (item: NormalizedItem): boolean => {
             const text = `${item.title || ''} ${item.description || ''}`.toUpperCase();
             // Check both 'link' (from fetcher) and 'url' (from feed.json)
             const url = (item.link || item.url || '').toLowerCase();
+            // Also check source name for Google News items
+            const sourceName = (item.source || '').toLowerCase();
 
             // Always include from regional sources
             const isRegionalSource = regionalSources.some(s => url.includes(s));
+
+            // Check if from trusted national/Google News source
+            const isTrustedNational = trustedNationalSources.some(s => url.includes(s) || sourceName.includes(s));
+            const isGoogleNews = url.includes('news.google.com') || sourceName.includes('google news');
 
             // Check for excluded content (non-industrial)
             const hasExcludedContent = excludeContent.some(c => text.includes(c));
@@ -254,7 +265,21 @@ export async function buildStaticRSS(): Promise<void> {
                 return true;
             }
 
-            // For non-regional sources, exclude if mentions any excluded location
+            // Google News and trusted national sources: Include if MENTIONS target region OR has industrial context
+            // Be more lenient since these are curated by our search queries
+            if (isGoogleNews || isTrustedNational) {
+                // Only exclude if CLEARLY about excluded state AND no target region mention
+                if ((mentionsExcludedState || mentionsExcludedCity) && !mentionsTargetRegion && !hasIndustrialContext) {
+                    log('info', `EXCLUDED (out-of-state national): ${item.title?.substring(0, 60)}`);
+                    return false;
+                }
+                // Include if has industrial content OR mentions target region
+                if (hasIndustrialContext || mentionsTargetRegion) {
+                    return true;
+                }
+            }
+
+            // For other non-regional sources, exclude if mentions any excluded location
             if (mentionsExcludedState || mentionsExcludedCity) {
                 log('info', `EXCLUDED (out-of-state): ${item.title?.substring(0, 60)}`);
                 return false;

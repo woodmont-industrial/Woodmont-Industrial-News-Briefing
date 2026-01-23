@@ -125,7 +125,7 @@ export function buildGothBriefing(
                     RELEVANT ARTICLES
                 </h2>
                 <p style="margin: 0 0 12px 0; font-size: 11px; color: #888;">Macro Trends & Industrial News</p>
-                <ul style="margin: 0; padding: 0;">${renderSection(relevant, 6)}</ul>
+                <ul style="margin: 0; padding: 0;">${renderSection(relevant, 10)}</ul>
             </div>
 
             <!-- Section 2: Transactions -->
@@ -134,7 +134,7 @@ export function buildGothBriefing(
                     TRANSACTIONS
                 </h2>
                 <p style="margin: 0 0 12px 0; font-size: 11px; color: #888;">Sales & Leases ≥100K SF / ≥$25M</p>
-                <ul style="margin: 0; padding: 0;">${renderSection(transactions, 6)}</ul>
+                <ul style="margin: 0; padding: 0;">${renderSection(transactions, 8)}</ul>
             </div>
 
             <!-- Section 3: Availabilities -->
@@ -143,7 +143,7 @@ export function buildGothBriefing(
                     AVAILABILITIES
                 </h2>
                 <p style="margin: 0 0 12px 0; font-size: 11px; color: #888;">Industrial Properties for Sale/Lease</p>
-                <ul style="margin: 0; padding: 0;">${renderSection(availabilities, 6)}</ul>
+                <ul style="margin: 0; padding: 0;">${renderSection(availabilities, 8)}</ul>
             </div>
 
             <!-- Section 4: People News -->

@@ -26,7 +26,7 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
 
     const renderItems = (items: NormalizedItem[]) => {
         if (!items || !items.length) return '<div class="empty-section">No updated information provided for this section.</div>';
-        const safe = items.slice(0, 6).map((it: NormalizedItem) => {
+        const safe = items.slice(0, 10).map((it: NormalizedItem) => {
             const title = it.title || 'Untitled';
 
             // Get source from multiple possible fields - NEVER show "Unknown"
