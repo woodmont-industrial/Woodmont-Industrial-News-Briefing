@@ -1,9 +1,9 @@
-name: Send Daily Newsletter (Goth)
+name: Send Daily Newsletter (Goth) - DISABLED
 
 on:
-  schedule:
-    # Run Monday-Friday at 8 AM EST (13:00 UTC)
-    - cron: '0 13 * * 1-5'
+  # DISABLED: Using send-newsletter-work.yml instead (boss's preferred format)
+  # schedule:
+  #   - cron: '0 13 * * 1-5'
   workflow_dispatch:
 
 permissions:
