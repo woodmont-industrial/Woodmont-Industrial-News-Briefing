@@ -845,13 +845,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange);
 
-        // Get recipients
-        const recipients = (process.env.NEWSLETTER_RECIPIENTS || '').split(',').map(e => e.trim()).filter(e => e);
-
-        if (recipients.length === 0) {
-            console.error('❌ No recipients configured in NEWSLETTER_RECIPIENTS');
+        // Get recipients (same as other newsletters)
+        const emailTo = process.env.EMAIL_TO || '';
+        if (!emailTo) {
+            console.error('❌ No EMAIL_TO configured in environment');
             return false;
         }
+        const recipients = emailTo.split(',').map(e => e.trim()).filter(e => e);
 
         const subject = `Woodmont Industrial Partners — Daily Industrial News Briefing`;
 
