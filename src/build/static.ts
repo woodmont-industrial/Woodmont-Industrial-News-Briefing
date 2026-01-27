@@ -384,9 +384,9 @@ export async function buildStaticRSS(): Promise<void> {
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
 
-        // === AI FILTERING (if GEMINI_API_KEY is set) ===
+        // === AI FILTERING (if GROQ_API_KEY is set) ===
         let aiFilteredItems = filteredNewItems;
-        if (process.env.GEMINI_API_KEY) {
+        if (process.env.GROQ_API_KEY) {
             log('info', 'Running AI classification on articles...');
             try {
                 const aiResult = await filterArticlesWithAI(filteredNewItems, 35); // 35% minimum relevance
@@ -419,7 +419,7 @@ export async function buildStaticRSS(): Promise<void> {
                 aiFilteredItems = filteredNewItems;
             }
         } else {
-            log('info', 'GEMINI_API_KEY not set, skipping AI classification');
+            log('info', 'GROQ_API_KEY not set, skipping AI classification');
         }
 
         // Deduplication - only keep truly new items (check ID, URL, AND title)

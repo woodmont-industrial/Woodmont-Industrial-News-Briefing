@@ -1,5 +1,5 @@
 /**
- * AI-Powered Article Classifier using Google Gemini (FREE tier)
+ * AI-Powered Article Classifier using Groq (FREE tier)
  *
  * Classifies articles for Woodmont Industrial Partners briefing:
  * - Determines category (relevant, transactions, availabilities, people, exclude)
@@ -10,9 +10,9 @@
 
 import { NormalizedItem } from '../types/index.js';
 
-// Google Gemini API configuration (FREE tier: 15 req/min, 1M tokens/month)
-// Using gemini-1.5-flash via v1 API
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+// Groq API configuration (FREE tier - very fast, generous limits)
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const MODEL = 'llama-3.1-8b-instant'; // Fast, free model
 
 export interface AIClassificationResult {
     category: 'relevant' | 'transactions' | 'availabilities' | 'people' | 'exclude';
@@ -65,17 +65,17 @@ Respond with JSON only (no markdown, no code blocks):
 }`;
 
 /**
- * Classify an article using Google Gemini
+ * Classify an article using Groq
  */
 export async function classifyWithAI(
     title: string,
     description: string,
     source: string
 ): Promise<AIClassificationResult | null> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-        console.warn('GEMINI_API_KEY not set, skipping AI classification');
+        console.warn('GROQ_API_KEY not set, skipping AI classification');
         return null;
     }
 
@@ -85,48 +85,44 @@ export async function classifyWithAI(
             .replace('{description}', (description || '').substring(0, 500))
             .replace('{source}', source || 'Unknown');
 
-        const fullPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
-
-        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        const response = await fetch(GROQ_API_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: fullPrompt
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.1,
-                    maxOutputTokens: 300
-                }
+                model: MODEL,
+                messages: [
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.1,
+                max_tokens: 300
             })
         });
 
         if (!response.ok) {
             const error = await response.text();
-            console.error('Gemini API error:', response.status, error);
+            console.error('Groq API error:', response.status, error);
             return null;
         }
 
         const data = await response.json();
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const content = data.choices?.[0]?.message?.content;
 
         if (!content) {
-            console.error('No content in Gemini response');
+            console.error('No content in Groq response');
             return null;
         }
 
         // Parse JSON response (handle potential markdown code blocks)
         let jsonStr = content;
-        // Remove markdown code blocks if present
         jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '');
 
         const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-            console.error('Could not parse JSON from Gemini response:', content);
+            console.error('Could not parse JSON from Groq response:', content);
             return null;
         }
 
@@ -150,7 +146,7 @@ export async function classifyWithAI(
 }
 
 /**
- * Batch classify multiple articles (with rate limiting for Gemini free tier: 15 req/min)
+ * Batch classify multiple articles (with rate limiting)
  */
 export async function batchClassifyWithAI(
     articles: NormalizedItem[],
@@ -162,8 +158,8 @@ export async function batchClassifyWithAI(
 ): Promise<Map<string, AIClassificationResult>> {
     const {
         minRelevanceScore = 30,
-        maxConcurrent = 3, // Lower for Gemini free tier (15 req/min)
-        delayMs = 500 // Slower to respect rate limits
+        maxConcurrent = 5, // Groq has generous rate limits
+        delayMs = 200
     } = options;
 
     const results = new Map<string, AIClassificationResult>();
@@ -189,7 +185,7 @@ export async function batchClassifyWithAI(
 
         await Promise.all(batchPromises);
 
-        // Delay between batches to respect Gemini rate limits (15 req/min)
+        // Delay between batches
         if (i + maxConcurrent < articles.length) {
             await new Promise(resolve => setTimeout(resolve, delayMs));
         }
