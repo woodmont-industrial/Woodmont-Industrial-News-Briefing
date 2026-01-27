@@ -445,11 +445,15 @@
             <div className={`absolute inset-0 bg-gradient-to-t ${categoryColors[category] || categoryColors.relevant} via-transparent to-transparent pointer-events-none`}></div>
             <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
               <span className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wide">
-                {item.source || item.publisher || 'Source'}
+                {(() => {
+                  const src = item.source || item.publisher;
+                  if (!src) return 'Source';
+                  return typeof src === 'string' ? src : (src.name || 'Source');
+                })()}
               </span>
               {item.author && (
                 <span className="bg-emerald-500/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
-                  By {item.author}
+                  By {typeof item.author === 'string' ? item.author : (item.author.name || 'Unknown')}
                 </span>
               )}
             </div>
