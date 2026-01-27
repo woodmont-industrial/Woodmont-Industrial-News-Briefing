@@ -33,7 +33,6 @@
     .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 
     /* Dark theme styles */
-    .dark body { background: linear-gradient(135deg, #022c22 0%, #064e3b 50%, #065f46 100%); }
     .dark { background-color: #0f172a; color: #f1f5f9; }
     .dark .card-anim {
       background-color: #1e293b;
@@ -176,22 +175,16 @@
 
       return (
         <header className="relative overflow-hidden">
-          {/* Emerald gradient background */}
-          <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, #064e3b 0%, #047857 40%, #059669 70%, #10b981 100%)'}}></div>
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}}></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-500"></div>
           <div className="relative px-6 py-10 text-center text-white">
             <div className="flex items-center justify-center gap-6">
               <div>
-                {/* Main title */}
                 <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight drop-shadow-lg">
                   🏢 Woodmont Industrial Partners
                 </h1>
-                {/* Subtitle - larger and more prominent */}
                 <p className="text-2xl md:text-3xl font-semibold mb-4 text-emerald-100">
                   Daily Real Estate News Briefing
                 </p>
-                {/* Info badges */}
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
                   <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
                     📅 {period}
