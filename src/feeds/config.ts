@@ -833,6 +833,243 @@ export const RSS_FEEDS: FeedConfig[] = [
             timeout: 30000
 },
 
+    // ============================================
+    // HYPER-SPECIFIC NJ/PA/FL COUNTY & CITY FEEDS
+    // These target exact locations to maximize relevant content
+    // ============================================
+
+    // NJ COUNTY-SPECIFIC FEEDS
+{
+      url: "https://news.google.com/rss/search?q=%22Bergen+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Bergen County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Middlesex+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Middlesex County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Hudson+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Hudson County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Somerset+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Somerset County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Union+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Union County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Monmouth+County%22+warehouse+OR+industrial+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Monmouth County NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // PA COUNTY-SPECIFIC FEEDS
+{
+      url: "https://news.google.com/rss/search?q=%22Bucks+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Bucks County PA",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Montgomery+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Montgomery County PA",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Chester+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Chester County PA",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Delaware+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Delaware County PA",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // FL COUNTY-SPECIFIC FEEDS
+{
+      url: "https://news.google.com/rss/search?q=%22Miami-Dade%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Miami-Dade FL",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Broward+County%22+warehouse+OR+industrial+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Broward County FL",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Palm+Beach+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Palm Beach County FL",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Hillsborough+County%22+Florida+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Hillsborough (Tampa) FL",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Duval+County%22+Florida+warehouse+OR+industrial+OR+port&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Duval (Jacksonville) FL",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // BUSINESS JOURNAL FEEDS (Regional Business News)
+{
+      url: "https://www.bizjournals.com/philadelphia/news/commercial-real-estate.rss",
+      name: "Philadelphia Business Journal CRE",
+      region: "PA",
+      source: "Philadelphia Business Journal",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+{
+      url: "https://www.bizjournals.com/southflorida/news/commercial-real-estate.rss",
+      name: "South Florida Business Journal CRE",
+      region: "FL",
+      source: "South Florida Business Journal",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+{
+      url: "https://www.bizjournals.com/tampabay/news/commercial-real-estate.rss",
+      name: "Tampa Bay Business Journal CRE",
+      region: "FL",
+      source: "Tampa Bay Business Journal",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+{
+      url: "https://www.bizjournals.com/jacksonville/news/commercial-real-estate.rss",
+      name: "Jacksonville Business Journal CRE",
+      region: "FL",
+      source: "Jacksonville Business Journal",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // NJBIZ - New Jersey Business News
+{
+      url: "https://njbiz.com/feed/",
+      name: "NJBIZ",
+      region: "NJ",
+      source: "NJBIZ",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // ROI-NJ - Another NJ Real Estate Source
+{
+      url: "https://www.roi-nj.com/feed/",
+      name: "ROI-NJ",
+      region: "NJ",
+      source: "ROI-NJ",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // SPECIFIC DEVELOPER/COMPANY NEWS FEEDS
+{
+      url: "https://news.google.com/rss/search?q=%22Matrix+Development%22+OR+%22Heller+Industrial%22+OR+%22Sitex+Group%22+New+Jersey&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News NJ Industrial Developers",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22Dermody+Properties%22+OR+%22Clarion+Partners%22+OR+%22Bridge+Industrial%22+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial Developers NJ/PA/FL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // PORT-SPECIFIC FEEDS (Major NJ/FL Industrial Drivers)
+{
+      url: "https://news.google.com/rss/search?q=%22Port+of+New+York%22+OR+%22Port+Authority%22+cargo+OR+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Port of NY/NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+{
+      url: "https://news.google.com/rss/search?q=%22PortMiami%22+OR+%22Port+of+Miami%22+OR+%22Port+Everglades%22+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News FL Ports",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // NAIOP (Industrial Developers Association)
+{
+      url: "https://news.google.com/rss/search?q=NAIOP+New+Jersey+OR+Pennsylvania+OR+Florida+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News NAIOP NJ/PA/FL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
     // NOTE: JLL, Cushman & Wakefield, Colliers brokerage feeds
     // - No public RSS feeds available from IR sites (403/404 errors)
     // - ConnectCRE company feeds blocked by Cloudflare in automated mode
