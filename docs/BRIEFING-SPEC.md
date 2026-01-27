@@ -2,6 +2,8 @@
 
 ## Specification Document
 
+**Last Updated:** January 27, 2026
+
 ---
 
 ## Goal
@@ -15,200 +17,282 @@ Produce a concise, scannable daily briefing with **EXACTLY FOUR sections**:
 
 ---
 
-## Priorities
+## Geographic Focus (STRICT)
 
-- **Focus on:** NJ, PA, FL
-- Include national context **ONLY** if it informs these markets
-- Highlight deals **≥100K SF** or **≥$25M**
-- Use credible sources: WSJ, Bloomberg, CoStar, GlobeSt, Bisnow, brokerage research
-- Mark "(paywalled)" when applicable
+### Primary Markets (ONLY)
+
+| State | Key Markets |
+|-------|-------------|
+| **New Jersey** | Newark, Jersey City, Edison, Exit 8A corridor, Meadowlands, Bergen County, Middlesex County, Hudson County, Somerset County, Union County, Monmouth County |
+| **Pennsylvania** | Philadelphia, Lehigh Valley, I-78/I-81 corridor, Bucks County, Montgomery County, Chester County, Delaware County |
+| **Florida** | Miami-Dade, Broward, Palm Beach, Fort Lauderdale, Tampa, Orlando, Jacksonville |
+
+### EXCLUDED States/Regions
+
+The following are **automatically filtered out**:
+
+- Texas (Dallas, Houston, Austin)
+- California (Los Angeles, Bay Area)
+- Arizona (Phoenix, Mesa)
+- Georgia (Atlanta)
+- Tennessee (Nashville, Memphis)
+- Indiana (Indianapolis)
+- Ohio (Columbus, Cincinnati)
+- Illinois (Chicago)
+- North Carolina (Charlotte, Raleigh)
+- South Carolina
+- Virginia (except Delaware Valley overlap)
+- Maryland (except Delaware Valley overlap)
+- Colorado, Nevada, Washington, Oregon
+- All international news (China, India, UK, Europe, etc.)
+
+**Rule:** If an article mentions any excluded state/city and does NOT mention NJ, PA, or FL, it is automatically excluded.
 
 ---
 
-## Formatting Rules (Critical)
+## Content Filters (STRICT)
 
-- Use clear section headings (Relevant Articles, Transactions, Availabilities, People News)
-- Start **EACH** bullet item on a **NEW LINE** with a bullet point (•)
-- Keep each bullet to **2 lines or fewer** (1-2 sentences maximum)
-- Write **4-6 bullets per section** when possible
-- Always include: **location + size + key players + terms** (when available)
-- End **EVERY** bullet with exactly **ONE action tag**: `[Track]` or `[Share]` or `[Ignore]`
-- Include the word "Source" in each bullet for downstream linking
+### INCLUDE (Industrial Real Estate Only)
 
-### Bullet Format Example
+| Category | Examples |
+|----------|----------|
+| Warehouse/Distribution | Fulfillment centers, distribution hubs |
+| Logistics Facilities | 3PL centers, freight terminals |
+| Cold Storage | Refrigerated warehouses, food distribution |
+| Manufacturing | Production facilities, assembly plants |
+| Last-Mile Delivery | Urban distribution, delivery stations |
+| Port/Intermodal | Port-adjacent warehouses, rail yards |
+| Industrial Land | Development sites, land sales |
+| Industrial Market Trends | Vacancy rates, rent growth, absorption |
 
+### EXCLUDE (Automatically Filtered)
+
+| Category | Examples |
+|----------|----------|
+| **Residential** | Homes, condos, apartments, housing market, realtors |
+| **Retail** | Shopping centers, strip malls, retail stores |
+| **Office** | Office buildings, coworking spaces |
+| **Hospitality** | Hotels, resorts |
+| **Self-Storage** | Mini storage (unless industrial conversion) |
+| **Political News** | Trump, Biden, elections, executive orders, tariffs (unless directly industrial) |
+| **Weather** | Snow storms, hurricanes, power outages |
+| **Sports/Entertainment** | Stadiums, concerts, celebrities |
+| **Crypto/Stock Market** | Bitcoin, NFTs, general stock news |
+| **International** | China trade, India manufacturing, UK/Europe markets |
+
+---
+
+## AI Classification System
+
+All articles are processed through a **Groq AI classifier** that:
+
+1. Analyzes title and description
+2. Assigns a category: `relevant`, `transactions`, `availabilities`, `people`, or `exclude`
+3. Scores relevance (0-100) based on NJ/PA/FL industrial focus
+4. Extracts keywords for tracking
+
+### AI Prompt Rules
+
+The AI is instructed to be **VERY STRICT**:
+
+- Focus ONLY on NJ, PA, FL
+- Property must be **physically located** in NJ/PA/FL (not just company HQ)
+- Exclude any article primarily about other states
+- Exclude residential, retail, office content
+- When uncertain, classify as `exclude`
+
+---
+
+## Multi-Layer Filtering Pipeline
+
+### Layer 1: URL/Source Filtering
+- Remove duplicate URLs
+- Remove tracking parameters
+- Remove cached/preview links
+
+### Layer 2: Rule-Based Content Filtering
+- Check for excluded keywords (residential, retail, office, political)
+- Check for excluded states/cities
+- Check for required industrial context
+
+### Layer 3: AI Classification
+- Groq AI analyzes and categorizes each article
+- Assigns relevance score
+- Articles below 40% relevance are excluded
+
+### Layer 4: Post-AI Regional Validation
+- Double-check that article mentions NJ, PA, or FL
+- Remove any wrong-state articles that slipped through
+
+### Layer 5: Residential/Irrelevant Cleanup
+- Final check for residential keywords
+- Remove weather, sports, political content
+
+---
+
+## Feed Sources (113 Active Feeds)
+
+### Regional Sources (Priority)
+
+| Source | Region | Focus |
+|--------|--------|-------|
+| Real Estate NJ (RE-NJ) | NJ | Primary NJ industrial news |
+| ROI-NJ | NJ | NJ real estate & business |
+| NJBIZ | NJ | NJ business news |
+| Philadelphia Business Journal | PA | Philly commercial real estate |
+| South Florida Business Journal | FL | S. Florida commercial real estate |
+| Tampa Bay Business Journal | FL | Tampa commercial real estate |
+| Jacksonville Business Journal | FL | Jacksonville commercial real estate |
+| The Real Deal (Miami) | FL | Florida transactions |
+
+### National Sources (Filtered for NJ/PA/FL)
+
+| Source | Focus |
+|--------|-------|
+| FreightWaves | Logistics/freight trends |
+| Supply Chain Brain | Supply chain news |
+| Commercial Observer | CRE transactions |
+| Bisnow | CRE news (multiple regions) |
+| GlobeSt | National CRE |
+| CoStar | CRE data/news |
+
+### Google News Feeds (Hyper-Targeted)
+
+We use 40+ Google News RSS searches targeting:
+
+- Specific NJ counties (Bergen, Middlesex, Hudson, etc.)
+- Specific PA counties (Bucks, Montgomery, Chester, etc.)
+- Specific FL counties (Miami-Dade, Broward, Palm Beach, etc.)
+- Port of NY/NJ, PortMiami, Port Everglades
+- Exit 8A corridor, Lehigh Valley, I-95 corridor
+- Industrial developers (Prologis, Duke, CBRE, JLL, etc.)
+
+---
+
+## Deal Thresholds
+
+Highlight deals meeting these criteria:
+
+| Type | Threshold |
+|------|-----------|
+| Square Footage | ≥100,000 SF |
+| Sale Price | ≥$25 million |
+| Land Area | ≥10 acres |
+
+---
+
+## Exclusion Keywords (Automatic Reject)
+
+### Political/International
 ```
-• [Item summary with location, size, key details]. Source [Track]
+TRUMP, BIDEN, PRESIDENT, WHITE HOUSE, EXECUTIVE ORDER,
+TARIFF WAR, TRADE WAR, CONGRESS, SENATE, ELECTION,
+INDIA, CHINA, UK, EUROPE, ASIA, MEXICO, CANADA,
+LONDON, BEIJING, SHANGHAI, MUMBAI, DELHI, TOKYO
+```
+
+### Non-Industrial
+```
+SINGLE FAMILY, MULTIFAMILY APARTMENT, CONDO, RESIDENTIAL,
+HOTEL, RESORT, HOSPITALITY, RETAIL STORE, SHOPPING CENTER,
+OFFICE BUILDING, COWORKING, SELF STORAGE, MINI STORAGE,
+CRYPTOCURRENCY, BITCOIN, CRYPTO, NFT, BLOCKCHAIN
+```
+
+### Wrong States
+```
+TEXAS, CALIFORNIA, OHIO, INDIANA, ILLINOIS, GEORGIA, ARIZONA,
+TENNESSEE, LOUISIANA, COLORADO, WASHINGTON, OREGON, NEVADA,
+CAROLINA, VIRGINIA, MARYLAND, MICHIGAN, WISCONSIN, MINNESOTA,
+DALLAS, HOUSTON, AUSTIN, LOS ANGELES, CHICAGO, ATLANTA, PHOENIX
+```
+
+### Irrelevant Topics
+```
+SNOW STORM, WEATHER DISRUPTS, FLIGHTS CANCEL, POWER OUTAGE,
+STOCK MARKET, SPORTS, FOOTBALL, BASKETBALL, CONCERT, MOVIE
 ```
 
 ---
 
-## Output Structure
+## Output Format
+
+### Email Newsletter
 
 ```
-Woodmont Industrial Partners — Daily Industrial News Briefing
-Date: [Month DD, YYYY]
+WOODMONT INDUSTRIAL PARTNERS
+Daily Industrial News Briefing
+[Date]
 
-Relevant Articles
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• [Bullet 1]. Source [Track]
-• [Bullet 2]. Source [Share]
-• [Bullet 3]. Source [Track]
+RELEVANT ARTICLES
+Macro trends affecting industrial real estate
 
-Transactions
+• [Article title] - [Brief summary with location, key details]
+  Source: [Publication] [Track]
 
-• [Bullet 1]. Source [Track]
-• [Bullet 2]. Source [Ignore]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Availabilities
+TRANSACTIONS
+Industrial property sales and leases
 
-• [Bullet 1]. Source [Track]
-• [Bullet 2]. Source [Share]
+• [Property/Deal] - [Location, SF, Price/Terms]
+  Source: [Publication] [Track]
 
-People News
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• [Bullet 1]. Source [Share]
-• [Bullet 2]. Source [Track]
+AVAILABILITIES
+Properties for sale or lease
+
+• [Property] - [Location, SF, Asking Price/Rent]
+  Source: [Publication] [Track]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PEOPLE NEWS
+Personnel moves in industrial CRE
+
+• [Person] - [New role at Company]
+  Source: [Publication] [Track]
 ```
 
 ---
 
 ## Action Tags
 
-Each article must have exactly ONE action tag:
-
 | Tag | Purpose |
 |-----|---------|
-| `[Track]` | User wants to follow this topic/company/location for future articles |
-| `[Share]` | Article is worth sharing with team |
-| `[Ignore]` | Hide articles like this in the future |
+| `[Track]` | Follow this topic/company/location for future articles |
+| `[Ignore]` | Hide similar articles in the future |
 
 ---
 
-## Friday Special
+## Schedule
 
-On Fridays, add a **"Week-in-Review"** section after the four standard sections, summarizing the top 5 developments of the week.
-
----
-
-## Empty Sections
-
-If a section has no qualifying items, write:
-
-```
-No updated information provided for this section.
-```
+| Event | Time | Days |
+|-------|------|------|
+| Article Update | Every 4 hours | Daily |
+| Newsletter Send | 8:00 AM EST | Mon-Fri |
+| Feed Health Check | Every 4 hours | Daily |
 
 ---
 
-## Web Data Policy
+## Quality Metrics
 
-- Use web search to find items from the last **24-48 hours**
-- Do **NOT** include statistics/data older than 30 days unless cited as historical context
-- Only include items with public links you can cite
-- Do **NOT** invent content
-- If source is paywalled, label it `(paywalled)` and include the link
+### Current Feed Stats
 
----
+- **Total Active Feeds:** 113
+- **Articles Fetched per Run:** ~5,000+
+- **Articles After Filtering:** ~50-150
+- **Target Daily Relevant:** 3+ articles
 
-## Source Link Policy (Strict)
+### Why Some Days Have Fewer Articles
 
-### Approved Domains ONLY
-
-| Domain | Type |
-|--------|------|
-| bisnow.com | CRE News |
-| globest.com | CRE News |
-| costar.com | CRE Data/News |
-| reuters.com | Wire Service |
-| apnews.com | Wire Service |
-| bloomberg.com | Financial (paywalled OK) |
-| wsj.com | Financial (paywalled OK) |
-| cbre.com | Brokerage Research |
-| jll.com | Brokerage Research |
-| cushwake.com | Brokerage Research |
-| colliers.com | Brokerage Research |
-| bizjournals.com | Regional Business |
-| traded.co | Deal Tracker |
-| connectcre.com | CRE News |
-| njbiz.com | NJ Business |
-| philadelphiabusinessjournal.com | PA Business |
-| southfloridabusinessjournal.com | FL Business |
-
-### Rejected Domains
-
-- commercialsearch.com
-- propertyshark.com
-- joc.com
-- loopnet.com/news
-- cached/preview/redirect links
-- URLs with "utm_", "redirect", "cache", or "tracking"
-
-If no acceptable source exists, write `(Source unavailable)` instead.
-
----
-
-## Geographic Focus
-
-### Primary Markets (Must Include)
-
-| State | Key Markets |
-|-------|-------------|
-| **New Jersey** | Newark, Jersey City, Edison, Exit 8A corridor, Meadowlands, Bergen County |
-| **Pennsylvania** | Philadelphia, Lehigh Valley, I-81 corridor, Central PA |
-| **Florida** | Miami-Dade, Broward, Palm Beach, Fort Lauderdale, South Florida |
-
-### Secondary Markets (Include if Relevant)
-
-- New York metro (affects NJ)
-- Delaware Valley
-- I-95 corridor
-
-### Exclude
-
-- West Coast (CA, WA, OR)
-- Texas (unless national impact)
-- Midwest (unless national impact)
-- International news
-- Political news unrelated to CRE
-- Residential real estate
-- Retail/office (unless conversion to industrial)
-
----
-
-## Content Filters
-
-### Include
-
-- Industrial warehouse/distribution
-- Logistics facilities
-- Cold storage
-- Data centers (industrial-adjacent)
-- Manufacturing
-- Last-mile delivery
-- Port/intermodal
-- Industrial land
-
-### Exclude
-
-- Residential (apartments, SFR, multifamily)
-- Office
-- Retail
-- Hospitality
-- Healthcare
-- Political news
-- General economic news without CRE angle
-- International markets
-
----
-
-## Key Reminders
-
-- Never paste full paywalled content—summarize and link
-- Use actual bullet points (•) for each item
-- Ensure proper line breaks between items
-- Default to plain text (use HTML only if explicitly requested)
-- Output ONLY the briefing—no meta-commentary or explanations
+1. NJ/PA/FL industrial is a niche market
+2. Not every day has major news/deals
+3. Strict filtering removes all non-relevant content
+4. Quality over quantity approach
 
 ---
 
@@ -218,3 +302,18 @@ If no acceptable source exists, write `(Source unavailable)` instead.
 |---------|------|---------|
 | 1.0 | Jan 2025 | Initial specification |
 | 1.1 | Jan 2025 | Added Track/Share/Ignore action tags |
+| 2.0 | Jan 2026 | Added AI classification (Groq) |
+| 2.1 | Jan 2026 | Added strict regional filtering (NJ/PA/FL only) |
+| 2.2 | Jan 2026 | Added 113 feeds including county-specific searches |
+| 2.3 | Jan 2026 | Added residential/irrelevant content cleanup |
+| 2.4 | Jan 2026 | Complete documentation of filtering rules |
+
+---
+
+## Technical Implementation
+
+- **AI Provider:** Groq (free tier, llama-3.1-8b-instant model)
+- **Hosting:** GitHub Pages
+- **Automation:** GitHub Actions
+- **Feed Format:** RSS 2.0 + JSON Feed 1.1
+- **Frontend:** React-based dashboard with Track/Ignore functionality
