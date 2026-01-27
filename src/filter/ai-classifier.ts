@@ -24,26 +24,37 @@ export interface AIClassificationResult {
     region: string | null; // NJ, PA, FL, or null if not regional
 }
 
-// System prompt for the classifier
-const SYSTEM_PROMPT = `You are an article classifier for Woodmont Industrial Partners, a commercial real estate firm focused on INDUSTRIAL properties (warehouses, logistics, distribution, manufacturing, cold storage) in New Jersey, Pennsylvania, and Florida.
+// System prompt for the classifier - VERY STRICT
+const SYSTEM_PROMPT = `You are a STRICT article classifier for Woodmont Industrial Partners. You ONLY care about INDUSTRIAL real estate (warehouses, logistics centers, distribution facilities, manufacturing plants, cold storage) in THREE states: New Jersey, Pennsylvania, and Florida.
 
-Your job is to classify news articles into one of these categories:
+CLASSIFY INTO ONE CATEGORY:
 
-1. "relevant" - Macro trends affecting industrial CRE: interest rates, freight/logistics trends, construction costs, labor markets, e-commerce growth, supply chain news, industrial market reports
-2. "transactions" - Industrial property SALES or LEASES: warehouse sold, distribution center leased, industrial portfolio acquired. Must be actual real estate deals, not stock/business transactions.
-3. "availabilities" - Industrial properties FOR SALE or FOR LEASE: new listings, spec developments available, build-to-suit opportunities
-4. "people" - Personnel moves in industrial CRE: broker promotions, developer hires, executive appointments at industrial firms/REITs
-5. "exclude" - NOT relevant: political news, international markets (unless port-related), residential, retail, office, hospitality, sports, entertainment, crypto, stocks
+1. "relevant" - Industrial market news ONLY if it mentions NJ, PA, or FL specifically, OR is about national industrial/logistics trends that directly affect these markets
+2. "transactions" - Industrial property SALES or LEASES that are PHYSICALLY LOCATED in NJ, PA, or FL. The property itself must be in these states.
+3. "availabilities" - Industrial properties FOR SALE/LEASE in NJ, PA, or FL only
+4. "people" - Personnel moves at industrial CRE firms operating in NJ, PA, or FL
+5. "exclude" - EVERYTHING ELSE
 
-STRICT RULES:
-- Focus regions: NJ, PA, FL only. Exclude articles primarily about other states unless they have national industrial market implications.
-- EXCLUDE all political content (Trump, Biden, elections, executive orders, tariffs unless directly about industrial imports)
-- EXCLUDE international news (India, China, UK, Europe) unless about US port activity or supply chain impact
-- EXCLUDE residential, retail, office, hotel, self-storage (unless industrial conversion)
-- For "transactions": Must have real estate deal signals (sold, acquired, leased property) + industrial context + ideally size (SF) or price ($)
-- For "availabilities": Must be property listings or new developments seeking tenants/buyers
+MUST EXCLUDE (classify as "exclude"):
+- ANY article about states OTHER than NJ, PA, FL (Texas, California, Indiana, Ohio, etc.)
+- Residential real estate (homes, apartments, condos, housing)
+- Retail, office, hospitality, self-storage
+- Political news (Trump, Biden, tariffs, elections)
+- International news (China, India, Europe, UK)
+- Stock market, crypto, general business news
+- Weather, sports, entertainment
+- Realtors associations, residential brokers
+- Company expansions in OTHER states (even if company is from NJ/PA/FL)
 
-Respond in JSON format only.`;
+LOCATION CHECK - BE STRICT:
+- "Company X expands in Texas" = EXCLUDE (wrong state)
+- "NJ-based company buys property in Indiana" = EXCLUDE (property not in NJ/PA/FL)
+- "Warehouse sold in New Jersey" = transactions (correct)
+- "Miami industrial market report" = relevant (correct)
+
+If unsure, choose "exclude". Be VERY strict.
+
+Respond in JSON only.`;
 
 const USER_PROMPT_TEMPLATE = `Classify this article:
 

@@ -422,6 +422,44 @@ export async function buildStaticRSS(): Promise<void> {
             log('info', 'GROQ_API_KEY not set, skipping AI classification');
         }
 
+        // === POST-AI REGIONAL VALIDATION ===
+        // Double-check that articles are actually about NJ/PA/FL
+        const njpaflKeywords = [
+            'new jersey', 'newjersey', ' nj ', 'jersey city', 'newark', 'edison', 'trenton',
+            'exit 8a', 'turnpike', 'meadowlands', 'bergen', 'middlesex', 'monmouth', 'camden',
+            'pennsylvania', 'philadelphia', 'philly', 'lehigh valley', 'allentown', 'harrisburg',
+            'pittsburgh', 'bucks county', 'chester county', 'delaware valley',
+            'florida', 'miami', 'tampa', 'orlando', 'jacksonville', 'fort lauderdale',
+            'boca raton', 'palm beach', 'broward', 'dade', 'clearwater', 'port everglades'
+        ];
+
+        const wrongStateKeywords = [
+            'texas', 'california', 'ohio', 'indiana', 'illinois', 'georgia', 'arizona',
+            'tennessee', 'louisiana', 'colorado', 'washington', 'oregon', 'nevada',
+            'carolina', 'virginia', 'maryland', 'michigan', 'wisconsin', 'minnesota',
+            'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
+            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis'
+        ];
+
+        const regionallyValidated = aiFilteredItems.filter(item => {
+            const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+
+            // Check if it mentions wrong states (and doesn't mention NJ/PA/FL)
+            const hasWrongState = wrongStateKeywords.some(kw => text.includes(kw));
+            const hasRightState = njpaflKeywords.some(kw => text.includes(kw));
+
+            // If it has wrong state keywords and NO right state keywords, exclude
+            if (hasWrongState && !hasRightState) {
+                log('info', `POST-AI EXCLUDED (wrong state): ${(item.title || '').substring(0, 50)}`);
+                return false;
+            }
+
+            return true;
+        });
+
+        log('info', `Post-AI regional validation: ${aiFilteredItems.length} -> ${regionallyValidated.length} articles`);
+        aiFilteredItems = regionallyValidated;
+
         // Deduplication - only keep truly new items (check ID, URL, AND title)
         const seenUrls = new Set<string>();
         const seenTitles = new Set<string>();
