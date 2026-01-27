@@ -37,6 +37,19 @@ export function buildGothBriefing(
     const startDate = new Date(now.getTime() - hoursBack * 60 * 60 * 1000);
     const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`;
 
+    // Dashboard URL for tracking links
+    const dashboardUrl = 'https://pratiyushc.github.io/Woodmont-Industrial-News-Briefing';
+
+    // Extract a trackable keyword from title
+    const extractTrackKeyword = (title: string): string => {
+        const companyMatch = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/);
+        if (companyMatch) return companyMatch[0];
+        const locationMatch = title.match(/(New\s+Jersey|New\s+York|South\s+Florida|Pennsylvania|Miami-Dade|Broward|Philadelphia|Newark)/i);
+        if (locationMatch) return locationMatch[0];
+        const words = title.split(' ').slice(0, 3).join(' ');
+        return words.length > 5 ? words : title.substring(0, 30);
+    };
+
     // Helper to format a single bullet item - executive light theme with full details
     const formatBullet = (item: NormalizedItem): string => {
         const title = item.title || 'Untitled';
@@ -56,12 +69,16 @@ export function buildGothBriefing(
             ? rawDescription.substring(0, 177).replace(/\s+\S*$/, '') + '...'
             : rawDescription;
 
+        // Create tracking link
+        const trackKeyword = extractTrackKeyword(title);
+        const trackUrl = `${dashboardUrl}?track=${encodeURIComponent(trackKeyword)}`;
+
         return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
             <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
             ${description ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${description}</p>` : ''}
             <div style="margin-top: 8px;">
                 <a href="${url}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${source || 'source'} →</a>
-                <span style="font-size: 11px; color: #999; margin-left: 12px;">[Track] [Share] [Ignore]</span>
+                <span style="font-size: 11px; margin-left: 12px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <span style="color: #999;">[Share] [Ignore]</span></span>
             </div>
         </li>`;
     };

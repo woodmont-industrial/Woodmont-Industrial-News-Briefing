@@ -216,6 +216,179 @@ export function formatDateTime(dateString) {
     return date.toLocaleString();
 }
 
+// ============================================
+// ARTICLE TRACKING - localStorage-based
+// ============================================
+
+const TRACKED_TOPICS_KEY = 'woodmont_tracked_topics';
+const TRACKED_ARTICLES_KEY = 'woodmont_tracked_articles';
+
+/**
+ * Get all tracked topics from localStorage
+ * @returns {Array<{keyword: string, addedAt: string, articleTitle?: string}>}
+ */
+export function getTrackedTopics() {
+    try {
+        const stored = localStorage.getItem(TRACKED_TOPICS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error('Error reading tracked topics:', e);
+        return [];
+    }
+}
+
+/**
+ * Add a topic/keyword to track
+ * @param {string} keyword - The keyword or phrase to track
+ * @param {string} articleTitle - Optional title of the article that triggered this track
+ */
+export function addTrackedTopic(keyword, articleTitle = '') {
+    const topics = getTrackedTopics();
+    // Normalize keyword
+    const normalizedKeyword = keyword.toLowerCase().trim();
+
+    // Check if already tracking this keyword
+    if (topics.some(t => t.keyword.toLowerCase() === normalizedKeyword)) {
+        return false; // Already tracking
+    }
+
+    topics.push({
+        keyword: keyword.trim(),
+        addedAt: new Date().toISOString(),
+        articleTitle: articleTitle
+    });
+
+    try {
+        localStorage.setItem(TRACKED_TOPICS_KEY, JSON.stringify(topics));
+        return true;
+    } catch (e) {
+        console.error('Error saving tracked topic:', e);
+        return false;
+    }
+}
+
+/**
+ * Remove a tracked topic
+ * @param {string} keyword - The keyword to stop tracking
+ */
+export function removeTrackedTopic(keyword) {
+    const topics = getTrackedTopics();
+    const normalizedKeyword = keyword.toLowerCase().trim();
+    const filtered = topics.filter(t => t.keyword.toLowerCase() !== normalizedKeyword);
+
+    try {
+        localStorage.setItem(TRACKED_TOPICS_KEY, JSON.stringify(filtered));
+        return true;
+    } catch (e) {
+        console.error('Error removing tracked topic:', e);
+        return false;
+    }
+}
+
+/**
+ * Check if an article matches any tracked topics
+ * @param {Object} article - The article to check
+ * @returns {Array<string>} - Array of matching keywords
+ */
+export function getMatchingTrackedTopics(article) {
+    const topics = getTrackedTopics();
+    const matches = [];
+
+    const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
+
+    for (const topic of topics) {
+        if (searchText.includes(topic.keyword.toLowerCase())) {
+            matches.push(topic.keyword);
+        }
+    }
+
+    return matches;
+}
+
+/**
+ * Extract potential keywords from an article for tracking suggestions
+ * @param {Object} article - The article to extract keywords from
+ * @returns {Array<string>} - Array of suggested keywords
+ */
+export function extractTrackableKeywords(article) {
+    const keywords = [];
+    const title = article.title || '';
+
+    // Extract company/organization names (capitalized multi-word phrases)
+    const companyMatches = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/g) || [];
+    keywords.push(...companyMatches.slice(0, 3));
+
+    // Extract location names (common patterns)
+    const locationPatterns = [
+        /(?:in|at|near)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/gi,
+        /(New\s+Jersey|New\s+York|South\s+Florida|Pennsylvania|Miami-Dade|Broward)/gi
+    ];
+    for (const pattern of locationPatterns) {
+        const matches = title.match(pattern);
+        if (matches) keywords.push(...matches.slice(0, 2));
+    }
+
+    // Extract deal size mentions
+    const dealMatches = title.match(/\$[\d,.]+\s*(?:million|billion|M|B)?/gi) || [];
+    if (dealMatches.length > 0) {
+        keywords.push(...dealMatches.slice(0, 1));
+    }
+
+    // Extract square footage
+    const sfMatches = title.match(/[\d,]+\s*(?:SF|square\s*feet)/gi) || [];
+    if (sfMatches.length > 0) {
+        keywords.push(...sfMatches.slice(0, 1));
+    }
+
+    // Remove duplicates and clean up
+    const unique = [...new Set(keywords.map(k => k.trim()))];
+    return unique.filter(k => k.length > 2 && k.length < 50);
+}
+
+/**
+ * Mark an article as "seen" for tracking purposes
+ * @param {string} articleId - The article ID
+ */
+export function markArticleSeen(articleId) {
+    try {
+        const seen = JSON.parse(localStorage.getItem(TRACKED_ARTICLES_KEY) || '{}');
+        seen[articleId] = new Date().toISOString();
+        localStorage.setItem(TRACKED_ARTICLES_KEY, JSON.stringify(seen));
+    } catch (e) {
+        console.error('Error marking article seen:', e);
+    }
+}
+
+/**
+ * Check if an article has been seen before
+ * @param {string} articleId - The article ID
+ * @returns {boolean}
+ */
+export function isArticleSeen(articleId) {
+    try {
+        const seen = JSON.parse(localStorage.getItem(TRACKED_ARTICLES_KEY) || '{}');
+        return !!seen[articleId];
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * Get count of new articles matching tracked topics
+ * @param {Array} articles - All articles
+ * @returns {number} - Count of unseen articles matching tracked topics
+ */
+export function getNewMatchingArticlesCount(articles) {
+    let count = 0;
+    for (const article of articles) {
+        const matches = getMatchingTrackedTopics(article);
+        if (matches.length > 0 && !isArticleSeen(article.id || article.link)) {
+            count++;
+        }
+    }
+    return count;
+}
+
 export default {
     transformArticle,
     getUniqueSources,
@@ -223,5 +396,14 @@ export default {
     buildNewsletterHTML,
     getCategoryColors,
     formatDate,
-    formatDateTime
+    formatDateTime,
+    // Tracking functions
+    getTrackedTopics,
+    addTrackedTopic,
+    removeTrackedTopic,
+    getMatchingTrackedTopics,
+    extractTrackableKeywords,
+    markArticleSeen,
+    isArticleSeen,
+    getNewMatchingArticlesCount
 };

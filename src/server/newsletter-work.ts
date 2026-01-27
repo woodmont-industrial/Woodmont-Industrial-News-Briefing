@@ -20,6 +20,24 @@ export function buildWorkBriefing(
         day: 'numeric'
     });
 
+    // Dashboard URL for tracking links
+    const dashboardUrl = 'https://pratiyushc.github.io/Woodmont-Industrial-News-Briefing';
+
+    // Extract a trackable keyword from title (company name, location, etc.)
+    const extractTrackKeyword = (title: string): string => {
+        // Try to extract company/organization names (multi-word capitalized)
+        const companyMatch = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/);
+        if (companyMatch) return companyMatch[0];
+
+        // Try to extract location names
+        const locationMatch = title.match(/(New\s+Jersey|New\s+York|South\s+Florida|Pennsylvania|Miami-Dade|Broward|Philadelphia|Newark)/i);
+        if (locationMatch) return locationMatch[0];
+
+        // Fall back to first few significant words
+        const words = title.split(' ').slice(0, 3).join(' ');
+        return words.length > 5 ? words : title.substring(0, 30);
+    };
+
     // Format a single article bullet
     const formatBullet = (item: NormalizedItem): string => {
         const title = item.title || 'Untitled';
@@ -46,8 +64,12 @@ export function buildWorkBriefing(
             }
         }
 
+        // Create tracking link
+        const trackKeyword = extractTrackKeyword(title);
+        const trackUrl = `${dashboardUrl}?track=${encodeURIComponent(trackKeyword)}`;
+
         return `<li style="margin-bottom: 14px; line-height: 1.6; color: #333;">
-            ${displayText} <a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a> [Track]
+            ${displayText} <a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a> <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 12px;">[Track]</a>
         </li>`;
     };
 
