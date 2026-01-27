@@ -9,6 +9,7 @@ import { log } from '../server/logging.js';
 import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySource } from '../feeds/fetcher.js';
 import { NormalizedItem, FetchResult } from '../types/index.js';
 import { RSS_FEEDS } from '../feeds/config.js';
+import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
 
 // Directory for static output
 const DOCS_DIR = path.join(process.cwd(), 'docs');
@@ -160,6 +161,7 @@ export async function buildStaticRSS(): Promise<void> {
         const excludeContent = [
             // Sports & Entertainment
             'SOCCER', 'FOOTBALL', 'BASEBALL', 'BASKETBALL', 'SPORTS FRANCHISE', 'YOUTH SPORTS',
+            'SUPER BOWL', 'WORLD SERIES', 'PLAYOFFS', 'CHAMPIONSHIP', 'NHL', 'MLB', 'NFL', 'NBA',
             // Retail
             'RESTAURANT', 'COFFEE SHOP', 'RETAIL STORE', 'SHOPPING CENTER', 'MALL', 'RETAIL LEASE',
             // Residential/Multifamily
@@ -171,7 +173,19 @@ export async function buildStaticRSS(): Promise<void> {
             // Institutional
             'SCHOOL', 'UNIVERSITY', 'HOSPITAL', 'MEDICAL CENTER', 'CHURCH', 'SENIOR LIVING', 'NURSING HOME',
             // Self-storage (exclude standalone)
-            'SELF-STORAGE', 'MINI STORAGE'
+            'SELF-STORAGE', 'MINI STORAGE',
+            // POLITICAL CONTENT - STRICT EXCLUSION
+            'TRUMP', 'BIDEN', 'PRESIDENT TRUMP', 'PRESIDENT BIDEN', 'WHITE HOUSE',
+            'EXECUTIVE ORDER', 'TARIFF WAR', 'TRADE WAR', 'CONGRESS', 'SENATE',
+            'REPUBLICAN', 'DEMOCRAT', 'ELECTION', 'POLITICAL',
+            // INTERNATIONAL MARKETS - STRICT EXCLUSION
+            'INDIA', 'CHINA', 'UK', 'EUROPE', 'ASIA', 'MEXICO', 'CANADA',
+            'LONDON', 'BEIJING', 'SHANGHAI', 'MUMBAI', 'DELHI', 'TOKYO',
+            'HONG KONG', 'SINGAPORE', 'DUBAI', 'AUSTRALIA', 'GERMANY', 'FRANCE',
+            'BRITISH', 'CHINESE', 'INDIAN', 'EUROPEAN', 'ASIAN',
+            // CRYPTO/TECH NON-CRE
+            'CRYPTOCURRENCY', 'BITCOIN', 'CRYPTO', 'NFT', 'BLOCKCHAIN',
+            'IPO', 'STOCK PRICE', 'EARNINGS REPORT', 'QUARTERLY EARNINGS'
         ];
 
         // Industrial property keywords (what to INCLUDE)
@@ -369,12 +383,50 @@ export async function buildStaticRSS(): Promise<void> {
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
 
+        // === AI FILTERING (if OPENAI_API_KEY is set) ===
+        let aiFilteredItems = filteredNewItems;
+        if (process.env.OPENAI_API_KEY) {
+            log('info', 'Running AI classification on articles...');
+            try {
+                const aiResult = await filterArticlesWithAI(filteredNewItems, 35); // 35% minimum relevance
+                aiFilteredItems = aiResult.included;
+
+                // Log AI filtering stats
+                const excludedByAI = aiResult.excluded.length;
+                const categoryBreakdown: Record<string, number> = {};
+                for (const [_, classification] of aiResult.classifications) {
+                    categoryBreakdown[classification.category] = (categoryBreakdown[classification.category] || 0) + 1;
+                }
+
+                log('info', `AI classification complete`, {
+                    totalClassified: aiResult.classifications.size,
+                    included: aiFilteredItems.length,
+                    excludedByAI,
+                    categories: categoryBreakdown
+                });
+
+                // Log some examples of excluded articles
+                const excludedExamples = aiResult.excluded.slice(0, 3).map(a => ({
+                    title: (a.title || '').substring(0, 50),
+                    reason: (a as any)._aiClassification?.reason || 'unknown'
+                }));
+                if (excludedExamples.length > 0) {
+                    log('info', 'AI excluded examples', { examples: excludedExamples });
+                }
+            } catch (error) {
+                log('warn', 'AI classification failed, using rule-based filtering only', { error: String(error) });
+                aiFilteredItems = filteredNewItems;
+            }
+        } else {
+            log('info', 'OPENAI_API_KEY not set, skipping AI classification');
+        }
+
         // Deduplication - only keep truly new items (check ID, URL, AND title)
         const seenUrls = new Set<string>();
         const seenTitles = new Set<string>();
         const existingTitles = new Set(existingArticles.map(a => normalizeTitle(a.title || '')));
-        
-        const newItems = filteredNewItems.filter(item => {
+
+        const newItems = aiFilteredItems.filter(item => {
             const normalizedUrl = normalizeUrlForDedupe(item.link || item.canonicalUrl || '');
             const normalizedTitle = normalizeTitle(item.title || '');
             
@@ -399,8 +451,8 @@ export async function buildStaticRSS(): Promise<void> {
         });
         
         log('info', `Found ${newItems.length} NEW unique articles`, {
-            beforeDedupe: filteredNewItems.length,
-            duplicatesRemoved: filteredNewItems.length - newItems.length
+            beforeDedupe: aiFilteredItems.length,
+            duplicatesRemoved: aiFilteredItems.length - newItems.length
         });
 
         // === STEP 3: Merge new + existing articles ===

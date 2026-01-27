@@ -389,6 +389,105 @@ export function getNewMatchingArticlesCount(articles) {
     return count;
 }
 
+// ============================================
+// ARTICLE IGNORE - localStorage-based
+// ============================================
+
+const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
+
+/**
+ * Get all ignored topics from localStorage
+ * @returns {Array<{keyword: string, addedAt: string}>}
+ */
+export function getIgnoredTopics() {
+    try {
+        const stored = localStorage.getItem(IGNORED_TOPICS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error('Error reading ignored topics:', e);
+        return [];
+    }
+}
+
+/**
+ * Add a topic/keyword to ignore
+ * @param {string} keyword - The keyword or phrase to ignore
+ */
+export function addIgnoredTopic(keyword) {
+    const topics = getIgnoredTopics();
+    const normalizedKeyword = keyword.toLowerCase().trim();
+
+    // Check if already ignoring this keyword
+    if (topics.some(t => t.keyword.toLowerCase() === normalizedKeyword)) {
+        return false; // Already ignoring
+    }
+
+    topics.push({
+        keyword: keyword.trim(),
+        addedAt: new Date().toISOString()
+    });
+
+    try {
+        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(topics));
+        return true;
+    } catch (e) {
+        console.error('Error saving ignored topic:', e);
+        return false;
+    }
+}
+
+/**
+ * Remove an ignored topic
+ * @param {string} keyword - The keyword to stop ignoring
+ */
+export function removeIgnoredTopic(keyword) {
+    const topics = getIgnoredTopics();
+    const normalizedKeyword = keyword.toLowerCase().trim();
+    const filtered = topics.filter(t => t.keyword.toLowerCase() !== normalizedKeyword);
+
+    try {
+        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(filtered));
+        return true;
+    } catch (e) {
+        console.error('Error removing ignored topic:', e);
+        return false;
+    }
+}
+
+/**
+ * Check if an article matches any ignored topics
+ * @param {Object} article - The article to check
+ * @returns {boolean} - True if article should be hidden
+ */
+export function isArticleIgnored(article) {
+    const topics = getIgnoredTopics();
+    if (topics.length === 0) return false;
+
+    const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
+
+    return topics.some(topic => searchText.includes(topic.keyword.toLowerCase()));
+}
+
+/**
+ * Get list of ignored keywords that match an article
+ * @param {Object} article - The article to check
+ * @returns {Array<string>} - Array of matching ignored keywords
+ */
+export function getMatchingIgnoredTopics(article) {
+    const topics = getIgnoredTopics();
+    const matches = [];
+
+    const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
+
+    for (const topic of topics) {
+        if (searchText.includes(topic.keyword.toLowerCase())) {
+            matches.push(topic.keyword);
+        }
+    }
+
+    return matches;
+}
+
 export default {
     transformArticle,
     getUniqueSources,
@@ -405,5 +504,11 @@ export default {
     extractTrackableKeywords,
     markArticleSeen,
     isArticleSeen,
-    getNewMatchingArticlesCount
+    getNewMatchingArticlesCount,
+    // Ignore functions
+    getIgnoredTopics,
+    addIgnoredTopic,
+    removeIgnoredTopic,
+    isArticleIgnored,
+    getMatchingIgnoredTopics
 };

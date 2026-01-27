@@ -125,10 +125,37 @@ export const GEOGRAPHY_KEYWORDS = [
 ];
 
 export const EXCLUSION_KEYWORDS = [
+    // Non-industrial property types
     "apartment", "multifamily", "condo", "single-family", "homebuilder",
     "hotel", "hospitality", "self-storage", "self storage",
     "office building", "office lease", "office space", "class a office",
-    "retail center", "shopping center", "strip mall", "outlet mall"
+    "retail center", "shopping center", "strip mall", "outlet mall",
+    // Political content - EXCLUDE
+    "trump", "biden", "president trump", "president biden", "white house",
+    "congress", "senate", "republican", "democrat", "political", "election",
+    "executive order", "administration", "tariff war", "trade war",
+    // International markets - EXCLUDE (unless port-related)
+    "india", "china", "uk", "europe", "asia", "mexico", "canada",
+    "london", "beijing", "shanghai", "mumbai", "delhi", "tokyo",
+    "hong kong", "singapore", "dubai", "australia", "germany", "france",
+    // Non-CRE business news
+    "stock price", "earnings report", "quarterly earnings", "ipo",
+    "cryptocurrency", "bitcoin", "crypto", "nft",
+    "layoffs", "job cuts", "workforce reduction",
+    // Sports/Entertainment
+    "super bowl", "world series", "playoffs", "championship",
+    "movie", "film", "streaming", "netflix", "disney",
+    // Consumer/Retail
+    "black friday", "cyber monday", "holiday shopping", "consumer spending"
+];
+
+// Strict out-of-market exclusions - articles from these regions without NJ/PA/FL tie-in
+export const OUT_OF_MARKET_KEYWORDS = [
+    "california", "los angeles", "san francisco", "bay area", "silicon valley",
+    "seattle", "portland", "denver", "phoenix", "las vegas",
+    "chicago", "detroit", "minneapolis", "st. louis", "kansas city",
+    "atlanta", "nashville", "charlotte", "raleigh", "virginia",
+    "boston", "connecticut", "massachusetts"
 ];
 
 // Helper functions for deal signals detection - ENHANCED
