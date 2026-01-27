@@ -28,13 +28,14 @@ jobs:
     - name: Install dependencies
       run: npm install --prefer-offline --no-audit
     
-    - name: Build RSS feeds
+    - name: Build RSS feeds with AI classification
       run: |
-        echo "📰 Starting RSS feed build..."
+        echo "📰 Starting RSS feed build with AI classification..."
         npm run build-static
         echo "✅ Build step completed"
       env:
         NODE_ENV: production
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       timeout-minutes: 10
     
     - name: Verify build output
