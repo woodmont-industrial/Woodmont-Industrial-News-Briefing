@@ -846,7 +846,7 @@ export const RSS_FEEDS: FeedConfig[] = [
     // ============================================
 
     // SupplyChainBrain - Logistics & Supply Chain News
-,{
+{
       url: "https://www.supplychainbrain.com/rss/articles",
       name: "SupplyChainBrain",
       region: "US",
