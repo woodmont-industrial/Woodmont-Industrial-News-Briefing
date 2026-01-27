@@ -321,15 +321,32 @@
       </>
     );
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword }) => {
+    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreKeyword }) => {
       const fallback = "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400&h=300&fit=crop&crop=center";
       const [imgSrc, setImgSrc] = useState(item.image || fallback);
-      const [showTrackMenu, setShowTrackMenu] = useState(false);
+      const [showActionMenu, setShowActionMenu] = useState(false);
 
       const published = item.pubDate ? new Date(item.pubDate) : null;
       const isValidDate = published && !isNaN(published.getTime());
       const isTracked = trackedMatches.length > 0;
       const suggestedKeywords = extractTrackableKeywords(item);
+
+      // Quick track - uses first suggested keyword or source
+      const quickTrack = () => {
+        const keyword = suggestedKeywords[0] || item.source || item.title?.split(' ').slice(0, 2).join(' ');
+        if (keyword) {
+          onTrackKeyword && onTrackKeyword(keyword, item.title);
+        }
+      };
+
+      // Quick ignore - uses source or first keyword
+      const quickIgnore = () => {
+        const keyword = item.source || suggestedKeywords[0] || item.title?.split(' ').slice(0, 2).join(' ');
+        if (keyword) {
+          onIgnoreKeyword && onIgnoreKeyword(keyword);
+          setShowActionMenu(false);
+        }
+      };
 
       return (
         <article
@@ -406,59 +423,117 @@
                 Read more →
               </a>
 
-              {/* Track Button */}
-              <div className="track-menu-container relative">
+              {/* Action Buttons */}
+              <div className="track-menu-container relative flex items-center gap-2">
+                {/* Track Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowTrackMenu(!showTrackMenu);
+                    if (isTracked) {
+                      setShowActionMenu(!showActionMenu);
+                    } else {
+                      quickTrack();
+                    }
                   }}
-                  className={`track-btn px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                  className={`track-btn px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                     isTracked
-                      ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-300'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 hover:text-emerald-700'
+                      ? 'bg-emerald-500 text-white border border-emerald-600'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-500 hover:text-white'
                   }`}
                 >
-                  {isTracked ? `Tracking (${trackedMatches.length})` : 'Track'}
+                  {isTracked ? 'TRACKING' : 'Track'}
                 </button>
 
-                {/* Track Menu Dropdown */}
-                {showTrackMenu && (
+                {/* Ignore Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowActionMenu(!showActionMenu);
+                  }}
+                  className="px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-red-100 hover:text-red-600 transition-all"
+                >
+                  Ignore
+                </button>
+
+                {/* Action Menu Dropdown */}
+                {showActionMenu && (
                   <div
-                    className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-50"
+                    className="absolute right-0 bottom-full mb-2 w-72 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
-                      Track keywords from this article:
+                    {/* Track Section */}
+                    <div className="mb-3">
+                      <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                        TRACK - Follow similar articles:
+                      </div>
+                      {suggestedKeywords.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {suggestedKeywords.map((kw, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                onTrackKeyword && onTrackKeyword(kw, item.title);
+                                setShowActionMenu(false);
+                              }}
+                              className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded text-xs hover:bg-emerald-500 hover:text-white transition-colors"
+                            >
+                              + {kw}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            onTrackKeyword && onTrackKeyword(item.source || 'topic', item.title);
+                            setShowActionMenu(false);
+                          }}
+                          className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded text-xs hover:bg-emerald-500 hover:text-white transition-colors"
+                        >
+                          + Track "{item.source || 'this topic'}"
+                        </button>
+                      )}
+                      {isTracked && (
+                        <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+                          Currently tracking: {trackedMatches.join(', ')}
+                        </div>
+                      )}
                     </div>
-                    {suggestedKeywords.length > 0 ? (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {suggestedKeywords.map((kw, idx) => (
+
+                    {/* Ignore Section */}
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-3">
+                      <div className="text-xs font-bold text-red-600 dark:text-red-400 mb-2">
+                        IGNORE - Hide similar articles:
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {item.source && (
+                          <button
+                            onClick={() => {
+                              onIgnoreKeyword && onIgnoreKeyword(item.source);
+                              setShowActionMenu(false);
+                            }}
+                            className="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs hover:bg-red-500 hover:text-white transition-colors"
+                          >
+                            Hide "{item.source}"
+                          </button>
+                        )}
+                        {suggestedKeywords.slice(0, 2).map((kw, idx) => (
                           <button
                             key={idx}
                             onClick={() => {
-                              onTrackKeyword && onTrackKeyword(kw, item.title);
-                              setShowTrackMenu(false);
+                              onIgnoreKeyword && onIgnoreKeyword(kw);
+                              setShowActionMenu(false);
                             }}
-                            className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded text-xs hover:bg-emerald-100 dark:hover:bg-emerald-800 transition-colors"
+                            className="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs hover:bg-red-500 hover:text-white transition-colors"
                           >
-                            + {kw}
+                            Hide "{kw}"
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      <p className="text-xs text-slate-400 mb-2">No keywords detected</p>
-                    )}
-                    {isTracked && (
-                      <div className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
-                        <div className="text-xs text-emerald-600 dark:text-emerald-400">
-                          Matching: {trackedMatches.join(', ')}
-                        </div>
-                      </div>
-                    )}
+                    </div>
+
                     <button
-                      onClick={() => setShowTrackMenu(false)}
-                      className="mt-2 w-full text-xs text-slate-400 hover:text-slate-600"
+                      onClick={() => setShowActionMenu(false)}
+                      className="mt-3 w-full text-xs text-slate-400 hover:text-slate-600 py-1"
                     >
                       Close
                     </button>
@@ -471,32 +546,42 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword }) => {
+    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreKeyword, ignoredTopics }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
       };
 
+      // Filter out ignored articles
+      const visibleItems = items.filter(item => !isArticleIgnored(item));
+      const hiddenCount = items.length - visibleItems.length;
+
       return (
         <div className="max-w-6xl mx-auto px-4">
+          {hiddenCount > 0 && (
+            <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
+              {hiddenCount} article{hiddenCount !== 1 ? 's' : ''} hidden based on your ignore preferences
+            </div>
+          )}
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin text-4xl mb-4">⟳</div>
               <p className="text-slate-600 dark:text-slate-400">Loading articles...</p>
             </div>
-          ) : items.length === 0 ? (
+          ) : visibleItems.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {items.map(item => (
+              {visibleItems.map(item => (
                 <ArticleCard
                   key={item.id || item.link}
                   item={item}
                   onClick={onArticleClick}
                   trackedMatches={getArticleMatches(item)}
                   onTrackKeyword={onTrackKeyword}
+                  onIgnoreKeyword={onIgnoreKeyword}
                 />
               ))}
             </div>
@@ -895,10 +980,50 @@
       return [...new Set(keywords.map(k => k.trim()))].filter(k => k.length > 2 && k.length < 50);
     };
 
-    // Tracked Topics Panel Component
-    const TrackedTopicsPanel = ({ trackedTopics, onRemoveTopic, onAddTopic, matchingCount }) => {
+    // ============================================
+    // IGNORE FUNCTIONS
+    // ============================================
+    const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
+
+    const getIgnoredTopics = () => {
+      try {
+        const stored = localStorage.getItem(IGNORED_TOPICS_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) { return []; }
+    };
+
+    const addIgnoredTopic = (keyword) => {
+      const topics = getIgnoredTopics();
+      const normalizedKeyword = keyword.toLowerCase().trim();
+      if (topics.some(t => t.keyword.toLowerCase() === normalizedKeyword)) return false;
+      topics.push({ keyword: keyword.trim(), addedAt: new Date().toISOString() });
+      try {
+        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(topics));
+        return true;
+      } catch (e) { return false; }
+    };
+
+    const removeIgnoredTopic = (keyword) => {
+      const topics = getIgnoredTopics();
+      const filtered = topics.filter(t => t.keyword.toLowerCase() !== keyword.toLowerCase().trim());
+      try {
+        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(filtered));
+        return true;
+      } catch (e) { return false; }
+    };
+
+    const isArticleIgnored = (article) => {
+      const topics = getIgnoredTopics();
+      if (topics.length === 0) return false;
+      const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
+      return topics.some(t => searchText.includes(t.keyword.toLowerCase()));
+    };
+
+    // Tracked & Ignored Topics Panel Component
+    const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, onRemoveTopic, onAddTopic, onRemoveIgnored, matchingCount }) => {
       const [newTopic, setNewTopic] = useState('');
       const [isExpanded, setIsExpanded] = useState(true);
+      const [activeTab, setActiveTab] = useState('tracked'); // 'tracked' or 'ignored'
 
       const handleAddTopic = () => {
         if (newTopic.trim()) {
@@ -914,10 +1039,15 @@
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold">Your Tracked Topics</span>
+              <span className="text-lg font-semibold">Your Preferences</span>
               {matchingCount > 0 && (
                 <span className="bg-white text-emerald-600 text-xs font-bold px-2 py-1 rounded-full">
-                  {matchingCount} new match{matchingCount !== 1 ? 'es' : ''}
+                  {matchingCount} tracking
+                </span>
+              )}
+              {ignoredTopics.length > 0 && (
+                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                  {ignoredTopics.length} ignored
                 </span>
               )}
             </div>
@@ -926,35 +1056,32 @@
 
           {isExpanded && (
             <div className="p-4">
-              {/* Add new topic */}
+              {/* Tabs */}
               <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  value={newTopic}
-                  onChange={(e) => setNewTopic(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddTopic()}
-                  placeholder="Add keyword to track (e.g., 'Prologis', 'South Florida')"
-                  className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 outline-none text-slate-900 dark:text-white"
-                />
                 <button
-                  onClick={handleAddTopic}
-                  className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors"
+                  onClick={() => setActiveTab('tracked')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'tracked'
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  }`}
                 >
-                  + Track
+                  Tracking ({trackedTopics.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('ignored')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'ignored'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  }`}
+                >
+                  Ignored ({ignoredTopics.length})
                 </button>
               </div>
 
-              {/* Tracked topics list */}
-              {trackedTopics.length === 0 ? (
-                <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                  No topics tracked yet. Click "Track" on any article or add keywords above to get started.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {trackedTopics.map((topic, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-full px-3 py-1"
+              {activeTab === 'tracked' && (
+                <>
                     >
                       <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{topic.keyword}</span>
                       <button
@@ -965,12 +1092,42 @@
                         ×
                       </button>
                     </div>
-                  ))}
-                </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeTab === 'ignored' && (
+                <>
+                  {ignoredTopics.length === 0 ? (
+                    <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
+                      No topics ignored. Click "Ignore" on articles to hide similar content.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {ignoredTopics.map((topic, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full px-3 py-1"
+                        >
+                          <span className="text-sm font-medium text-red-700 dark:text-red-300">{topic.keyword}</span>
+                          <button
+                            onClick={() => onRemoveIgnored(topic.keyword)}
+                            className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none"
+                            title="Stop ignoring"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
               <p className="text-xs text-slate-400 mt-3">
-                Tracked topics are stored in your browser. Articles matching these keywords will be highlighted.
+                Preferences are stored in your browser. Tracked articles are highlighted, ignored articles are hidden.
               </p>
             </div>
           )}
@@ -1331,6 +1488,23 @@
         }
         return count;
       }, [items, trackedTopics]);
+
+      // Ignore state
+      const [ignoredTopics, setIgnoredTopics] = useState(() => getIgnoredTopics());
+
+      // Ignore handlers
+      const handleIgnoreKeyword = useCallback((keyword) => {
+        if (addIgnoredTopic(keyword)) {
+          setIgnoredTopics(getIgnoredTopics());
+          console.log(`Now ignoring: ${keyword}`);
+        }
+      }, []);
+
+      const handleRemoveIgnoredTopic = useCallback((keyword) => {
+        if (removeIgnoredTopic(keyword)) {
+          setIgnoredTopics(getIgnoredTopics());
+        }
+      }, []);
 
       // Handle tracking from URL parameters (for newsletter links)
       useEffect(() => {
@@ -1906,12 +2080,14 @@
           />
           {viewMode === "articles" ? (
               <>
-                {/* Tracked Topics Panel */}
+                {/* Tracked & Ignored Topics Panel */}
                 <div className="max-w-6xl mx-auto px-4 mb-4">
                   <TrackedTopicsPanel
                     trackedTopics={trackedTopics}
+                    ignoredTopics={ignoredTopics}
                     onRemoveTopic={handleRemoveTrackedTopic}
                     onAddTopic={handleTrackKeyword}
+                    onRemoveIgnored={handleRemoveIgnoredTopic}
                     matchingCount={matchingArticlesCount}
                   />
                 </div>
@@ -1920,7 +2096,9 @@
                   loading={loading || refreshLoading}
                   onArticleClick={handleArticleClick}
                   trackedTopics={trackedTopics}
+                  ignoredTopics={ignoredTopics}
                   onTrackKeyword={handleTrackKeyword}
+                  onIgnoreKeyword={handleIgnoreKeyword}
                 />
               </>
             ) : viewMode === "newsletter" ? (
