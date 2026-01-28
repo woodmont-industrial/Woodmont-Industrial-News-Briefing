@@ -25,30 +25,43 @@ export interface AIClassificationResult {
 }
 
 // System prompt for the classifier
-const SYSTEM_PROMPT = `You are an article classifier for Woodmont Industrial Partners. You focus on real estate news in THREE states: New Jersey, Pennsylvania, and Florida.
+const SYSTEM_PROMPT = `You are an article classifier for Woodmont Industrial Partners. You focus on real estate news relevant to THREE states: New Jersey, Pennsylvania, and Florida.
 
 CLASSIFY INTO ONE CATEGORY:
 
-1. "relevant" - Real estate market news that mentions NJ, PA, or FL specifically, OR national trends affecting these markets
-2. "transactions" - Property SALES or LEASES that are PHYSICALLY LOCATED in NJ, PA, or FL
-3. "availabilities" - Properties FOR SALE/LEASE in NJ, PA, or FL only
-4. "people" - Personnel moves at CRE firms operating in NJ, PA, or FL
-5. "exclude" - EVERYTHING ELSE
+1. "relevant" - Real estate market news:
+   - Articles mentioning NJ, PA, or FL cities/counties/regions
+   - National CRE trends that impact NJ/PA/FL markets (interest rates, cap rates, industrial demand, e-commerce logistics)
+   - Major players active in NJ/PA/FL (Prologis, Duke Realty, Blackstone, CBRE, JLL, Cushman, Colliers)
+   - Market reports, economic news, construction trends
 
-MUST EXCLUDE (classify as "exclude"):
-- ANY article about states OTHER than NJ, PA, FL (Texas, California, Indiana, Ohio, Georgia, etc.)
-- Political news (Trump, Biden, tariffs, elections, executive orders, Congress)
-- Company expansions in OTHER states (even if company is from NJ/PA/FL)
+2. "transactions" - Property SALES or LEASES:
+   - Deals in NJ/PA/FL regardless of size
+   - Acquisitions, dispositions, leases signed
+   - Include even without specific $ or SF mentioned
 
-LOCATION CHECK:
-- "Company X expands in Texas" = EXCLUDE (wrong state)
-- "NJ-based company buys property in Indiana" = EXCLUDE (property not in NJ/PA/FL)
-- "Warehouse sold in New Jersey" = transactions (correct)
-- "Miami real estate market report" = relevant (correct)
-- "Philadelphia office building sold" = transactions (correct - PA is included)
-- "Tampa retail center leased" = transactions (correct - FL is included)
+3. "availabilities" - Properties FOR SALE/LEASE:
+   - Any listing in NJ/PA/FL markets
+   - Properties hitting the market, newly marketed
+   - Include ALL availability news regardless of size
 
-If article is about NJ, PA, or FL real estate and is NOT political, INCLUDE it.
+4. "people" - Personnel moves in CRE:
+   - Hires, promotions, appointments at firms active in NJ/PA/FL
+   - Include national firms with NJ/PA/FL operations
+   - Executive moves, team expansions, new offices
+
+5. "exclude" - ONLY these:
+   - Articles PRIMARILY about other states with NO NJ/PA/FL relevance
+   - Political news (Trump, Biden, tariffs, elections, executive orders)
+   - Purely residential single-family home news
+
+LOCATION FLEXIBILITY:
+- Include if mentions NJ/PA/FL cities: Newark, Jersey City, Edison, Trenton, Camden, Meadowlands, Exit 8A, Philadelphia, Pittsburgh, Lehigh Valley, Miami, Tampa, Orlando, Jacksonville, Fort Lauderdale, etc.
+- Include if mentions NJ/PA/FL counties: Bergen, Middlesex, Monmouth, Morris, Burlington, Camden, Gloucester, Bucks, Chester, Montgomery, Broward, Miami-Dade, Palm Beach, etc.
+- Include national trends/major players even without specific state mention
+- When in doubt, INCLUDE rather than exclude
+
+BE INCLUSIVE: The goal is to capture 10-15% of articles, not 2%. Include anything potentially relevant.
 
 Respond in JSON only.`;
 
@@ -164,7 +177,7 @@ export async function batchClassifyWithAI(
     } = {}
 ): Promise<Map<string, AIClassificationResult>> {
     const {
-        minRelevanceScore = 30,
+        minRelevanceScore = 25,
         maxConcurrent = 5, // Groq has generous rate limits
         delayMs = 200
     } = options;
@@ -207,7 +220,7 @@ export async function batchClassifyWithAI(
  */
 export async function filterArticlesWithAI(
     articles: NormalizedItem[],
-    minRelevanceScore: number = 40
+    minRelevanceScore: number = 25
 ): Promise<{
     included: NormalizedItem[];
     excluded: NormalizedItem[];
