@@ -208,10 +208,13 @@ export async function buildStaticRSS(): Promise<void> {
         const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey',
             'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
 
+        // Boss-preferred sources - VERY LIGHT filter (only exclude political, include everything else)
+        const bossPreferredSources = ['globest.com'];
+
         // Trusted national sources (include if industrial context present)
         const trustedNationalSources = ['news.google.com', 'bloomberg.com', 'wsj.com', 'reuters.com',
             'freightwaves.com', 'supplychaindive.com', 'dcvelocity.com', 'areadevelopment.com',
-            'bisnow.com/national', 'globest.com', 'commercialcafe.com', 'prologis.com',
+            'bisnow.com/national', 'commercialcafe.com', 'prologis.com',
             'crexi.com', 'ten-x.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com'];
 
         // Check if article should be included
@@ -222,6 +225,23 @@ export async function buildStaticRSS(): Promise<void> {
             // Also check source name for Google News items
             const sourceName = (item.source || '').toLowerCase();
 
+            // Check for excluded content (political only now)
+            const hasExcludedContent = excludeContent.some(c => text.includes(c));
+
+            // Exclude political content from ALL sources
+            if (hasExcludedContent) {
+                log('info', `EXCLUDED (political): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // BOSS PREFERRED SOURCES (e.g., GlobeSt) - VERY LIGHT FILTER
+            // Only exclude political content, include everything else regardless of state
+            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
+            if (isBossPreferred) {
+                log('info', `INCLUDED (boss preferred - GlobeSt): ${item.title?.substring(0, 60)}`);
+                return true;
+            }
+
             // Always include from regional sources
             const isRegionalSource = regionalSources.some(s => url.includes(s));
 
@@ -229,17 +249,8 @@ export async function buildStaticRSS(): Promise<void> {
             const isTrustedNational = trustedNationalSources.some(s => url.includes(s) || sourceName.includes(s));
             const isGoogleNews = url.includes('news.google.com') || sourceName.includes('google news');
 
-            // Check for excluded content (political only now)
-            const hasExcludedContent = excludeContent.some(c => text.includes(c));
-
             // Check if has real estate context
             const hasRealEstateContext = realEstateKeywords.some(k => text.includes(k));
-
-            // Exclude political content
-            if (hasExcludedContent) {
-                log('info', `EXCLUDED (political): ${item.title?.substring(0, 60)}`);
-                return false;
-            }
 
             // Check for excluded states/cities
             const mentionsExcludedState = excludeStates.some(s => text.includes(s));
@@ -391,12 +402,26 @@ export async function buildStaticRSS(): Promise<void> {
             'texas', 'california', 'ohio', 'indiana', 'illinois', 'georgia', 'arizona',
             'tennessee', 'louisiana', 'colorado', 'washington', 'oregon', 'nevada',
             'carolina', 'virginia', 'maryland', 'michigan', 'wisconsin', 'minnesota',
+            'alabama', 'kentucky', 'arkansas', 'iowa', 'kansas', 'missouri', 'oklahoma',
+            'new mexico', 'utah', 'montana', 'idaho', 'wyoming', 'nebraska', 'connecticut',
+            'massachusetts', 'new york', 'maine', 'vermont', 'new hampshire', 'rhode island',
             'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis'
+            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
+            'birmingham', 'mobile', 'auburn', 'huntsville', 'louisville', 'baton rouge',
+            'new orleans', 'little rock', 'memphis', 'st. louis', 'kansas city', 'oklahoma city',
+            'albuquerque', 'salt lake', 'boise', 'boston', 'hartford', 'buffalo', 'albany'
         ];
 
         const regionallyValidated = aiFilteredItems.filter(item => {
             const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+            const url = (item.link || (item as any).url || '').toLowerCase();
+            const sourceName = (item.source || '').toLowerCase();
+
+            // BOSS PREFERRED SOURCES (GlobeSt) - skip state filtering entirely
+            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
+            if (isBossPreferred) {
+                return true; // Always include GlobeSt
+            }
 
             // Check if it mentions wrong states (and doesn't mention NJ/PA/FL)
             const hasWrongState = wrongStateKeywords.some(kw => text.includes(kw));
@@ -481,8 +506,14 @@ export async function buildStaticRSS(): Promise<void> {
             'texas', 'california', 'ohio', 'indiana', 'illinois', 'georgia', 'arizona',
             'tennessee', 'louisiana', 'colorado', 'washington', 'oregon', 'nevada',
             'carolina', 'virginia', 'maryland', 'michigan', 'wisconsin', 'minnesota',
+            'alabama', 'kentucky', 'arkansas', 'iowa', 'kansas', 'missouri', 'oklahoma',
+            'new mexico', 'utah', 'montana', 'idaho', 'wyoming', 'nebraska', 'connecticut',
+            'massachusetts', 'new york', 'maine', 'vermont', 'new hampshire', 'rhode island',
             'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis'
+            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
+            'birmingham', 'mobile', 'auburn', 'huntsville', 'louisville', 'baton rouge',
+            'new orleans', 'little rock', 'memphis', 'st. louis', 'kansas city', 'oklahoma city',
+            'albuquerque', 'salt lake', 'boise', 'boston', 'hartford', 'buffalo', 'albany'
         ];
         const njpaflKeywordsClean = [
             'new jersey', 'jersey', ' nj ', 'newark', 'edison', 'trenton', 'exit 8a',
@@ -498,11 +529,19 @@ export async function buildStaticRSS(): Promise<void> {
 
         const cleanMerged = mergedArticles.filter(item => {
             const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+            const url = (item.link || (item as any).url || '').toLowerCase();
+            const sourceName = (item.source || '').toLowerCase();
 
-            // Check for political content (exclude)
+            // Check for political content (exclude from ALL sources including GlobeSt)
             if (politicalKeywords.some(kw => text.includes(kw))) {
                 log('info', `CLEANED (political): ${(item.title || '').substring(0, 50)}`);
                 return false;
+            }
+
+            // BOSS PREFERRED SOURCES (GlobeSt) - skip state filtering
+            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
+            if (isBossPreferred) {
+                return true; // Always include GlobeSt (already passed political check)
             }
 
             // Check wrong state vs right state

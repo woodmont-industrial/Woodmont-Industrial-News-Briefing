@@ -25,7 +25,74 @@ const MAX_FAILURES_BEFORE_BLOCK = 3;
 // ============================================
 // ENHANCED BROWSER HEADERS FOR BLOCKED FEEDS
 // ============================================
-// Use realistic Chrome 122 headers (latest stable as of 2026)
+// User-Agent pool for rotation - mix of Chrome, Firefox, Safari
+const USER_AGENT_POOL = [
+    // Chrome on Windows
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    // Chrome on Mac
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    // Firefox
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:123.0) Gecko/20100101 Firefox/123.0',
+    // Safari
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15',
+    // Edge
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0'
+];
+
+// Get rotating user agent (use URL hash for consistency per feed)
+function getRotatingUserAgent(seed?: string): string {
+    if (seed) {
+        // Use consistent UA per feed URL for better session handling
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return USER_AGENT_POOL[Math.abs(hash) % USER_AGENT_POOL.length];
+    }
+    return USER_AGENT_POOL[Math.floor(Math.random() * USER_AGENT_POOL.length)];
+}
+
+// Build stealth headers with rotating UA
+function buildStealthHeaders(url: string): Record<string, string> {
+    const ua = getRotatingUserAgent(url);
+    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+    const isFirefox = ua.includes('Firefox');
+
+    const headers: Record<string, string> = {
+        "User-Agent": ua,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "max-age=0",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
+    };
+
+    // Add browser-specific headers
+    if (isChrome) {
+        headers["Sec-Ch-Ua"] = '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"';
+        headers["Sec-Ch-Ua-Mobile"] = "?0";
+        headers["Sec-Ch-Ua-Platform"] = ua.includes('Windows') ? '"Windows"' : '"macOS"';
+        headers["Sec-Fetch-Dest"] = "document";
+        headers["Sec-Fetch-Mode"] = "navigate";
+        headers["Sec-Fetch-Site"] = "none";
+        headers["Sec-Fetch-User"] = "?1";
+    } else if (isFirefox) {
+        headers["Sec-Fetch-Dest"] = "document";
+        headers["Sec-Fetch-Mode"] = "navigate";
+        headers["Sec-Fetch-Site"] = "none";
+        headers["Sec-Fetch-User"] = "?1";
+    }
+
+    return headers;
+}
+
+// Legacy constant for backward compatibility
 const STEALTH_BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
@@ -67,7 +134,7 @@ const SIMPLE_RSS_HEADERS = {
 // Domains that need simple RSS headers (content negotiation)
 const SIMPLE_ACCEPT_DOMAINS = ['feedblitz.com'];
 
-// Domains that commonly block automated requests
+// Domains that commonly block automated requests - these get stealth headers
 const BLOCKED_FEED_DOMAINS = [
     'connectcre.com',
     'bizjournals.com',
@@ -76,7 +143,11 @@ const BLOCKED_FEED_DOMAINS = [
     'njbiz.com',
     'prologis.com',
     'traded.co',
-    'commercialsearch.com'
+    'commercialsearch.com',
+    'rejournals.com',
+    'roi-nj.com',
+    'lvb.com',
+    'credaily.com'
 ];
 
 // Rate limiting settings
@@ -108,17 +179,18 @@ function getHeadersForFeed(feed: FeedConfig): Record<string, string> {
         };
     }
     if (feed.headers) {
+        // Use rotating stealth headers with feed-specific overrides
         return {
-            ...STEALTH_BROWSER_HEADERS,
+            ...buildStealthHeaders(feed.url),
             ...feed.headers,
             "Referer": origin + "/",
             "Origin": origin
         };
     }
     if (needsStealthHeaders(feed.url)) {
-        // Add Referer and Origin for blocked domains (helps bypass some checks)
+        // Use rotating stealth headers for blocked domains
         return {
-            ...STEALTH_BROWSER_HEADERS,
+            ...buildStealthHeaders(feed.url),
             "Referer": origin + "/",
             "Origin": origin
         };
@@ -326,6 +398,12 @@ function computeId({ guid, canonicalUrl }: { guid?: string; canonicalUrl?: strin
     return require('crypto').createHash('sha1').update(basis).digest('hex');
 }
 
+// Add jitter to avoid thundering herd
+function addJitter(baseDelay: number, jitterFactor: number = 0.3): number {
+    const jitter = baseDelay * jitterFactor * (Math.random() * 2 - 1); // +/- 30%
+    return Math.max(100, baseDelay + jitter);
+}
+
 async function fetchWithRetry<T>(url: string, options: AxiosRequestConfig, attempts = 3): Promise<T> {
     let lastError: Error | AxiosError | undefined;
     for (let i = 0; i < attempts; i++) {
@@ -336,13 +414,39 @@ async function fetchWithRetry<T>(url: string, options: AxiosRequestConfig, attem
             lastError = err as AxiosError;
             const axiosErr = err as AxiosError;
             const status = axiosErr.response?.status;
-            if (status && status >= 400 && status < 500) {
-                // 4xx errors are non-retriable
+
+            // For 403, try with different headers on retry
+            if (status === 403 && i < attempts - 1) {
+                console.log(`🔄 [Retry] 403 on ${url}, retrying with different UA (attempt ${i + 2}/${attempts})...`);
+                // Use a different user agent on retry
+                const newUA = USER_AGENT_POOL[(Math.floor(Math.random() * USER_AGENT_POOL.length))];
+                options.headers = {
+                    ...options.headers,
+                    'User-Agent': newUA
+                };
+                // Exponential backoff with jitter for 403
+                const backoffDelay = addJitter(2000 * Math.pow(2, i));
+                await new Promise(res => setTimeout(res, backoffDelay));
+                continue;
+            }
+
+            // For other 4xx (except 429), don't retry
+            if (status && status >= 400 && status < 500 && status !== 429) {
                 throw err;
             }
-            // For timeouts or 5xx, retry with exponential backoff
-            const delay = 500 * Math.pow(2, i);
-            await new Promise(res => setTimeout(res, delay));
+
+            // For 429 (rate limit), use longer backoff
+            if (status === 429) {
+                const retryAfter = axiosErr.response?.headers?.['retry-after'];
+                const backoffDelay = retryAfter ? parseInt(retryAfter) * 1000 : addJitter(5000 * Math.pow(2, i));
+                console.log(`⏳ [Rate Limited] ${url}, waiting ${backoffDelay}ms before retry...`);
+                await new Promise(res => setTimeout(res, backoffDelay));
+                continue;
+            }
+
+            // For timeouts or 5xx, retry with exponential backoff + jitter
+            const backoffDelay = addJitter(500 * Math.pow(2, i));
+            await new Promise(res => setTimeout(res, backoffDelay));
         }
     }
     throw lastError;
@@ -452,7 +556,13 @@ const allowedDomains = [
     "commercialobserver.com",
     "rejournals.com",
     "naikeystone.com",
-    "naiplatform.com"
+    "naiplatform.com",
+
+    // Additional regional sources
+    "roi-nj.com",
+    "philadelphiabusinessjournal.com",
+    "floridatrend.com",
+    "southfloridabusinessjournal.com"
 ];
 
 // Generate a consistent fallback thumbnail based on URL hash
@@ -643,42 +753,98 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
                     xmlContent = fullBody;
                     // Continue to parse the XML content below
                 }
-                // Check if it's Cloudflare challenge - try Playwright fallback
-                else if (detectCloudflare(bodyPreview, 403)) {
-                    console.log(`🎭 [${feed.name}] Cloudflare detected - attempting Playwright fallback...`);
+                // First, try retrying with different headers before falling back to Playwright
+                else {
+                    let retrySuccess = false;
 
-                    const playwrightResult = await playwrightFetchRSS(feed.url, {
-                        status: response.status,
-                        body: bodyPreview
-                    });
+                    // Try up to 2 retries with different User-Agents
+                    for (let retryAttempt = 0; retryAttempt < 2 && !retrySuccess; retryAttempt++) {
+                        const alternativeUA = USER_AGENT_POOL[Math.floor(Math.random() * USER_AGENT_POOL.length)];
+                        console.log(`🔄 [${feed.name}] Retry ${retryAttempt + 1}/2 with different UA: ${alternativeUA.substring(0, 50)}...`);
 
-                    if (playwrightResult.success && playwrightResult.content) {
-                        console.log(`✅ [${feed.name}] Playwright fallback succeeded${playwrightResult.fromCache ? ' (from cache)' : ''}`);
-                        xmlContent = playwrightResult.content;
-                        // Continue to parse the XML content below
-                    } else {
-                        console.log(`❌ [${feed.name}] Playwright fallback failed: ${playwrightResult.error}`);
-                        markFeedBlocked(feed.url, `Cloudflare challenge - Playwright failed: ${playwrightResult.error}`, bodyPreview);
+                        // Wait with exponential backoff + jitter
+                        await new Promise(res => setTimeout(res, addJitter(1500 * Math.pow(2, retryAttempt))));
 
-                        const oldArticles = Array.from(itemStore.values()).filter(i => i.source === feed.name);
-                        return {
-                            status: 'error',
-                            articles: oldArticles,
-                            error: { type: 'blocked', message: 'Cloudflare challenge - Playwright failed', httpStatus: 403 },
-                            meta: { feed: feed.name, fetchedRaw: 0, kept: oldArticles.length, filteredOut: 0, durationMs: Date.now() - start }
-                        };
+                        try {
+                            const retryResponse = await axios.get(feed.url, {
+                                timeout,
+                                headers: {
+                                    ...buildStealthHeaders(feed.url + retryAttempt), // Different seed for different UA
+                                    'User-Agent': alternativeUA,
+                                    'Referer': new URL(feed.url).origin + '/',
+                                    'Origin': new URL(feed.url).origin
+                                },
+                                maxRedirects: 5,
+                                validateStatus: () => true,
+                                responseType: 'text'
+                            });
+
+                            if (retryResponse.status === 200) {
+                                const retryBody = String(retryResponse.data);
+                                if (retryBody.includes('<?xml') || retryBody.includes('<rss') || retryBody.includes('<feed')) {
+                                    console.log(`✅ [${feed.name}] Retry succeeded with different UA!`);
+                                    xmlContent = retryBody;
+                                    retrySuccess = true;
+                                }
+                            }
+                        } catch (retryErr) {
+                            console.log(`⚠️ [${feed.name}] Retry ${retryAttempt + 1} failed: ${(retryErr as Error).message}`);
+                        }
                     }
-                } else {
-                    // Not Cloudflare - regular 403
-                    markFeedBlocked(feed.url, '403 Forbidden - feed likely blocks automated access', bodyPreview);
 
-                    const oldArticles = Array.from(itemStore.values()).filter(i => i.source === feed.name);
-                    return {
-                        status: 'error',
-                        articles: oldArticles,
-                        error: { type: 'blocked', message: '403 Forbidden', httpStatus: 403 },
-                        meta: { feed: feed.name, fetchedRaw: 0, kept: oldArticles.length, filteredOut: 0, durationMs: Date.now() - start }
-                    };
+                    if (!retrySuccess) {
+                        // Check if it's Cloudflare challenge - try Playwright fallback
+                        if (detectCloudflare(bodyPreview, 403)) {
+                            console.log(`🎭 [${feed.name}] Cloudflare detected - attempting Playwright fallback...`);
+
+                            const playwrightResult = await playwrightFetchRSS(feed.url, {
+                                status: response.status,
+                                body: bodyPreview
+                            });
+
+                            if (playwrightResult.success && playwrightResult.content) {
+                                console.log(`✅ [${feed.name}] Playwright fallback succeeded${playwrightResult.fromCache ? ' (from cache)' : ''}`);
+                                xmlContent = playwrightResult.content;
+                                // Continue to parse the XML content below
+                            } else {
+                                console.log(`❌ [${feed.name}] Playwright fallback failed: ${playwrightResult.error}`);
+                                markFeedBlocked(feed.url, `Cloudflare challenge - Playwright failed: ${playwrightResult.error}`, bodyPreview);
+
+                                const oldArticles = Array.from(itemStore.values()).filter(i => i.source === feed.name);
+                                return {
+                                    status: 'error',
+                                    articles: oldArticles,
+                                    error: { type: 'blocked', message: 'Cloudflare challenge - Playwright failed', httpStatus: 403 },
+                                    meta: { feed: feed.name, fetchedRaw: 0, kept: oldArticles.length, filteredOut: 0, durationMs: Date.now() - start }
+                                };
+                            }
+                        } else {
+                            // Not Cloudflare - try Playwright anyway as last resort
+                            console.log(`🎭 [${feed.name}] 403 without Cloudflare indicators - trying Playwright as last resort...`);
+
+                            const playwrightResult = await playwrightFetchRSS(feed.url, {
+                                status: response.status,
+                                body: bodyPreview
+                            });
+
+                            if (playwrightResult.success && playwrightResult.content) {
+                                console.log(`✅ [${feed.name}] Playwright last resort succeeded${playwrightResult.fromCache ? ' (from cache)' : ''}`);
+                                xmlContent = playwrightResult.content;
+                                // Continue to parse the XML content below
+                            } else {
+                                // Regular 403 - block the feed
+                                markFeedBlocked(feed.url, '403 Forbidden - feed likely blocks automated access', bodyPreview);
+
+                                const oldArticles = Array.from(itemStore.values()).filter(i => i.source === feed.name);
+                                return {
+                                    status: 'error',
+                                    articles: oldArticles,
+                                    error: { type: 'blocked', message: '403 Forbidden', httpStatus: 403 },
+                                    meta: { feed: feed.name, fetchedRaw: 0, kept: oldArticles.length, filteredOut: 0, durationMs: Date.now() - start }
+                                };
+                            }
+                        }
+                    }
                 }
             }
             

@@ -22,14 +22,20 @@ const PLAYWRIGHT_ALLOWLIST = [
     'connectcre.com',
     'bizjournals.com',
     'commercialsearch.com',
-    'traded.co'
+    'traded.co',
+    'njbiz.com',
+    'rejournals.com',
+    'roi-nj.com',
+    'lvb.com',
+    'therealdeal.com',
+    'freightwaves.com'
 ];
 
-// Rate limiting: max headless runs per domain per day
-const MAX_RUNS_PER_DOMAIN_PER_DAY = 10;
+// Rate limiting: max headless runs per domain per day (increased for better coverage)
+const MAX_RUNS_PER_DOMAIN_PER_DAY = 20;
 
-// Cache TTL: 12 hours (in milliseconds)
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+// Cache TTL: 6 hours (in milliseconds) - shorter for fresher content
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 // Paths for persistence
 const DATA_DIR = path.join(process.cwd(), '.playwright-cache');
@@ -280,14 +286,52 @@ function setCachedContent(url: string, content: string): void {
 
 let browserInstance: Browser | null = null;
 
+// User agents pool - rotate for variety
+const USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15'
+];
+
+function getRandomUserAgent(): string {
+    return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
+
+// Random delay helper for human-like behavior
+function randomDelay(min: number, max: number): Promise<void> {
+    const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+
 async function getBrowser(): Promise<Browser> {
     if (!browserInstance) {
         browserInstance = await chromium.launch({
             headless: true,
             args: [
+                // Core stealth args
                 '--disable-blink-features=AutomationControlled',
                 '--disable-dev-shm-usage',
-                '--no-sandbox'
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                // Hide webdriver
+                '--disable-infobars',
+                '--window-size=1920,1080',
+                // Network and rendering
+                '--disable-background-networking',
+                '--disable-default-apps',
+                '--disable-extensions',
+                '--disable-sync',
+                '--disable-translate',
+                '--hide-scrollbars',
+                '--metrics-recording-only',
+                '--mute-audio',
+                '--no-first-run',
+                // Additional stealth
+                '--disable-web-security',
+                '--allow-running-insecure-content',
+                '--disable-features=IsolateOrigins,site-per-process'
             ]
         });
     }
@@ -302,6 +346,31 @@ export async function closeBrowser(): Promise<void> {
 }
 
 /**
+ * Simulate human-like mouse movements
+ */
+async function simulateHumanBehavior(page: any): Promise<void> {
+    try {
+        // Random mouse movements
+        const viewportSize = page.viewportSize() || { width: 1920, height: 1080 };
+        for (let i = 0; i < 3; i++) {
+            const x = Math.floor(Math.random() * viewportSize.width * 0.8) + 100;
+            const y = Math.floor(Math.random() * viewportSize.height * 0.6) + 100;
+            await page.mouse.move(x, y, { steps: Math.floor(Math.random() * 10) + 5 });
+            await randomDelay(100, 300);
+        }
+
+        // Random scroll
+        const scrollAmount = Math.floor(Math.random() * 300) + 100;
+        await page.mouse.wheel(0, scrollAmount);
+        await randomDelay(200, 500);
+        await page.mouse.wheel(0, -scrollAmount / 2);
+        await randomDelay(100, 200);
+    } catch (e) {
+        // Ignore errors from human simulation
+    }
+}
+
+/**
  * Fetch a URL using Playwright with Cloudflare bypass
  */
 async function fetchWithPlaywright(url: string): Promise<{ content: string; cookies: Cookie[] }> {
@@ -312,11 +381,30 @@ async function fetchWithPlaywright(url: string): Promise<{ content: string; cook
     const cookieStore = loadCookies();
     const existingCookies = cookieStore[domain]?.cookies || [];
 
+    // Use random user agent for variety
+    const userAgent = getRandomUserAgent();
+
     const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        userAgent,
         viewport: { width: 1920, height: 1080 },
         locale: 'en-US',
-        timezoneId: 'America/New_York'
+        timezoneId: 'America/New_York',
+        // Additional browser context settings
+        javaScriptEnabled: true,
+        hasTouch: false,
+        isMobile: false,
+        deviceScaleFactor: 1,
+        extraHTTPHeaders: {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1'
+        }
     });
 
     // Restore cookies if available
@@ -331,8 +419,20 @@ async function fetchWithPlaywright(url: string): Promise<{ content: string; cook
 
     const page = await context.newPage();
 
+    // Override navigator.webdriver to hide automation
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        // Override other automation indicators
+        (window as any).chrome = { runtime: {} };
+        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+        Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+    });
+
     try {
-        console.log(`🎭 [Playwright] Navigating to ${url}`);
+        console.log(`🎭 [Playwright] Navigating to ${url} (UA: ${userAgent.substring(0, 50)}...)`);
+
+        // Small random delay before navigation (human-like)
+        await randomDelay(500, 1500);
 
         // Navigate and wait for network to be idle
         await page.goto(url, {
@@ -340,15 +440,20 @@ async function fetchWithPlaywright(url: string): Promise<{ content: string; cook
             timeout: 60000
         });
 
+        // Simulate human behavior (mouse movements, scrolling)
+        await simulateHumanBehavior(page);
+
         // Wait a bit for any Cloudflare challenge to complete
-        await page.waitForTimeout(3000);
+        await randomDelay(2000, 4000);
 
         // Check if we're still on a challenge page
         const content = await page.content();
         if (isCloudflareChallenge(content)) {
             console.log(`⏳ [Playwright] Cloudflare challenge detected, waiting...`);
+            // Simulate more human behavior while waiting
+            await simulateHumanBehavior(page);
             // Wait longer for challenge to resolve
-            await page.waitForTimeout(10000);
+            await randomDelay(8000, 12000);
         }
 
         // Get the final content
@@ -357,7 +462,8 @@ async function fetchWithPlaywright(url: string): Promise<{ content: string; cook
         // Check if Cloudflare challenge was solved
         if (isCloudflareChallenge(finalContent)) {
             console.log(`⏳ [Playwright] Still on challenge page, waiting longer...`);
-            await page.waitForTimeout(15000);
+            await simulateHumanBehavior(page);
+            await randomDelay(12000, 18000);
             finalContent = await page.content();
         }
 
