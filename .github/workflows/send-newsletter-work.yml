@@ -28,11 +28,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build fresh RSS data (skip Playwright to avoid timeouts)
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Build fresh RSS data with AI filtering
         run: npm run build
         env:
-          SKIP_PLAYWRIGHT: "true"
-        timeout-minutes: 5
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        timeout-minutes: 15
 
       - name: Send Work Newsletter Email
         env:

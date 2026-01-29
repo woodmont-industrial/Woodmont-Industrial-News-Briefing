@@ -31,14 +31,15 @@ jobs:
     - name: Install Playwright browsers
       run: npx playwright install chromium --with-deps
 
-    - name: Build RSS feeds
+    - name: Build RSS feeds with AI classification
       run: |
-        echo "📰 Starting RSS feed build..."
+        echo "📰 Starting RSS feed build with AI classification..."
         npm run build-static
         echo "✅ Build step completed"
       env:
         NODE_ENV: production
-      timeout-minutes: 8
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      timeout-minutes: 15
     
     - name: Verify build output
       run: |
