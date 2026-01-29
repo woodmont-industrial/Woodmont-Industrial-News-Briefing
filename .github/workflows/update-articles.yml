@@ -27,7 +27,10 @@ jobs:
     
     - name: Install dependencies
       run: npm install --prefer-offline --no-audit
-    
+
+    - name: Install Playwright browsers
+      run: npx playwright install chromium --with-deps
+
     - name: Build RSS feeds with AI classification
       run: |
         echo "📰 Starting RSS feed build with AI classification..."
