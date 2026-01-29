@@ -1009,12 +1009,33 @@
     // IGNORE FUNCTIONS
     // ============================================
     const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
+    const IGNORED_ARTICLES_KEY = 'ignoredArticles';
 
     const getIgnoredTopics = () => {
       try {
         const stored = localStorage.getItem(IGNORED_TOPICS_KEY);
         return stored ? JSON.parse(stored) : [];
       } catch (e) { return []; }
+    };
+
+    // Get ignored articles from newsletter actions
+    const getIgnoredArticles = () => {
+      try {
+        const stored = localStorage.getItem(IGNORED_ARTICLES_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) { return []; }
+    };
+
+    // Combined: get all ignored items (topics + articles)
+    const getAllIgnored = () => {
+      const topics = getIgnoredTopics().map(t => ({ ...t, type: 'topic' }));
+      const articles = getIgnoredArticles().map(a => ({
+        keyword: a.title || a.articleId?.substring(0, 50) || 'Unknown article',
+        articleId: a.articleId,
+        addedAt: a.ignoredAt,
+        type: 'article'
+      }));
+      return [...topics, ...articles];
     };
 
     const addIgnoredTopic = (keyword) => {
@@ -1037,11 +1058,38 @@
       } catch (e) { return false; }
     };
 
+    // Remove ignored article by articleId or keyword
+    const removeIgnoredArticle = (identifier) => {
+      const articles = getIgnoredArticles();
+      const filtered = articles.filter(a =>
+        a.articleId !== identifier &&
+        (a.title || '').toLowerCase() !== identifier.toLowerCase()
+      );
+      try {
+        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(filtered));
+        return true;
+      } catch (e) { return false; }
+    };
+
+    // Remove any ignored item (topic or article)
+    const removeIgnoredItem = (item) => {
+      if (item.type === 'article') {
+        return removeIgnoredArticle(item.articleId || item.keyword);
+      } else {
+        return removeIgnoredTopic(item.keyword);
+      }
+    };
+
     const isArticleIgnored = (article) => {
+      // Check against ignored topics
       const topics = getIgnoredTopics();
-      if (topics.length === 0) return false;
       const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
-      return topics.some(t => searchText.includes(t.keyword.toLowerCase()));
+      if (topics.some(t => searchText.includes(t.keyword.toLowerCase()))) return true;
+
+      // Check against ignored articles by URL
+      const ignoredArticles = getIgnoredArticles();
+      const articleUrl = article.url || article.link || '';
+      return ignoredArticles.some(a => a.articleId === articleUrl);
     };
 
     // Tracked & Ignored Topics Panel Component
@@ -1155,18 +1203,31 @@
                 <>
                   {ignoredTopics.length === 0 ? (
                     <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                      No topics ignored. Click "Ignore" on articles to hide similar content.
+                      No items ignored. Click "Ignore" on articles to hide them.
                     </p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {ignoredTopics.map((topic, idx) => (
+                      {ignoredTopics.map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full px-3 py-1"
+                          className={`flex items-center gap-2 rounded-full px-3 py-1 ${
+                            item.type === 'article'
+                              ? 'bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700'
+                              : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'
+                          }`}
                         >
-                          <span className="text-sm font-medium text-red-700 dark:text-red-300">{topic.keyword}</span>
+                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                            {item.type === 'article' ? '📰' : '🏷️'}
+                          </span>
+                          <span className={`text-sm font-medium ${
+                            item.type === 'article'
+                              ? 'text-orange-700 dark:text-orange-300'
+                              : 'text-red-700 dark:text-red-300'
+                          }`} title={item.articleId || item.keyword}>
+                            {item.keyword.length > 40 ? item.keyword.substring(0, 40) + '...' : item.keyword}
+                          </span>
                           <button
-                            onClick={() => onRemoveIgnored(topic.keyword)}
+                            onClick={() => onRemoveIgnored(item)}
                             className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none"
                             title="Stop ignoring"
                           >
@@ -1561,20 +1622,25 @@
         return count;
       }, [items, trackedTopics]);
 
-      // Ignore state
-      const [ignoredTopics, setIgnoredTopics] = useState(() => getIgnoredTopics());
+      // Ignore state - includes both topics and articles
+      const [ignoredTopics, setIgnoredTopics] = useState(() => getAllIgnored());
 
       // Ignore handlers
       const handleIgnoreKeyword = useCallback((keyword) => {
         if (addIgnoredTopic(keyword)) {
-          setIgnoredTopics(getIgnoredTopics());
+          setIgnoredTopics(getAllIgnored());
           console.log(`Now ignoring: ${keyword}`);
         }
       }, []);
 
-      const handleRemoveIgnoredTopic = useCallback((keyword) => {
-        if (removeIgnoredTopic(keyword)) {
-          setIgnoredTopics(getIgnoredTopics());
+      const handleRemoveIgnoredTopic = useCallback((item) => {
+        // Handle both old format (string keyword) and new format (object with type)
+        if (typeof item === 'string') {
+          if (removeIgnoredTopic(item)) {
+            setIgnoredTopics(getAllIgnored());
+          }
+        } else if (removeIgnoredItem(item)) {
+          setIgnoredTopics(getAllIgnored());
         }
       }, []);
 
@@ -1589,70 +1655,16 @@
         }
       }, [handleTrackKeyword]);
 
-      // Handle ignore from URL parameters (for newsletter links)
+      // Handle action URL parameters - redirect to action.html if needed
       useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action');
         const articleId = urlParams.get('articleId');
+        const keyword = urlParams.get('keyword');
 
-        if (action === 'ignore' && articleId) {
-          // Show ignore reason modal for this article
-          const decodedId = decodeURIComponent(articleId);
-
-          // Store the article ID for the modal to use
-          window.pendingIgnoreArticleId = decodedId;
-
-          // Show a confirmation with reason selection
-          const reasons = [
-            'Not relevant to industrial real estate',
-            'Wrong geographic region',
-            'Duplicate or old news',
-            'Low quality source',
-            'Other'
-          ];
-
-          const reasonHtml = reasons.map((r, i) => `<option value="${r}">${r}</option>`).join('');
-
-          // Create modal for reason selection
-          const modal = document.createElement('div');
-          modal.id = 'ignore-modal';
-          modal.innerHTML = `
-            <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
-              <div style="background:white;padding:24px;border-radius:12px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
-                <h3 style="margin:0 0 16px;color:#1e3a5f;">Ignore This Article</h3>
-                <p style="margin:0 0 12px;color:#666;font-size:14px;">Why are you ignoring this article?</p>
-                <select id="ignore-reason-select" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:16px;">
-                  ${reasonHtml}
-                </select>
-                <div style="display:flex;gap:10px;justify-content:flex-end;">
-                  <button onclick="document.getElementById('ignore-modal').remove();window.history.replaceState({},document.title,window.location.pathname);" style="padding:10px 20px;border:1px solid #ddd;background:#f5f5f5;border-radius:6px;cursor:pointer;">Cancel</button>
-                  <button onclick="window.confirmIgnoreFromNewsletter()" style="padding:10px 20px;border:none;background:#dc2626;color:white;border-radius:6px;cursor:pointer;font-weight:600;">Ignore Article</button>
-                </div>
-              </div>
-            </div>
-          `;
-          document.body.appendChild(modal);
-
-          // Handler for confirm button
-          window.confirmIgnoreFromNewsletter = () => {
-            const reason = document.getElementById('ignore-reason-select').value;
-            const articleUrl = window.pendingIgnoreArticleId;
-
-            // Save to localStorage
-            const ignoredArticles = JSON.parse(localStorage.getItem('ignoredArticles') || '[]');
-            ignoredArticles.push({
-              articleId: articleUrl,
-              reason: reason,
-              ignoredAt: new Date().toISOString()
-            });
-            localStorage.setItem('ignoredArticles', JSON.stringify(ignoredArticles));
-
-            // Clean up
-            document.getElementById('ignore-modal').remove();
-            window.history.replaceState({}, document.title, window.location.pathname);
-
-            alert('Article ignored! Similar articles will be filtered in future briefings.');
-          };
+        // If action params present, redirect to action.html
+        if (action && (articleId || keyword)) {
+          window.location.href = `action.html${window.location.search}`;
         }
       }, []);
 

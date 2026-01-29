@@ -20,8 +20,8 @@ export function buildWorkBriefing(
         day: 'numeric'
     });
 
-    // Dashboard URL for tracking links
-    const dashboardUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing';
+    // Action page URL for tracking/ignore links (instant feedback, no popup)
+    const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/action.html';
 
     // Extract a trackable keyword from title (company name, location, etc.)
     const extractTrackKeyword = (title: string): string => {
@@ -64,13 +64,14 @@ export function buildWorkBriefing(
             }
         }
 
-        // Create tracking link
+        // Create tracking link - goes to action page for instant feedback
         const trackKeyword = extractTrackKeyword(title);
-        const trackUrl = `${dashboardUrl}?track=${encodeURIComponent(trackKeyword)}`;
+        const trackUrl = `${actionUrl}?action=track&keyword=${encodeURIComponent(trackKeyword)}`;
 
         // Create ignore link - uses article URL as unique identifier
         const articleId = encodeURIComponent(url);
-        const ignoreUrl = `${dashboardUrl}?action=ignore&articleId=${articleId}`;
+        const titleParam = encodeURIComponent(title.substring(0, 80));
+        const ignoreUrl = `${actionUrl}?action=ignore&articleId=${articleId}&title=${titleParam}`;
 
         return `<li style="margin-bottom: 14px; line-height: 1.6; color: #333;">
             ${displayText} <a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a> <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 12px;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none; font-size: 12px;">[Ignore]</a>
