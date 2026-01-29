@@ -1527,16 +1527,44 @@
         }
       }, []);
 
-      // Handle tracking from URL parameters (for newsletter links)
+      // Handle tracking/ignoring from URL parameters (for newsletter links)
       useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
+
+        // Support both formats: ?track=keyword and ?action=track&keyword=value
+        const action = urlParams.get('action');
+        const keyword = urlParams.get('keyword');
         const trackKeyword = urlParams.get('track');
-        if (trackKeyword) {
+        const ignoreKeyword = urlParams.get('ignore');
+
+        let actionTaken = false;
+
+        // Handle ?action=track&keyword=value format
+        if (action === 'track' && keyword) {
+          handleTrackKeyword(decodeURIComponent(keyword));
+          actionTaken = true;
+          alert(`Added "${decodeURIComponent(keyword)}" to tracked sources!`);
+        } else if (action === 'ignore' && keyword) {
+          handleIgnoreKeyword(decodeURIComponent(keyword));
+          actionTaken = true;
+          alert(`Added "${decodeURIComponent(keyword)}" to ignored sources. These articles will be hidden.`);
+        }
+        // Handle legacy ?track=keyword format
+        else if (trackKeyword) {
           handleTrackKeyword(decodeURIComponent(trackKeyword));
-          // Clean the URL
+          actionTaken = true;
+        }
+        // Handle legacy ?ignore=keyword format
+        else if (ignoreKeyword) {
+          handleIgnoreKeyword(decodeURIComponent(ignoreKeyword));
+          actionTaken = true;
+        }
+
+        // Clean the URL after processing
+        if (actionTaken) {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
-      }, [handleTrackKeyword]);
+      }, [handleTrackKeyword, handleIgnoreKeyword]);
 
       const fetchItems = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);

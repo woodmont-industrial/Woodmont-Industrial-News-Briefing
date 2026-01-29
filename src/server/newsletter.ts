@@ -89,6 +89,10 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                 `<span class="badge badge-source">${publisher}</span>`
             ].join(' ');
 
+            // Create tracking keyword from publisher/source
+            const trackKeyword = encodeURIComponent(publisher.toLowerCase().replace(/[^a-z0-9]/g, '-'));
+            const webAppUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing';
+
             return `<div class="article-card">
                 <div class="article-title-header">
                     <h3 class="article-title">${title}</h3>
@@ -105,6 +109,11 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                         <span class="source-name">${publisher}</span>
                     </div>
                     <a href="${link}" class="read-more-btn" target="_blank">Read Full Article →</a>
+                </div>
+                <div class="action-buttons">
+                    <a href="${link}" class="action-btn btn-source" target="_blank">🔗 Source</a>
+                    <a href="${webAppUrl}?action=track&keyword=${trackKeyword}" class="action-btn btn-track" target="_blank">✅ Track</a>
+                    <a href="${webAppUrl}?action=ignore&keyword=${trackKeyword}" class="action-btn btn-ignore" target="_blank">🚫 Ignore</a>
                 </div>
             </div>`;
         });
@@ -323,6 +332,47 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
             text-decoration: none;
             color: #064e3b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-source {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #1565c0;
+        }
+
+        .btn-track {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .btn-ignore {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #c62828;
+        }
+
+        .action-btn:hover {
+            opacity: 0.85;
         }
 
         .highlight-box {
