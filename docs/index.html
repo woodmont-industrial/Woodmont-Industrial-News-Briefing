@@ -385,7 +385,7 @@
       return categoryImages[hash % categoryImages.length];
     };
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreKeyword }) => {
+    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle }) => {
       const category = item.category || 'relevant';
       const fallback = getPlaceholderImage(category, item.title);
       const [imgSrc, setImgSrc] = useState(item.image || fallback);
@@ -404,12 +404,10 @@
         }
       };
 
-      // Quick ignore - uses source or first keyword
+      // Quick ignore - ignores THIS SPECIFIC ARTICLE only
       const quickIgnore = () => {
-        const keyword = item.source || suggestedKeywords[0] || item.title?.split(' ').slice(0, 2).join(' ');
-        if (keyword) {
-          onIgnoreKeyword && onIgnoreKeyword(keyword);
-        }
+        const reason = prompt('Why are you ignoring this article? (e.g., "Not relevant", "Wrong region", "Duplicate")') || 'Not relevant';
+        onIgnoreArticle && onIgnoreArticle(item, reason);
       };
 
       // Category colors for branded overlay
@@ -540,7 +538,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreKeyword, ignoredTopics }) => {
+    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -555,6 +553,18 @@
           {hiddenCount > 0 && (
             <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
               {hiddenCount} article{hiddenCount !== 1 ? 's' : ''} hidden based on your ignore preferences
+              <button
+                onClick={() => {
+                  if (confirm('Clear all ignored articles?')) {
+                    localStorage.removeItem('woodmont_ignored_articles');
+                    localStorage.removeItem('woodmont_ignored_topics');
+                    window.location.reload();
+                  }
+                }}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
+              >
+                (Clear all)
+              </button>
             </div>
           )}
           {loading ? (
@@ -575,7 +585,7 @@
                   onClick={onArticleClick}
                   trackedMatches={getArticleMatches(item)}
                   onTrackKeyword={onTrackKeyword}
-                  onIgnoreKeyword={onIgnoreKeyword}
+                  onIgnoreArticle={onIgnoreArticle}
                 />
               ))}
             </div>
@@ -977,10 +987,19 @@
     // IGNORE FUNCTIONS
     // ============================================
     const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
+    const IGNORED_ARTICLES_KEY = 'woodmont_ignored_articles';
 
     const getIgnoredTopics = () => {
       try {
         const stored = localStorage.getItem(IGNORED_TOPICS_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) { return []; }
+    };
+
+    // Get ignored articles (by ID)
+    const getIgnoredArticles = () => {
+      try {
+        const stored = localStorage.getItem(IGNORED_ARTICLES_KEY);
         return stored ? JSON.parse(stored) : [];
       } catch (e) { return []; }
     };
@@ -996,6 +1015,24 @@
       } catch (e) { return false; }
     };
 
+    // Add ignored article by ID with reason
+    const addIgnoredArticle = (article, reason = 'Not relevant') => {
+      const ignored = getIgnoredArticles();
+      const articleId = article.id || article.link || article.title;
+      if (ignored.some(a => a.id === articleId)) return false;
+      ignored.push({
+        id: articleId,
+        title: article.title,
+        source: article.source,
+        reason: reason,
+        addedAt: new Date().toISOString()
+      });
+      try {
+        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(ignored));
+        return true;
+      } catch (e) { return false; }
+    };
+
     const removeIgnoredTopic = (keyword) => {
       const topics = getIgnoredTopics();
       const filtered = topics.filter(t => t.keyword.toLowerCase() !== keyword.toLowerCase().trim());
@@ -1005,7 +1042,23 @@
       } catch (e) { return false; }
     };
 
+    // Remove ignored article by ID
+    const removeIgnoredArticle = (articleId) => {
+      const ignored = getIgnoredArticles();
+      const filtered = ignored.filter(a => a.id !== articleId);
+      try {
+        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(filtered));
+        return true;
+      } catch (e) { return false; }
+    };
+
     const isArticleIgnored = (article) => {
+      // Check if article ID is ignored
+      const ignoredArticles = getIgnoredArticles();
+      const articleId = article.id || article.link || article.title;
+      if (ignoredArticles.some(a => a.id === articleId)) return true;
+
+      // Also check topic-based ignoring (legacy)
       const topics = getIgnoredTopics();
       if (topics.length === 0) return false;
       const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
@@ -1512,12 +1565,21 @@
 
       // Ignore state
       const [ignoredTopics, setIgnoredTopics] = useState(() => getIgnoredTopics());
+      const [ignoredArticles, setIgnoredArticles] = useState(() => getIgnoredArticles());
 
-      // Ignore handlers
+      // Ignore handlers - for keywords (legacy)
       const handleIgnoreKeyword = useCallback((keyword) => {
         if (addIgnoredTopic(keyword)) {
           setIgnoredTopics(getIgnoredTopics());
-          console.log(`Now ignoring: ${keyword}`);
+          console.log(`Now ignoring keyword: ${keyword}`);
+        }
+      }, []);
+
+      // Ignore handler - for specific articles
+      const handleIgnoreArticle = useCallback((article, reason) => {
+        if (addIgnoredArticle(article, reason)) {
+          setIgnoredArticles(getIgnoredArticles());
+          console.log(`Ignored article: "${article.title}" - Reason: ${reason}`);
         }
       }, []);
 
@@ -2146,8 +2208,9 @@
                   onArticleClick={handleArticleClick}
                   trackedTopics={trackedTopics}
                   ignoredTopics={ignoredTopics}
+                  ignoredArticles={ignoredArticles}
                   onTrackKeyword={handleTrackKeyword}
-                  onIgnoreKeyword={handleIgnoreKeyword}
+                  onIgnoreArticle={handleIgnoreArticle}
                 />
               </>
             ) : viewMode === "newsletter" ? (
