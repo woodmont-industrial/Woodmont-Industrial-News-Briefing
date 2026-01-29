@@ -68,8 +68,12 @@ export function buildWorkBriefing(
         const trackKeyword = extractTrackKeyword(title);
         const trackUrl = `${dashboardUrl}?track=${encodeURIComponent(trackKeyword)}`;
 
+        // Create ignore link - uses article URL as unique identifier
+        const articleId = encodeURIComponent(url);
+        const ignoreUrl = `${dashboardUrl}?action=ignore&articleId=${articleId}`;
+
         return `<li style="margin-bottom: 14px; line-height: 1.6; color: #333;">
-            ${displayText} <a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a> <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 12px;">[Track]</a>
+            ${displayText} <a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a> <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 12px;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none; font-size: 12px;">[Ignore]</a>
         </li>`;
     };
 
