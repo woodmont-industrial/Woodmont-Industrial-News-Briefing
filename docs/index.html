@@ -404,9 +404,19 @@
         }
       };
 
-      // Quick ignore - ignores THIS SPECIFIC ARTICLE only
-      const quickIgnore = () => {
-        const reason = prompt('Why are you ignoring this article? (e.g., "Not relevant", "Wrong region", "Duplicate")') || 'Not relevant';
+      // Quick ignore - ignores THIS SPECIFIC ARTICLE only with multiple choice
+      const [showIgnoreMenu, setShowIgnoreMenu] = useState(false);
+      const ignoreReasons = [
+        { label: 'Not Relevant', value: 'not_relevant' },
+        { label: 'Wrong Region', value: 'wrong_region' },
+        { label: 'Duplicate', value: 'duplicate' },
+        { label: 'Old News', value: 'old_news' },
+        { label: 'Not CRE Related', value: 'not_cre' },
+        { label: 'Other', value: 'other' }
+      ];
+
+      const handleIgnoreWithReason = (reason) => {
+        setShowIgnoreMenu(false);
         onIgnoreArticle && onIgnoreArticle(item, reason);
       };
 
@@ -519,17 +529,42 @@
                   {isTracked ? 'TRACKING' : 'Track'}
                 </button>
 
-                {/* Ignore Button - Always visible in red */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    quickIgnore();
-                  }}
-                  className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer"
-                >
-                  Ignore
-                </button>
+                {/* Ignore Button with dropdown menu */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setShowIgnoreMenu(!showIgnoreMenu);
+                    }}
+                    className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer"
+                  >
+                    Ignore ▾
+                  </button>
+
+                  {showIgnoreMenu && (
+                    <div className="absolute right-0 bottom-full mb-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 z-50 overflow-hidden">
+                      <div className="py-1">
+                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700">
+                          Why ignore this?
+                        </div>
+                        {ignoreReasons.map((reason) => (
+                          <button
+                            key={reason.value}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleIgnoreWithReason(reason.label);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          >
+                            {reason.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
               </div>
             </div>
