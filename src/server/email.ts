@@ -780,21 +780,21 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         console.log(`📰 Loaded ${articles.length} articles from feed`);
 
-        // Get articles from last 24-48 hours for daily briefing
+        // Dynamic time range: start with 48 hours, reduce to 24 if too many articles
+        // Goal: 3-5 articles per section
         const now = new Date();
-        const cutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-        const recentArticles = articles.filter(a => {
-            const pubDate = new Date(a.pubDate || a.date_published || a.fetchedAt || 0);
-            return pubDate >= cutoff;
-        });
-
-        console.log(`📰 ${recentArticles.length} articles from last 48 hours`);
+        // Helper to filter by time range
+        const getArticlesByTimeRange = (hours: number) => {
+            const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
+            return articles.filter(a => {
+                const pubDate = new Date(a.pubDate || a.date_published || a.fetchedAt || 0);
+                return pubDate >= cutoff;
+            });
+        };
 
         // Use same filtering logic as Goth newsletter
         const excludePolitical = ['trump', 'biden', 'congress', 'senate', 'election', 'political', 'republican', 'democrat', 'gop', 'white house'];
-        const excludeNonIndustrial = ['apartment', 'multifamily', 'condo', 'residential', 'hotel', 'hospitality', 'self-storage', 'office lease', 'retail center', 'shopping center', 'mall'];
-        const industrialPropertyKeywords = ['warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage', 'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land', 'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock'];
 
         const getText = (article: NormalizedItem): string =>
             `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
@@ -803,26 +803,47 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             keywords.some(kw => text.includes(kw));
 
         const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
-        const isIndustrialProperty = (text: string): boolean => {
-            if (containsAny(text, industrialPropertyKeywords)) return true;
-            return !containsAny(text, excludeNonIndustrial);
+
+        // Categorize and count articles for a given time range
+        const categorizeArticles = (recentArticles: NormalizedItem[]) => {
+            const filtered = recentArticles.filter(article => {
+                const text = getText(article);
+                return !isPolitical(text);
+            });
+            return {
+                relevant: filtered.filter(a => a.category === 'relevant'),
+                transactions: filtered.filter(a => a.category === 'transactions'),
+                availabilities: filtered.filter(a => a.category === 'availabilities'),
+                people: filtered.filter(a => a.category === 'people')
+            };
         };
 
-        // Filter articles
-        const filteredArticles = recentArticles.filter(article => {
-            const text = getText(article);
-            if (isPolitical(text)) return false;
-            return true;
-        });
+        // Try 48 hours first
+        let timeRange = 48;
+        let recentArticles = getArticlesByTimeRange(48);
+        let categorized = categorizeArticles(recentArticles);
 
-        // Categorize
-        let relevant = filteredArticles.filter(a => a.category === 'relevant').slice(0, 10);
-        let transactions = filteredArticles.filter(a => a.category === 'transactions').slice(0, 8);
-        let availabilities = filteredArticles.filter(a => a.category === 'availabilities').slice(0, 8);
-        let people = filteredArticles.filter(a => a.category === 'people').slice(0, 6);
+        console.log(`📰 48-hour articles: relevant=${categorized.relevant.length}, transactions=${categorized.transactions.length}, availabilities=${categorized.availabilities.length}, people=${categorized.people.length}`);
 
-        console.log('📋 Work newsletter breakdown:');
-        console.log(`  - Relevant: ${relevant.length}`);
+        // If any section has more than 5, try 24 hours
+        if (categorized.relevant.length > 5 || categorized.transactions.length > 5 ||
+            categorized.availabilities.length > 5 || categorized.people.length > 5) {
+            console.log('📊 Too many articles in 48h, trying 24 hours...');
+            timeRange = 24;
+            recentArticles = getArticlesByTimeRange(24);
+            categorized = categorizeArticles(recentArticles);
+            console.log(`📰 24-hour articles: relevant=${categorized.relevant.length}, transactions=${categorized.transactions.length}, availabilities=${categorized.availabilities.length}, people=${categorized.people.length}`);
+        }
+
+        // Cap each section at 5 articles (ideal: 3-5)
+        const MAX_PER_SECTION = 5;
+        let relevant = categorized.relevant.slice(0, MAX_PER_SECTION);
+        let transactions = categorized.transactions.slice(0, MAX_PER_SECTION);
+        let availabilities = categorized.availabilities.slice(0, MAX_PER_SECTION);
+        let people = categorized.people.slice(0, MAX_PER_SECTION);
+
+        console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
+        console.log(`  - Relevant News: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
         console.log(`  - Availabilities: ${availabilities.length}`);
         console.log(`  - People: ${people.length}`);

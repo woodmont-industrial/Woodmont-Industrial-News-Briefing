@@ -106,29 +106,29 @@ export function buildWorkBriefing(
         </p>
         <hr style="border: none; border-top: 2px solid #2563eb; margin: 0 0 25px 0;">
 
-        <!-- Relevant Articles -->
+        <!-- Relevant News -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
-            Relevant Articles
+            Relevant News
         </h2>
-        ${renderSection(relevant, 10)}
+        ${renderSection(relevant, 5)}
 
         <!-- Transactions -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             Transactions
         </h2>
-        ${renderSection(transactions, 8)}
+        ${renderSection(transactions, 5)}
 
         <!-- Availabilities -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             Availabilities
         </h2>
-        ${renderSection(availabilities, 8)}
+        ${renderSection(availabilities, 5)}
 
         <!-- People News -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             People News
         </h2>
-        ${renderSection(people, 6)}
+        ${renderSection(people, 5)}
 
         <!-- Footer -->
         <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
