@@ -108,12 +108,11 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                         <span class="source-label">📰 Source:</span>
                         <span class="source-name">${publisher}</span>
                     </div>
-                    <a href="${link}" class="read-more-btn" target="_blank">Read Full Article →</a>
-                </div>
-                <div class="action-buttons">
-                    <a href="${link}" class="action-btn btn-source" target="_blank">🔗 Source</a>
-                    <a href="${webAppUrl}?action=track&keyword=${trackKeyword}" class="action-btn btn-track" target="_blank">✅ Track</a>
-                    <a href="${webAppUrl}?action=ignore&keyword=${trackKeyword}" class="action-btn btn-ignore" target="_blank">🚫 Ignore</a>
+                    <div class="action-buttons-inline">
+                        <a href="${link}" class="read-more-btn" target="_blank">Read Full Article →</a>
+                        <a href="${webAppUrl}?action=track&keyword=${trackKeyword}" class="action-btn btn-track" target="_blank">✅ Track</a>
+                        <a href="${webAppUrl}?action=ignore&keyword=${trackKeyword}" class="action-btn btn-ignore" target="_blank">🚫 Ignore</a>
+                    </div>
                 </div>
             </div>`;
         });
@@ -339,6 +338,13 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
             gap: 8px;
             flex-wrap: wrap;
             margin-top: 12px;
+        }
+
+        .action-buttons-inline {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .action-btn {
