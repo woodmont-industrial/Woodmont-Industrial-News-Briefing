@@ -551,6 +551,14 @@ export async function playwrightFetchRSS(
     url: string,
     originalResponse?: { status: number; body: string }
 ): Promise<PlaywrightFetchResult> {
+    // Skip Playwright entirely if SKIP_PLAYWRIGHT env var is set
+    if (process.env.SKIP_PLAYWRIGHT === 'true') {
+        return {
+            success: false,
+            error: 'Playwright disabled via SKIP_PLAYWRIGHT env var'
+        };
+    }
+
     const domain = getDomain(url);
 
     // Check allowlist

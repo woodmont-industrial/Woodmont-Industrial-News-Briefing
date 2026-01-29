@@ -28,12 +28,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
-
-      - name: Build fresh RSS data
+      - name: Build fresh RSS data (skip Playwright to avoid timeouts)
         run: npm run build
-        timeout-minutes: 8
+        env:
+          SKIP_PLAYWRIGHT: "true"
+        timeout-minutes: 5
 
       - name: Send Work Newsletter Email
         env:
