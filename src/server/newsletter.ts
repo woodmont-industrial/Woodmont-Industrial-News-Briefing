@@ -74,13 +74,13 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
 
             // Clean up category names for display
             const categoryLabels: Record<string, string> = {
-                relevant: 'Relevant',
+                relevant: 'Relevant News',
                 transactions: 'Transactions',
                 availabilities: 'Availabilities',
                 people: 'People News'
             };
 
-            const categoryDisplay = categoryLabels[category] || 'Relevant';
+            const categoryDisplay = categoryLabels[category] || 'Relevant News';
 
             // Create tags: state, category, source
             const tags = [
