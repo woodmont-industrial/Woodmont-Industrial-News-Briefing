@@ -196,15 +196,17 @@ export async function batchClassifyWithAI(
 ): Promise<Map<string, AIClassificationResult>> {
     const {
         minRelevanceScore = 25,
-        maxConcurrent = 3, // 3 concurrent requests
-        delayMs = 1500 // 1.5 second delay between batches
+        maxConcurrent = 2, // 2 concurrent requests to avoid rate limits
+        delayMs = 5000 // 5 second delay between batches for Groq free tier
     } = options;
 
-    // Limit total articles to classify to avoid timeout (max 50 articles)
-    const maxArticlesToClassify = 50;
+    // Limit total articles to classify to avoid rate limits and timeout
+    // Groq free tier: 6k tokens/min, each request ~700 tokens
+    // 15 articles * 700 tokens = 10,500 tokens over ~2-3 mins is safe
+    const maxArticlesToClassify = 15;
     const articlesToProcess = articles.slice(0, maxArticlesToClassify);
     if (articles.length > maxArticlesToClassify) {
-        console.log(`AI classification limited to ${maxArticlesToClassify} articles (${articles.length} total)`);
+        console.log(`AI classification limited to ${maxArticlesToClassify} articles (${articles.length} total) - remaining use rule-based filtering`);
     }
 
     const results = new Map<string, AIClassificationResult>();
