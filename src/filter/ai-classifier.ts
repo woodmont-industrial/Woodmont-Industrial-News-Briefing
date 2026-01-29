@@ -131,7 +131,7 @@ export async function classifyWithAI(
             if (response.status === 429) {
                 // Rate limited - wait and retry
                 retries++;
-                const waitTime = Math.pow(2, retries) * 5000; // 10s, 20s, 40s
+                const waitTime = Math.pow(2, retries) * 2000; // 4s, 8s, 16s (reduced from 10s, 20s, 40s)
                 console.log(`Rate limited, waiting ${waitTime / 1000}s before retry ${retries}/${maxRetries}`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
@@ -196,15 +196,22 @@ export async function batchClassifyWithAI(
 ): Promise<Map<string, AIClassificationResult>> {
     const {
         minRelevanceScore = 25,
-        maxConcurrent = 2, // Reduced to avoid Groq rate limits (6k tokens/min)
-        delayMs = 3000 // 3 second delay between batches to stay under rate limit
+        maxConcurrent = 3, // 3 concurrent requests
+        delayMs = 1500 // 1.5 second delay between batches
     } = options;
+
+    // Limit total articles to classify to avoid timeout (max 50 articles)
+    const maxArticlesToClassify = 50;
+    const articlesToProcess = articles.slice(0, maxArticlesToClassify);
+    if (articles.length > maxArticlesToClassify) {
+        console.log(`AI classification limited to ${maxArticlesToClassify} articles (${articles.length} total)`);
+    }
 
     const results = new Map<string, AIClassificationResult>();
 
     // Process in batches to avoid rate limits
-    for (let i = 0; i < articles.length; i += maxConcurrent) {
-        const batch = articles.slice(i, i + maxConcurrent);
+    for (let i = 0; i < articlesToProcess.length; i += maxConcurrent) {
+        const batch = articlesToProcess.slice(i, i + maxConcurrent);
 
         const batchPromises = batch.map(async (article) => {
             const id = article.id || article.link || article.title;
@@ -224,7 +231,7 @@ export async function batchClassifyWithAI(
         await Promise.all(batchPromises);
 
         // Delay between batches
-        if (i + maxConcurrent < articles.length) {
+        if (i + maxConcurrent < articlesToProcess.length) {
             await new Promise(resolve => setTimeout(resolve, delayMs));
         }
     }
