@@ -1655,6 +1655,16 @@
         }
       }, [handleTrackKeyword]);
 
+      // Refresh ignored/tracked state when window gains focus (user returns from action.html)
+      useEffect(() => {
+        const handleFocus = () => {
+          setIgnoredTopics(getAllIgnored());
+          setTrackedTopics(getTrackedTopics());
+        };
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+      }, []);
+
       // Handle action URL parameters - redirect to action.html if needed
       useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
