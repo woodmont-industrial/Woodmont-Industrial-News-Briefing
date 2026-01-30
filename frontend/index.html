@@ -1655,14 +1655,32 @@
         }
       }, [handleTrackKeyword]);
 
-      // Refresh ignored/tracked state when window gains focus (user returns from action.html)
+      // Refresh ignored/tracked state when window gains focus or becomes visible
       useEffect(() => {
-        const handleFocus = () => {
+        const refreshFromStorage = () => {
           setIgnoredTopics(getAllIgnored());
           setTrackedTopics(getTrackedTopics());
         };
-        window.addEventListener('focus', handleFocus);
-        return () => window.removeEventListener('focus', handleFocus);
+
+        // Refresh on focus
+        window.addEventListener('focus', refreshFromStorage);
+
+        // Refresh on visibility change (more reliable than focus)
+        const handleVisibility = () => {
+          if (document.visibilityState === 'visible') {
+            refreshFromStorage();
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        // Also refresh every 5 seconds to catch any missed updates
+        const interval = setInterval(refreshFromStorage, 5000);
+
+        return () => {
+          window.removeEventListener('focus', refreshFromStorage);
+          document.removeEventListener('visibilitychange', handleVisibility);
+          clearInterval(interval);
+        };
       }, []);
 
       // Handle action URL parameters - redirect to action.html if needed
