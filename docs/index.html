@@ -647,7 +647,7 @@
                   </h2>
                   <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
                     <span className="font-medium">{article.publisher || article.source}</span>
-                    {article.author && <span>by {article.author}</span>}
+                    {article.author && <span>by {typeof article.author === 'string' ? article.author : (article.author.name || '')}</span>}
                     {isValidDate && <span>{published.toLocaleDateString()}</span>}
                     {article.category && (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
