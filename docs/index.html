@@ -230,7 +230,7 @@
               onChange={(e) => setCategory(e.target.value)}
             >
               <option value="">Category: All</option>
-              <option value="relevant">Relevant News</option>
+              <option value="relevant">Relevant</option>
               <option value="transactions">Transactions</option>
               <option value="availabilities">Availabilities</option>
               <option value="people">People News</option>
@@ -385,7 +385,7 @@
       return categoryImages[hash % categoryImages.length];
     };
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreKeyword }) => {
+    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle }) => {
       const category = item.category || 'relevant';
       const fallback = getPlaceholderImage(category, item.title);
       const [imgSrc, setImgSrc] = useState(item.image || fallback);
@@ -396,29 +396,6 @@
       const isTracked = trackedMatches.length > 0;
       const suggestedKeywords = extractTrackableKeywords(item);
 
-      // Format date consistently - "Jan 27, 2026"
-      const formatDate = (date) => {
-        if (!date || isNaN(date.getTime())) return null;
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      };
-
-      // Get standardized snippet - always show something
-      const getSnippet = () => {
-        if (item.description && item.description.trim().length > 20) {
-          const desc = item.description.trim();
-          return desc.length > 150 ? desc.substring(0, 147) + '...' : desc;
-        }
-        // Fallback snippet based on category and source
-        const source = typeof item.source === 'string' ? item.source : (item.source?.name || 'this source');
-        const categoryText = {
-          transactions: 'property transaction',
-          availabilities: 'available property listing',
-          people: 'personnel move',
-          relevant: 'industry news'
-        };
-        return `Read the full ${categoryText[category] || 'article'} from ${source}.`;
-      };
-
       // Quick track - uses first suggested keyword or source
       const quickTrack = () => {
         const keyword = suggestedKeywords[0] || item.source || item.title?.split(' ').slice(0, 2).join(' ');
@@ -427,23 +404,29 @@
         }
       };
 
-      // Quick ignore - uses source or first keyword
-      const quickIgnore = () => {
-        const keyword = item.source || suggestedKeywords[0] || item.title?.split(' ').slice(0, 2).join(' ');
-        if (keyword) {
-          onIgnoreKeyword && onIgnoreKeyword(keyword);
-        }
+      // Quick ignore - ignores THIS SPECIFIC ARTICLE only with multiple choice
+      const [showIgnoreMenu, setShowIgnoreMenu] = useState(false);
+      const ignoreReasons = [
+        { label: 'Not Relevant', value: 'not_relevant' },
+        { label: 'Wrong Region', value: 'wrong_region' },
+        { label: 'Duplicate', value: 'duplicate' },
+        { label: 'Old News', value: 'old_news' },
+        { label: 'Not CRE Related', value: 'not_cre' },
+        { label: 'Other', value: 'other' }
+      ];
+
+      const handleIgnoreWithReason = (reason) => {
+        setShowIgnoreMenu(false);
+        onIgnoreArticle && onIgnoreArticle(item, reason);
       };
 
-      // Category config with colors and icons
-      const categoryConfig = {
-        transactions: { color: 'from-amber-500/90', bgLight: 'bg-amber-100', bgDark: 'dark:bg-amber-900/60', textLight: 'text-amber-800', textDark: 'dark:text-amber-200', border: 'border-amber-300 dark:border-amber-700', icon: '💼' },
-        availabilities: { color: 'from-emerald-500/90', bgLight: 'bg-emerald-100', bgDark: 'dark:bg-emerald-900/60', textLight: 'text-emerald-800', textDark: 'dark:text-emerald-200', border: 'border-emerald-300 dark:border-emerald-700', icon: '🏢' },
-        people: { color: 'from-violet-500/90', bgLight: 'bg-violet-100', bgDark: 'dark:bg-violet-900/60', textLight: 'text-violet-800', textDark: 'dark:text-violet-200', border: 'border-violet-300 dark:border-violet-700', icon: '👥' },
-        relevant: { color: 'from-blue-600/90', bgLight: 'bg-blue-100', bgDark: 'dark:bg-blue-900/60', textLight: 'text-blue-800', textDark: 'dark:text-blue-200', border: 'border-blue-300 dark:border-blue-700', icon: '📰' }
+      // Category colors for branded overlay
+      const categoryColors = {
+        transactions: 'from-amber-600/80',
+        availabilities: 'from-emerald-600/80',
+        people: 'from-purple-600/80',
+        relevant: 'from-slate-700/80'
       };
-
-      const catConfig = categoryConfig[category] || categoryConfig.relevant;
 
       return (
         <article
@@ -467,44 +450,36 @@
               }}
             />
             {/* Gradient overlay with category color */}
-            <div className={`absolute inset-0 bg-gradient-to-t ${catConfig.color} via-transparent to-transparent pointer-events-none`}></div>
-            {/* Source badge - more prominent */}
-            <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-              <span
-                className="bg-white/95 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100 text-xs font-bold px-3 py-1.5 rounded-lg shadow-md uppercase tracking-wide cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const src = typeof item.source === 'string' ? item.source : (item.source?.name || '');
-                  if (src) onTrackKeyword && onTrackKeyword(src, '');
-                }}
-                title="Click to track this source"
-              >
+            <div className={`absolute inset-0 bg-gradient-to-t ${categoryColors[category] || categoryColors.relevant} via-transparent to-transparent pointer-events-none`}></div>
+            <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+              <span className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wide">
                 {(() => {
                   const src = item.source || item.publisher;
                   if (!src) return 'Source';
                   return typeof src === 'string' ? src : (src.name || 'Source');
                 })()}
               </span>
-              {/* Category badge with icon */}
-              <span className={`${catConfig.bgLight} ${catConfig.bgDark} ${catConfig.textLight} ${catConfig.textDark} text-xs font-bold px-3 py-1.5 rounded-lg shadow-md border ${catConfig.border}`}>
-                {catConfig.icon} {item.category === 'transactions' ? 'Transaction' :
-                 item.category === 'availabilities' ? 'Available' :
-                 item.category === 'people' ? 'People' :
-                 'News'}
-              </span>
+              {item.author && (
+                <span className="bg-emerald-500/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
+                  By {typeof item.author === 'string' ? item.author : (item.author.name || 'Unknown')}
+                </span>
+              )}
             </div>
           </div>
           <div className="p-4 flex flex-col gap-3 flex-1">
-            {/* Date and author row */}
-            <div className="flex items-center gap-2 flex-wrap text-xs">
-              {isValidDate && (
-                <span className="text-slate-500 dark:text-slate-400 font-medium">
-                  {formatDate(published)}
-                </span>
-              )}
-              {item.author && (
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  • By {typeof item.author === 'string' ? item.author : (item.author.name || 'Staff')}
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
+              {isValidDate && <span>{published.toLocaleDateString()}</span>}
+              {item.category && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  item.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                  item.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
+                  'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                }`}>
+                  {item.category === 'transactions' ? 'Transactions' :
+                   item.category === 'availabilities' ? 'Availabilities' :
+                   item.category === 'people' ? 'People News' :
+                   'Relevant'}
                 </span>
               )}
             </div>
@@ -518,10 +493,11 @@
                 {item.title}
               </a>
             </h3>
-            {/* Standardized snippet - always shows */}
-            <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1 leading-relaxed">
-              {getSnippet()}
-            </p>
+            {item.description && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1 leading-relaxed">
+                {item.description}
+              </p>
+            )}
             <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
               <a
                 href={item.link}
@@ -553,17 +529,42 @@
                   {isTracked ? 'TRACKING' : 'Track'}
                 </button>
 
-                {/* Ignore Button - Always visible in red */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    quickIgnore();
-                  }}
-                  className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer"
-                >
-                  Ignore
-                </button>
+                {/* Ignore Button with dropdown menu */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setShowIgnoreMenu(!showIgnoreMenu);
+                    }}
+                    className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer"
+                  >
+                    Ignore ▾
+                  </button>
+
+                  {showIgnoreMenu && (
+                    <div className="absolute right-0 bottom-full mb-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 z-50 overflow-hidden">
+                      <div className="py-1">
+                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700">
+                          Why ignore this?
+                        </div>
+                        {ignoreReasons.map((reason) => (
+                          <button
+                            key={reason.value}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleIgnoreWithReason(reason.label);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          >
+                            {reason.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
               </div>
             </div>
@@ -572,7 +573,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreKeyword, ignoredTopics }) => {
+    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -587,6 +588,18 @@
           {hiddenCount > 0 && (
             <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
               {hiddenCount} article{hiddenCount !== 1 ? 's' : ''} hidden based on your ignore preferences
+              <button
+                onClick={() => {
+                  if (confirm('Clear all ignored articles?')) {
+                    localStorage.removeItem('woodmont_ignored_articles');
+                    localStorage.removeItem('woodmont_ignored_topics');
+                    window.location.reload();
+                  }
+                }}
+                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
+              >
+                (Clear all)
+              </button>
             </div>
           )}
           {loading ? (
@@ -607,7 +620,7 @@
                   onClick={onArticleClick}
                   trackedMatches={getArticleMatches(item)}
                   onTrackKeyword={onTrackKeyword}
-                  onIgnoreKeyword={onIgnoreKeyword}
+                  onIgnoreArticle={onIgnoreArticle}
                 />
               ))}
             </div>
@@ -646,7 +659,7 @@
                         {article.category === 'transactions' ? 'Transactions' :
                          article.category === 'availabilities' ? 'Availabilities' :
                          article.category === 'people' ? 'People News' :
-                         'Relevant News'}
+                         'Relevant'}
                       </span>
                     )}
                   </div>
@@ -1009,7 +1022,7 @@
     // IGNORE FUNCTIONS
     // ============================================
     const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
-    const IGNORED_ARTICLES_KEY = 'ignoredArticles';
+    const IGNORED_ARTICLES_KEY = 'woodmont_ignored_articles';
 
     const getIgnoredTopics = () => {
       try {
@@ -1018,24 +1031,12 @@
       } catch (e) { return []; }
     };
 
-    // Get ignored articles from newsletter actions
+    // Get ignored articles (by ID)
     const getIgnoredArticles = () => {
       try {
         const stored = localStorage.getItem(IGNORED_ARTICLES_KEY);
         return stored ? JSON.parse(stored) : [];
       } catch (e) { return []; }
-    };
-
-    // Combined: get all ignored items (topics + articles)
-    const getAllIgnored = () => {
-      const topics = getIgnoredTopics().map(t => ({ ...t, type: 'topic' }));
-      const articles = getIgnoredArticles().map(a => ({
-        keyword: a.title || a.articleId?.substring(0, 50) || 'Unknown article',
-        articleId: a.articleId,
-        addedAt: a.ignoredAt,
-        type: 'article'
-      }));
-      return [...topics, ...articles];
     };
 
     const addIgnoredTopic = (keyword) => {
@@ -1049,6 +1050,24 @@
       } catch (e) { return false; }
     };
 
+    // Add ignored article by ID with reason
+    const addIgnoredArticle = (article, reason = 'Not relevant') => {
+      const ignored = getIgnoredArticles();
+      const articleId = article.id || article.link || article.title;
+      if (ignored.some(a => a.id === articleId)) return false;
+      ignored.push({
+        id: articleId,
+        title: article.title,
+        source: article.source,
+        reason: reason,
+        addedAt: new Date().toISOString()
+      });
+      try {
+        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(ignored));
+        return true;
+      } catch (e) { return false; }
+    };
+
     const removeIgnoredTopic = (keyword) => {
       const topics = getIgnoredTopics();
       const filtered = topics.filter(t => t.keyword.toLowerCase() !== keyword.toLowerCase().trim());
@@ -1058,38 +1077,27 @@
       } catch (e) { return false; }
     };
 
-    // Remove ignored article by articleId or keyword
-    const removeIgnoredArticle = (identifier) => {
-      const articles = getIgnoredArticles();
-      const filtered = articles.filter(a =>
-        a.articleId !== identifier &&
-        (a.title || '').toLowerCase() !== identifier.toLowerCase()
-      );
+    // Remove ignored article by ID
+    const removeIgnoredArticle = (articleId) => {
+      const ignored = getIgnoredArticles();
+      const filtered = ignored.filter(a => a.id !== articleId);
       try {
         localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(filtered));
         return true;
       } catch (e) { return false; }
     };
 
-    // Remove any ignored item (topic or article)
-    const removeIgnoredItem = (item) => {
-      if (item.type === 'article') {
-        return removeIgnoredArticle(item.articleId || item.keyword);
-      } else {
-        return removeIgnoredTopic(item.keyword);
-      }
-    };
-
     const isArticleIgnored = (article) => {
-      // Check against ignored topics
-      const topics = getIgnoredTopics();
-      const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
-      if (topics.some(t => searchText.includes(t.keyword.toLowerCase()))) return true;
-
-      // Check against ignored articles by URL
+      // Check if article ID is ignored
       const ignoredArticles = getIgnoredArticles();
-      const articleUrl = article.url || article.link || '';
-      return ignoredArticles.some(a => a.articleId === articleUrl);
+      const articleId = article.id || article.link || article.title;
+      if (ignoredArticles.some(a => a.id === articleId)) return true;
+
+      // Also check topic-based ignoring (legacy)
+      const topics = getIgnoredTopics();
+      if (topics.length === 0) return false;
+      const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
+      return topics.some(t => searchText.includes(t.keyword.toLowerCase()));
     };
 
     // Tracked & Ignored Topics Panel Component
@@ -1203,31 +1211,18 @@
                 <>
                   {ignoredTopics.length === 0 ? (
                     <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                      No items ignored. Click "Ignore" on articles to hide them.
+                      No topics ignored. Click "Ignore" on articles to hide similar content.
                     </p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {ignoredTopics.map((item, idx) => (
+                      {ignoredTopics.map((topic, idx) => (
                         <div
                           key={idx}
-                          className={`flex items-center gap-2 rounded-full px-3 py-1 ${
-                            item.type === 'article'
-                              ? 'bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700'
-                              : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'
-                          }`}
+                          className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full px-3 py-1"
                         >
-                          <span className="text-xs text-slate-400 dark:text-slate-500">
-                            {item.type === 'article' ? '📰' : '🏷️'}
-                          </span>
-                          <span className={`text-sm font-medium ${
-                            item.type === 'article'
-                              ? 'text-orange-700 dark:text-orange-300'
-                              : 'text-red-700 dark:text-red-300'
-                          }`} title={item.articleId || item.keyword}>
-                            {item.keyword.length > 40 ? item.keyword.substring(0, 40) + '...' : item.keyword}
-                          </span>
+                          <span className="text-sm font-medium text-red-700 dark:text-red-300">{topic.keyword}</span>
                           <button
-                            onClick={() => onRemoveIgnored(item)}
+                            onClick={() => onRemoveIgnored(topic.keyword)}
                             className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none"
                             title="Stop ignoring"
                           >
@@ -1249,28 +1244,9 @@
       );
     };
 
-    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading, onTrackKeyword, onIgnoreKeyword }) => {
+    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
-
-      // Listen for track/ignore messages from newsletter iframe
-      useEffect(() => {
-        const handleMessage = (event) => {
-          if (event.data && event.data.type === 'track' && event.data.keyword) {
-            onTrackKeyword && onTrackKeyword(event.data.keyword);
-            alert(`Now tracking: "${event.data.keyword}"`);
-            // Regenerate newsletter to reflect changes
-            onGenerate && onGenerate();
-          } else if (event.data && event.data.type === 'ignore' && event.data.keyword) {
-            onIgnoreKeyword && onIgnoreKeyword(event.data.keyword);
-            alert(`Now ignoring: "${event.data.keyword}". Newsletter will be regenerated.`);
-            // Regenerate newsletter to exclude ignored articles
-            onGenerate && onGenerate();
-          }
-        };
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-      }, [onTrackKeyword, onIgnoreKeyword, onGenerate]);
       
       const downloadNewsletter = useCallback(async () => {
         if (!html) return;
@@ -1622,61 +1598,70 @@
         return count;
       }, [items, trackedTopics]);
 
-      // Ignore state - includes both topics and articles
-      const [ignoredTopics, setIgnoredTopics] = useState(() => getAllIgnored());
+      // Ignore state
+      const [ignoredTopics, setIgnoredTopics] = useState(() => getIgnoredTopics());
+      const [ignoredArticles, setIgnoredArticles] = useState(() => getIgnoredArticles());
 
-      // Ignore handlers
+      // Ignore handlers - for keywords (legacy)
       const handleIgnoreKeyword = useCallback((keyword) => {
         if (addIgnoredTopic(keyword)) {
-          setIgnoredTopics(getAllIgnored());
-          console.log(`Now ignoring: ${keyword}`);
+          setIgnoredTopics(getIgnoredTopics());
+          console.log(`Now ignoring keyword: ${keyword}`);
         }
       }, []);
 
-      const handleRemoveIgnoredTopic = useCallback((item) => {
-        // Handle both old format (string keyword) and new format (object with type)
-        if (typeof item === 'string') {
-          if (removeIgnoredTopic(item)) {
-            setIgnoredTopics(getAllIgnored());
-          }
-        } else if (removeIgnoredItem(item)) {
-          setIgnoredTopics(getAllIgnored());
+      // Ignore handler - for specific articles
+      const handleIgnoreArticle = useCallback((article, reason) => {
+        if (addIgnoredArticle(article, reason)) {
+          setIgnoredArticles(getIgnoredArticles());
+          console.log(`Ignored article: "${article.title}" - Reason: ${reason}`);
         }
       }, []);
 
-      // Handle tracking from URL parameters (for newsletter links)
+      const handleRemoveIgnoredTopic = useCallback((keyword) => {
+        if (removeIgnoredTopic(keyword)) {
+          setIgnoredTopics(getIgnoredTopics());
+        }
+      }, []);
+
+      // Handle tracking/ignoring from URL parameters (for newsletter links)
       useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
+
+        // Support both formats: ?track=keyword and ?action=track&keyword=value
+        const action = urlParams.get('action');
+        const keyword = urlParams.get('keyword');
         const trackKeyword = urlParams.get('track');
-        if (trackKeyword) {
+        const ignoreKeyword = urlParams.get('ignore');
+
+        let actionTaken = false;
+
+        // Handle ?action=track&keyword=value format
+        if (action === 'track' && keyword) {
+          handleTrackKeyword(decodeURIComponent(keyword));
+          actionTaken = true;
+          alert(`Added "${decodeURIComponent(keyword)}" to tracked sources!`);
+        } else if (action === 'ignore' && keyword) {
+          handleIgnoreKeyword(decodeURIComponent(keyword));
+          actionTaken = true;
+          alert(`Added "${decodeURIComponent(keyword)}" to ignored sources. These articles will be hidden.`);
+        }
+        // Handle legacy ?track=keyword format
+        else if (trackKeyword) {
           handleTrackKeyword(decodeURIComponent(trackKeyword));
-          // Clean the URL
+          actionTaken = true;
+        }
+        // Handle legacy ?ignore=keyword format
+        else if (ignoreKeyword) {
+          handleIgnoreKeyword(decodeURIComponent(ignoreKeyword));
+          actionTaken = true;
+        }
+
+        // Clean the URL after processing
+        if (actionTaken) {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
-      }, [handleTrackKeyword]);
-
-      // Refresh ignored/tracked state when window gains focus
-      useEffect(() => {
-        const refreshFromStorage = () => {
-          setIgnoredTopics(getAllIgnored());
-          setTrackedTopics(getTrackedTopics());
-        };
-        window.addEventListener('focus', refreshFromStorage);
-        return () => window.removeEventListener('focus', refreshFromStorage);
-      }, []);
-
-      // Handle action URL parameters - redirect to action.html if needed
-      useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const action = urlParams.get('action');
-        const articleId = urlParams.get('articleId');
-        const keyword = urlParams.get('keyword');
-
-        // If action params present, redirect to action.html
-        if (action && (articleId || keyword)) {
-          window.location.href = `action.html${window.location.search}`;
-        }
-      }, []);
+      }, [handleTrackKeyword, handleIgnoreKeyword]);
 
       const fetchItems = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);
@@ -1793,9 +1778,8 @@
           const desc = (item.description || '').substring(0, 200) + (item.description?.length > 200 ? '...' : '');
           const whyItMatters = relevanceContext[category] || relevanceContext.relevant;
           const source = item.source || 'Industry News';
-          const articleId = item.id || item.link || title;
 
-          return `<div class="article-card" data-article-id="${articleId}">
+          return `<div class="article-card">
             <div class="article-title-header">
               <h3 class="article-title">${title}</h3>
             </div>
@@ -1815,11 +1799,7 @@
                 <span class="source-label">Source:</span>
                 <span class="source-name">${source}</span>
               </div>
-              <div class="article-actions">
-                <a href="${item.link}" class="action-btn source-btn" target="_blank">📰 Source</a>
-                <button class="action-btn track-btn" onclick="window.parent.postMessage({type:'track',keyword:'${source.replace(/'/g, "\\'")}'},'*')">📌 Track</button>
-                <button class="action-btn ignore-btn" onclick="window.parent.postMessage({type:'ignore',keyword:'${source.replace(/'/g, "\\'")}'},'*')">🚫 Ignore</button>
-              </div>
+              <a href="${item.link}" class="read-more-btn" target="_blank">Read Full Article →</a>
             </div>
           </div>`;
         };
@@ -1864,14 +1844,6 @@
           .source-label{font-size:12px;color:#666}
           .source-name{font-size:13px;color:#1e3c72;font-weight:600}
           .read-more-btn{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:500;font-size:13px}
-          .article-actions{display:flex;gap:8px;align-items:center}
-          .action-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;border:none;display:inline-flex;align-items:center;gap:4px}
-          .source-btn{background:#e3f2fd;color:#1976d2;border:1px solid #bbdefb}
-          .source-btn:hover{background:#bbdefb}
-          .track-btn{background:#e8f5e9;color:#388e3c;border:1px solid #c8e6c9}
-          .track-btn:hover{background:#c8e6c9}
-          .ignore-btn{background:#ffebee;color:#d32f2f;border:1px solid #ffcdd2}
-          .ignore-btn:hover{background:#ffcdd2}
           .empty-section{background:#f8f9fa;padding:20px;border-radius:8px;text-align:center;color:#666;font-style:italic}
           .footer{background:#f8f9fa;padding:25px 30px;text-align:center;color:#666;font-size:14px;border-top:1px solid #dee2e6}
         </style></head><body><div class="container">
@@ -1915,10 +1887,9 @@
           return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
             <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
             ${desc ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${desc}</p>` : ''}
-            <div style="margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-              <a href="${url}" style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 500;">📰 Source</a>
-              <button onclick="window.parent.postMessage({type:'track',keyword:'${source.replace(/'/g, "\\'")}'},'*')" style="background: #e8f5e9; color: #388e3c; padding: 4px 10px; border-radius: 4px; border: none; font-size: 11px; font-weight: 500; cursor: pointer;">📌 Track</button>
-              <button onclick="window.parent.postMessage({type:'ignore',keyword:'${source.replace(/'/g, "\\'")}'},'*')" style="background: #ffebee; color: #d32f2f; padding: 4px 10px; border-radius: 4px; border: none; font-size: 11px; font-weight: 500; cursor: pointer;">🚫 Ignore</button>
+            <div style="margin-top: 8px;">
+              <a href="${url}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${source} →</a>
+              <span style="font-size: 11px; color: #999; margin-left: 12px;">[Track] [Share] [Ignore]</span>
             </div>
           </li>`;
         };
@@ -1965,10 +1936,9 @@
             // Generate newsletter client-side using loaded articles
             const days = parseInt(newsletterTimeframe, 10);
             const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-            // Filter by date AND exclude ignored articles
             const recentArticles = items.filter(item => {
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
-              return pubDate >= cutoff && !isArticleIgnored(item);
+              return pubDate >= cutoff;
             });
             // Use selected theme
             const html = newsletterTheme === 'goth'
@@ -2273,8 +2243,9 @@
                   onArticleClick={handleArticleClick}
                   trackedTopics={trackedTopics}
                   ignoredTopics={ignoredTopics}
+                  ignoredArticles={ignoredArticles}
                   onTrackKeyword={handleTrackKeyword}
-                  onIgnoreKeyword={handleIgnoreKeyword}
+                  onIgnoreArticle={handleIgnoreArticle}
                 />
               </>
             ) : viewMode === "newsletter" ? (
@@ -2297,8 +2268,6 @@
               setShowFeedHealth={setShowFeedHealth}
               onFetchFeedHealth={fetchFeedHealth}
               feedHealthLoading={feedHealthLoading}
-              onTrackKeyword={handleTrackKeyword}
-              onIgnoreKeyword={handleIgnoreKeyword}
               />
             ) : (
               <AdminPanel
@@ -2337,50 +2306,6 @@
               />
             )}
           </div>
-
-          {/* Footer with RSS/JSON Feed Links */}
-          <footer className="mt-12 py-8 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-sm text-slate-500 dark:text-slate-400">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Woodmont Industrial Partners</span>
-                  <span className="mx-2">•</span>
-                  <span>Industrial News Briefing</span>
-                </div>
-
-                {/* Feed Subscription Buttons */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 mr-2">Subscribe:</span>
-                  <a
-                    href="rss.xml"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
-                    </svg>
-                    RSS Feed
-                  </a>
-                  <a
-                    href="feed.json"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2m-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1Z"/>
-                    </svg>
-                    JSON Feed
-                  </a>
-                </div>
-              </div>
-
-              <div className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
-                © {new Date().getFullYear()} Woodmont Industrial Partners. All Rights Reserved.
-              </div>
-            </div>
-          </footer>
         </div>
       );
     };
