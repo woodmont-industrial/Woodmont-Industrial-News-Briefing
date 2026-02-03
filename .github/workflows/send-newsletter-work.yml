@@ -40,17 +40,25 @@ jobs:
 
       - name: Send Work Newsletter Email
         env:
+          # Primary: Power Automate Webhook (corporate O365 email)
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          # Fallback: SMTP (only used if webhook not configured)
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
           NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
         run: |
           echo "📧 Sending Work daily briefing (boss preferred format)..."
-          echo "From: $EMAIL_FROM"
           echo "To: $EMAIL_TO"
+          if [ -n "$WEBHOOK_URL" ]; then
+            echo "📌 Using Power Automate Webhook (corporate O365)"
+          else
+            echo "📌 Using SMTP fallback"
+          fi
           npx tsx rssfeed.ts --send-newsletter-work
 
       - name: Commit updated articles

@@ -6,8 +6,64 @@ import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 
-// Send email using NodeMailer
-export async function sendEmail(to: string[], subject: string, html: string): Promise<boolean> {
+// =============================================================================
+// EMAIL SENDING - Power Automate Webhook (Primary) or SMTP (Fallback)
+// =============================================================================
+
+/**
+ * Send email via Power Automate HTTP Webhook
+ * This is the preferred method - sends from corporate O365 account
+ */
+async function sendViaWebhook(to: string[], subject: string, html: string): Promise<boolean> {
+    const webhookUrl = process.env.WEBHOOK_URL;
+
+    if (!webhookUrl) {
+        console.log('⚠️ WEBHOOK_URL not configured');
+        return false;
+    }
+
+    try {
+        console.log('📤 Sending email via Power Automate webhook...');
+        console.log('   To:', to.join(', '));
+        console.log('   Subject:', subject);
+        console.log('   Body length:', html.length, 'characters');
+
+        const payload = {
+            to: to.join(', '),
+            subject: subject,
+            body: html,
+            // Optional: Include API key for webhook security
+            apiKey: process.env.WEBHOOK_SECRET || ''
+        };
+
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            console.log('✅ Webhook triggered successfully!');
+            console.log('   Response status:', response.status);
+            return true;
+        } else {
+            console.error('❌ Webhook failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('   Response:', errorText);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Failed to call webhook:', error);
+        return false;
+    }
+}
+
+/**
+ * Send email via SMTP (NodeMailer) - Fallback method
+ */
+async function sendViaSMTP(to: string[], subject: string, html: string): Promise<boolean> {
     try {
         // Dynamic import to avoid requiring it if not used
         const nodemailer = require('nodemailer');
@@ -15,7 +71,7 @@ export async function sendEmail(to: string[], subject: string, html: string): Pr
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || '',
             port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+            secure: process.env.SMTP_PORT === '465',
             auth: {
                 user: process.env.SMTP_USER || '',
                 pass: process.env.SMTP_PASS || '',
@@ -29,23 +85,53 @@ export async function sendEmail(to: string[], subject: string, html: string): Pr
             html: html,
         };
 
-        console.log('SMTP Config:', {
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            user: process.env.SMTP_USER,
-            from: process.env.EMAIL_FROM,
-            to: to.join(', ')
-        });
-        console.log('Mail Options:', { subject, to: to.join(', '), htmlLength: html.length });
+        console.log('📤 Sending email via SMTP...');
+        console.log('   SMTP Host:', process.env.SMTP_HOST);
+        console.log('   From:', process.env.EMAIL_FROM);
+        console.log('   To:', to.join(', '));
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.messageId);
-        console.log('Full email info:', info);
+        console.log('✅ Email sent successfully via SMTP');
+        console.log('   Message ID:', info.messageId);
         return true;
     } catch (error) {
-        console.error('Failed to send email:', error);
+        console.error('❌ SMTP send failed:', error);
         return false;
     }
+}
+
+/**
+ * Send email - Uses webhook if configured, falls back to SMTP
+ *
+ * Priority:
+ * 1. Power Automate Webhook (WEBHOOK_URL) - Corporate O365 email
+ * 2. SMTP (SMTP_HOST) - Gmail or other SMTP fallback
+ */
+export async function sendEmail(to: string[], subject: string, html: string): Promise<boolean> {
+    console.log('');
+    console.log('═══════════════════════════════════════════════════════════');
+    console.log('📧 EMAIL SENDING');
+    console.log('═══════════════════════════════════════════════════════════');
+
+    // Try webhook first (preferred - corporate email)
+    if (process.env.WEBHOOK_URL) {
+        console.log('📌 Using Power Automate Webhook (corporate O365)');
+        const webhookSuccess = await sendViaWebhook(to, subject, html);
+        if (webhookSuccess) {
+            return true;
+        }
+        console.log('⚠️ Webhook failed, trying SMTP fallback...');
+    }
+
+    // Fall back to SMTP if webhook not configured or failed
+    if (process.env.SMTP_HOST) {
+        console.log('📌 Using SMTP fallback');
+        return await sendViaSMTP(to, subject, html);
+    }
+
+    console.error('❌ No email method configured!');
+    console.error('   Set WEBHOOK_URL for Power Automate or SMTP_HOST for SMTP');
+    return false;
 }
 
 /**
