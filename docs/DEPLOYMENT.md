@@ -1,51 +1,171 @@
-# GitHub Pages Deployment Checklist
+# Deployment Guide
 
-## ✅ Pre-Deployment Tasks
-1. [ ] Remove sensitive SMTP credentials from rssfeed.ts (already done)
-2. [ ] Ensure all RSS feeds are working
-3. [ ] Test local build with `npm run build`
-4. [ ] Create GitHub repository (if not exists)
+> **Last Updated**: February 2026
+> **Email Method**: Power Automate Webhook (Primary) / SMTP (Fallback)
 
-## ✅ GitHub Setup
-1. [ ] Push code to GitHub repository
-2. [ ] Enable GitHub Pages in repository settings
-   - Source: Deploy from a branch
-   - Branch: `main` / `docs` folder
-3. [ ] Add GitHub Actions workflow (already created)
-4. [ ] Configure repository secrets for Copilot Agent
-   - `MICROSOFT_GRAPH_CLIENT_ID`
-   - `MICROSOFT_GRAPH_CLIENT_SECRET`
-   - `MICROSOFT_GRAPH_TENANT_ID`
+---
 
-## ✅ Copilot Agent Setup
-1. [ ] Create Microsoft App Registration in Azure AD
-2. [ ] Configure Graph API permissions for email sending
-3. [ ] Set up Copilot Agent with copilot-agent.yml
-4. [ ] Test email sending manually
+## Quick Start Checklist
 
-## ✅ Testing Checklist
-1. [ ] Manual workflow trigger test
-2. [ ] Verify GitHub Pages deployment
-3. [ ] Test article loading from JSON
-4. [ ] Test PDF download functionality
-5. [ ] Test email delivery
-6. [ ] Verify daily schedule (8 AM EST)
-7. [ ] Verify weekly review (Fridays 4 PM EST)
+### 1. GitHub Repository Setup
+- [x] Code pushed to GitHub
+- [x] GitHub Pages enabled (Settings → Pages → main/docs)
+- [x] GitHub Actions workflows configured
 
-## ✅ Post-Deployment
-1. [ ] Monitor first automated run
-2. [ ] Check email delivery
-3. [ ] Verify article updates
-4. [ ] Set up monitoring/alerts
+### 2. GitHub Secrets Configuration
+Go to: `https://github.com/woodmont-industrial/Woodmont-Industrial-News-Briefing/settings/secrets/actions`
 
-## 🚨 Important Notes
-- No SMTP credentials in code - using Microsoft Graph API
-- GitHub Actions runs Monday-Friday only
-- Articles stored in articles.json in repo root
-- Frontend served from /docs folder
-- Copilot Agent handles all email operations
+**Required Secrets:**
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `WEBHOOK_URL` | Yes* | Power Automate HTTP trigger URL |
+| `WEBHOOK_SECRET` | No | Optional API key for webhook security |
+| `EMAIL_TO` | Yes | Recipients (comma-separated) |
+| `GROQ_API_KEY` | No | For AI article classification |
 
-## 📋 Timeline
-- **Today**: Complete GitHub setup and initial deployment
-- **Tomorrow Morning**: Test automated run
-- **Tomorrow EOD**: Final verification and handover
+**SMTP Fallback (Optional):**
+| Secret | Description |
+|--------|-------------|
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | Gmail address |
+| `SMTP_PASS` | Gmail app password |
+| `EMAIL_FROM` | Sender display name |
+
+*Either `WEBHOOK_URL` or SMTP secrets must be configured.
+
+### 3. Power Automate Setup
+See: [POWER_AUTOMATE_INTEGRATION.md](./POWER_AUTOMATE_INTEGRATION.md)
+
+**Quick steps:**
+1. Create flow with "When an HTTP request is received" trigger
+2. Add "Send an email (V2)" action
+3. Copy the webhook URL to GitHub Secrets
+
+### 4. Test the System
+1. Go to GitHub Actions tab
+2. Run "Update Articles" workflow manually
+3. Run "Send Newsletter (Work)" workflow manually
+4. Check email inbox
+
+---
+
+## Architecture Overview
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  RSS Feeds   │────►│   GitHub     │────►│   Power      │
+│  (96+ src)   │     │   Actions    │     │   Automate   │
+└──────────────┘     └──────────────┘     └──────────────┘
+                            │                     │
+                            ▼                     ▼
+                     ┌──────────────┐     ┌──────────────┐
+                     │   GitHub     │     │   O365       │
+                     │   Pages      │     │   Email      │
+                     └──────────────┘     └──────────────┘
+```
+
+---
+
+## Email Configuration
+
+### Primary: Power Automate Webhook
+
+**Advantages:**
+- Sends from corporate @woodmontproperties.com
+- No SMTP credentials stored in GitHub
+- Works through corporate firewalls (HTTPS only)
+- Leverages existing Microsoft 365 infrastructure
+
+**How it works:**
+1. GitHub Action triggers `rssfeed.ts --send-newsletter-work`
+2. Code POSTs newsletter HTML to Power Automate webhook
+3. Power Automate sends email via O365 connector
+
+### Fallback: SMTP (Gmail)
+
+**When used:**
+- `WEBHOOK_URL` not configured
+- Webhook call fails
+
+**Disadvantages:**
+- Emails come from Gmail, not corporate domain
+- Requires SMTP credentials in GitHub Secrets
+- May be blocked by corporate firewalls (port 587)
+
+---
+
+## Workflow Schedule
+
+| Workflow | Cron | Time (EST) | Purpose |
+|----------|------|------------|---------|
+| `update-articles.yml` | `0 11 * * 1-5` | 6 AM | Fetch feeds, update docs/ |
+| `send-newsletter-work.yml` | `0 12 * * 1-5` | 7 AM | Send email newsletter |
+
+---
+
+## Monitoring & Troubleshooting
+
+### GitHub Actions
+- Check **Actions** tab for workflow runs
+- View logs for detailed output
+- Re-run failed workflows as needed
+
+### Power Automate
+- Check **Run history** in your flow
+- Look for failed runs and error messages
+- Test with manual trigger if needed
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Webhook returns 400 | Check JSON schema matches payload |
+| Webhook returns 401 | Verify `WEBHOOK_SECRET` matches flow |
+| Email not arriving | Check Power Automate run history |
+| Wrong sender | Configure O365 connector correctly |
+| No articles | Run `update-articles.yml` first |
+
+---
+
+## Security Best Practices
+
+1. **Never commit credentials** - Use GitHub Secrets only
+2. **Webhook URL is sensitive** - Treat it like a password
+3. **Add webhook security** - Use `WEBHOOK_SECRET` for API key validation
+4. **Monitor run history** - Watch for unusual activity
+
+---
+
+## Reverting Changes
+
+If the Power Automate integration doesn't work:
+
+**Option 1: Don't set WEBHOOK_URL**
+The code automatically falls back to SMTP.
+
+**Option 2: Git revert**
+```bash
+git revert 77a947f  # "Where it All Changed" commit
+```
+
+---
+
+## Related Documentation
+
+- [POWER_AUTOMATE_INTEGRATION.md](./POWER_AUTOMATE_INTEGRATION.md) - Detailed webhook setup
+- [NEXTSTEPS.md](./NEXTSTEPS.md) - System overview
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical design
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Problem solving
+
+---
+
+## Key Commits Reference
+
+| Commit | Description |
+|--------|-------------|
+| `77a947f` | "Where it All Changed" - Power Automate webhook integration |
+
+---
+
+**Questions?** Check GitHub Actions logs or Power Automate flow run history.

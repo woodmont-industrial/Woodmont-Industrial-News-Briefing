@@ -84,13 +84,37 @@ https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/rss.xml
 2. **GitHub Pages hosts RSS feed** at your public URL
 3. **Power Automate reads RSS** → Copilot summarizes → O365 email delivery
 
-## 🤖 Power Automate Workflow
+## 🤖 Power Automate Email Integration
 
-1. Open **Microsoft Copilot Studio** or **Power Automate**
-2. Add **RSS feed** as data source
-3. Enter feed URL: `https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/rss.xml`
-4. Configure 30-minute refresh interval
-5. Set up automated email delivery via O365 Send Email (V2)
+**As of February 2026**, newsletters are sent via Power Automate webhook instead of SMTP.
+
+### How It Works
+
+```
+GitHub Actions → HTTP POST → Power Automate → O365 Email → Recipients
+                 (webhook)    (flow)          (Send V2)   (@woodmontproperties.com)
+```
+
+### Setup Steps
+
+1. **Create Power Automate Flow**
+   - Trigger: "When an HTTP request is received"
+   - Action: "Send an email (V2)" from Office 365 Outlook
+
+2. **Add GitHub Secret**
+   - Go to repository Settings → Secrets → Actions
+   - Add `WEBHOOK_URL` with your flow's HTTP POST URL
+
+3. **Test**
+   - Manually trigger "Send Newsletter (Work)" workflow
+   - Check inbox for email from @woodmontproperties.com
+
+**Full documentation**: [POWER_AUTOMATE_INTEGRATION.md](docs/POWER_AUTOMATE_INTEGRATION.md)
+
+### Fallback to SMTP
+
+If `WEBHOOK_URL` is not configured, the system falls back to SMTP (Gmail).
+This is useful for local testing but not recommended for production.
 
 ## 📰 Sources + Filtering
 
@@ -137,11 +161,12 @@ npm run build-static  # Generate RSS files for GitHub Pages
 
 All supplemental documentation is organized in the [`docs/`](docs/) folder:
 
-- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Complete deployment guide (SMTP config, advanced setup)
-- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Feed issues, error handling, and solutions
+- **[POWER_AUTOMATE_INTEGRATION.md](docs/POWER_AUTOMATE_INTEGRATION.md)** - Email webhook setup (start here for email config)
+- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Complete deployment guide and secrets configuration
+- **[NEXTSTEPS.md](docs/NEXTSTEPS.md)** - System overview and quick reference
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design, modules, and technical details
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Feed issues, error handling, and solutions
 - **[ROADMAP.md](docs/ROADMAP.md)** - Future development plans and feature roadmap
-- **[NEXTSTEPS.md](docs/NEXTSTEPS.md)** - Deployment checklist and implementation guide
 
 ## 📁 Project Structure
 
