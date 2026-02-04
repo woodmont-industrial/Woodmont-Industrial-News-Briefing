@@ -556,40 +556,40 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
         // Political exclusion - applies to ALL sections
-        const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
+        const excludePolitical = [
+            // Politicians
+            'trump', 'biden', 'president elect', 'congress', 'senate', 'election',
+            'political', 'white house', 'democrat', 'republican', 'governor',
+            'legislation', 'tariff', 'border', 'immigration', 'gop',
+            'executive order', 'administration', 'campaign', 'ballot', 'voting',
+            'supreme court', 'cabinet', 'impeach', 'partisan', 'bipartisan',
+            // Public figures - NOT relevant to industrial CRE
+            'elon musk', 'musk', 'spacex', 'doge', 'jeff bezos',
+            'mark zuckerberg', 'zuckerberg', 'bill gates',
+            // Government policy (unless CRE-specific)
+            'shutdown', 'debt ceiling', 'stimulus', 'government spending',
+            'foreign policy', 'military', 'defense budget', 'pentagon',
+            'nato', 'sanctions', 'diplomatic'
+        ];
 
         // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
         const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
             const upperText = text.toUpperCase();
-            // Extract SF values
             const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
             let sizeSF: number | null = null;
-            if (sfMatch) {
-                sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
-            }
+            if (sfMatch) sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
 
-            // Extract dollar values (millions)
             const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
             let priceMillion: number | null = null;
-            if (dollarMatch) {
-                priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
-            }
+            if (dollarMatch) priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
 
-            // Also check for plain dollar amounts (e.g., $25,000,000)
             const bigDollarMatch = upperText.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
             if (!priceMillion && bigDollarMatch) {
                 const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
-                if (rawAmount >= 25000000) {
-                    priceMillion = rawAmount / 1000000;
-                }
+                if (rawAmount >= 25000000) priceMillion = rawAmount / 1000000;
             }
 
-            return {
-                meetsSF: sizeSF !== null && sizeSF >= 100000,
-                meetsDollar: priceMillion !== null && priceMillion >= 25,
-                sizeSF,
-                priceMillion
-            };
+            return { meetsSF: sizeSF !== null && sizeSF >= 100000, meetsDollar: priceMillion !== null && priceMillion >= 25, sizeSF, priceMillion };
         };
 
         // Property scope: Industrial only (exclude office, multifamily, retail, hotels, self-storage, data centers unless industrial)
@@ -847,10 +847,12 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
 
 /**
  * Send "Work" daily newsletter - Boss's preferred clean, minimal style
+ * NOW WITH STRICT FILTERS: Regional (NJ, PA, FL), Industrial, Political, Deal Thresholds
+ * Same filtering as Goth newsletter
  */
 export async function sendDailyNewsletterWork(): Promise<boolean> {
     try {
-        console.log('📧 Preparing Work daily briefing (boss preferred style)...');
+        console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
 
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
@@ -866,22 +868,156 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         console.log(`📰 Loaded ${articles.length} articles from feed`);
 
-        // Dynamic time range: start with 48 hours, reduce to 24 if too many articles
-        // Goal: 3-5 articles per section
         const now = new Date();
 
-        // Helper to filter by time range
-        const getArticlesByTimeRange = (hours: number) => {
-            const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
-            return articles.filter(a => {
-                const pubDate = new Date(a.pubDate || a.date_published || a.fetchedAt || 0);
-                return pubDate >= cutoff;
-            });
+        // =====================================================================
+        // STRICT REGIONAL FILTER - NJ, PA, FL ONLY
+        // =====================================================================
+        const targetRegions = ['NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA', 'PHILADELPHIA', 'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE', 'LEHIGH VALLEY', 'ALLENTOWN', 'BETHLEHEM'];
+
+        const majorExcludeRegions = ['HOUSTON', 'DALLAS', 'AUSTIN', 'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX', 'CHARLOTTE', 'NASHVILLE', 'BALTIMORE', 'SAN DIEGO', 'PORTLAND', 'DETROIT', 'MINNEAPOLIS', 'COLUMBUS', 'INDIANAPOLIS', 'MEMPHIS', 'RALEIGH', 'RICHMOND', 'MILWAUKEE', 'KANSAS CITY', 'ST. LOUIS', 'CLEVELAND', 'CINCINNATI', 'LAS VEGAS', 'SALT LAKE', 'BOISE', 'SAN ANTONIO', 'SACRAMENTO', 'OKLAHOMA CITY', 'TUCSON', 'ALBUQUERQUE', 'NEW ORLEANS'];
+
+        const isTargetRegion = (article: NormalizedItem): boolean => {
+            const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
+            const url = (article.url || article.link || '').toLowerCase();
+
+            // INCLUDE if from a NJ/PA/FL regional source
+            const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey', 'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
+            const isFromRegionalSource = regionalSources.some(s => url.includes(s));
+
+            const targetCount = targetRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+            const excludeCount = majorExcludeRegions.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+            if (isFromRegionalSource) {
+                if (excludeCount > targetCount && excludeCount >= 2) return false;
+                return true;
+            }
+
+            if (article.regions && article.regions.length > 0) {
+                const hasTarget = article.regions.some(r => targetRegions.some(tr => r.toUpperCase().includes(tr)));
+                if (hasTarget) return true;
+            }
+
+            const hasTargetRegion = targetRegions.some(r => text.includes(r));
+            if (hasTargetRegion && targetCount >= excludeCount) return true;
+
+            return hasTargetRegion && excludeCount === 0;
         };
 
-        // Use same filtering logic as Goth newsletter
-        const excludePolitical = ['trump', 'biden', 'congress', 'senate', 'election', 'political', 'republican', 'democrat', 'gop', 'white house'];
+        // =====================================================================
+        // POLITICAL / PUBLIC FIGURE EXCLUSION
+        // =====================================================================
+        const excludePolitical = [
+            // Politicians
+            'trump', 'biden', 'president elect', 'congress', 'senate', 'election',
+            'political', 'white house', 'democrat', 'republican', 'governor',
+            'legislation', 'tariff', 'border', 'immigration', 'gop',
+            'executive order', 'administration', 'campaign', 'ballot', 'voting',
+            'supreme court', 'cabinet', 'impeach', 'partisan', 'bipartisan',
+            // Public figures - NOT relevant to industrial CRE
+            'elon musk', 'musk', 'spacex', 'doge', 'jeff bezos',
+            'mark zuckerberg', 'zuckerberg', 'bill gates',
+            // Government policy (unless CRE-specific)
+            'shutdown', 'debt ceiling', 'stimulus', 'government spending',
+            'foreign policy', 'military', 'defense budget', 'pentagon',
+            'nato', 'sanctions', 'diplomatic'
+        ];
 
+        // =====================================================================
+        // INDUSTRIAL PROPERTY FILTERS
+        // =====================================================================
+        const excludeNonIndustrial = [
+            'office lease', 'office building', 'office tower', 'coworking',
+            'multifamily', 'apartment', 'residential', 'condo',
+            'retail', 'restaurant', 'shopping center', 'mall',
+            'hotel', 'hospitality', 'resort',
+            'self-storage', 'mini storage',
+            'senior living', 'nursing home', 'medical office'
+        ];
+
+        const industrialPropertyKeywords = [
+            'warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage',
+            'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land',
+            'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock'
+        ];
+
+        // =====================================================================
+        // DEAL THRESHOLD: >=100,000 SF or >=$25M
+        // =====================================================================
+        const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
+            const upperText = text.toUpperCase();
+            const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            let sizeSF: number | null = null;
+            if (sfMatch) sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+
+            const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
+            let priceMillion: number | null = null;
+            if (dollarMatch) priceMillion = parseFloat(dollarMatch[1].replace(/,/g, ''));
+
+            const bigDollarMatch = upperText.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
+            if (!priceMillion && bigDollarMatch) {
+                const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
+                if (rawAmount >= 25000000) priceMillion = rawAmount / 1000000;
+            }
+
+            return { meetsSF: sizeSF !== null && sizeSF >= 100000, meetsDollar: priceMillion !== null && priceMillion >= 25, sizeSF, priceMillion };
+        };
+
+        // =====================================================================
+        // SECTION-SPECIFIC KEYWORD FILTERS
+        // =====================================================================
+        const relevantKeywords = [
+            'interest rate', 'fed ', 'federal reserve', 'inflation', 'cpi', 'lending', 'financing', 'capital markets',
+            'freight', 'shipping', 'trucking', 'supply chain', 'port', 'cargo', 'container',
+            'construction cost', 'material cost', 'steel', 'concrete', 'lumber', 'labor cost', 'labor market',
+            'insurance', 'insurance cost', 'property insurance',
+            'industrial', 'warehouse', 'distribution', 'fulfillment', 'cold storage', 'logistics', 'flex space',
+            'manufacturing', 'last mile', 'e-commerce', 'spec development', 'industrial park',
+            'approved', 'approves', 'approval', 'zoning', 'rezoning', 'entitlement', 'permits', 'planning board',
+            'groundbreaking', 'under construction', 'development', 'project', 'proposed', 'planned',
+            'sustainable industrial', 'esg property', 'net zero', 'green building', 'leed',
+            'last mile delivery', 'automation', 'robotics', 'automated warehouse',
+            'workforce development', 'skilled trades', 'labor shortage',
+            'reshoring', 'nearshoring', 'supply chain resilience', 'onshoring',
+            'data center', 'flex warehouse', 'cross-dock', 'cross dock',
+            'last-mile facility', 'micro-fulfillment', 'micro fulfillment',
+            'agri-tech', 'agritech', 'food processing', 'food facility',
+            'advanced manufacturing', 'contract manufacturing',
+            'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate'
+        ];
+
+        const approvalKeywords = ['approved', 'approves', 'approval', 'zoning', 'rezoning', 'entitlement', 'permits', 'planning board', 'commission'];
+
+        const peopleActionKeywords = [
+            'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
+            'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
+            'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
+            'movers', 'shakers', 'leadership', 'executive', 'move',
+            'announces', 'announced', 'selected', 'recognized', 'award', 'honored', 'featured',
+            'profile', 'spotlight', 'interview', 'q&a', 'power broker', 'rising star', 'top producer'
+        ];
+
+        const industrialContextKeywords = [
+            'nai', 'sior', 'ccim', 'cbre', 'jll', 'cushman', 'colliers', 'newmark', 'marcus', 'millichap',
+            'prologis', 'duke', 'link logistics', 'rexford', 'first industrial', 'stag', 'terreno',
+            'exeter', 'blackstone', 'brookfield', 'clarion', 'dermody', 'hillwood', 'idl', 'panattoni',
+            'avison young', 'lee & associates', 'kidder mathews', 'transwestern', 'savills', 'ngkf',
+            'eastdil', 'hff', 'walker & dunlop', 'berkadia', 'northmarq', 'keane', 'ware malcomb',
+            'industrial', 'logistics', 'warehouse', 'distribution', 'fulfillment', 'cold storage',
+            'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
+            'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
+            'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
+            'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda',
+            'naiop', 'icsc', 'uli', 'boma', 'cbre institute',
+            'investor', 'fund manager', 'private equity', 'institutional', 'family office', 'reit',
+            'investment firm', 'investment manager', 'allocation', 'fundraising', 'capital raise'
+        ];
+
+        const excludeFromPeople = ['residential broker', 'elliman', 'compass real', 'redfin', 'zillow', 'mortgage lender', 'retail broker', 'multifamily broker', 'apartment complex', 'hotel broker', 'hospitality'];
+
+        // =====================================================================
+        // HELPER FUNCTIONS
+        // =====================================================================
         const getText = (article: NormalizedItem): string =>
             `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toLowerCase();
 
@@ -890,43 +1026,122 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         const isPolitical = (text: string): boolean => containsAny(text, excludePolitical);
 
-        // Categorize and count articles for a given time range
-        const categorizeArticles = (recentArticles: NormalizedItem[]) => {
-            const filtered = recentArticles.filter(article => {
-                const text = getText(article);
-                return !isPolitical(text);
-            });
-            return {
-                relevant: filtered.filter(a => a.category === 'relevant'),
-                transactions: filtered.filter(a => a.category === 'transactions'),
-                availabilities: filtered.filter(a => a.category === 'availabilities'),
-                people: filtered.filter(a => a.category === 'people')
-            };
+        const isIndustrialProperty = (text: string): boolean => {
+            if (containsAny(text, industrialPropertyKeywords)) return true;
+            return !containsAny(text, excludeNonIndustrial);
         };
 
-        // Try 48 hours first
+        const getValidDate = (article: NormalizedItem): Date | null => {
+            const dateStr = (article as any).date_published || article.pubDate || (article as any).date_modified || article.fetchedAt;
+            if (!dateStr) return null;
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return null;
+            if (date > new Date()) return null;
+            if (date < new Date('2020-01-01')) return null;
+            return date;
+        };
+
+        // =====================================================================
+        // SECTION FILTERS (same as Goth newsletter)
+        // =====================================================================
+        const applyStrictFilter = (items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                return containsAny(text, keywords);
+            });
+            console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict filter)`);
+            return filtered;
+        };
+
+        const applyTransactionFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+                const isApproval = containsAny(text, approvalKeywords);
+                if (isApproval) return true;
+                const threshold = meetsDealThreshold(text);
+                return threshold.meetsSF || threshold.meetsDollar || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+            });
+            console.log(`🔍 Transactions: ${items.length} → ${filtered.length} (threshold filter)`);
+            return filtered;
+        };
+
+        const applyAvailabilityFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                if (isPolitical(text)) return false;
+                if (!isIndustrialProperty(text)) return false;
+                const threshold = meetsDealThreshold(text);
+                return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+            });
+            console.log(`🔍 Availabilities: ${items.length} → ${filtered.length} (threshold filter)`);
+            return filtered;
+        };
+
+        const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
+            const filtered = items.filter(article => {
+                const text = getText(article);
+                const url = (article.url || article.link || '').toLowerCase();
+                if (isPolitical(text)) return false;
+                if (containsAny(text, excludeFromPeople)) return false;
+                const hasAction = containsAny(text, peopleActionKeywords);
+                const hasIndustrial = containsAny(text, industrialContextKeywords);
+                const brokerageSources = ['bisnow.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
+                    'newmark', 'nai', 'sior.com', 'ccim.com', 'naiop.org', 're-nj.com', 'globest.com',
+                    'commercialsearch.com', 'cpexecutive.com', 'therealdeal.com'];
+                const isFromBrokerageSource = brokerageSources.some(s => url.includes(s));
+                return hasAction || hasIndustrial || isFromBrokerageSource;
+            });
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (relaxed filter)`);
+            return filtered;
+        };
+
+        // =====================================================================
+        // DYNAMIC TIME RANGE (Work-specific: 48h default, reduce to 24h if too many)
+        // =====================================================================
+        const getArticlesByTimeRange = (hours: number) => {
+            const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
+            return articles.filter(a => {
+                const pubDate = getValidDate(a);
+                if (!pubDate) return false;
+                return pubDate >= cutoff;
+            });
+        };
+
+        // Start with 48 hours
         let timeRange = 48;
         let recentArticles = getArticlesByTimeRange(48);
-        let categorized = categorizeArticles(recentArticles);
 
-        console.log(`📰 48-hour articles: relevant=${categorized.relevant.length}, transactions=${categorized.transactions.length}, availabilities=${categorized.availabilities.length}, people=${categorized.people.length}`);
+        // STEP 1: Regional filter
+        let regionalArticles = recentArticles.filter(isTargetRegion);
+        console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
+
+        // STEP 2: Apply section-specific filters
+        let relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant');
+        let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
+        let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
+        let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
 
         // If any section has more than 5, try 24 hours
-        if (categorized.relevant.length > 5 || categorized.transactions.length > 5 ||
-            categorized.availabilities.length > 5 || categorized.people.length > 5) {
+        if (relevant.length > 5 || transactions.length > 5 || availabilities.length > 5 || people.length > 5) {
             console.log('📊 Too many articles in 48h, trying 24 hours...');
             timeRange = 24;
             recentArticles = getArticlesByTimeRange(24);
-            categorized = categorizeArticles(recentArticles);
-            console.log(`📰 24-hour articles: relevant=${categorized.relevant.length}, transactions=${categorized.transactions.length}, availabilities=${categorized.availabilities.length}, people=${categorized.people.length}`);
+            regionalArticles = recentArticles.filter(isTargetRegion);
+            relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant');
+            transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
+            availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
+            people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
         }
 
         // Cap each section at 5 articles (ideal: 3-5)
         const MAX_PER_SECTION = 5;
-        let relevant = categorized.relevant.slice(0, MAX_PER_SECTION);
-        let transactions = categorized.transactions.slice(0, MAX_PER_SECTION);
-        let availabilities = categorized.availabilities.slice(0, MAX_PER_SECTION);
-        let people = categorized.people.slice(0, MAX_PER_SECTION);
+        relevant = relevant.slice(0, MAX_PER_SECTION);
+        transactions = transactions.slice(0, MAX_PER_SECTION);
+        availabilities = availabilities.slice(0, MAX_PER_SECTION);
+        people = people.slice(0, MAX_PER_SECTION);
 
         console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
         console.log(`  - Relevant News: ${relevant.length}`);
@@ -952,7 +1167,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange);
 
-        // Get recipients (same as other newsletters)
+        // Get recipients
         const emailTo = process.env.EMAIL_TO || '';
         if (!emailTo) {
             console.error('❌ No EMAIL_TO configured in environment');
@@ -1114,7 +1329,18 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         // ===== STRICT CONTENT FILTERS (no fallback - empty is OK) =====
 
         // Political exclusion - applies to ALL sections
-        const excludePolitical = ['trump', 'biden', 'president elect', 'congress', 'senate', 'election', 'political', 'white house', 'democrat', 'republican', 'governor', 'legislation', 'tariff', 'border', 'immigration'];
+        const excludePolitical = [
+            'trump', 'biden', 'president elect', 'congress', 'senate', 'election',
+            'political', 'white house', 'democrat', 'republican', 'governor',
+            'legislation', 'tariff', 'border', 'immigration', 'gop',
+            'executive order', 'administration', 'campaign', 'ballot', 'voting',
+            'supreme court', 'cabinet', 'impeach', 'partisan', 'bipartisan',
+            'elon musk', 'musk', 'spacex', 'doge', 'jeff bezos',
+            'mark zuckerberg', 'zuckerberg', 'bill gates',
+            'shutdown', 'debt ceiling', 'stimulus', 'government spending',
+            'foreign policy', 'military', 'defense budget', 'pentagon',
+            'nato', 'sanctions', 'diplomatic'
+        ];
 
         // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
         const meetsDealThreshold = (text: string): { meetsSF: boolean; meetsDollar: boolean; sizeSF: number | null; priceMillion: number | null } => {
