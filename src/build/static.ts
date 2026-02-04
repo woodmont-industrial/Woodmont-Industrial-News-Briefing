@@ -10,6 +10,7 @@ import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySou
 import { NormalizedItem, FetchResult } from '../types/index.js';
 import { RSS_FEEDS } from '../feeds/config.js';
 import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
+import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 
 // Directory for static output
 const DOCS_DIR = path.join(process.cwd(), 'docs');
@@ -971,6 +972,8 @@ interface FeedHealthEntry {
     keptAfterFiltering: number;
     lastError: string | null;
     durationMs: number;
+    type: 'rss' | 'scraper';
+    scraperStrategy?: string;
 }
 
 interface FeedHealthReport {
@@ -981,6 +984,13 @@ interface FeedHealthReport {
     totalArticlesFetched: number;
     totalArticlesKept: number;
     feeds: FeedHealthEntry[];
+    scraperSummary: {
+        total: number;
+        successful: number;
+        failed: number;
+        articlesFetched: number;
+        articlesKept: number;
+    };
 }
 
 function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
@@ -992,9 +1002,23 @@ function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
         feedUrlMap.set(feed.name, feed.url);
     }
 
+    // Create a map of scraper names to their config
+    const scraperMap = new Map<string, typeof SCRAPER_CONFIGS[0]>();
+    for (const config of SCRAPER_CONFIGS) {
+        scraperMap.set(`Scraper: ${config.name}`, config);
+    }
+
     for (const result of results) {
         const feedName = result.meta.feed;
-        const feedUrl = feedUrlMap.get(feedName) || 'unknown';
+        const isScraper = feedName.startsWith('Scraper: ');
+        const scraperConfig = scraperMap.get(feedName);
+
+        let feedUrl: string;
+        if (isScraper && scraperConfig) {
+            feedUrl = scraperConfig.targets.map(t => t.url).join(', ');
+        } else {
+            feedUrl = feedUrlMap.get(feedName) || 'unknown';
+        }
 
         feeds.push({
             name: feedName,
@@ -1003,7 +1027,9 @@ function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
             fetchedRaw: result.meta.fetchedRaw,
             keptAfterFiltering: result.meta.kept,
             lastError: result.error?.message || null,
-            durationMs: result.meta.durationMs
+            durationMs: result.meta.durationMs,
+            type: isScraper ? 'scraper' : 'rss',
+            scraperStrategy: scraperConfig?.strategy
         });
     }
 
@@ -1020,6 +1046,16 @@ function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
     const totalArticlesFetched = feeds.reduce((sum, f) => sum + f.fetchedRaw, 0);
     const totalArticlesKept = feeds.reduce((sum, f) => sum + f.keptAfterFiltering, 0);
 
+    // Scraper-specific summary
+    const scraperFeeds = feeds.filter(f => f.type === 'scraper');
+    const scraperSummary = {
+        total: scraperFeeds.length,
+        successful: scraperFeeds.filter(f => f.status === 'ok').length,
+        failed: scraperFeeds.filter(f => f.status === 'failed').length,
+        articlesFetched: scraperFeeds.reduce((sum, f) => sum + f.fetchedRaw, 0),
+        articlesKept: scraperFeeds.reduce((sum, f) => sum + f.keptAfterFiltering, 0)
+    };
+
     return {
         generatedAt: new Date().toISOString(),
         totalFeeds: feeds.length,
@@ -1027,6 +1063,7 @@ function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
         failedFeeds,
         totalArticlesFetched,
         totalArticlesKept,
-        feeds
+        feeds,
+        scraperSummary
     };
 }
