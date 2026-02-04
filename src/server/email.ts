@@ -1156,8 +1156,33 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return true;
         }
 
-        // Build the clean work newsletter
+        // Friday Week-in-Review: pull top 5 from the past 5 days
         const today = new Date();
+        const isFriday = today.getDay() === 5;
+        let weekInReview: NormalizedItem[] | undefined;
+
+        if (isFriday) {
+            console.log('📅 Friday detected — building Week-in-Review (top 5 from last 5 days)');
+            const fiveDayCutoff = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+            const fiveDayArticles = articles.filter(a => {
+                const pubDate = getValidDate(a);
+                if (!pubDate) return false;
+                return pubDate >= fiveDayCutoff;
+            });
+            // Get all regional + non-political articles from the week, sorted by most recent
+            const weekRegional = fiveDayArticles.filter(isTargetRegion).filter(a => {
+                const text = getText(a);
+                return !isPolitical(text);
+            });
+            // Top 5 by any category (prefer transactions and relevant)
+            const weekTransactions = weekRegional.filter(a => a.category === 'transactions');
+            const weekRelevant = weekRegional.filter(a => a.category === 'relevant');
+            const weekOther = weekRegional.filter(a => a.category !== 'transactions' && a.category !== 'relevant');
+            weekInReview = [...weekTransactions, ...weekRelevant, ...weekOther].slice(0, 5);
+            console.log(`📊 Week-in-Review: ${weekInReview.length} top developments`);
+        }
+
+        // Build the newsletter
         const dateRange = today.toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -1165,7 +1190,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             day: 'numeric'
         });
 
-        const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange);
+        const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
 
         // Get recipients
         const emailTo = process.env.EMAIL_TO || '';
@@ -1175,14 +1200,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         }
         const recipients = emailTo.split(',').map(e => e.trim()).filter(e => e);
 
-        const subject = `Woodmont Industrial Partners — Daily Industrial News Briefing`;
+        const subject = isFriday
+            ? `Woodmont Industrial Partners — Weekly Industrial News Briefing`
+            : `Woodmont Industrial Partners — Daily Industrial News Briefing`;
 
         console.log(`📤 Sending Work newsletter to ${recipients.length} recipient(s)...`);
 
         const success = await sendEmail(recipients, subject, html);
 
         if (success) {
-            console.log('✅ Work daily newsletter sent successfully!');
+            console.log(`✅ Work ${isFriday ? 'weekly' : 'daily'} newsletter sent successfully!`);
         } else {
             console.error('❌ Failed to send Work newsletter');
         }

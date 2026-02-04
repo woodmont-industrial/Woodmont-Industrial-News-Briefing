@@ -1,17 +1,17 @@
-name: Send Newsletter (Work)
+name: Send Newsletter (Work - Weekly)
 
 on:
   schedule:
-    # Run Monday-Thursday at 7 AM EST (12:00 UTC)
-    # Friday is handled by send-newsletter-work-weekly.yml
-    - cron: '0 12 * * 1-4'
-  workflow_dispatch: # Allow manual trigger
+    # Run Friday at 7 AM EST (12:00 UTC)
+    # Sends the weekly recap with Week-in-Review section
+    - cron: '0 12 * * 5'
+  workflow_dispatch: # Allow manual trigger for re-sends
 
 permissions:
   contents: write
 
 jobs:
-  send-newsletter:
+  send-weekly-newsletter:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -39,7 +39,7 @@ jobs:
           SKIP_PLAYWRIGHT: 'true'
         timeout-minutes: 10
 
-      - name: Send Work Newsletter Email
+      - name: Send Work Weekly Newsletter
         env:
           # Primary: Power Automate Webhook (corporate O365 email)
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
@@ -53,7 +53,7 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
         run: |
-          echo "📧 Sending Work daily briefing (boss preferred format)..."
+          echo "📧 Sending Work WEEKLY briefing (Friday recap with Week-in-Review)..."
           echo "To: $EMAIL_TO"
           if [ -n "$WEBHOOK_URL" ]; then
             echo "📌 Using Power Automate Webhook (corporate O365)"
@@ -70,7 +70,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "📋 No changes to commit"
           else
-            git commit -m "📧 Work Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git commit -m "📧 Work Weekly Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
             git pull --rebase || true
             git push
           fi
@@ -78,11 +78,11 @@ jobs:
       - name: Report Success
         if: success()
         run: |
-          echo "✅ Work newsletter sent successfully!"
-          echo "📊 Check email inbox for delivery"
+          echo "✅ Work weekly newsletter sent successfully!"
+          echo "📊 Includes Week-in-Review: Top 5 developments from the past 5 days"
 
       - name: Report Failure
         if: failure()
         run: |
-          echo "❌ Work newsletter send failed!"
+          echo "❌ Work weekly newsletter send failed!"
           echo "Check the logs above for error details"
