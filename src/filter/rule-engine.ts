@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem, FeedType } from '../types/index.js';
+import { OUT_OF_MARKET_KEYWORDS, MARKET_KEYWORDS } from './classifier.js';
 
 interface ClassificationRules {
     categories: Record<string, any>;
@@ -124,6 +125,17 @@ export async function classifyArticleWithRules(
                             score: 0
                   };
           }
+
+      // 3b. Check out-of-market regions (exclude if no target market mention)
+      const hasOutOfMarket = OUT_OF_MARKET_KEYWORDS.some(kw => text.includes(kw.toLowerCase()));
+      const hasTargetMarket = MARKET_KEYWORDS.some(kw => text.includes(kw.toLowerCase()));
+      if (hasOutOfMarket && !hasTargetMarket) {
+              return {
+                        isRelevant: false,
+                        category: 'out of market',
+                        score: 0
+              };
+      }
 
       // 4. Calculate industrial focus
       const industrialScore = scoreKeywords(text, rules.keywords.industrial, 1.2);

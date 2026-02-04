@@ -84,41 +84,41 @@ export const HARD_NEGATIVE_NON_CRE = [
 
 // Market keywords for NJ/PA/FL/TX focus - EXPANDED
 export const MARKET_KEYWORDS = [
-    "new jersey","nj","pennsylvania","pa","texas","tx","florida","fl",
-    "port newark","elizabeth","newark","jersey city","lehigh valley",
-    "dallas","dfw","houston","miami","tampa","orlando","jacksonville",
-    "fort lauderdale","west palm","palm beach","fort myers","naples",
-    "austin","san antonio","fort worth","arlington","plano","irving",
-    "philadelphia","pittsburgh","allentown","bethlehem","easton",
+    // Target markets: NJ, PA, FL ONLY
+    "new jersey","nj","pennsylvania","pa","florida","fl",
+    // NJ cities and counties
+    "port newark","elizabeth","newark","jersey city","bayonne",
     "trenton","camden","princeton","morris county","bergen county",
     "hudson county","essex county","middlesex county","union county",
+    "monmouth county","somerset county",
+    "central jersey","north jersey","south jersey","shore",
+    // PA cities and areas
+    "philadelphia","pittsburgh","lehigh valley","allentown","bethlehem","easton",
+    "bucks county","montgomery county","chester county","delaware county",
+    // FL cities and areas
+    "miami","tampa","orlando","jacksonville",
+    "fort lauderdale","west palm","palm beach","fort myers","naples",
     "south florida","gold coast","treasure coast","space coast",
-    "dallas-fort worth","dfw metroplex","houston metro","austin metro",
-    "south texas","gulf coast","corpus christi","laredo",
-    "central jersey","north jersey","south jersey","shore"
+    "miami-dade","broward","hillsborough","duval"
 ];
 
 export const GEOGRAPHY_KEYWORDS = [
-    // NJ/PA ports and cities - EXPANDED
+    // NJ ports and cities
     "port newark", "elizabeth", "newark", "bayonne", "jersey city",
-    "lehigh valley", "allentown", "bethlehem", "easton",
     "port of new york", "port of new jersey", "ny nj port",
-    // Highways - EXPANDED
+    // NJ/PA Highways
     "turnpike", "garden state parkway", "i-78", "i-80", "i-287", "i-95", "i-81",
     "i-295", "i-195", "i-76", "i-476", "route 1", "route 9", "route 18",
     "exit 8a", "exit 7a", "exit 13", "exit 15", "exit 16",
+    // PA cities and areas
+    "lehigh valley", "allentown", "bethlehem", "easton",
+    "i-76 pa", "pennsylvania turnpike", "i-83", "i-79", "route 309",
+    "port of philadelphia", "philadelphia port", "pittsburgh",
     // Florida highways and areas
-    "i-95 florida", "i-75", "i-4", "i-595", "i-595", "florida turnpike",
+    "i-95 florida", "i-75", "i-4", "i-595", "florida turnpike",
     "miami-dade", "broward", "palm beach", "fort lauderdale",
     "port miami", "port everglades", "port of tampa", "port of jacksonville",
     "south florida", "gold coast", "treasure coast",
-    // Texas highways and areas
-    "i-35", "i-45", "i-10", "i-20", "i-30", "i-635", "texas tollway",
-    "port houston", "port of houston", "port of galveston", "port of corpus christi",
-    "dallas-fort worth", "dfw", "houston ship channel", "freeport",
-    // Pennsylvania highways and areas
-    "i-76 pa", "pennsylvania turnpike", "i-83", "i-79", "route 309",
-    "port of philadelphia", "philadelphia port", "pittsburgh",
     // Major industrial corridors
     "logistics corridor", "distribution corridor", "industrial corridor",
     "inland port", "intermodal facility", "rail yard"
@@ -134,6 +134,14 @@ export const EXCLUSION_KEYWORDS = [
     "trump", "biden", "president trump", "president biden", "white house",
     "congress", "senate", "republican", "democrat", "political", "election",
     "executive order", "administration", "tariff war", "trade war",
+    "governor", "legislation", "campaign", "ballot", "voting", "gop",
+    "supreme court", "cabinet", "impeach", "partisan", "bipartisan",
+    "shutdown", "debt ceiling", "stimulus", "government spending",
+    "foreign policy", "military", "defense budget", "pentagon",
+    "nato", "sanctions", "diplomatic",
+    // Public figures - NOT relevant to industrial CRE
+    "elon musk", "musk", "spacex", "doge", "jeff bezos",
+    "mark zuckerberg", "zuckerberg", "bill gates",
     // International markets - EXCLUDE (unless port-related)
     "india", "china", "uk", "europe", "asia", "mexico", "canada",
     "london", "beijing", "shanghai", "mumbai", "delhi", "tokyo",
@@ -151,11 +159,22 @@ export const EXCLUSION_KEYWORDS = [
 
 // Strict out-of-market exclusions - articles from these regions without NJ/PA/FL tie-in
 export const OUT_OF_MARKET_KEYWORDS = [
+    // Texas (removed from target markets)
+    "texas", "houston", "dallas", "austin", "san antonio", "fort worth",
+    "dfw", "dallas-fort worth", "plano", "irving", "arlington",
+    // West Coast
     "california", "los angeles", "san francisco", "bay area", "silicon valley",
-    "seattle", "portland", "denver", "phoenix", "las vegas",
+    "san diego", "sacramento", "seattle", "portland",
+    // Mountain/Southwest
+    "denver", "phoenix", "las vegas", "salt lake", "boise", "tucson", "albuquerque",
+    // Midwest
     "chicago", "detroit", "minneapolis", "st. louis", "kansas city",
-    "atlanta", "nashville", "charlotte", "raleigh", "virginia",
-    "boston", "connecticut", "massachusetts"
+    "columbus", "indianapolis", "milwaukee", "cincinnati", "cleveland",
+    // Southeast (not FL)
+    "atlanta", "nashville", "charlotte", "raleigh", "richmond",
+    "memphis", "birmingham", "charleston", "new orleans",
+    // Northeast (not NJ/PA)
+    "boston", "connecticut", "massachusetts", "baltimore", "maryland", "virginia"
 ];
 
 // Helper functions for deal signals detection - ENHANCED
@@ -256,6 +275,14 @@ function classifyArticleOriginal330(description: string, link: string, source?: 
     // Check exclusions
     if (containsAny(t, EXCLUSION_KEYWORDS)) {
         return { isRelevant: false, category: "excluded", score: 0 };
+    }
+
+    // Check out-of-market regions - exclude if article is about non-target markets
+    // UNLESS it also mentions a target market (NJ, PA, FL)
+    const hasOutOfMarket = containsAny(t, OUT_OF_MARKET_KEYWORDS);
+    const hasTargetMarket = containsAny(t, MARKET_KEYWORDS);
+    if (hasOutOfMarket && !hasTargetMarket) {
+        return { isRelevant: false, category: "out of market", score: 0 };
     }
 
     // Apply different filtering rules based on feed type
