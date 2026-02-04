@@ -28,7 +28,19 @@ const PLAYWRIGHT_ALLOWLIST = [
     'roi-nj.com',
     'lvb.com',
     'therealdeal.com',
-    'freightwaves.com'
+    'freightwaves.com',
+    // Added for web scrapers
+    'costar.com',
+    'reuters.com',
+    'apnews.com',
+    'jll.com',
+    'cushwake.com',
+    'colliers.com',
+    'bloomberg.com',
+    'wsj.com',
+    'cbre.com',
+    'bisnow.com',
+    'globest.com'
 ];
 
 // Rate limiting: max headless runs per domain per day (increased for better coverage)

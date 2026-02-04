@@ -6,6 +6,7 @@ import { classifyArticle } from '../filter/classifier.js';
 import { itemStore, feedStats, fetchCache, manualArticles, pruneItemStore, archiveOldArticles } from '../store/storage.js';
 import { FetchResult, FeedConfig, NormalizedItem, FeedStat, RawRSSItem, RSSLink, RSSEnclosure, RSSMediaContent } from '../types/index.js';
 import { playwrightFetchRSS, isCloudflareChallenge as detectCloudflare, closeBrowser, getPlaywrightStats } from './playwright-fallback.js';
+import { runAllScrapers } from '../scrapers/index.js';
 
 // ============================================
 // BLOCKED FEED TRACKING (24-hour cooldown)
@@ -1112,6 +1113,33 @@ export async function fetchAllRSSArticles(): Promise<FetchResult[]> {
             articles: manualArticles,
             meta: { feed: 'Manual Articles', fetchedRaw: manualArticles.length, kept: manualArticles.length, filteredOut: 0, durationMs: 0 }
         });
+    }
+
+    // ============================================
+    // STEP: Run web scrapers for boss-priority sources
+    // ============================================
+    try {
+        // Build RSS result counts per domain for supplementary scraper threshold
+        const rssResultCounts = new Map<string, number>();
+        for (const result of results) {
+            for (const article of result.articles) {
+                try {
+                    const domain = new URL(article.link).hostname.replace(/^www\./, '');
+                    rssResultCounts.set(domain, (rssResultCounts.get(domain) || 0) + 1);
+                } catch { /* skip invalid URLs */ }
+            }
+        }
+
+        const scraperResults = await runAllScrapers(rssResultCounts);
+        results.push(...scraperResults);
+
+        const scraperArticleCount = scraperResults.reduce((sum, r) => sum + r.articles.length, 0);
+        if (scraperArticleCount > 0) {
+            console.log(`[Scrapers] Added ${scraperArticleCount} articles from web scrapers`);
+        }
+    } catch (scraperErr) {
+        console.error('[Scrapers] Error running scrapers:', (scraperErr as Error).message);
+        // Scraper failure should never break the RSS pipeline
     }
 
     // Clean up old articles that no longer pass current filtering

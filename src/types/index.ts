@@ -142,6 +142,9 @@ export interface FetchOptions {
     validateStatus?: (status: number) => boolean;
 }
 
+// Feed type for classification
+export type FeedType = 'news' | 'industrial-news' | 'press-release' | 'macro' | string;
+
 // Cache types
 export interface CacheEntry {
     body: Buffer | string;

@@ -39,6 +39,7 @@ jobs:
       env:
         NODE_ENV: production
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        SKIP_SCRAPERS: ${{ vars.SKIP_SCRAPERS || 'false' }}
       timeout-minutes: 15
     
     - name: Verify build output
