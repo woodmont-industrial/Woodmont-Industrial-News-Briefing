@@ -150,8 +150,8 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
-            { url: 'https://www.globest.com/industrial/', label: 'GlobeSt Industrial' },
-            { url: 'https://www.globest.com/logistics/', label: 'GlobeSt Logistics' }
+            { url: 'https://www.globest.com/sectors/industrial/', label: 'GlobeSt Industrial' },
+            { url: 'https://www.globest.com/sectors/logistics/', label: 'GlobeSt Logistics' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
@@ -186,11 +186,11 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'cbre.com',
         name: 'CBRE',
-        strategy: 'axios-pw-fallback',
+        strategy: 'playwright',
         type: 'supplementary',
         targets: [
             { url: 'https://www.cbre.com/insights', label: 'CBRE Insights' },
-            { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
+            { url: 'https://www.cbre.com/about-us/newsroom', label: 'CBRE Newsroom' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: CRE_TTL,

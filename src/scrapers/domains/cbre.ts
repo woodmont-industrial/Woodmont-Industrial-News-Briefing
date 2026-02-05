@@ -43,11 +43,13 @@ export class CBREScraper extends BaseScraper {
                 const seen = new Set<string>();
 
                 const selectors = [
-                    '[class*="card"] a[href*="/insights/"], [class*="card"] a[href*="/press-releases/"]',
+                    '[class*="card"] a[href*="/insights/"], [class*="card"] a[href*="/newsroom/"]',
                     'a[href*="/insights/"]',
-                    'a[href*="/press-releases/"]',
+                    'a[href*="/newsroom/"]',
+                    'a[href*="/reports/"]',
                     '[class*="result-card"] a',
                     '[class*="article"] a',
+                    '[class*="news"] a',
                     'h2 a, h3 a'
                 ];
 
@@ -58,8 +60,13 @@ export class CBREScraper extends BaseScraper {
                         const link = anchor.href;
                         const titleEl = anchor.querySelector('h2, h3, h4, [class*="title"]') || anchor;
                         const title = titleEl.textContent?.trim() || '';
-                        if (title && link && !seen.has(link) && title.length > 10
-                            && (link.includes('/insights/') || link.includes('/press-releases/'))) {
+                        // Accept insights, reports, books, newsroom, and press-release links
+                        const isArticleLink = link.includes('/insights/') ||
+                            link.includes('/press-releases/') ||
+                            link.includes('/newsroom/') ||
+                            link.includes('/reports/') ||
+                            link.includes('/books/');
+                        if (title && link && !seen.has(link) && title.length > 10 && isArticleLink) {
                             seen.add(link);
                             const parent = anchor.closest('[class*="card"]') || anchor.parentElement;
                             const descEl = parent?.querySelector('p, [class*="description"], [class*="summary"]');
@@ -94,7 +101,7 @@ export class CBREScraper extends BaseScraper {
 
     private extractFromHTML(html: string): NormalizedItem[] {
         const articles: NormalizedItem[] = [];
-        const linkPattern = /href="(https?:\/\/www\.cbre\.com\/(insights|press-releases)\/[^"]+)"/g;
+        const linkPattern = /href="(https?:\/\/www\.cbre\.com\/(insights|newsroom|reports|books)\/[^"]+)"/g;
         const seen = new Set<string>();
 
         let match;
