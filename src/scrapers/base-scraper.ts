@@ -155,8 +155,8 @@ export async function stealthNavigate(
     await randomDelay(500, 1500);
 
     await page.goto(url, {
-        waitUntil: 'networkidle',
-        timeout: 60000
+        waitUntil: 'domcontentloaded',
+        timeout: 30000
     });
 
     await simulateHumanBehavior(page);

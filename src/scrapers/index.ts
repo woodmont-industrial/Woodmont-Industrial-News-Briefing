@@ -17,7 +17,7 @@ import { APNewsScraper } from './domains/apnews.js';
 import { JLLScraper } from './domains/jll.js';
 import { CushWakeScraper } from './domains/cushwake.js';
 import { ColliersScraper } from './domains/colliers.js';
-import { TradedScraper } from './domains/traded.js';
+// import { TradedScraper } from './domains/traded.js'; // Disabled - Cloudflare too strong
 import { BisnowScraper } from './domains/bisnow.js';
 import { GlobeStScraper } from './domains/globest.js';
 import { BloombergScraper } from './domains/bloomberg.js';
@@ -28,8 +28,11 @@ import { BizJournalsScraper } from './domains/bizjournals.js';
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
 
-// Total timeout for all scrapers combined
-const TOTAL_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+// Total timeout for all scrapers combined (7 minutes to allow more scrapers to complete)
+const TOTAL_TIMEOUT_MS = 7 * 60 * 1000;
+
+// Per-scraper timeout (45 seconds)
+const SCRAPER_TIMEOUT_MS = 45 * 1000;
 
 /**
  * Map domain to its scraper class
@@ -42,7 +45,7 @@ function createScraper(config: ScraperDomainConfig): BaseScraper {
         case 'jll.com': return new JLLScraper(config);
         case 'cushwake.com': return new CushWakeScraper(config);
         case 'colliers.com': return new ColliersScraper(config);
-        case 'traded.co': return new TradedScraper(config);
+        // case 'traded.co': return new TradedScraper(config); // Disabled
         case 'bisnow.com': return new BisnowScraper(config);
         case 'globest.com': return new GlobeStScraper(config);
         case 'bloomberg.com': return new BloombergScraper(config);
@@ -155,12 +158,12 @@ export async function runAllScrapers(
             try {
                 const scraper = createScraper(config);
 
-                // Per-scraper timeout of 60 seconds
+                // Per-scraper timeout
                 const scraperPromise = scraper.scrape(browser);
                 const result = await Promise.race([
                     scraperPromise,
                     new Promise<FetchResult>((_, reject) =>
-                        setTimeout(() => reject(new Error('Scraper timeout')), 60000)
+                        setTimeout(() => reject(new Error('Scraper timeout')), SCRAPER_TIMEOUT_MS)
                     )
                 ]);
 

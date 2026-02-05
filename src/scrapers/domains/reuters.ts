@@ -2,7 +2,7 @@
  * Reuters Scraper
  *
  * Scrapes real estate and business articles from Reuters.
- * Uses axios with Playwright fallback.
+ * Uses Playwright only (axios gets 401).
  */
 
 import { Page } from 'playwright';
@@ -16,61 +16,76 @@ export class ReutersScraper extends BaseScraper {
     }
 
     async extractArticles(target: ScraperTarget, page: Page | null, html?: string): Promise<NormalizedItem[]> {
-        // Try Playwright first (Reuters is JS-heavy)
-        if (page) {
-            return this.extractFromPage(page);
-        }
+        // Reuters requires Playwright (blocks axios)
+        if (!page) return [];
 
-        // Fallback: parse HTML from axios
-        if (html) {
-            return this.extractFromHTML(html);
-        }
-
-        return [];
-    }
-
-    private async extractFromPage(page: Page): Promise<NormalizedItem[]> {
         const articles: NormalizedItem[] = [];
 
         try {
-            await page.waitForSelector('[class*="story"], [class*="article"], [data-testid*="MediaStory"]', {
+            // Wait for content to load
+            await page.waitForSelector('a[href*="/"], article, [data-testid]', {
                 timeout: 15000
             }).catch(() => {});
+
+            // Scroll to load more
+            await page.evaluate(() => window.scrollBy(0, 1000));
+            await new Promise(r => setTimeout(r, 1500));
 
             const items = await page.evaluate(() => {
                 const results: { title: string; link: string; description: string; date: string }[] = [];
                 const seen = new Set<string>();
 
-                // Reuters article selectors
-                const selectors = [
-                    '[data-testid*="MediaStory"] a',
-                    'article a[href*="/business/"]',
-                    '[class*="story-card"] a',
-                    'a[href*="/business/"]',
-                    'h3 a[href*="/"]'
-                ];
+                // Scan all links for Reuters article patterns
+                const allLinks = document.querySelectorAll('a[href]');
 
-                for (const selector of selectors) {
-                    const elements = document.querySelectorAll(selector);
-                    elements.forEach(el => {
-                        const anchor = el as HTMLAnchorElement;
-                        const link = anchor.href;
-                        const title = anchor.textContent?.trim() || '';
-                        if (title && link && !seen.has(link) && title.length > 15
-                            && link.includes('/business/')) {
-                            seen.add(link);
-                            const parent = anchor.closest('article, [class*="story"]') || anchor.parentElement?.parentElement;
-                            const descEl = parent?.querySelector('p, [class*="description"]');
-                            const dateEl = parent?.querySelector('time, [class*="date"]');
-                            results.push({
-                                title,
-                                link,
-                                description: descEl?.textContent?.trim() || '',
-                                date: (dateEl as HTMLTimeElement)?.dateTime || dateEl?.textContent?.trim() || ''
-                            });
+                allLinks.forEach(el => {
+                    const anchor = el as HTMLAnchorElement;
+                    const link = anchor.href;
+
+                    if (!link.includes('reuters.com')) return;
+                    if (link === window.location.href) return;
+
+                    // Reuters article URL patterns
+                    const isArticleLink =
+                        link.includes('/business/') ||
+                        link.includes('/markets/') ||
+                        link.includes('/world/') ||
+                        link.match(/\/\d{4}\/\d{2}\/\d{2}\//); // Date pattern
+
+                    // Exclude category/section pages
+                    const isCategory = link.match(/reuters\.com\/(business|markets|world)\/?$/);
+                    if (!isArticleLink || isCategory) return;
+                    if (seen.has(link)) return;
+
+                    let title = '';
+                    // Look for heading inside the link
+                    const titleEl = anchor.querySelector('h1, h2, h3, h4, span[class*="title"], [data-testid*="Heading"]');
+                    if (titleEl) {
+                        title = titleEl.textContent?.trim() || '';
+                    } else if (anchor.textContent) {
+                        // Use link text but filter out navigation items
+                        const text = anchor.textContent.trim();
+                        if (text.length > 20 && text.length < 200 && !text.includes('\n')) {
+                            title = text;
                         }
+                    }
+
+                    if (!title || title.length < 20) return;
+                    if (/^(more|sign up|subscribe|login)/i.test(title)) return;
+
+                    seen.add(link);
+
+                    const parent = anchor.closest('article, [class*="story"], [class*="card"], li') || anchor.parentElement?.parentElement;
+                    const descEl = parent?.querySelector('p, [class*="description"]');
+                    const dateEl = parent?.querySelector('time, [datetime]');
+
+                    results.push({
+                        title,
+                        link,
+                        description: descEl?.textContent?.trim() || '',
+                        date: (dateEl as HTMLTimeElement)?.dateTime || ''
                     });
-                }
+                });
 
                 return results.slice(0, 20);
             });
@@ -88,31 +103,5 @@ export class ReutersScraper extends BaseScraper {
         }
 
         return articles;
-    }
-
-    private extractFromHTML(html: string): NormalizedItem[] {
-        const articles: NormalizedItem[] = [];
-        // Simple regex extraction for article links
-        const linkPattern = /href="(\/business\/[^"]+)"/g;
-        const titlePattern = /<h[23][^>]*>([^<]+)<\/h[23]>/g;
-        const seen = new Set<string>();
-
-        let match;
-        while ((match = linkPattern.exec(html)) !== null) {
-            const link = `https://www.reuters.com${match[1]}`;
-            if (seen.has(link)) continue;
-            seen.add(link);
-
-            // Try to find a nearby title
-            const nearbyHTML = html.substring(Math.max(0, match.index - 500), match.index + 500);
-            const titleMatch = /<h[23][^>]*>([^<]+)<\/h[23]>/.exec(nearbyHTML);
-            const title = titleMatch ? titleMatch[1].trim() : '';
-
-            if (title && title.length > 15) {
-                articles.push(this.buildArticle({ title, link }));
-            }
-        }
-
-        return articles.slice(0, 20);
     }
 }

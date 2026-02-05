@@ -2,7 +2,7 @@
  * JLL Scraper
  *
  * Scrapes JLL newsroom and trends/insights pages.
- * Uses Playwright (JS-heavy React/Angular app).
+ * Uses Playwright (JS-heavy site).
  */
 
 import { Page } from 'playwright';
@@ -21,50 +21,70 @@ export class JLLScraper extends BaseScraper {
         const articles: NormalizedItem[] = [];
 
         try {
-            // JLL is a React app, wait for content to render
-            await page.waitForSelector('[class*="card"], [class*="article"], [class*="news"], [class*="insight"]', {
-                timeout: 20000
+            // Wait for any content to load (JLL uses dynamic rendering)
+            await page.waitForSelector('a[href*="/news"], a[href*="/newsroom"], a[href*="/trends"], a[href*="/insights"], article, [class*="card"]', {
+                timeout: 15000
             }).catch(() => {});
 
-            // Scroll to load more content
-            await page.evaluate(() => window.scrollBy(0, 1000));
-            await new Promise(r => setTimeout(r, 2000));
+            // Scroll to load lazy content
+            for (let i = 0; i < 2; i++) {
+                await page.evaluate(() => window.scrollBy(0, 800));
+                await new Promise(r => setTimeout(r, 1000));
+            }
 
             const items = await page.evaluate(() => {
                 const results: { title: string; link: string; description: string; date: string }[] = [];
                 const seen = new Set<string>();
 
-                const selectors = [
-                    '[class*="card"] a[href*="/newsroom/"], [class*="card"] a[href*="/trends-and-insights/"]',
-                    'a[href*="/newsroom/"]',
-                    'a[href*="/trends-and-insights/"]',
-                    '[class*="article-card"] a',
-                    '[class*="content-card"] a',
-                    'h2 a, h3 a, h4 a'
-                ];
+                // JLL uses various patterns - try multiple approaches
+                // Look for all links that might be articles
+                const allLinks = document.querySelectorAll('a[href]');
 
-                for (const selector of selectors) {
-                    const elements = document.querySelectorAll(selector);
-                    elements.forEach(el => {
-                        const anchor = el as HTMLAnchorElement;
-                        const link = anchor.href;
-                        const titleEl = anchor.querySelector('h2, h3, h4, [class*="title"]') || anchor;
-                        const title = titleEl.textContent?.trim() || '';
-                        if (title && link && !seen.has(link) && title.length > 10
-                            && (link.includes('/newsroom/') || link.includes('/trends-and-insights/') || link.includes('/research/'))) {
-                            seen.add(link);
-                            const parent = anchor.closest('[class*="card"]') || anchor.parentElement;
-                            const descEl = parent?.querySelector('p, [class*="description"], [class*="summary"]');
-                            const dateEl = parent?.querySelector('time, [class*="date"], span[class*="date"]');
-                            results.push({
-                                title,
-                                link,
-                                description: descEl?.textContent?.trim() || '',
-                                date: (dateEl as HTMLTimeElement)?.dateTime || dateEl?.textContent?.trim() || ''
-                            });
-                        }
+                allLinks.forEach(el => {
+                    const anchor = el as HTMLAnchorElement;
+                    const link = anchor.href;
+
+                    // Filter for JLL article patterns
+                    if (!link.includes('jll.com')) return;
+                    if (link.includes('/newsroom') && link === window.location.href) return; // Skip current page
+
+                    const isArticleLink =
+                        (link.includes('/news/') && !link.endsWith('/news/')) ||
+                        (link.includes('/newsroom/') && !link.endsWith('/newsroom/') && !link.endsWith('/newsroom')) ||
+                        link.includes('/trends-and-insights/') ||
+                        link.includes('/research/') ||
+                        link.match(/\/\d{4}\/\d{2}\//); // Date patterns like /2024/01/
+
+                    if (!isArticleLink) return;
+                    if (seen.has(link)) return;
+
+                    // Get title from the link or nearby heading
+                    let title = '';
+                    const titleEl = anchor.querySelector('h1, h2, h3, h4, h5, [class*="title"], [class*="heading"]');
+                    if (titleEl) {
+                        title = titleEl.textContent?.trim() || '';
+                    } else {
+                        title = anchor.textContent?.trim() || '';
+                    }
+
+                    // Skip if title is too short or is navigation text
+                    if (!title || title.length < 15) return;
+                    if (/^(read more|learn more|view all|see all|load more)/i.test(title)) return;
+
+                    seen.add(link);
+
+                    // Try to find description and date from parent container
+                    const parent = anchor.closest('article, [class*="card"], [class*="item"], [class*="result"], li') || anchor.parentElement?.parentElement;
+                    const descEl = parent?.querySelector('p, [class*="description"], [class*="summary"], [class*="excerpt"]');
+                    const dateEl = parent?.querySelector('time, [class*="date"], [datetime]');
+
+                    results.push({
+                        title,
+                        link,
+                        description: descEl?.textContent?.trim() || '',
+                        date: (dateEl as HTMLTimeElement)?.dateTime || dateEl?.textContent?.trim() || ''
                     });
-                }
+                });
 
                 return results.slice(0, 20);
             });

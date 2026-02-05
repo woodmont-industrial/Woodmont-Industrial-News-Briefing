@@ -50,7 +50,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'reuters.com',
         name: 'Reuters Real Estate',
-        strategy: 'axios-pw-fallback',
+        strategy: 'playwright',
         type: 'primary',
         targets: [
             { url: 'https://www.reuters.com/business/finance/', label: 'Reuters Finance' },
@@ -112,19 +112,20 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: CRE_TTL,
         feedType: 'press-release'
     },
-    {
-        domain: 'traded.co',
-        name: 'Traded.co',
-        strategy: 'playwright',
-        type: 'primary',
-        targets: [
-            { url: 'https://www.traded.co/', label: 'Traded Deal Feed' }
-        ],
-        maxRunsPerDay: 6,
-        cacheTTLMs: DEAL_TTL,
-        cloudflareProtected: true,
-        feedType: 'news'
-    },
+    // Traded.co disabled - Cloudflare protection too strong
+    // {
+    //     domain: 'traded.co',
+    //     name: 'Traded.co',
+    //     strategy: 'playwright',
+    //     type: 'primary',
+    //     targets: [
+    //         { url: 'https://www.traded.co/', label: 'Traded Deal Feed' }
+    //     ],
+    //     maxRunsPerDay: 6,
+    //     cacheTTLMs: DEAL_TTL,
+    //     cloudflareProtected: true,
+    //     feedType: 'news'
+    // },
 
     // ============================================
     // SUPPLEMENTARY SCRAPERS (RSS already works)
