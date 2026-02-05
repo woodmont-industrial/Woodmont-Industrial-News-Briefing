@@ -47,19 +47,20 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         access: 'paywalled',
         feedType: 'news'
     },
-    {
-        domain: 'reuters.com',
-        name: 'Reuters Real Estate',
-        strategy: 'playwright',
-        type: 'primary',
-        targets: [
-            { url: 'https://www.reuters.com/business/finance/', label: 'Reuters Finance' },
-            { url: 'https://www.reuters.com/business/', label: 'Reuters Business' }
-        ],
-        maxRunsPerDay: 10,
-        cacheTTLMs: NEWS_TTL,
-        feedType: 'news'
-    },
+    // Reuters disabled - strong bot detection blocks all automated access
+    // {
+    //     domain: 'reuters.com',
+    //     name: 'Reuters Real Estate',
+    //     strategy: 'playwright',
+    //     type: 'primary',
+    //     targets: [
+    //         { url: 'https://www.reuters.com/business/finance/', label: 'Reuters Finance' },
+    //         { url: 'https://www.reuters.com/business/', label: 'Reuters Business' }
+    //     ],
+    //     maxRunsPerDay: 10,
+    //     cacheTTLMs: NEWS_TTL,
+    //     feedType: 'news'
+    // },
     {
         domain: 'apnews.com',
         name: 'AP News Business',
@@ -105,8 +106,8 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'playwright',
         type: 'primary',
         targets: [
-            { url: 'https://www.colliers.com/en-us/news', label: 'Colliers News' },
-            { url: 'https://www.colliers.com/en-us/research', label: 'Colliers Research' }
+            { url: 'https://www.colliers.com/en/news', label: 'Colliers News' },
+            { url: 'https://www.colliers.com/en/research', label: 'Colliers Research' }
         ],
         maxRunsPerDay: 8,
         cacheTTLMs: CRE_TTL,

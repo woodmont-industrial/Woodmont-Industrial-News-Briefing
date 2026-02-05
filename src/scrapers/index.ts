@@ -12,7 +12,7 @@ import { BaseScraper } from './base-scraper.js';
 
 // Domain scraper imports
 import { CoStarScraper } from './domains/costar.js';
-import { ReutersScraper } from './domains/reuters.js';
+// import { ReutersScraper } from './domains/reuters.js'; // Disabled - bot detection
 import { APNewsScraper } from './domains/apnews.js';
 import { JLLScraper } from './domains/jll.js';
 import { CushWakeScraper } from './domains/cushwake.js';
@@ -40,7 +40,7 @@ const SCRAPER_TIMEOUT_MS = 45 * 1000;
 function createScraper(config: ScraperDomainConfig): BaseScraper {
     switch (config.domain) {
         case 'costar.com': return new CoStarScraper(config);
-        case 'reuters.com': return new ReutersScraper(config);
+        // case 'reuters.com': return new ReutersScraper(config); // Disabled - bot detection
         case 'apnews.com': return new APNewsScraper(config);
         case 'jll.com': return new JLLScraper(config);
         case 'cushwake.com': return new CushWakeScraper(config);

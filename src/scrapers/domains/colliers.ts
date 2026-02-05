@@ -26,6 +26,15 @@ export class ColliersScraper extends BaseScraper {
                 timeout: 15000
             }).catch(() => {});
 
+            // Handle cookie consent dialog if present
+            try {
+                const acceptButton = await page.$('button:has-text("Accept All"), button:has-text("Accept"), #onetrust-accept-btn-handler');
+                if (acceptButton) {
+                    await acceptButton.click();
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            } catch { /* Cookie dialog not present or already dismissed */ }
+
             // Scroll to load lazy content
             for (let i = 0; i < 2; i++) {
                 await page.evaluate(() => window.scrollBy(0, 800));
@@ -46,10 +55,10 @@ export class ColliersScraper extends BaseScraper {
                     if (!link.includes('colliers.com')) return;
                     if (link === window.location.href) return;
 
-                    // Article URL patterns for Colliers
+                    // Article URL patterns for Colliers (updated for /en/ URLs)
                     const isArticleLink =
-                        (link.includes('/news/') && !link.endsWith('/news') && !link.endsWith('/news/')) ||
-                        (link.includes('/research/') && !link.endsWith('/research') && !link.endsWith('/research/')) ||
+                        (link.includes('/en/news/') && !link.endsWith('/news') && !link.endsWith('/news/')) ||
+                        (link.includes('/en/research/') && !link.endsWith('/research') && !link.endsWith('/research/')) ||
                         link.includes('/insight/') ||
                         link.includes('/report/') ||
                         link.includes('/press-release/');

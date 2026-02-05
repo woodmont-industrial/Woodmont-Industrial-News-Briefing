@@ -26,6 +26,15 @@ export class JLLScraper extends BaseScraper {
                 timeout: 15000
             }).catch(() => {});
 
+            // Handle cookie consent dialog if present
+            try {
+                const acceptButton = await page.$('button:has-text("Accept All"), button:has-text("Accept"), #onetrust-accept-btn-handler');
+                if (acceptButton) {
+                    await acceptButton.click();
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            } catch { /* Cookie dialog not present or already dismissed */ }
+
             // Scroll to load lazy content
             for (let i = 0; i < 2; i++) {
                 await page.evaluate(() => window.scrollBy(0, 800));
