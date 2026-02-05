@@ -24,6 +24,10 @@ import { BloombergScraper } from './domains/bloomberg.js';
 import { WSJScraper } from './domains/wsj.js';
 import { CBREScraper } from './domains/cbre.js';
 import { BizJournalsScraper } from './domains/bizjournals.js';
+import { CREDailyScraper } from './domains/credaily.js';
+import { NJBIZScraper } from './domains/njbiz.js';
+import { LVBScraper } from './domains/lvb.js';
+import { REJournalsScraper } from './domains/rejournals.js';
 
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
@@ -52,6 +56,10 @@ function createScraper(config: ScraperDomainConfig): BaseScraper {
         case 'wsj.com': return new WSJScraper(config);
         case 'cbre.com': return new CBREScraper(config);
         case 'bizjournals.com': return new BizJournalsScraper(config);
+        case 'credaily.com': return new CREDailyScraper(config);
+        case 'njbiz.com': return new NJBIZScraper(config);
+        case 'lvb.com': return new LVBScraper(config);
+        case 'rejournals.com': return new REJournalsScraper(config);
         default:
             throw new Error(`No scraper implementation for domain: ${config.domain}`);
     }

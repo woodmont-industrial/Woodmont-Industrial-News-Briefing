@@ -204,11 +204,68 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         type: 'supplementary',
         targets: [
             { url: 'https://www.bizjournals.com/southflorida/news/commercial-real-estate', label: 'BizJournals SoFla CRE' },
-            { url: 'https://www.bizjournals.com/philadelphia/news/commercial-real-estate', label: 'BizJournals Philly CRE' }
+            { url: 'https://www.bizjournals.com/philadelphia/news/commercial-real-estate', label: 'BizJournals Philly CRE' },
+            { url: 'https://www.bizjournals.com/jacksonville/news/commercial-real-estate', label: 'BizJournals Jacksonville CRE' },
+            { url: 'https://www.bizjournals.com/tampabay/news/commercial-real-estate', label: 'BizJournals Tampa CRE' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
         feedType: 'news'
+    },
+
+    // ============================================
+    // FAILING RSS FEED REPLACEMENTS
+    // ============================================
+    {
+        domain: 'credaily.com',
+        name: 'CRE Daily',
+        strategy: 'axios-pw-fallback',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.credaily.com/', label: 'CRE Daily News' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        feedType: 'news'
+    },
+    {
+        domain: 'njbiz.com',
+        name: 'NJBIZ',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        region: 'NJ',
+        feedType: 'news'
+    },
+    {
+        domain: 'lvb.com',
+        name: 'Lehigh Valley Business',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://lvb.com/category/real-estate/', label: 'LVB Real Estate' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        region: 'PA',
+        feedType: 'news'
+    },
+    {
+        domain: 'rejournals.com',
+        name: 'REJournals',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://rejournals.com/category/industrial/', label: 'REJournals Industrial' },
+            { url: 'https://rejournals.com/', label: 'REJournals Home' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        feedType: 'industrial-news'
     }
 ];
 
