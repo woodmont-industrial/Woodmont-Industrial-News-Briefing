@@ -46,6 +46,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
       - name: Build static files
         run: npm run build-static
         timeout-minutes: 10
