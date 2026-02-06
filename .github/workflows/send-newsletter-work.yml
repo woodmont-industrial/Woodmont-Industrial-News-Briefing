@@ -2,9 +2,9 @@ name: Send Newsletter (Work)
 
 on:
   schedule:
-    # Run Monday-Thursday at 7 AM EST (12:00 UTC)
-    # Friday is handled by send-newsletter-work-weekly.yml
-    - cron: '0 12 * * 1-4'
+    # Run Monday-Friday at 7 AM EST (12:00 UTC)
+    # Friday also gets a weekly recap at noon separately
+    - cron: '0 12 * * 1-5'
   workflow_dispatch: # Allow manual trigger
 
 permissions:

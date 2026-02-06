@@ -1206,5 +1206,368 @@ export const RSS_FEEDS: FeedConfig[] = [
       type: FEED_TYPES.PRESS_RELEASE,
       timeout: 30000,
       headers: BROWSER_HEADERS
+},
+
+    // ============================================
+    // ADDITIONAL REIT & INVESTOR RELATIONS FEEDS
+    // ============================================
+
+    // REIT IR feeds - Google News alternatives (direct IR feeds blocked/changed)
+{
+      url: "https://news.google.com/rss/search?q=%22Rexford+Industrial%22+OR+%22First+Industrial%22+OR+%22EastGroup%22+OR+%22STAG+Industrial%22+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial REITs",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.PRESS_RELEASE,
+      timeout: 30000
+},
+
+{
+      url: "https://news.google.com/rss/search?q=%22Terreno+Realty%22+OR+%22Americold%22+OR+%22Plymouth+Industrial%22+REIT&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Specialty REITs",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.PRESS_RELEASE,
+      timeout: 30000
+},
+
+    // ============================================
+    // ADDITIONAL TRADE PUBLICATIONS
+    // ============================================
+
+    // Business Wire - Real Estate releases
+{
+      url: "https://feed.businesswire.com/rss/home/?rss=G1QFDERJXkJeGVxRWg==",
+      name: "Business Wire Real Estate",
+      region: "US",
+      source: "Business Wire",
+      type: FEED_TYPES.PRESS_RELEASE,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Retail Dive - Retail/warehouse crossover
+{
+      url: "https://www.retaildive.com/feeds/news/",
+      name: "Retail Dive",
+      region: "US",
+      source: "Retail Dive",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Material Handling & Logistics - Use Google News instead (direct feed 404)
+{
+      url: "https://news.google.com/rss/search?q=%22material+handling%22+OR+%22warehouse+automation%22+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Material Handling",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Logistics Viewpoints - Industry Analysis
+{
+      url: "https://logisticsviewpoints.com/feed/",
+      name: "Logistics Viewpoints",
+      region: "US",
+      source: "Logistics Viewpoints",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Transport Topics - Trucking/Logistics
+{
+      url: "https://www.ttnews.com/rss.xml",
+      name: "Transport Topics",
+      region: "US",
+      source: "Transport Topics",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // ============================================
+    // MORE GOOGLE NEWS FEEDS - TARGETED SEARCHES
+    // ============================================
+
+    // Google News - Industrial Market Report
+{
+      url: "https://news.google.com/rss/search?q=%22industrial+market%22+report+OR+outlook+OR+forecast+2026&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial Reports",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Vacancy Rate Industrial
+{
+      url: "https://news.google.com/rss/search?q=%22vacancy+rate%22+industrial+OR+warehouse+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Vacancy Rates",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Industrial Rent Growth
+{
+      url: "https://news.google.com/rss/search?q=%22rent+growth%22+OR+%22rental+rates%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial Rents",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Build-to-Suit Industrial
+{
+      url: "https://news.google.com/rss/search?q=%22build+to+suit%22+OR+%22BTS%22+industrial+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News BTS Industrial",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Industrial Acquisitions
+{
+      url: "https://news.google.com/rss/search?q=%22acquired%22+OR+%22acquisition%22+industrial+property+OR+warehouse+OR+portfolio&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Industrial Acquisitions",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Flex Industrial
+{
+      url: "https://news.google.com/rss/search?q=%22flex+industrial%22+OR+%22flex+space%22+OR+%22light+industrial%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Flex Industrial",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Newmark Industrial
+{
+      url: "https://news.google.com/rss/search?q=Newmark+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Newmark NJ/PA/FL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Colliers Industrial
+{
+      url: "https://news.google.com/rss/search?q=Colliers+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Colliers NJ/PA/FL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - NAIOP NJ Chapter
+{
+      url: "https://news.google.com/rss/search?q=%22NAIOP+New+Jersey%22+OR+%22NAIOP+NJ%22+industrial&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News NAIOP NJ",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Industrial Outdoor Storage (IOS)
+{
+      url: "https://news.google.com/rss/search?q=%22industrial+outdoor+storage%22+OR+%22IOS%22+real+estate+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News IOS",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Cross-Dock Facilities
+{
+      url: "https://news.google.com/rss/search?q=%22cross+dock%22+OR+%22cross-dock%22+facility+OR+warehouse+logistics&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Cross-Dock",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Manufacturing Facility News
+{
+      url: "https://news.google.com/rss/search?q=%22manufacturing+facility%22+%22New+Jersey%22+OR+Pennsylvania+OR+Florida+expansion+OR+new&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Manufacturing NJ/PA/FL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - Truck Terminal & Logistics Hub
+{
+      url: "https://news.google.com/rss/search?q=%22truck+terminal%22+OR+%22logistics+hub%22+OR+%22freight+terminal%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Truck Terminals",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // Google News - 3PL Warehouse Expansion
+{
+      url: "https://news.google.com/rss/search?q=%223PL%22+OR+%22third+party+logistics%22+warehouse+expansion+OR+lease&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News 3PL",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
+},
+
+    // ============================================
+    // NJ-SPECIFIC ALTERNATIVE SOURCES
+    // ============================================
+
+    // NJ Spotlight News - Policy & Development
+{
+      url: "https://www.njspotlightnews.org/feed/",
+      name: "NJ Spotlight News",
+      region: "NJ",
+      source: "NJ Spotlight",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
+},
+
+    // Google News NJ Business (alternative to blocked nj.com/NJBIZ)
+{
+      url: "https://news.google.com/rss/search?q=%22New+Jersey%22+business+real+estate+development+site:nj.com+OR+site:njbiz.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News NJ Business",
+      region: "NJ",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // ============================================
+    // PA-SPECIFIC ALTERNATIVE SOURCES
+    // ============================================
+
+    // Google News Philadelphia Real Estate (alternative to blocked Inquirer)
+{
+      url: "https://news.google.com/rss/search?q=Philadelphia+real+estate+commercial+site:inquirer.com+OR+site:phillymag.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Philadelphia RE",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Google News Lehigh Valley Business (alternative to blocked mcall.com)
+{
+      url: "https://news.google.com/rss/search?q=%22Lehigh+Valley%22+business+real+estate+development+site:mcall.com+OR+site:lvb.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Lehigh Valley Business",
+      region: "PA",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // ============================================
+    // FL-SPECIFIC ALTERNATIVE SOURCES
+    // ============================================
+
+    // Google News Miami Real Estate (alternative to blocked Herald)
+{
+      url: "https://news.google.com/rss/search?q=Miami+%22real+estate%22+commercial+site:miamiherald.com+OR+site:southfloridabusinessjournal.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Miami RE",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Google News Tampa Bay Business (alternative to blocked TBT)
+{
+      url: "https://news.google.com/rss/search?q=%22Tampa+Bay%22+business+real+estate+site:tampabay.com+OR+site:bizjournals.com/tampabay&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Tampa Bay Business",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Google News Central Florida (alternative to blocked Orlando Sentinel)
+{
+      url: "https://news.google.com/rss/search?q=Orlando+%22Central+Florida%22+business+real+estate+site:orlandosentinel.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Central Florida",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Google News South Florida (alternative to blocked Sun-Sentinel)
+{
+      url: "https://news.google.com/rss/search?q=%22South+Florida%22+%22Fort+Lauderdale%22+business+real+estate+site:sun-sentinel.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News South Florida Business",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Google News Jacksonville (alternative to blocked Times-Union)
+{
+      url: "https://news.google.com/rss/search?q=Jacksonville+Florida+business+real+estate+site:jacksonville.com+OR+site:jaxdailyrecord.com&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Jacksonville",
+      region: "FL",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // ============================================
+    // ADDITIONAL INDUSTRY NEWS SOURCES
+    // ============================================
+
+    // Google News REIT Analysis (alternative to blocked Yahoo/Seeking Alpha)
+{
+      url: "https://news.google.com/rss/search?q=industrial+REIT+earnings+OR+acquisition+OR+dividend&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News REIT Analysis",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.MACRO,
+      timeout: 30000
+},
+
+    // Google News Multi-Family & Mixed-Use (alternative to blocked Multi-Housing News)
+{
+      url: "https://news.google.com/rss/search?q=%22multi-family%22+OR+%22mixed-use%22+development+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News Mixed-Use",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.NEWS,
+      timeout: 30000
+},
+
+    // Connect Media Commercial Real Estate
+{
+      url: "https://www.connect.media/feed/",
+      name: "Connect Media CRE",
+      region: "US",
+      source: "Connect Media",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000,
+      headers: BROWSER_HEADERS
 }
 ];

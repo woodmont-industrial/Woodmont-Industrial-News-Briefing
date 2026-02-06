@@ -40,7 +40,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'playwright',
         type: 'primary',
         targets: [
-            { url: 'https://www.costar.com/article', label: 'CoStar News' }
+            { url: 'https://www.costar.com/article/industrial', label: 'CoStar Industrial' },
+            { url: 'https://www.costar.com/article/national', label: 'CoStar National' },
+            { url: 'https://product.costar.com/home/news', label: 'CoStar Product News' }
         ],
         maxRunsPerDay: 8,
         cacheTTLMs: CRE_TTL,
@@ -80,8 +82,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'playwright',
         type: 'primary',
         targets: [
-            { url: 'https://www.us.jll.com/en/newsroom', label: 'JLL Newsroom' },
-            { url: 'https://www.us.jll.com/en/trends-and-insights', label: 'JLL Insights' }
+            { url: 'https://www.us.jll.com/en/newsroom/press-releases', label: 'JLL Press Releases' },
+            { url: 'https://www.us.jll.com/en/trends-and-insights/research', label: 'JLL Research' },
+            { url: 'https://www.us.jll.com/en/trends-and-insights/investor', label: 'JLL Investor Insights' }
         ],
         maxRunsPerDay: 8,
         cacheTTLMs: CRE_TTL,
@@ -93,8 +96,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'playwright',
         type: 'primary',
         targets: [
-            { url: 'https://www.cushmanwakefield.com/en/united-states/news', label: 'C&W News' },
-            { url: 'https://www.cushmanwakefield.com/en/united-states/insights', label: 'C&W Insights' }
+            { url: 'https://www.cushmanwakefield.com/en/united-states/news/press-releases', label: 'C&W Press Releases' },
+            { url: 'https://www.cushmanwakefield.com/en/united-states/insights/us-articles', label: 'C&W Articles' },
+            { url: 'https://www.cushmanwakefield.com/en/united-states/insights/us-marketbeats', label: 'C&W MarketBeats' }
         ],
         maxRunsPerDay: 8,
         cacheTTLMs: CRE_TTL,
@@ -143,6 +147,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
         feedType: 'news'
     },
     {
@@ -156,6 +161,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
         feedType: 'industrial-news'
     },
     {
@@ -190,8 +196,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         strategy: 'playwright',
         type: 'supplementary',
         targets: [
-            { url: 'https://www.cbre.com/insights', label: 'CBRE Insights' },
-            { url: 'https://www.cbre.com/about-us/newsroom', label: 'CBRE Newsroom' }
+            { url: 'https://www.cbre.com/insights/reports', label: 'CBRE Reports' },
+            { url: 'https://www.cbre.com/insights/articles', label: 'CBRE Articles' },
+            { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: CRE_TTL,
@@ -210,6 +217,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
         feedType: 'news'
     },
 
@@ -238,6 +246,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
         region: 'NJ',
         feedType: 'news'
     },
@@ -251,6 +260,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
         region: 'PA',
         feedType: 'news'
     },
@@ -267,6 +277,12 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: SUPPLEMENTARY_TTL,
         feedType: 'industrial-news'
     }
+
+    // NOTE: Additional scrapers for blocked RSS feeds require implementations.
+    // These domains are covered via Google News RSS feeds instead:
+    // - therealdeal.com, commercialobserver.com (paywalled CRE news)
+    // - roi-nj.com, re-nj.com (NJ regional coverage)
+    // - connectcre.com, commercialsearch.com (Cloudflare protected)
 ];
 
 /**

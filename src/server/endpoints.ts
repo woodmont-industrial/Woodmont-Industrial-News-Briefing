@@ -3,6 +3,7 @@ import * as path from 'path';
 import { IncomingMessage, ServerResponse } from 'http';
 import { itemStore, feedStats, manualArticles, saveArticlesToFile } from '../store/storage.js';
 import { buildBriefing, createBriefingEmailPayload } from './newsletter.js';
+import { buildWorkBriefing } from './newsletter-work.js';
 import { sendEmail } from './email.js';
 
 // Security Configuration
@@ -302,7 +303,14 @@ async function handleNewsletterEndpoint(req: IncomingMessage, res: ServerRespons
     console.log(`📊 Final counts: Market Intelligence: ${relevant.length}, Transactions: ${finalTransactions.length}, Availabilities: ${availabilities.length}, People: ${finalPeople.length}`);
 
     const period = `${days} day${days > 1 ? 's' : ''}`;
-    const html = buildBriefing({ relevant, transactions: finalTransactions, availabilities, people: finalPeople }, period);
+    // Use work theme as default (boss's preferred clean style)
+    const theme = urlObj.searchParams.get("theme") || 'work';
+    let html: string;
+    if (theme === 'work') {
+        html = buildWorkBriefing(relevant, finalTransactions, availabilities, finalPeople, period);
+    } else {
+        html = buildBriefing({ relevant, transactions: finalTransactions, availabilities, people: finalPeople }, period);
+    }
     console.log('Generated newsletter HTML length:', html.length, 'first 100 chars:', html.substring(0, 100));
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ html }));
@@ -608,7 +616,14 @@ async function handleSendNewsletterEndpoint(req: IncomingMessage, res: ServerRes
             const sinceDate = new Date(since);
             const untilDate = new Date();
             const period = `${formatDate(sinceDate)} – ${formatDate(untilDate)} (ET)`;
-            const html = buildBriefing({ relevant, transactions: finalTransactions, availabilities, people: finalPeople }, period);
+            // Use work theme as default (boss's preferred clean style)
+            const theme = payload.theme || 'work';
+            let html: string;
+            if (theme === 'work') {
+                html = buildWorkBriefing(relevant, finalTransactions, availabilities, finalPeople, period);
+            } else {
+                html = buildBriefing({ relevant, transactions: finalTransactions, availabilities, people: finalPeople }, period);
+            }
 
             const subject = `Woodmont Daily Industrial News Briefing - ${new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`;
 

@@ -1377,6 +1377,7 @@
                     value={theme}
                     onChange={(e) => setTheme(e.target.value)}
                   >
+                    <option value="work">Work (Clean & Professional)</option>
                     <option value="default">Default (Colorful)</option>
                     <option value="goth">Goth (Executive)</option>
                   </select>
@@ -1612,7 +1613,7 @@
       const [newsletterHTML, setNewsletterHTML] = useState("");
       const [newsletterGenerated, setNewsletterGenerated] = useState(false);
       const [newsletterTimeframe, setNewsletterTimeframe] = useState("1");
-      const [newsletterTheme, setNewsletterTheme] = useState("default");
+      const [newsletterTheme, setNewsletterTheme] = useState("work");
       const [newsletterRecipients, setNewsletterRecipients] = useState("");
       const [refreshLoading, setRefreshLoading] = useState(false);
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
@@ -1990,6 +1991,93 @@
         </body></html>`;
       };
 
+      // Work theme newsletter builder - clean, professional, minimal styling (Boss's preferred)
+      const buildWorkNewsletterHTML = (articles, days) => {
+        const now = new Date();
+        const isFriday = now.getDay() === 5;
+        const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Known paywalled sources (matching newsletter-work.ts)
+        const PAYWALLED_SOURCES = ['wsj', 'wall street journal', 'bloomberg', 'costar', 'bisnow', 'globest', 'commercial observer', 'therealdeal', 'the real deal', 'bizjournals', 'business journal', 'njbiz', 'lvb'];
+
+        const isPaywalled = (source, url) => {
+          const check = ((source || '') + ' ' + (url || '')).toLowerCase();
+          return PAYWALLED_SOURCES.some(pw => check.includes(pw));
+        };
+
+        const getSourceName = (source, url) => {
+          if (source && source.length > 0 && source !== 'Unknown') {
+            return source.replace(/^https?:\/\/(www\.)?/, '').replace(/\.com.*$/, '').replace(/\.(org|net|io).*$/, '').replace(/\//g, '').trim() || 'Source';
+          }
+          try {
+            return new URL(url).hostname.replace('www.', '').replace('.com', '').replace('.org', '') || 'Source';
+          } catch { return 'Source'; }
+        };
+
+        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
+        const transactions = articles.filter(a => a.category === 'transaction').slice(0, 6);
+        const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 6);
+        const people = articles.filter(a => a.category === 'people').slice(0, 6);
+
+        const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/action.html';
+
+        const formatBullet = (item) => {
+          const title = item.title || 'Untitled';
+          const url = item.link || '#';
+          const source = item.source || '';
+          const sourceName = getSourceName(source, url);
+          const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
+
+          // Truncate title to ~120 chars for 2 lines
+          let displayText = title;
+          if (displayText.length > 120) {
+            displayText = displayText.substring(0, 117).replace(/\s+\S*$/, '') + '...';
+          }
+
+          const trackKeyword = title.split(' ').slice(0, 3).join(' ');
+          const trackUrl = `${actionUrl}?action=track&keyword=${encodeURIComponent(trackKeyword)}`;
+          const articleId = encodeURIComponent(url);
+          const ignoreUrl = `${actionUrl}?action=ignore&articleId=${articleId}&title=${encodeURIComponent(title.substring(0, 80))}`;
+          const shareUrl = `mailto:?subject=${encodeURIComponent('FW: ' + title)}&body=${encodeURIComponent('Thought you\'d find this relevant:\n\n' + title + '\n' + url)}`;
+
+          return `<li style="margin-bottom: 12px; line-height: 1.5; color: #333;">
+            ${displayText} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled} <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 11px;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none; font-size: 11px;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none; font-size: 11px;">[Ignore]</a>
+          </li>`;
+        };
+
+        const renderSection = (title, items, maxItems = 6) => {
+          if (!items || items.length === 0) {
+            return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${title}</h2>
+              <p style="color: #666; font-style: italic; margin: 10px 0 20px 0;">No updated information provided for this section.</p>`;
+          }
+          const bullets = items.slice(0, maxItems).map(formatBullet).join('');
+          return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${title}</h2>
+            <ul style="margin: 10px 0 20px 0; padding-left: 25px; list-style-type: disc;">${bullets}</ul>`;
+        };
+
+        const headerTitle = isFriday
+          ? 'Woodmont Industrial Partners — Weekly Industrial News Briefing'
+          : 'Woodmont Industrial Partners — Daily Industrial News Briefing';
+
+        return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${headerTitle}</title></head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; margin: 0; padding: 30px 40px; color: #333; line-height: 1.5;">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e3a5f; font-weight: bold;">${headerTitle}</h1>
+    <p style="margin: 0 0 15px 0; font-size: 14px; color: #333;"><strong>Date:</strong> ${formattedDate}</p>
+    <hr style="border: none; border-top: 2px solid #2563eb; margin: 0 0 25px 0;">
+    ${renderSection('Relevant News', relevant, 6)}
+    ${renderSection('Transactions', transactions, 6)}
+    ${renderSection('Availabilities', availabilities, 6)}
+    ${renderSection('People News', people, 6)}
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
+    <p style="font-size: 11px; color: #888; margin: 0;">
+      This briefing is automatically generated for Woodmont Industrial Partners.<br>
+      Focus regions: New Jersey, Pennsylvania, South Florida | Deals ≥100K SF or ≥$25M
+    </p>
+  </div>
+</body></html>`;
+      };
+
       const generateNewsletter = useCallback(async () => {
         setLoading(true);
         try {
@@ -2001,10 +2089,15 @@
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
             });
-            // Use selected theme
-            const html = newsletterTheme === 'goth'
-              ? buildGothNewsletterHTML(recentArticles, days)
-              : buildNewsletterHTML(recentArticles, days);
+            // Use selected theme (work is default)
+            let html;
+            if (newsletterTheme === 'work') {
+              html = buildWorkNewsletterHTML(recentArticles, days);
+            } else if (newsletterTheme === 'goth') {
+              html = buildGothNewsletterHTML(recentArticles, days);
+            } else {
+              html = buildNewsletterHTML(recentArticles, days);
+            }
             setNewsletterHTML(html);
             setNewsletterGenerated(true);
           } else {
