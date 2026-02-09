@@ -76,6 +76,8 @@ export async function buildStaticRSS(): Promise<void> {
                         link: a.url || a.link,
                         pubDate: a.date_published || a.pubDate,
                         fetchedAt: a.date_modified || a.fetchedAt,
+                        // Map JSON Feed content back to NormalizedItem description
+                        description: a.content_text || a.content_html || a.description || a.summary || '',
                     }));
                 const corruptedCount = rawArticles.length - existingArticles.length;
                 if (corruptedCount > 0) {
@@ -188,39 +190,56 @@ export async function buildStaticRSS(): Promise<void> {
             'PORT NEWARK', 'ELIZABETH PORT', 'SEAGIRT', 'PORTSIDE'
         ];
 
-        // Content to EXCLUDE - only political content
+        // Content to EXCLUDE - political + non-CRE junk
         const excludeContent = [
             // POLITICAL CONTENT - STRICT EXCLUSION
             'TRUMP', 'BIDEN', 'PRESIDENT TRUMP', 'PRESIDENT BIDEN', 'WHITE HOUSE',
             'EXECUTIVE ORDER', 'TARIFF WAR', 'TRADE WAR', 'CONGRESS', 'SENATE',
-            'REPUBLICAN', 'DEMOCRAT', 'ELECTION', 'POLITICAL'
+            'REPUBLICAN', 'DEMOCRAT', 'ELECTION', 'POLITICAL',
+            // NON-CRE JUNK - STRICT EXCLUSION
+            'CRYPTOCURRENCY', 'BITCOIN', 'CRYPTO', 'NFT',
+            'STUDENT LOAN', 'STUDENT DEBT',
+            'SUPER BOWL', 'WORLD SERIES', 'PLAYOFFS', 'CHAMPIONSHIP',
+            'HOROSCOPE', 'WEATHER FORECAST', 'COOKIES SETTINGS',
+            'RECIPE', 'RESTAURANT REVIEW',
+            'ELON MUSK', 'SPACEX', 'JEFF BEZOS', 'MARK ZUCKERBERG', 'BILL GATES',
+            // NON-INDUSTRIAL PROPERTY TYPES (when mentioned as primary topic)
+            'APARTMENT RENT', 'APARTMENT OCCUPANCY', 'MULTIFAMILY REPORT',
+            'HOTEL OCCUPANCY', 'HOSPITALITY SECTOR',
+            'SELF-STORAGE', 'SELF STORAGE'
         ];
 
-        // Real estate keywords (what to INCLUDE - EXPANDED for better coverage)
-        const realEstateKeywords = [
-            // Industrial/logistics
+        // INDUSTRIAL-focused keywords - strict set for filtering national sources
+        const industrialKeywords = [
             'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTION', 'MANUFACTURING', 'COLD STORAGE',
             'INDUSTRIAL', 'FULFILLMENT', 'LAST MILE', 'LAST-MILE', 'E-COMMERCE', 'ECOMMERCE',
             'SUPPLY CHAIN', 'FREIGHT', 'CARGO', 'INTERMODAL', '3PL', 'THIRD-PARTY LOGISTICS',
-            // Property types
-            'OFFICE', 'RETAIL', 'MULTIFAMILY', 'APARTMENT', 'MIXED-USE', 'FLEX',
-            'DATA CENTER', 'LIFE SCIENCES', 'BIOTECH', 'PHARMA', 'MEDICAL OFFICE',
-            // Transactions & deals
-            'COMMERCIAL', 'REAL ESTATE', 'PROPERTY', 'BUILDING', 'DEVELOPMENT', 'LEASE',
-            'SALE', 'SOLD', 'ACQUIRED', 'TRANSACTION', 'VACANCY', 'RENT', 'CRE',
+            'FLEX SPACE', 'FLEX INDUSTRIAL', 'INDUSTRIAL PARK', 'DISTRIBUTION CENTER',
+            'FULFILLMENT CENTER', 'CROSS-DOCK', 'SPEC INDUSTRIAL', 'LOADING DOCK',
+            'TRUCK COURT', 'CLEAR HEIGHT', 'DOCK DOORS', 'RAIL-SERVED'
+        ];
+
+        // Broader CRE keywords (what to INCLUDE - focused on industrial CRE, no non-industrial property types)
+        const realEstateKeywords = [
+            // Industrial/logistics (same as above)
+            'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTION', 'MANUFACTURING', 'COLD STORAGE',
+            'INDUSTRIAL', 'FULFILLMENT', 'LAST MILE', 'LAST-MILE', 'E-COMMERCE', 'ECOMMERCE',
+            'SUPPLY CHAIN', 'FREIGHT', 'CARGO', 'INTERMODAL', '3PL', 'THIRD-PARTY LOGISTICS',
+            'FLEX SPACE', 'FLEX INDUSTRIAL',
+            // Transactions & deals (CRE-specific)
+            'COMMERCIAL REAL ESTATE', 'REAL ESTATE', 'CRE', 'PROPERTY', 'DEVELOPMENT', 'LEASE',
+            'SOLD', 'ACQUIRED', 'TRANSACTION', 'VACANCY', 'RENT',
             'ACQUISITION', 'DISPOSITION', 'GROUND-UP', 'SPEC', 'BUILD-TO-SUIT',
             'CAP RATE', 'NOI', 'SQUARE FEET', 'SQUARE FOOT', ' SF ', 'MILLION SF',
             // Market terms
             'OCCUPANCY', 'ABSORPTION', 'CONSTRUCTION', 'GROUNDBREAKING', 'DELIVERED',
-            'LEASING', 'TENANT', 'LANDLORD', 'LANDLORDS', 'INVESTOR', 'REIT',
-            // People/company news
-            'BROKERAGE', 'BROKER', 'BROKERS', 'PRINCIPAL', 'PARTNER', 'EXECUTIVE',
-            'CEO', 'CFO', 'COO', 'PRESIDENT', 'VICE PRESIDENT', 'DIRECTOR', 'SENIOR',
-            'PROMOTED', 'HIRED', 'APPOINTED', 'JOINS', 'JOINED', 'NAMED', 'TAPS',
+            'LEASING', 'TENANT', 'LANDLORD', 'REIT',
+            // CRE people/company news
+            'BROKERAGE', 'BROKER',
             // Listing/availability
-            'AVAILABLE', 'FOR LEASE', 'FOR SALE', 'LISTED', 'MARKETING', 'ON THE MARKET',
-            // Financing
-            'FINANCING', 'REFINANCING', 'LOAN', 'MORTGAGE', 'DEBT', 'EQUITY', 'CAPITAL'
+            'FOR LEASE', 'FOR SALE', 'ON THE MARKET',
+            // Financing (CRE-specific)
+            'REFINANCING', 'MORTGAGE'
         ];
 
         // Deal thresholds: ≥100,000 SF or ≥$25M (per boss rules)
@@ -295,10 +314,22 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // BOSS PREFERRED SOURCES (e.g., GlobeSt) - VERY LIGHT FILTER
-            // Only exclude political content, include everything else regardless of state
+            // Exclude video content (boss feedback: avoid videos)
+            const isVideo = /\/(videos?)\//i.test(url) || url.endsWith('.mp4') || url.includes('video.foxbusiness') || url.includes('video.cnbc');
+            if (isVideo) {
+                log('info', `EXCLUDED (video): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // BOSS PREFERRED SOURCES (e.g., GlobeSt) - light filter but require CRE relevance
             const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
             if (isBossPreferred) {
+                // Even boss sources should exclude clearly non-industrial content
+                const nonIndustrialContent = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE)\b/.test(text);
+                if (nonIndustrialContent && !industrialKeywords.some(k => text.includes(k))) {
+                    log('info', `EXCLUDED (boss source, non-industrial): ${item.title?.substring(0, 60)}`);
+                    return false;
+                }
                 log('info', `INCLUDED (boss preferred): ${item.title?.substring(0, 60)}`);
                 return true;
             }
@@ -348,13 +379,20 @@ export async function buildStaticRSS(): Promise<void> {
                 return true;
             }
 
-            // Google News and trusted national sources: Be MORE INCLUSIVE
+            // Check for industrial context (stricter than general CRE)
+            const hasIndustrialContext = industrialKeywords.some(k => {
+                if (k.length <= 3) {
+                    return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
+                }
+                return text.includes(k);
+            });
+
+            // Google News and trusted national sources: Require INDUSTRIAL context
             if (isGoogleNews || isTrustedNational) {
-                // Include if has any real estate content
-                if (hasRealEstateContext) {
+                // Include if has industrial content (not just generic CRE/finance)
+                if (hasIndustrialContext || (hasRealEstateContext && mentionsTargetRegion)) {
                     // Only exclude if STRONGLY about wrong state
                     if ((mentionsExcludedState || mentionsExcludedCity) && !mentionsTargetRegion) {
-                        // Check if it's primarily about wrong state (multiple wrong state mentions)
                         const wrongStateMentions = [...excludeStates, ...excludeCities].filter(s => text.includes(s)).length;
                         const rightStateMentions = targetRegions.filter(r => text.includes(r)).length;
                         if (wrongStateMentions > 1 && rightStateMentions === 0) {
@@ -364,8 +402,13 @@ export async function buildStaticRSS(): Promise<void> {
                     }
                     return true;
                 }
-                // Include if mentions target region
-                if (mentionsTargetRegion) {
+                // Exclude generic finance/business news from national sources
+                if (!hasRealEstateContext && !mentionsTargetRegion) {
+                    log('info', `EXCLUDED (national source, no CRE context): ${item.title?.substring(0, 60)}`);
+                    return false;
+                }
+                // Include if mentions target region with CRE context
+                if (mentionsTargetRegion && hasRealEstateContext) {
                     return true;
                 }
             }
@@ -397,39 +440,44 @@ export async function buildStaticRSS(): Promise<void> {
             return hasRealEstateContext;
         };
 
-        // Re-categorize articles based on content - MORE INCLUSIVE patterns
+        // Re-categorize articles based on content - REQUIRE CRE/INDUSTRIAL CONTEXT
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+
+            // CRE/Industrial context check - article must be about real estate to be categorized
+            const hasCREContext = /\b(warehouse|logistics|industrial|commercial|real estate|property|cre|lease|acquisition|development|construction|tenant|landlord|brokerage|broker|reit|portfolio)\b/i.test(text);
 
             // Check for dollar amounts ($) or square feet (SF/sq ft)
             const hasDollarAmount = /\$[\d,]+/.test(text) || /\d+\s*(million|m)\b/i.test(text);
             const hasSquareFeet = /\d+[,\d]*\s*(sf|sq\.?\s*ft|square\s*feet)/i.test(text);
 
-            // Transaction indicators (buyer/tenant actions) - EXPANDED
-            const hasTransactionAction = /\b(purchased|acquires?d?|bought|signs?\s*lease|leased|closed|tenant|buyer|sale\s*of|sold\s*(to|for)?|acquisition|deal|disposition|refinanc|financing|debt|capital|invested|investment|secured|obtains?)\b/i.test(text);
+            // Transaction indicators (buyer/tenant actions) - must also have CRE context
+            const hasTransactionAction = /\b(purchased|acquires?d?|bought|signs?\s*lease|leased|closed|sale\s*of|sold\s*(to|for)?|acquisition|disposition|refinanc)\b/i.test(text);
 
-            // Availability indicators - EXPANDED
-            const hasAvailabilityWords = /\b(available|listed|listing|marketing|for\s*lease|for\s*sale|on\s*the\s*market|newly\s*marketed|asking|hits\s*market|launches|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered|completion|completed|opens|opening)\b/i.test(text);
+            // Availability indicators - must have property type context
+            const hasAvailabilityWords = /\b(available|listed|for\s*lease|for\s*sale|on\s*the\s*market|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered)\b/i.test(text);
+            const hasPropertyType = /\b(warehouse|industrial|distribution|logistics|building|facility|property|center|park|site|acres|square\s*feet|sf|sq\.?\s*ft)\b/i.test(text);
 
-            // People News indicators - EXPANDED
-            const hasPeopleWords = /\b(promoted|hired|new\s*hire|joins|joined|names|named|appoints|appointed|expands?\s*team|announces|taps|welcomes|recruits|elevated|executive|ceo|cfo|coo|president|vice\s*president|director|senior\s*vice|managing|principal|partner|brokerage|broker|agent|veteran|leadership|head\s*of)\b/i.test(text);
+            // People News indicators - must have CRE firm/role context
+            const hasPeopleWords = /\b(promoted|hired|new\s*hire|joins|joined|named|appoints|appointed|taps|welcomes|recruits|elevated)\b/i.test(text);
+            const hasCREFirmContext = /\b(brokerage|broker|development|developer|real estate|industrial|cre|reit|logistics|warehouse|nai|cbre|jll|cushman|colliers|newmark|prologis|blackstone|bridge industrial)\b/i.test(text);
 
             // Apply categorization rules in order of priority:
 
-            // 1. TRANSACTIONS - Any deal signals (expanded criteria)
-            if (hasTransactionAction || (hasDollarAmount && (hasSquareFeet || /\b(property|building|warehouse|industrial|office|retail)\b/i.test(text)))) {
+            // 1. TRANSACTIONS - Deal signals WITH CRE context
+            if (hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
                 item.category = 'transactions';
                 return item;
             }
 
-            // 2. AVAILABILITIES - Any property coming to market or being developed
-            if (hasAvailabilityWords) {
+            // 2. AVAILABILITIES - Property coming to market WITH property type context
+            if (hasAvailabilityWords && hasPropertyType) {
                 item.category = 'availabilities';
                 return item;
             }
 
-            // 3. PEOPLE NEWS - Any personnel/company moves
-            if (hasPeopleWords) {
+            // 3. PEOPLE NEWS - Personnel moves WITH CRE firm context
+            if (hasPeopleWords && hasCREFirmContext) {
                 item.category = 'people';
                 return item;
             }
@@ -775,6 +823,11 @@ export async function buildStaticRSS(): Promise<void> {
         log('info', 'Generated docs/rss.xml', { itemCount: rssItems.length });
 
         // Generate and write JSON feed
+        // Debug: Check how many items have descriptions
+        const withDesc = rssItems.filter(i => i.description && i.description.trim().length > 0).length;
+        const withoutDesc = rssItems.filter(i => !i.description || i.description.trim().length === 0).length;
+        log('info', `Description check before JSON generation`, { withDesc, withoutDesc, sample: rssItems.slice(0, 3).map(i => ({ title: (i.title || '').substring(0, 30), descLen: (i.description || '').length })) });
+
         const feedJSON = generateJSONFeed(rssItems);
         fs.writeFileSync(path.join(DOCS_DIR, 'feed.json'), JSON.stringify(feedJSON, null, 2), 'utf8');
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });

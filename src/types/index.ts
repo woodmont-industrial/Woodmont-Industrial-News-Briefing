@@ -69,8 +69,13 @@ export interface RawRSSItem {
     guid?: string | { _: string; $?: { isPermaLink?: string } };
     pubDate?: string;
     published?: string;
+    isoDate?: string;
     description?: string | string[];
     'content:encoded'?: string | string[];
+    'content:encodedSnippet'?: string;
+    content?: string;
+    contentSnippet?: string;  // rss-parser auto-generated plain text snippet
+    summary?: string;
     creator?: string;
     author?: string;
     categories?: string[];
@@ -80,7 +85,6 @@ export interface RawRSSItem {
     'media:thumbnail'?: RSSMediaContent | RSSMediaContent[];
     'feedburner:origLink'?: string | string[];
     'atom:link'?: RSSLink | RSSLink[];
-    content?: string;
 }
 
 export interface RSSLink {

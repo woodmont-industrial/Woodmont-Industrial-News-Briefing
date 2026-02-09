@@ -309,6 +309,17 @@ function stripHtmlTags(html: string): string {
     return cleaned.replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Safely extract text from RSS field that may be string or string[]
+ */
+function extractTextField(field: string | string[] | undefined): string {
+    if (!field) return '';
+    if (Array.isArray(field)) {
+        return field[0] || '';
+    }
+    return field;
+}
+
 function extractLink(item: RawRSSItem): string | null {
     if (!item) return "";
 
@@ -932,6 +943,24 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
                 // Robust date parsing - check multiple fields and formats
                 const parsedDate = parseArticleDate(item.isoDate, item.pubDate, item.published, item.date);
 
+                // Debug: log first item's description fields for each feed
+                if (items.length === 0) {
+                    const extractedDesc = stripHtmlTags(
+                        item.contentSnippet ||
+                        item.content ||
+                        extractTextField(item.description) ||
+                        extractTextField(item['content:encoded']) ||
+                        ''
+                    );
+                    console.log(`[DESC DEBUG ${feed.name}] First item:`, {
+                        title: (item.title || '').substring(0, 40),
+                        extractedDescLen: extractedDesc.length,
+                        extractedDescPreview: extractedDesc.substring(0, 80),
+                        hasContentSnippet: !!item.contentSnippet,
+                        contentSnippetPreview: (item.contentSnippet || '').substring(0, 80)
+                    });
+                }
+
                 const normalized: NormalizedItem = {
                     id: computeId({ guid: item.guid, canonicalUrl: normalizedLink }),
                     guid: item.guid || '',
@@ -942,7 +971,13 @@ async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
                     publisher: websiteDomain || feed.name,
                     regions: [feed.region || 'US'],
                     pubDate: parsedDate,
-                    description: stripHtmlTags(item.description || item['content:encoded'] || ''),
+                    description: stripHtmlTags(
+                        item.contentSnippet ||
+                        item.content ||
+                        extractTextField(item.description) ||
+                        extractTextField(item['content:encoded']) ||
+                        ''
+                    ),
                     author: authorName,
                     image: imageUrl,
                     thumbnailUrl: imageUrl,
