@@ -79,12 +79,12 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'jll.com',
         name: 'JLL',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'primary',
         targets: [
-            { url: 'https://www.us.jll.com/en/newsroom/press-releases', label: 'JLL Press Releases' },
+            { url: 'https://www.us.jll.com/en/newsroom', label: 'JLL Newsroom' },
             { url: 'https://www.us.jll.com/en/trends-and-insights/research', label: 'JLL Research' },
-            { url: 'https://www.us.jll.com/en/trends-and-insights/investor', label: 'JLL Investor Insights' }
+            { url: 'https://www.us.jll.com/en/trends-and-insights/cities', label: 'JLL Cities' }
         ],
         maxRunsPerDay: 8,
         cacheTTLMs: CRE_TTL,
@@ -157,7 +157,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         type: 'supplementary',
         targets: [
             { url: 'https://www.globest.com/sectors/industrial/', label: 'GlobeSt Industrial' },
-            { url: 'https://www.globest.com/sectors/logistics/', label: 'GlobeSt Logistics' }
+            { url: 'https://www.globest.com/', label: 'GlobeSt Home' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
@@ -193,11 +193,11 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'cbre.com',
         name: 'CBRE',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
-            { url: 'https://www.cbre.com/insights/reports', label: 'CBRE Reports' },
             { url: 'https://www.cbre.com/insights/articles', label: 'CBRE Articles' },
+            { url: 'https://www.cbre.com/insights/reports', label: 'CBRE Reports' },
             { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
         ],
         maxRunsPerDay: 6,
@@ -211,13 +211,12 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         type: 'supplementary',
         targets: [
             { url: 'https://www.bizjournals.com/southflorida/news/commercial-real-estate', label: 'BizJournals SoFla CRE' },
-            { url: 'https://www.bizjournals.com/philadelphia/news/commercial-real-estate', label: 'BizJournals Philly CRE' },
-            { url: 'https://www.bizjournals.com/jacksonville/news/commercial-real-estate', label: 'BizJournals Jacksonville CRE' },
-            { url: 'https://www.bizjournals.com/tampabay/news/commercial-real-estate', label: 'BizJournals Tampa CRE' }
+            { url: 'https://www.bizjournals.com/philadelphia/news/commercial-real-estate', label: 'BizJournals Philly CRE' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
         access: 'paywalled',
+        cloudflareProtected: true,
         feedType: 'news'
     },
 
@@ -239,10 +238,11 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'njbiz.com',
         name: 'NJBIZ',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
-            { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' }
+            { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' },
+            { url: 'https://njbiz.com/', label: 'NJBIZ Home' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
@@ -253,10 +253,11 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'lvb.com',
         name: 'Lehigh Valley Business',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
-            { url: 'https://lvb.com/category/real-estate/', label: 'LVB Real Estate' }
+            { url: 'https://lvb.com/category/real-estate/', label: 'LVB Real Estate' },
+            { url: 'https://lvb.com/', label: 'LVB Home' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,

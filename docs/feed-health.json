@@ -1,21 +1,11 @@
 {
-  "generatedAt": "2026-02-09T16:14:24.142Z",
+  "generatedAt": "2026-02-09T17:48:47.529Z",
   "totalFeeds": 150,
-  "successfulFeeds": 133,
-  "failedFeeds": 17,
-  "totalArticlesFetched": 7567,
-  "totalArticlesKept": 176,
+  "successfulFeeds": 135,
+  "failedFeeds": 15,
+  "totalArticlesFetched": 7575,
+  "totalArticlesKept": 121,
   "feeds": [
-    {
-      "name": "Connect Media CRE",
-      "url": "https://www.connect.media/feed/",
-      "status": "failed",
-      "fetchedRaw": 0,
-      "keptAfterFiltering": 0,
-      "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 4116,
-      "type": "rss"
-    },
     {
       "name": "Jacksonville Business Journal CRE",
       "url": "https://www.bizjournals.com/jacksonville/news/commercial-real-estate.rss",
@@ -23,7 +13,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 66708,
+      "durationMs": 65649,
       "type": "rss"
     },
     {
@@ -33,7 +23,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "403 Forbidden",
-      "durationMs": 5002,
+      "durationMs": 4489,
       "type": "rss"
     },
     {
@@ -43,7 +33,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "HTTP 403",
-      "durationMs": 1682,
+      "durationMs": 7759,
       "type": "rss"
     },
     {
@@ -53,22 +43,12 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 65748,
-      "type": "rss"
-    },
-    {
-      "name": "REJournals",
-      "url": "https://rejournals.com/feed/",
-      "status": "failed",
-      "fetchedRaw": 0,
-      "keptAfterFiltering": 0,
-      "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 41912,
+      "durationMs": 111670,
       "type": "rss"
     },
     {
       "name": "Scraper: BizJournals",
-      "url": "https://www.bizjournals.com/southflorida/news/commercial-real-estate, https://www.bizjournals.com/philadelphia/news/commercial-real-estate, https://www.bizjournals.com/jacksonville/news/commercial-real-estate, https://www.bizjournals.com/tampabay/news/commercial-real-estate",
+      "url": "https://www.bizjournals.com/southflorida/news/commercial-real-estate, https://www.bizjournals.com/philadelphia/news/commercial-real-estate",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
@@ -84,20 +64,20 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 21321,
+      "durationMs": 10664,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
     {
       "name": "Scraper: CBRE",
-      "url": "https://www.cbre.com/insights/reports, https://www.cbre.com/insights/articles, https://www.cbre.com/press-releases",
+      "url": "https://www.cbre.com/insights/articles, https://www.cbre.com/insights/reports, https://www.cbre.com/press-releases",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "Scraper timeout",
       "durationMs": 0,
       "type": "scraper",
-      "scraperStrategy": "playwright"
+      "scraperStrategy": "axios-pw-fallback"
     },
     {
       "name": "Scraper: CoStar",
@@ -111,48 +91,48 @@
       "scraperStrategy": "playwright"
     },
     {
-      "name": "Scraper: GlobeSt",
-      "url": "https://www.globest.com/sectors/industrial/, https://www.globest.com/sectors/logistics/",
+      "name": "Scraper: Cushman & Wakefield",
+      "url": "https://www.cushmanwakefield.com/en/united-states/news/press-releases, https://www.cushmanwakefield.com/en/united-states/insights/us-articles, https://www.cushmanwakefield.com/en/united-states/insights/us-marketbeats",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
-      "lastError": null,
-      "durationMs": 30039,
+      "lastError": "Scraper timeout",
+      "durationMs": 0,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
+    },
+    {
+      "name": "Scraper: JLL",
+      "url": "https://www.us.jll.com/en/newsroom, https://www.us.jll.com/en/trends-and-insights/research, https://www.us.jll.com/en/trends-and-insights/cities",
+      "status": "failed",
+      "fetchedRaw": 0,
+      "keptAfterFiltering": 0,
+      "lastError": "Scraper timeout",
+      "durationMs": 0,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
     {
-      "name": "Scraper: JLL",
-      "url": "https://www.us.jll.com/en/newsroom/press-releases, https://www.us.jll.com/en/trends-and-insights/research, https://www.us.jll.com/en/trends-and-insights/investor",
-      "status": "failed",
-      "fetchedRaw": 0,
-      "keptAfterFiltering": 0,
-      "lastError": null,
-      "durationMs": 24858,
-      "type": "scraper",
-      "scraperStrategy": "playwright"
-    },
-    {
       "name": "Scraper: Lehigh Valley Business",
-      "url": "https://lvb.com/category/real-estate/",
+      "url": "https://lvb.com/category/real-estate/, https://lvb.com/",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
-      "lastError": null,
-      "durationMs": 22365,
+      "lastError": "Scraper timeout",
+      "durationMs": 0,
       "type": "scraper",
-      "scraperStrategy": "playwright"
+      "scraperStrategy": "axios-pw-fallback"
     },
     {
       "name": "Scraper: NJBIZ",
-      "url": "https://njbiz.com/real-estate/",
+      "url": "https://njbiz.com/real-estate/, https://njbiz.com/",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
-      "lastError": null,
-      "durationMs": 22131,
+      "lastError": "Scraper timeout",
+      "durationMs": 0,
       "type": "scraper",
-      "scraperStrategy": "playwright"
+      "scraperStrategy": "axios-pw-fallback"
     },
     {
       "name": "Scraper: WSJ",
@@ -161,7 +141,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 21033,
+      "durationMs": 22277,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -172,7 +152,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 65059,
+      "durationMs": 108278,
       "type": "rss"
     },
     {
@@ -182,7 +162,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "Cloudflare challenge - Playwright failed",
-      "durationMs": 65720,
+      "durationMs": 107993,
       "type": "rss"
     },
     {
@@ -190,9 +170,9 @@
       "url": "https://www.areadevelopment.com/rss/rss.xml?t=5",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 33,
+      "keptAfterFiltering": 34,
       "lastError": null,
-      "durationMs": 453,
+      "durationMs": 448,
       "type": "rss"
     },
     {
@@ -200,9 +180,9 @@
       "url": "https://www.areadevelopment.com/rss/NewsItems.xml?t=2",
       "status": "ok",
       "fetchedRaw": 50,
-      "keptAfterFiltering": 18,
+      "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 398,
+      "durationMs": 160,
       "type": "rss"
     },
     {
@@ -212,7 +192,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 7,
       "lastError": null,
-      "durationMs": 460,
+      "durationMs": 550,
       "type": "rss"
     },
     {
@@ -222,7 +202,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 660,
+      "durationMs": 771,
       "type": "rss"
     },
     {
@@ -232,7 +212,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 563,
+      "durationMs": 476,
       "type": "rss"
     },
     {
@@ -242,7 +222,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 498,
+      "durationMs": 456,
       "type": "rss"
     },
     {
@@ -252,7 +232,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 367,
+      "durationMs": 417,
       "type": "rss"
     },
     {
@@ -262,7 +242,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 544,
+      "durationMs": 698,
       "type": "rss"
     },
     {
@@ -272,7 +252,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 434,
+      "durationMs": 727,
       "type": "rss"
     },
     {
@@ -282,7 +262,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 306,
+      "durationMs": 220,
       "type": "rss"
     },
     {
@@ -292,7 +272,17 @@
       "fetchedRaw": 17,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 257,
+      "durationMs": 770,
+      "type": "rss"
+    },
+    {
+      "name": "Connect Media CRE",
+      "url": "https://www.connect.media/feed/",
+      "status": "ok",
+      "fetchedRaw": 0,
+      "keptAfterFiltering": 0,
+      "lastError": null,
+      "durationMs": 2244,
       "type": "rss"
     },
     {
@@ -302,7 +292,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 187,
+      "durationMs": 259,
       "type": "rss"
     },
     {
@@ -312,7 +302,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 221,
+      "durationMs": 454,
       "type": "rss"
     },
     {
@@ -322,7 +312,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 372,
+      "durationMs": 692,
       "type": "rss"
     },
     {
@@ -332,7 +322,7 @@
       "fetchedRaw": 50,
       "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 555,
+      "durationMs": 1767,
       "type": "rss"
     },
     {
@@ -342,7 +332,7 @@
       "fetchedRaw": 20,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 307,
+      "durationMs": 319,
       "type": "rss"
     },
     {
@@ -352,7 +342,7 @@
       "fetchedRaw": 50,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 310,
+      "durationMs": 811,
       "type": "rss"
     },
     {
@@ -362,7 +352,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 113,
+      "durationMs": 145,
       "type": "rss"
     },
     {
@@ -372,17 +362,17 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 54,
+      "durationMs": 42,
       "type": "rss"
     },
     {
       "name": "GlobeSt New Jersey",
       "url": "http://feeds.feedblitz.com/globest/new-jersey",
       "status": "ok",
-      "fetchedRaw": 62,
+      "fetchedRaw": 63,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 223,
+      "durationMs": 346,
       "type": "rss"
     },
     {
@@ -392,17 +382,17 @@
       "fetchedRaw": 7,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 100,
+      "durationMs": 130,
       "type": "rss"
     },
     {
       "name": "Google News 3PL",
       "url": "https://news.google.com/rss/search?q=%223PL%22+OR+%22third+party+logistics%22+warehouse+expansion+OR+lease&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 57,
+      "fetchedRaw": 59,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 531,
+      "durationMs": 1733,
       "type": "rss"
     },
     {
@@ -412,17 +402,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 596,
+      "durationMs": 934,
       "type": "rss"
     },
     {
       "name": "Google News Bergen County NJ",
       "url": "https://news.google.com/rss/search?q=%22Bergen+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 47,
+      "fetchedRaw": 50,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 395,
+      "durationMs": 953,
       "type": "rss"
     },
     {
@@ -432,27 +422,27 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 536,
+      "durationMs": 780,
       "type": "rss"
     },
     {
       "name": "Google News Broward County FL",
       "url": "https://news.google.com/rss/search?q=%22Broward+County%22+warehouse+OR+industrial+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 90,
+      "fetchedRaw": 91,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 560,
+      "durationMs": 2085,
       "type": "rss"
     },
     {
       "name": "Google News BTS Industrial",
       "url": "https://news.google.com/rss/search?q=%22build+to+suit%22+OR+%22BTS%22+industrial+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 48,
+      "fetchedRaw": 46,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 386,
+      "durationMs": 1624,
       "type": "rss"
     },
     {
@@ -462,7 +452,7 @@
       "fetchedRaw": 76,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 546,
+      "durationMs": 1541,
       "type": "rss"
     },
     {
@@ -472,7 +462,7 @@
       "fetchedRaw": 79,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 600,
+      "durationMs": 710,
       "type": "rss"
     },
     {
@@ -482,27 +472,27 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 567,
+      "durationMs": 1507,
       "type": "rss"
     },
     {
       "name": "Google News Central Jersey",
       "url": "https://news.google.com/rss/search?q=%22Central+Jersey%22+OR+%22Central+New+Jersey%22+industrial+OR+warehouse+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 41,
+      "fetchedRaw": 52,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 403,
+      "durationMs": 584,
       "type": "rss"
     },
     {
       "name": "Google News Chester County PA",
       "url": "https://news.google.com/rss/search?q=%22Chester+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 70,
+      "fetchedRaw": 79,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 471,
+      "durationMs": 1239,
       "type": "rss"
     },
     {
@@ -512,17 +502,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 620,
+      "durationMs": 867,
       "type": "rss"
     },
     {
       "name": "Google News Colliers NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=Colliers+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 68,
+      "fetchedRaw": 66,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 424,
+      "durationMs": 1902,
       "type": "rss"
     },
     {
@@ -532,37 +522,37 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 841,
+      "durationMs": 785,
       "type": "rss"
     },
     {
       "name": "Google News Crexi",
       "url": "https://news.google.com/rss/search?q=Crexi+industrial+OR+warehouse+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 32,
+      "fetchedRaw": 43,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 356,
+      "durationMs": 513,
       "type": "rss"
     },
     {
       "name": "Google News Cross-Dock",
       "url": "https://news.google.com/rss/search?q=%22cross+dock%22+OR+%22cross-dock%22+facility+OR+warehouse+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 29,
+      "fetchedRaw": 43,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 323,
+      "durationMs": 690,
       "type": "rss"
     },
     {
       "name": "Google News Cushman NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=%22Cushman+Wakefield%22+OR+%22Cushman+%26+Wakefield%22+industrial+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
+      "fetchedRaw": 52,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 420,
+      "durationMs": 514,
       "type": "rss"
     },
     {
@@ -572,7 +562,7 @@
       "fetchedRaw": 70,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 491,
+      "durationMs": 1573,
       "type": "rss"
     },
     {
@@ -582,7 +572,7 @@
       "fetchedRaw": 75,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 614,
+      "durationMs": 685,
       "type": "rss"
     },
     {
@@ -592,17 +582,17 @@
       "fetchedRaw": 50,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 488,
+      "durationMs": 633,
       "type": "rss"
     },
     {
       "name": "Google News Duval (Jacksonville) FL",
       "url": "https://news.google.com/rss/search?q=%22Duval+County%22+Florida+warehouse+OR+industrial+OR+port&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 51,
+      "fetchedRaw": 54,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 429,
+      "durationMs": 857,
       "type": "rss"
     },
     {
@@ -612,27 +602,27 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 677,
+      "durationMs": 783,
       "type": "rss"
     },
     {
       "name": "Google News Exit 8A Corridor",
       "url": "https://news.google.com/rss/search?q=%22Exit+8A%22+OR+%22NJ+Turnpike%22+OR+%22Turnpike+corridor%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
+      "fetchedRaw": 47,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 364,
+      "durationMs": 516,
       "type": "rss"
     },
     {
       "name": "Google News FL Availabilities",
       "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22Florida%22+OR+%22Miami%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 74,
+      "fetchedRaw": 63,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 536,
+      "durationMs": 808,
       "type": "rss"
     },
     {
@@ -642,7 +632,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 610,
+      "durationMs": 1259,
       "type": "rss"
     },
     {
@@ -652,17 +642,27 @@
       "fetchedRaw": 41,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 497,
+      "durationMs": 1553,
       "type": "rss"
     },
     {
       "name": "Google News Flex Industrial",
       "url": "https://news.google.com/rss/search?q=%22flex+industrial%22+OR+%22flex+space%22+OR+%22light+industrial%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 52,
+      "fetchedRaw": 43,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 513,
+      "durationMs": 1201,
+      "type": "rss"
+    },
+    {
+      "name": "Google News GlobeSt",
+      "url": "https://news.google.com/rss/search?q=site:globest.com+industrial+OR+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
+      "keptAfterFiltering": 0,
+      "lastError": null,
+      "durationMs": 1505,
       "type": "rss"
     },
     {
@@ -672,7 +672,7 @@
       "fetchedRaw": 60,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 464,
+      "durationMs": 1662,
       "type": "rss"
     },
     {
@@ -682,17 +682,17 @@
       "fetchedRaw": 51,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 414,
+      "durationMs": 2121,
       "type": "rss"
     },
     {
       "name": "Google News I-78 PA",
       "url": "https://news.google.com/rss/search?q=%22I-78+corridor%22+OR+%22Interstate+78%22+Pennsylvania+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 38,
+      "fetchedRaw": 36,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 498,
+      "durationMs": 635,
       "type": "rss"
     },
     {
@@ -702,7 +702,7 @@
       "fetchedRaw": 41,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 385,
+      "durationMs": 544,
       "type": "rss"
     },
     {
@@ -712,7 +712,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 642,
+      "durationMs": 2497,
       "type": "rss"
     },
     {
@@ -722,7 +722,7 @@
       "fetchedRaw": 79,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 517,
+      "durationMs": 743,
       "type": "rss"
     },
     {
@@ -732,7 +732,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 626,
+      "durationMs": 1086,
       "type": "rss"
     },
     {
@@ -742,17 +742,17 @@
       "fetchedRaw": 49,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 515,
+      "durationMs": 955,
       "type": "rss"
     },
     {
       "name": "Google News Industrial Land",
       "url": "https://news.google.com/rss/search?q=industrial+land+sale+OR+%22land+acquisition%22+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 59,
+      "fetchedRaw": 58,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 465,
+      "durationMs": 1460,
       "type": "rss"
     },
     {
@@ -762,7 +762,7 @@
       "fetchedRaw": 63,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 439,
+      "durationMs": 930,
       "type": "rss"
     },
     {
@@ -772,7 +772,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 648,
+      "durationMs": 1002,
       "type": "rss"
     },
     {
@@ -782,7 +782,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 503,
+      "durationMs": 777,
       "type": "rss"
     },
     {
@@ -792,7 +792,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 658,
+      "durationMs": 1456,
       "type": "rss"
     },
     {
@@ -802,7 +802,7 @@
       "fetchedRaw": 56,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 667,
+      "durationMs": 1079,
       "type": "rss"
     },
     {
@@ -812,7 +812,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 554,
+      "durationMs": 2291,
       "type": "rss"
     },
     {
@@ -822,17 +822,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 572,
+      "durationMs": 1910,
       "type": "rss"
     },
     {
       "name": "Google News IOS",
       "url": "https://news.google.com/rss/search?q=%22industrial+outdoor+storage%22+OR+%22IOS%22+real+estate+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 92,
+      "fetchedRaw": 67,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 618,
+      "durationMs": 2500,
       "type": "rss"
     },
     {
@@ -842,7 +842,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 770,
+      "durationMs": 3488,
       "type": "rss"
     },
     {
@@ -852,7 +852,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 828,
+      "durationMs": 748,
       "type": "rss"
     },
     {
@@ -862,17 +862,17 @@
       "fetchedRaw": 68,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 457,
+      "durationMs": 744,
       "type": "rss"
     },
     {
       "name": "Google News Last Mile NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=%22last+mile%22+delivery+OR+fulfillment+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 57,
+      "fetchedRaw": 58,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 583,
+      "durationMs": 745,
       "type": "rss"
     },
     {
@@ -882,7 +882,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 999,
+      "durationMs": 728,
       "type": "rss"
     },
     {
@@ -892,7 +892,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 533,
+      "durationMs": 1536,
       "type": "rss"
     },
     {
@@ -902,7 +902,7 @@
       "fetchedRaw": 79,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 529,
+      "durationMs": 1066,
       "type": "rss"
     },
     {
@@ -912,7 +912,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 619,
+      "durationMs": 1328,
       "type": "rss"
     },
     {
@@ -922,17 +922,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 731,
+      "durationMs": 1555,
       "type": "rss"
     },
     {
       "name": "Google News Meadowlands NJ",
       "url": "https://news.google.com/rss/search?q=%22Meadowlands%22+%22New+Jersey%22+industrial+OR+warehouse+OR+logistics+OR+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 79,
+      "fetchedRaw": 69,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 436,
+      "durationMs": 712,
       "type": "rss"
     },
     {
@@ -942,7 +942,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 694,
+      "durationMs": 2217,
       "type": "rss"
     },
     {
@@ -952,17 +952,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 580,
+      "durationMs": 2112,
       "type": "rss"
     },
     {
       "name": "Google News Middlesex County NJ",
       "url": "https://news.google.com/rss/search?q=%22Middlesex+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 64,
+      "fetchedRaw": 63,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 455,
+      "durationMs": 1686,
       "type": "rss"
     },
     {
@@ -972,7 +972,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 787,
+      "durationMs": 3142,
       "type": "rss"
     },
     {
@@ -982,7 +982,7 @@
       "fetchedRaw": 55,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 405,
+      "durationMs": 995,
       "type": "rss"
     },
     {
@@ -992,27 +992,27 @@
       "fetchedRaw": 78,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 509,
+      "durationMs": 2230,
       "type": "rss"
     },
     {
       "name": "Google News NAIOP NJ",
       "url": "https://news.google.com/rss/search?q=%22NAIOP+New+Jersey%22+OR+%22NAIOP+NJ%22+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 40,
+      "fetchedRaw": 34,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 377,
+      "durationMs": 1309,
       "type": "rss"
     },
     {
       "name": "Google News NAIOP NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=NAIOP+New+Jersey+OR+Pennsylvania+OR+Florida+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 61,
+      "fetchedRaw": 50,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 528,
+      "durationMs": 1782,
       "type": "rss"
     },
     {
@@ -1022,7 +1022,7 @@
       "fetchedRaw": 54,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 436,
+      "durationMs": 1500,
       "type": "rss"
     },
     {
@@ -1032,7 +1032,7 @@
       "fetchedRaw": 73,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 462,
+      "durationMs": 581,
       "type": "rss"
     },
     {
@@ -1042,7 +1042,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 681,
+      "durationMs": 1274,
       "type": "rss"
     },
     {
@@ -1052,17 +1052,17 @@
       "fetchedRaw": 56,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 583,
+      "durationMs": 724,
       "type": "rss"
     },
     {
       "name": "Google News NJ Industrial Developers",
       "url": "https://news.google.com/rss/search?q=%22Matrix+Development%22+OR+%22Heller+Industrial%22+OR+%22Sitex+Group%22+New+Jersey&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 35,
+      "fetchedRaw": 37,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 511,
+      "durationMs": 697,
       "type": "rss"
     },
     {
@@ -1072,17 +1072,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 698,
+      "durationMs": 961,
       "type": "rss"
     },
     {
       "name": "Google News PA Availabilities",
       "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22Pennsylvania%22+OR+%22Philadelphia%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 72,
+      "fetchedRaw": 66,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 638,
+      "durationMs": 737,
       "type": "rss"
     },
     {
@@ -1092,7 +1092,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 544,
+      "durationMs": 860,
       "type": "rss"
     },
     {
@@ -1102,7 +1102,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 582,
+      "durationMs": 2779,
       "type": "rss"
     },
     {
@@ -1112,17 +1112,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 592,
+      "durationMs": 2569,
       "type": "rss"
     },
     {
       "name": "Google News Port Newark",
       "url": "https://news.google.com/rss/search?q=%22Port+Newark%22+OR+%22Port+Elizabeth%22+OR+%22Newark+port%22+logistics+OR+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 54,
+      "fetchedRaw": 56,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 513,
+      "durationMs": 602,
       "type": "rss"
     },
     {
@@ -1132,27 +1132,27 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 815,
+      "durationMs": 1482,
       "type": "rss"
     },
     {
       "name": "Google News Ports",
       "url": "https://news.google.com/rss/search?q=port+logistics+%22intermodal%22+OR+%22Port+Newark%22+OR+%22Port+Miami%22+OR+%22Port+Everglades%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 90,
+      "fetchedRaw": 81,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 510,
+      "durationMs": 703,
       "type": "rss"
     },
     {
       "name": "Google News Prologis NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=Prologis+%22New+Jersey%22+OR+Pennsylvania+OR+Florida+OR+%22South+Florida%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 59,
+      "fetchedRaw": 54,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 497,
+      "durationMs": 680,
       "type": "rss"
     },
     {
@@ -1162,17 +1162,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 719,
+      "durationMs": 1644,
       "type": "rss"
     },
     {
       "name": "Google News Somerset County NJ",
       "url": "https://news.google.com/rss/search?q=%22Somerset+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 52,
+      "fetchedRaw": 51,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 421,
+      "durationMs": 1815,
       "type": "rss"
     },
     {
@@ -1182,17 +1182,17 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 714,
+      "durationMs": 2863,
       "type": "rss"
     },
     {
       "name": "Google News Spec Buildings",
       "url": "https://news.google.com/rss/search?q=%22spec+building%22+OR+%22speculative+development%22+OR+%22new+listing%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 49,
+      "fetchedRaw": 46,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 499,
+      "durationMs": 507,
       "type": "rss"
     },
     {
@@ -1202,7 +1202,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 578,
+      "durationMs": 1883,
       "type": "rss"
     },
     {
@@ -1212,7 +1212,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 685,
+      "durationMs": 2936,
       "type": "rss"
     },
     {
@@ -1222,57 +1222,57 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 737,
+      "durationMs": 806,
       "type": "rss"
     },
     {
       "name": "Google News Truck Terminals",
       "url": "https://news.google.com/rss/search?q=%22truck+terminal%22+OR+%22logistics+hub%22+OR+%22freight+terminal%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 60,
+      "fetchedRaw": 61,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 490,
+      "durationMs": 1596,
       "type": "rss"
     },
     {
       "name": "Google News Union County NJ",
       "url": "https://news.google.com/rss/search?q=%22Union+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 49,
+      "fetchedRaw": 39,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 374,
+      "durationMs": 672,
       "type": "rss"
     },
     {
       "name": "Google News Vacancy Rates",
       "url": "https://news.google.com/rss/search?q=%22vacancy+rate%22+industrial+OR+warehouse+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 49,
+      "fetchedRaw": 51,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 569,
+      "durationMs": 849,
       "type": "rss"
     },
     {
       "name": "Google News Warehouse",
       "url": "https://news.google.com/rss/search?q=warehouse+logistics+development+construction&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 78,
+      "fetchedRaw": 80,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 492,
+      "durationMs": 692,
       "type": "rss"
     },
     {
       "name": "Google News Warehouse Listings",
       "url": "https://news.google.com/rss/search?q=warehouse+%22now+available%22+OR+%22now+leasing%22+OR+%22for+lease%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 51,
+      "fetchedRaw": 55,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 531,
+      "durationMs": 738,
       "type": "rss"
     },
     {
@@ -1282,7 +1282,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 353,
+      "durationMs": 735,
       "type": "rss"
     },
     {
@@ -1292,7 +1292,7 @@
       "fetchedRaw": 40,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 349,
+      "durationMs": 1260,
       "type": "rss"
     },
     {
@@ -1302,7 +1302,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 316,
+      "durationMs": 286,
       "type": "rss"
     },
     {
@@ -1312,7 +1312,7 @@
       "fetchedRaw": 50,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 391,
+      "durationMs": 1722,
       "type": "rss"
     },
     {
@@ -1322,7 +1322,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 383,
+      "durationMs": 576,
       "type": "rss"
     },
     {
@@ -1332,7 +1332,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 1697,
+      "durationMs": 1543,
       "type": "rss"
     },
     {
@@ -1342,7 +1342,7 @@
       "fetchedRaw": 8,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 272,
+      "durationMs": 474,
       "type": "rss"
     },
     {
@@ -1352,7 +1352,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 1388,
+      "durationMs": 753,
       "type": "rss"
     },
     {
@@ -1362,7 +1362,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 233,
+      "durationMs": 1001,
       "type": "rss"
     },
     {
@@ -1372,7 +1372,7 @@
       "fetchedRaw": 20,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 290,
+      "durationMs": 231,
       "type": "rss"
     },
     {
@@ -1382,7 +1382,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 418,
+      "durationMs": 215,
       "type": "rss"
     },
     {
@@ -1392,7 +1392,17 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 505,
+      "durationMs": 122,
+      "type": "rss"
+    },
+    {
+      "name": "REJournals",
+      "url": "https://rejournals.com/feed/",
+      "status": "ok",
+      "fetchedRaw": 10,
+      "keptAfterFiltering": 0,
+      "lastError": null,
+      "durationMs": 1363,
       "type": "rss"
     },
     {
@@ -1402,7 +1412,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 313,
+      "durationMs": 251,
       "type": "rss"
     },
     {
@@ -1412,7 +1422,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 458,
+      "durationMs": 163,
       "type": "rss"
     },
     {
@@ -1422,7 +1432,7 @@
       "fetchedRaw": 14,
       "keptAfterFiltering": 14,
       "lastError": null,
-      "durationMs": 14576,
+      "durationMs": 15287,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -1433,7 +1443,7 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 16987,
+      "durationMs": 17547,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -1444,40 +1454,29 @@
       "fetchedRaw": 8,
       "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 8305,
+      "durationMs": 8771,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
     {
-      "name": "Scraper: Cushman & Wakefield",
-      "url": "https://www.cushmanwakefield.com/en/united-states/news/press-releases, https://www.cushmanwakefield.com/en/united-states/insights/us-articles, https://www.cushmanwakefield.com/en/united-states/insights/us-marketbeats",
+      "name": "Scraper: GlobeSt",
+      "url": "https://www.globest.com/sectors/industrial/, https://www.globest.com/",
       "status": "ok",
-      "fetchedRaw": 60,
-      "keptAfterFiltering": 60,
+      "fetchedRaw": 8,
+      "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 34800,
+      "durationMs": 20767,
       "type": "scraper",
-      "scraperStrategy": "playwright"
-    },
-    {
-      "name": "Scraper: REJournals",
-      "url": "https://rejournals.com/category/industrial/, https://rejournals.com/",
-      "status": "ok",
-      "fetchedRaw": 4,
-      "keptAfterFiltering": 4,
-      "lastError": null,
-      "durationMs": 22496,
-      "type": "scraper",
-      "scraperStrategy": "playwright"
+      "scraperStrategy": "axios-pw-fallback"
     },
     {
       "name": "Supply Chain Dive",
       "url": "https://www.supplychaindive.com/feeds/news/",
       "status": "ok",
       "fetchedRaw": 10,
-      "keptAfterFiltering": 1,
+      "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 234,
+      "durationMs": 126,
       "type": "rss"
     },
     {
@@ -1487,7 +1486,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 410,
+      "durationMs": 960,
       "type": "rss"
     },
     {
@@ -1497,7 +1496,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 452,
+      "durationMs": 892,
       "type": "rss"
     },
     {
@@ -1507,7 +1506,7 @@
       "fetchedRaw": 20,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 192,
+      "durationMs": 302,
       "type": "rss"
     },
     {
@@ -1517,15 +1516,15 @@
       "fetchedRaw": 35,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 387,
+      "durationMs": 202,
       "type": "rss"
     }
   ],
   "scraperSummary": {
-    "total": 14,
-    "successful": 5,
+    "total": 13,
+    "successful": 4,
     "failed": 9,
-    "articlesFetched": 88,
-    "articlesKept": 88
+    "articlesFetched": 32,
+    "articlesKept": 32
   }
 }

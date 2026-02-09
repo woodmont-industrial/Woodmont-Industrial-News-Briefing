@@ -338,9 +338,10 @@ export abstract class BaseScraper {
                     'Accept-Language': 'en-US,en;q=0.9',
                     'Accept-Encoding': 'gzip, deflate, br',
                     'Cache-Control': 'no-cache',
+                    'Referer': 'https://www.google.com/',
                     'Sec-Fetch-Dest': 'document',
                     'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'none',
+                    'Sec-Fetch-Site': 'cross-site',
                     'Sec-Fetch-User': '?1'
                 },
                 maxRedirects: 5,

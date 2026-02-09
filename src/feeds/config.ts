@@ -1569,5 +1569,15 @@ export const RSS_FEEDS: FeedConfig[] = [
       type: FEED_TYPES.INDUSTRIAL_NEWS,
       timeout: 30000,
       headers: BROWSER_HEADERS
+},
+
+    // Google News - GlobeSt Industrial (fallback for when scraper fails)
+{
+      url: "https://news.google.com/rss/search?q=site:globest.com+industrial+OR+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+      name: "Google News GlobeSt",
+      region: "US",
+      source: "Google News",
+      type: FEED_TYPES.INDUSTRIAL_NEWS,
+      timeout: 30000
 }
 ];

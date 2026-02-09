@@ -32,11 +32,11 @@ import { REJournalsScraper } from './domains/rejournals.js';
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
 
-// Total timeout for all scrapers combined (7 minutes to allow more scrapers to complete)
-const TOTAL_TIMEOUT_MS = 7 * 60 * 1000;
+// Total timeout for all scrapers combined (5 minutes - fail faster on blocked sites)
+const TOTAL_TIMEOUT_MS = 5 * 60 * 1000;
 
-// Per-scraper timeout (45 seconds)
-const SCRAPER_TIMEOUT_MS = 45 * 1000;
+// Per-scraper timeout (30 seconds - fail faster on blocked sites)
+const SCRAPER_TIMEOUT_MS = 30 * 1000;
 
 /**
  * Map domain to its scraper class

@@ -738,51 +738,99 @@ export async function buildStaticRSS(): Promise<void> {
         ];
 
         const cleanMerged = mergedArticles.filter(item => {
-            const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+            const title = (item.title || '').trim();
+            const text = (title + ' ' + (item.description || '')).toLowerCase();
             const url = (item.link || (item as any).url || '').toLowerCase();
             const sourceName = (item.source || '').toLowerCase();
 
+            // Minimum title length - filter out "Cookies Settings", "Skip to content", etc
+            if (title.length < 15) {
+                log('info', `CLEANED (short title): "${title}"`);
+                return false;
+            }
+
             // Check for political content (exclude from ALL sources including GlobeSt)
             if (politicalKeywords.some(kw => text.includes(kw))) {
-                log('info', `CLEANED (political): ${(item.title || '').substring(0, 50)}`);
+                log('info', `CLEANED (political): ${title.substring(0, 50)}`);
+                return false;
+            }
+
+            // Exclude junk content patterns
+            const junkPatterns = [
+                'cryptocurrency', 'bitcoin', 'crypto', 'nft',
+                'student loan', 'student debt',
+                'super bowl', 'world series', 'playoffs', 'championship',
+                'horoscope', 'weather forecast', 'cookies settings', 'cookie policy',
+                'recipe', 'restaurant review',
+                'elon musk', 'spacex', 'jeff bezos', 'mark zuckerberg',
+                'skip to content', 'skip to main', 'privacy policy', 'terms of service',
+                'subscribe now', 'sign up for', 'newsletter signup'
+            ];
+            if (junkPatterns.some(kw => text.includes(kw))) {
+                log('info', `CLEANED (junk): ${title.substring(0, 50)}`);
+                return false;
+            }
+
+            // Exclude non-industrial property types (when mentioned as PRIMARY topic, not incidental)
+            const nonIndustrialPrimary = /^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title);
+            if (nonIndustrialPrimary) {
+                log('info', `CLEANED (non-industrial primary): ${title.substring(0, 50)}`);
+                return false;
+            }
+
+            // Exclude video content
+            if (/\/(videos?)\//i.test(url) || url.endsWith('.mp4')) {
+                log('info', `CLEANED (video): ${title.substring(0, 50)}`);
                 return false;
             }
 
             // BOSS PREFERRED SOURCES (GlobeSt) - skip state filtering
             const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
             if (isBossPreferred) {
-                return true; // Always include GlobeSt (already passed political check)
-            }
-
-            // Check if has CRE context - be VERY lenient for CRE articles
-            const hasCREContext = /\b(warehouse|logistics|industrial|commercial|real estate|property|cre|multifamily|office|retail|lease|acquisition|transaction|available|listed|development|construction|investor|reit|broker|tenant|landlord|deal|financing)\b/i.test(text);
-
-            // If article has strong CRE context, keep it
-            if (hasCREContext) {
                 return true;
             }
+
+            // Check if has industrial/CRE context - use STRICT industrial keywords
+            const hasIndustrialContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|last.?mile|supply chain|freight|3pl|flex.?space|loading dock|clear height)\b/i.test(text);
+            const hasCREContext = /\b(commercial real estate|real estate|property|cre|lease|acquisition|transaction|development|construction|investor|reit|broker|tenant|landlord|deal|financing|vacancy|absorption|rent growth)\b/i.test(text);
 
             // Check wrong state vs right state
             const hasRightState = njpaflKeywordsClean.some(kw => text.includes(kw));
 
-            // If mentions any NJ/PA/FL location, keep it
+            // If has industrial context, always keep (regardless of state)
+            if (hasIndustrialContext) {
+                return true;
+            }
+
+            // If mentions NJ/PA/FL location with CRE context, keep
+            if (hasRightState && hasCREContext) {
+                return true;
+            }
+
+            // If mentions NJ/PA/FL location, keep
             if (hasRightState) {
                 return true;
             }
 
-            // Only exclude articles that EXPLICITLY mention wrong cities (not just states)
+            // If has CRE context without wrong state mention, keep
             const wrongCities = ['dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
                 'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis', 'birmingham',
                 'mobile', 'auburn', 'huntsville', 'louisville', 'memphis', 'st. louis'];
             const hasWrongCity = wrongCities.some(c => text.includes(c));
 
-            if (hasWrongCity) {
-                log('info', `CLEANED (wrong city): ${(item.title || '').substring(0, 50)}`);
+            if (hasWrongCity && !hasRightState) {
+                log('info', `CLEANED (wrong city): ${title.substring(0, 50)}`);
                 return false;
             }
 
-            // Keep everything else
-            return true;
+            // Keep articles with CRE context
+            if (hasCREContext) {
+                return true;
+            }
+
+            // Exclude articles without any CRE/industrial/regional relevance
+            log('info', `CLEANED (no CRE context): ${title.substring(0, 50)}`);
+            return false;
         });
         if (cleanMerged.length < mergedArticles.length) {
             log('info', `Cleaned ${mergedArticles.length - cleanMerged.length} bad articles from feed`);
