@@ -1116,7 +1116,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         };
 
         // =====================================================================
-        // DYNAMIC TIME RANGE - Expand until minimums met (3+ relevant, 1+ others)
+        // DAILY BRIEFING - Max 48h, fill empty sections from ALL sources
         // =====================================================================
         const MIN_RELEVANT = 3;
         const MIN_OTHER = 1;
@@ -1131,71 +1131,65 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             });
         };
 
-        const getFilteredSections = (hours: number) => {
-            const recent = getArticlesByTimeRange(hours);
-            const regional = recent.filter(isTargetRegion);
+        // Start with 48 hours (max for daily briefing)
+        let timeRange = 48;
+        let recentArticles = getArticlesByTimeRange(48);
+        let regionalArticles = recentArticles.filter(isTargetRegion);
+
+        // If plenty of articles, try narrowing to 24h
+        const sections24 = (() => {
+            const recent24 = getArticlesByTimeRange(24);
+            const regional24 = recent24.filter(isTargetRegion);
             return {
-                relevant: applyStrictFilter(regional.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant'),
-                transactions: applyTransactionFilter(regional.filter(a => a.category === 'transactions')),
-                availabilities: applyAvailabilityFilter(regional.filter(a => a.category === 'availabilities')),
-                people: applyPeopleFilter(regional.filter(a => a.category === 'people')),
-                totalRegional: regional.length
+                relevant: applyStrictFilter(regional24.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant'),
+                transactions: applyTransactionFilter(regional24.filter(a => a.category === 'transactions')),
             };
+        })();
+
+        if (sections24.relevant.length >= MIN_RELEVANT && sections24.transactions.length >= MIN_OTHER) {
+            timeRange = 24;
+            recentArticles = getArticlesByTimeRange(24);
+            regionalArticles = recentArticles.filter(isTargetRegion);
+            console.log('📊 Enough articles in 24h, using narrower range');
+        }
+
+        console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
+
+        // STEP 1: Apply strict section filters using pre-assigned categories
+        let relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant');
+        let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
+        let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
+        let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
+
+        // STEP 2: If any section is under minimum, run the SAME strict filters
+        // against ALL regional articles (any category/source) to find matches
+        const usedIds = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
+
+        const addFromAllSources = (
+            section: NormalizedItem[],
+            min: number,
+            filterFn: (items: NormalizedItem[]) => NormalizedItem[],
+            label: string
+        ) => {
+            if (section.length >= min) return;
+            // Run the same strict filter against ALL regional articles
+            const candidates = filterFn(regionalArticles.filter(a => !usedIds.has(a.id || a.link)));
+            console.log(`⚠️ Only ${section.length} ${label} — found ${candidates.length} from all sources`);
+            for (const a of candidates) {
+                if (section.length >= min) break;
+                section.push(a);
+                usedIds.add(a.id || a.link);
+            }
         };
 
-        // Try expanding time windows: 24h → 48h → 72h → 96h
-        const timeWindows = [24, 48, 72, 96];
-        let timeRange = 48;
-        let sections = getFilteredSections(48);
-
-        // First check if 48h has too many — try 24h
-        if (sections.relevant.length > MAX_PER_SECTION * 2) {
-            const narrower = getFilteredSections(24);
-            if (narrower.relevant.length >= MIN_RELEVANT) {
-                sections = narrower;
-                timeRange = 24;
-                console.log('📊 Plenty of articles in 24h, using narrower range');
-            }
-        }
-
-        // If not enough, expand time window until minimums met
-        const meetsMinimums = (s: typeof sections) =>
-            s.relevant.length >= MIN_RELEVANT &&
-            s.transactions.length >= MIN_OTHER &&
-            s.availabilities.length >= MIN_OTHER &&
-            s.people.length >= MIN_OTHER;
-
-        if (!meetsMinimums(sections)) {
-            for (const hours of timeWindows) {
-                if (hours <= timeRange) continue;
-                console.log(`📈 Expanding to ${hours}h to meet minimums...`);
-                sections = getFilteredSections(hours);
-                timeRange = hours;
-                if (meetsMinimums(sections)) break;
-            }
-        }
-
-        // If still short on relevant, relax filter: include any CRE/industrial regional article
-        if (sections.relevant.length < MIN_RELEVANT) {
-            console.log(`⚠️ Only ${sections.relevant.length} relevant articles after ${timeRange}h — relaxing filter`);
-            const recent = getArticlesByTimeRange(timeRange);
-            const regional = recent.filter(isTargetRegion);
-            const extraRelevant = regional.filter(a => {
-                if (a.category === 'relevant') return true;
-                const text = getText(a);
-                return containsAny(text, ['industrial', 'warehouse', 'logistics', 'distribution', 'commercial real estate', 'cre']);
-            });
-            // Add any not already in relevant
-            const existingIds = new Set(sections.relevant.map(a => a.id || a.link));
-            for (const a of extraRelevant) {
-                if (!existingIds.has(a.id || a.link)) {
-                    sections.relevant.push(a);
-                    if (sections.relevant.length >= MIN_RELEVANT) break;
-                }
-            }
-        }
-
-        let { relevant, transactions, availabilities, people } = sections;
+        addFromAllSources(relevant, MIN_RELEVANT,
+            (items) => applyStrictFilter(items, relevantKeywords, 'Relevant (backfill)'), 'relevant');
+        addFromAllSources(transactions, MIN_OTHER,
+            (items) => applyTransactionFilter(items), 'transactions');
+        addFromAllSources(availabilities, MIN_OTHER,
+            (items) => applyAvailabilityFilter(items), 'availabilities');
+        addFromAllSources(people, MIN_OTHER,
+            (items) => applyPeopleFilter(items), 'people');
 
         // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);
