@@ -5,6 +5,7 @@ import { NormalizedItem } from '../types/index.js';
 import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
+import { generateDescriptions } from '../filter/description-generator.js';
 
 /**
  * Map feed.json items to NormalizedItem with proper description field
@@ -1148,8 +1149,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // =====================================================================
         // DAILY BRIEFING - Max 48h, fill empty sections from ALL sources
         // =====================================================================
-        const MIN_RELEVANT = 3;
-        const MIN_OTHER = 1;
+        const MIN_RELEVANT = 4;
+        const MIN_OTHER = 2;
         const MAX_PER_SECTION = 6;
 
         const getArticlesByTimeRange = (hours: number) => {
@@ -1273,6 +1274,77 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             month: 'long',
             day: 'numeric'
         });
+
+        // =====================================================================
+        // CLEAN URLs: strip tracking params, reject redirect/cache URLs
+        // =====================================================================
+        const cleanArticleUrl = (article: NormalizedItem): void => {
+            const url = (article as any).url || article.link || '';
+            if (!url) return;
+            try {
+                const u = new URL(url);
+                // Strip tracking params
+                const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                    'fbclid', 'gclid', 'mc_cid', 'mc_eid', 'ref', 'source'];
+                trackingParams.forEach(p => u.searchParams.delete(p));
+                // Reject redirect/cache URLs
+                const badPatterns = ['redirect', 'cache', 'tracking', 'proxy'];
+                if (badPatterns.some(p => u.pathname.includes(p) || u.hostname.includes(p))) {
+                    return; // Leave URL as-is rather than break it
+                }
+                const clean = u.toString();
+                article.link = clean;
+                (article as any).url = clean;
+            } catch { /* leave URL as-is */ }
+        };
+
+        const allNewsletterArticles = [...relevant, ...transactions, ...availabilities, ...people];
+        allNewsletterArticles.forEach(cleanArticleUrl);
+
+        // =====================================================================
+        // AI DESCRIPTIONS: generate for articles missing them
+        // =====================================================================
+        await generateDescriptions(allNewsletterArticles);
+
+        // =====================================================================
+        // DEAL HIGHLIGHTING: sort big deals to top of their section
+        // =====================================================================
+        const getDealScore = (article: NormalizedItem): number => {
+            const text = `${article.title || ''} ${article.description || ''}`.toUpperCase();
+            let score = 0;
+            // Check SF
+            const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+            if (sfMatch) {
+                const sf = parseInt(sfMatch[1].replace(/,/g, ''));
+                if (sf >= 100000) score += 2;
+                else if (sf >= 50000) score += 1;
+            }
+            // Check dollar amount
+            const dollarMatch = text.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b|BILLION|B\b)/i);
+            if (dollarMatch) {
+                const amount = parseFloat(dollarMatch[1].replace(/,/g, ''));
+                if (text.includes('BILLION') || text.includes('B ')) {
+                    score += 3;
+                } else if (amount >= 25) {
+                    score += 2;
+                } else if (amount >= 10) {
+                    score += 1;
+                }
+            }
+            return score;
+        };
+
+        // Sort each section: big deals first, then by date
+        const sortByDealThenDate = (a: NormalizedItem, b: NormalizedItem) => {
+            const scoreA = getDealScore(a);
+            const scoreB = getDealScore(b);
+            if (scoreB !== scoreA) return scoreB - scoreA;
+            return new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime();
+        };
+
+        relevant.sort(sortByDealThenDate);
+        transactions.sort(sortByDealThenDate);
+        availabilities.sort(sortByDealThenDate);
 
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
 

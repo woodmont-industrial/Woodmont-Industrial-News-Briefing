@@ -65,6 +65,24 @@ export function buildWorkBriefing(
     };
 
     // Format a single article bullet with 1-2 sentence description
+    // Detect big deals (≥100K SF or ≥$25M)
+    const isBigDeal = (text: string): string | null => {
+        const upper = text.toUpperCase();
+        const sfMatch = upper.match(/(\d{1,3}(?:,\d{3})*)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/);
+        if (sfMatch) {
+            const sf = parseInt(sfMatch[1].replace(/,/g, ''));
+            if (sf >= 100000) return `${(sf / 1000).toFixed(0)}K SF`;
+        }
+        const dollarMatch = upper.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/);
+        if (dollarMatch) {
+            const amount = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            if (amount >= 25) return `$${amount}M`;
+        }
+        const billionMatch = upper.match(/\$(\d{1,3}(?:\.\d+)?)\s*(?:BILLION|B\b)/);
+        if (billionMatch) return `$${billionMatch[1]}B`;
+        return null;
+    };
+
     const formatBullet = (item: NormalizedItem): string => {
         const title = item.title || 'Untitled';
         const url = (item as any).url || item.link || '#';
@@ -78,18 +96,23 @@ export function buildWorkBriefing(
             displayText = displayText.substring(0, 117).replace(/\s+\S*$/, '') + '...';
         }
 
+        // Big deal badge
+        const dealText = `${title} ${item.description || ''}`;
+        const dealSize = isBigDeal(dealText);
+        const dealBadge = dealSize
+            ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
+            : '';
+
         // Get 1-2 sentence description (max 200 chars)
         let description = '';
         const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
         if (rawDesc && rawDesc.length > 10) {
-            // Extract first 1-2 sentences
             const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
             if (sentences && sentences.length > 0) {
                 description = sentences.slice(0, 2).join('').trim();
             } else {
                 description = rawDesc;
             }
-            // Cap at 200 chars
             if (description.length > 200) {
                 description = description.substring(0, 197).replace(/\s+\S*$/, '') + '...';
             }
@@ -110,7 +133,7 @@ export function buildWorkBriefing(
             : '';
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}${descHtml}
+            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}${descHtml}
             <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
         </li>`;
     };
