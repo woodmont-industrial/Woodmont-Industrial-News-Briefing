@@ -212,7 +212,10 @@ if (require.main === module) {
     if (args.includes('--build-static')) {
         // Build static files for GitHub Pages
         console.log('🏗️ Building static files for GitHub Pages...');
-        buildStaticRSS().catch(err => {
+        buildStaticRSS().then(() => {
+            console.log('✅ Static build complete, exiting.');
+            process.exit(0);
+        }).catch(err => {
             console.error('Build failed:', err);
             process.exit(1);
         });
