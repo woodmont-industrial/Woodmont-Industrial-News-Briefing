@@ -6,6 +6,23 @@ import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 
+/**
+ * Map feed.json items to NormalizedItem with proper description field
+ * feed.json stores descriptions in content_text/content_html/summary,
+ * but NormalizedItem uses 'description'
+ */
+function mapFeedItemsToArticles(feedItems: any[]): NormalizedItem[] {
+    return feedItems.map((a: any) => ({
+        ...a,
+        link: a.url || a.link,
+        pubDate: a.date_published || a.pubDate,
+        fetchedAt: a.date_modified || a.fetchedAt,
+        description: a.content_text || a.content_html || a.description || a.summary || '',
+        source: a._source?.name || a.source || '',
+        publisher: a._source?.website || a.publisher || '',
+    }));
+}
+
 // =============================================================================
 // EMAIL SENDING - Power Automate Webhook (Primary) or SMTP (Fallback)
 // =============================================================================
@@ -157,7 +174,7 @@ export async function sendDailyNewsletter(): Promise<boolean> {
         }
 
         const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-        const allArticles: NormalizedItem[] = feedData.items || [];
+        const allArticles: NormalizedItem[] = mapFeedItemsToArticles(feedData.items || []);
 
         console.log(`📊 Total articles loaded: ${allArticles.length}`);
 
@@ -321,7 +338,7 @@ export async function sendWeeklyNewsletter(): Promise<boolean> {
         }
 
         const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-        const allArticles: NormalizedItem[] = feedData.items || [];
+        const allArticles: NormalizedItem[] = mapFeedItemsToArticles(feedData.items || []);
 
         console.log(`📊 Total articles loaded: ${allArticles.length}`);
 
@@ -416,7 +433,7 @@ export async function sendDailyNewsletterGoth(): Promise<boolean> {
         }
 
         const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-        const allArticles: NormalizedItem[] = feedData.items || [];
+        const allArticles: NormalizedItem[] = mapFeedItemsToArticles(feedData.items || []);
 
         console.log(`📊 Total articles loaded: ${allArticles.length}`);
 
@@ -864,7 +881,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         }
 
         const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-        const articles: NormalizedItem[] = feedData.items || [];
+        const articles: NormalizedItem[] = mapFeedItemsToArticles(feedData.items || []);
 
         console.log(`📰 Loaded ${articles.length} articles from feed`);
 
@@ -1099,8 +1116,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         };
 
         // =====================================================================
-        // DYNAMIC TIME RANGE (Work-specific: 48h default, reduce to 24h if too many)
+        // DYNAMIC TIME RANGE - Expand until minimums met (3+ relevant, 1+ others)
         // =====================================================================
+        const MIN_RELEVANT = 3;
+        const MIN_OTHER = 1;
+        const MAX_PER_SECTION = 6;
+
         const getArticlesByTimeRange = (hours: number) => {
             const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
             return articles.filter(a => {
@@ -1110,44 +1131,83 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             });
         };
 
-        // Start with 48 hours
+        const getFilteredSections = (hours: number) => {
+            const recent = getArticlesByTimeRange(hours);
+            const regional = recent.filter(isTargetRegion);
+            return {
+                relevant: applyStrictFilter(regional.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant'),
+                transactions: applyTransactionFilter(regional.filter(a => a.category === 'transactions')),
+                availabilities: applyAvailabilityFilter(regional.filter(a => a.category === 'availabilities')),
+                people: applyPeopleFilter(regional.filter(a => a.category === 'people')),
+                totalRegional: regional.length
+            };
+        };
+
+        // Try expanding time windows: 24h → 48h → 72h → 96h
+        const timeWindows = [24, 48, 72, 96];
         let timeRange = 48;
-        let recentArticles = getArticlesByTimeRange(48);
+        let sections = getFilteredSections(48);
 
-        // STEP 1: Regional filter
-        let regionalArticles = recentArticles.filter(isTargetRegion);
-        console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
-
-        // STEP 2: Apply section-specific filters
-        let relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant');
-        let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
-        let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
-        let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
-
-        // If any section has more than 5, try 24 hours
-        if (relevant.length > 5 || transactions.length > 5 || availabilities.length > 5 || people.length > 5) {
-            console.log('📊 Too many articles in 48h, trying 24 hours...');
-            timeRange = 24;
-            recentArticles = getArticlesByTimeRange(24);
-            regionalArticles = recentArticles.filter(isTargetRegion);
-            relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), relevantKeywords, 'Relevant');
-            transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
-            availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
-            people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
+        // First check if 48h has too many — try 24h
+        if (sections.relevant.length > MAX_PER_SECTION * 2) {
+            const narrower = getFilteredSections(24);
+            if (narrower.relevant.length >= MIN_RELEVANT) {
+                sections = narrower;
+                timeRange = 24;
+                console.log('📊 Plenty of articles in 24h, using narrower range');
+            }
         }
 
-        // Cap each section at 5 articles (ideal: 3-5)
-        const MAX_PER_SECTION = 5;
+        // If not enough, expand time window until minimums met
+        const meetsMinimums = (s: typeof sections) =>
+            s.relevant.length >= MIN_RELEVANT &&
+            s.transactions.length >= MIN_OTHER &&
+            s.availabilities.length >= MIN_OTHER &&
+            s.people.length >= MIN_OTHER;
+
+        if (!meetsMinimums(sections)) {
+            for (const hours of timeWindows) {
+                if (hours <= timeRange) continue;
+                console.log(`📈 Expanding to ${hours}h to meet minimums...`);
+                sections = getFilteredSections(hours);
+                timeRange = hours;
+                if (meetsMinimums(sections)) break;
+            }
+        }
+
+        // If still short on relevant, relax filter: include any CRE/industrial regional article
+        if (sections.relevant.length < MIN_RELEVANT) {
+            console.log(`⚠️ Only ${sections.relevant.length} relevant articles after ${timeRange}h — relaxing filter`);
+            const recent = getArticlesByTimeRange(timeRange);
+            const regional = recent.filter(isTargetRegion);
+            const extraRelevant = regional.filter(a => {
+                if (a.category === 'relevant') return true;
+                const text = getText(a);
+                return containsAny(text, ['industrial', 'warehouse', 'logistics', 'distribution', 'commercial real estate', 'cre']);
+            });
+            // Add any not already in relevant
+            const existingIds = new Set(sections.relevant.map(a => a.id || a.link));
+            for (const a of extraRelevant) {
+                if (!existingIds.has(a.id || a.link)) {
+                    sections.relevant.push(a);
+                    if (sections.relevant.length >= MIN_RELEVANT) break;
+                }
+            }
+        }
+
+        let { relevant, transactions, availabilities, people } = sections;
+
+        // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);
         transactions = transactions.slice(0, MAX_PER_SECTION);
         availabilities = availabilities.slice(0, MAX_PER_SECTION);
         people = people.slice(0, MAX_PER_SECTION);
 
         console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
-        console.log(`  - Relevant News: ${relevant.length}`);
-        console.log(`  - Transactions: ${transactions.length}`);
-        console.log(`  - Availabilities: ${availabilities.length}`);
-        console.log(`  - People: ${people.length}`);
+        console.log(`  - Relevant News: ${relevant.length} (min ${MIN_RELEVANT})`);
+        console.log(`  - Transactions: ${transactions.length} (min ${MIN_OTHER})`);
+        console.log(`  - Availabilities: ${availabilities.length} (min ${MIN_OTHER})`);
+        console.log(`  - People: ${people.length} (min ${MIN_OTHER})`);
 
         const totalArticles = relevant.length + transactions.length + availabilities.length + people.length;
 
@@ -1240,7 +1300,7 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
         }
 
         const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-        const allArticles: NormalizedItem[] = feedData.items || [];
+        const allArticles: NormalizedItem[] = mapFeedItemsToArticles(feedData.items || []);
 
         console.log(`📊 Total articles loaded: ${allArticles.length}`);
 

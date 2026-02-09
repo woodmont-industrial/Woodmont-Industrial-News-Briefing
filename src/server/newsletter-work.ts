@@ -64,7 +64,7 @@ export function buildWorkBriefing(
         return words.length > 5 ? words : title.substring(0, 30);
     };
 
-    // Format a single article bullet - max ~2 lines
+    // Format a single article bullet with 1-2 sentence description
     const formatBullet = (item: NormalizedItem): string => {
         const title = item.title || 'Untitled';
         const url = (item as any).url || item.link || '#';
@@ -72,10 +72,27 @@ export function buildWorkBriefing(
         const sourceName = getSourceName(source, url);
         const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
-        // Keep display text short - title only, truncate at 120 chars for ~2 lines
+        // Truncate title at 120 chars
         let displayText = title;
         if (displayText.length > 120) {
             displayText = displayText.substring(0, 117).replace(/\s+\S*$/, '') + '...';
+        }
+
+        // Get 1-2 sentence description (max 200 chars)
+        let description = '';
+        const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
+        if (rawDesc && rawDesc.length > 10) {
+            // Extract first 1-2 sentences
+            const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
+            if (sentences && sentences.length > 0) {
+                description = sentences.slice(0, 2).join('').trim();
+            } else {
+                description = rawDesc;
+            }
+            // Cap at 200 chars
+            if (description.length > 200) {
+                description = description.substring(0, 197).replace(/\s+\S*$/, '') + '...';
+            }
         }
 
         // Action links
@@ -88,8 +105,13 @@ export function buildWorkBriefing(
         const shareBody = encodeURIComponent(`Thought you'd find this relevant:\n\n${title}\n${url}`);
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
-        return `<li style="margin-bottom: 12px; line-height: 1.5; color: #333;">
-            ${displayText} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled} <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 11px;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none; font-size: 11px;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none; font-size: 11px;">[Ignore]</a>
+        const descHtml = description
+            ? `<br><span style="color: #555; font-size: 13px;">${description}</span>`
+            : '';
+
+        return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
+            ${displayText} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}${descHtml}
+            <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
         </li>`;
     };
 
