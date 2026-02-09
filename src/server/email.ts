@@ -888,15 +888,45 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const now = new Date();
 
         // =====================================================================
-        // STRICT REGIONAL FILTER - NJ, PA, FL ONLY
+        // STRICT REGIONAL FILTER - NJ, PA, FL ONLY (no TX, no international)
         // =====================================================================
         const targetRegions = ['NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA', 'PHILADELPHIA', 'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE', 'LEHIGH VALLEY', 'ALLENTOWN', 'BETHLEHEM'];
 
-        const majorExcludeRegions = ['HOUSTON', 'DALLAS', 'AUSTIN', 'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX', 'CHARLOTTE', 'NASHVILLE', 'BALTIMORE', 'SAN DIEGO', 'PORTLAND', 'DETROIT', 'MINNEAPOLIS', 'COLUMBUS', 'INDIANAPOLIS', 'MEMPHIS', 'RALEIGH', 'RICHMOND', 'MILWAUKEE', 'KANSAS CITY', 'ST. LOUIS', 'CLEVELAND', 'CINCINNATI', 'LAS VEGAS', 'SALT LAKE', 'BOISE', 'SAN ANTONIO', 'SACRAMENTO', 'OKLAHOMA CITY', 'TUCSON', 'ALBUQUERQUE', 'NEW ORLEANS'];
+        const majorExcludeRegions = ['HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO', 'FORT WORTH', 'TEXAS', ', TX',
+            'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX',
+            'CHARLOTTE', 'NASHVILLE', 'BALTIMORE', 'SAN DIEGO', 'PORTLAND', 'DETROIT', 'MINNEAPOLIS',
+            'COLUMBUS', 'INDIANAPOLIS', 'MEMPHIS', 'RALEIGH', 'RICHMOND', 'MILWAUKEE', 'KANSAS CITY',
+            'ST. LOUIS', 'CLEVELAND', 'CINCINNATI', 'LAS VEGAS', 'SALT LAKE', 'BOISE', 'SACRAMENTO',
+            'OKLAHOMA CITY', 'TUCSON', 'ALBUQUERQUE', 'NEW ORLEANS', 'MESA, ARIZONA', 'ARIZONA',
+            'TENNESSEE', 'KENTUCKY', 'LOUISVILLE', 'ALABAMA', 'ARKANSAS', 'INDIANAPOLIS'];
+
+        // International terms — ALWAYS exclude
+        const internationalExclude = ['EUROPE', 'EUROPEAN', 'UK ', 'U.K.', 'UNITED KINGDOM', 'BRITAIN',
+            'ASIA', 'ASIAN', 'PACIFIC', 'APAC', 'CHINA', 'JAPAN', 'INDIA', 'SINGAPORE', 'HONG KONG',
+            'AUSTRALIA', 'CANADA', 'CANADIAN', 'LATIN AMERICA', 'MIDDLE EAST', 'AFRICA', 'GLOBAL OUTLOOK',
+            'GLOBAL MARKET', 'WORLD MARKET', 'GERMANY', 'FRANCE', 'KOREA', 'VIETNAM', 'BRAZIL',
+            'MEXICO', 'LONDON', 'TOKYO', 'SHANGHAI', 'BEIJING', 'SYDNEY', 'TORONTO', 'DUBAI'];
+
+        // Approved source domains for newsletter
+        const approvedDomains = ['bisnow.com', 'globest.com', 'costar.com', 'reuters.com', 'apnews.com',
+            'bloomberg.com', 'wsj.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
+            'bizjournals.com', 'traded.co', 're-nj.com', 'njbiz.com', 'lvb.com', 'naiop.org',
+            'naiopnj.org', 'cpexecutive.com', 'commercialcafe.com', 'freightwaves.com',
+            'areadevelopment.com', 'connectcre.com', 'therealdeal.com', 'rejournals.com',
+            'credaily.com', 'supplychaindive.com'];
 
         const isTargetRegion = (article: NormalizedItem): boolean => {
             const text = `${article.title || ''} ${article.description || ''} ${article.summary || ''}`.toUpperCase();
             const url = (article.url || article.link || '').toLowerCase();
+
+            // BLOCK: international content — always reject
+            if (internationalExclude.some(term => text.includes(term))) return false;
+
+            // BLOCK: unapproved source domains
+            try {
+                const hostname = new URL(url).hostname.replace('www.', '');
+                if (!approvedDomains.some(d => hostname.includes(d))) return false;
+            } catch { /* keep going if URL parse fails */ }
 
             // INCLUDE if from a NJ/PA/FL regional source
             const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey', 'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];

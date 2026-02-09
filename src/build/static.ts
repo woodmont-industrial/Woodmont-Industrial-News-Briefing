@@ -190,7 +190,7 @@ export async function buildStaticRSS(): Promise<void> {
             'PORT NEWARK', 'ELIZABETH PORT', 'SEAGIRT', 'PORTSIDE'
         ];
 
-        // Content to EXCLUDE - political + non-CRE junk
+        // Content to EXCLUDE - political + non-CRE junk + international
         const excludeContent = [
             // POLITICAL CONTENT - STRICT EXCLUSION
             'TRUMP', 'BIDEN', 'PRESIDENT TRUMP', 'PRESIDENT BIDEN', 'WHITE HOUSE',
@@ -206,7 +206,13 @@ export async function buildStaticRSS(): Promise<void> {
             // NON-INDUSTRIAL PROPERTY TYPES (when mentioned as primary topic)
             'APARTMENT RENT', 'APARTMENT OCCUPANCY', 'MULTIFAMILY REPORT',
             'HOTEL OCCUPANCY', 'HOSPITALITY SECTOR',
-            'SELF-STORAGE', 'SELF STORAGE'
+            'SELF-STORAGE', 'SELF STORAGE',
+            // INTERNATIONAL - US domestic only
+            'EUROPEAN REAL ESTATE', 'UK REAL ESTATE', 'ASIA PACIFIC', 'ASIA REAL ESTATE',
+            'GLOBAL OUTLOOK', 'GLOBAL MARKET OUTLOOK', 'CHINA EVERGRANDE',
+            'UNITED KINGDOM', 'HONG KONG', 'SINGAPORE', 'TOKYO', 'SHANGHAI', 'BEIJING',
+            'LONDON MARKET', 'SYDNEY', 'TORONTO', 'DUBAI', 'LATIN AMERICA',
+            'MIDDLE EAST', 'AFRICA MARKET', 'APAC MARKET', 'EMEA'
         ];
 
         // INDUSTRIAL-focused keywords - strict set for filtering national sources
