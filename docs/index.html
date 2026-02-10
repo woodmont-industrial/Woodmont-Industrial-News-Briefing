@@ -10,144 +10,8 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
-  <style>
-    body {
-      background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .card-anim {
-      transition: transform 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-    .card-anim:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
-      opacity: 1;
-    }
-    .img-anim { transition: transform 300ms ease; }
-    .card-anim:hover .img-anim { transform: scale(1.05); }
-    .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-
-    /* Dark theme styles */
-    .dark { background-color: #0f172a; color: #f1f5f9; }
-    .dark .card-anim {
-      background-color: #1e293b;
-      border-color: #334155;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .dark .card-anim:hover {
-      background-color: #334155;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.3);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white !important;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.25), 0 10px 30px rgba(0,0,0,0.15);
-      position: relative;
-      z-index: 1;
-    }
-
-    .dark .container {
-      background: #1e293b !important;
-    }
-
-    .newsletter-content .section {
-      margin-bottom: 35px;
-    }
-    .newsletter-content .section-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #10b981;
-    }
-    .newsletter-content .section-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      font-weight: bold;
-      color: white;
-    }
-    .newsletter-content .article-item {
-      margin-bottom: 20px;
-      padding: 16px;
-      background: #f8fafc;
-      border-radius: 8px;
-      border-left: 4px solid #10b981;
-    }
-    .newsletter-content .article-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #1e293b;
-    }
-    .newsletter-content .article-meta {
-      font-size: 14px;
-      color: #64748b;
-      margin-bottom: 8px;
-    }
-    .newsletter-content .article-summary {
-      font-size: 14px;
-      color: #475569;
-      line-height: 1.5;
-    }
-    .newsletter-content .transaction-highlight {
-      background: #fef3c7;
-      border-left-color: #f59e0b;
-    }
-    .newsletter-content .availability-highlight {
-      background: #ecfdf5;
-      border-left-color: #10b981;
-    }
-    .newsletter-content .people-highlight {
-      background: #fef3c7;
-      border-left-color: #f59e0b;
-    }
-
-    /* Tracked article highlighting */
-    .tracked-highlight {
-      position: relative;
-      border: 2px solid #10b981 !important;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
-    }
-    .tracked-highlight::before {
-      content: 'TRACKED';
-      position: absolute;
-      top: -10px;
-      right: 12px;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 4px;
-      z-index: 10;
-    }
-    .track-btn {
-      transition: all 0.2s ease;
-    }
-    .track-btn:hover {
-      transform: scale(1.05);
-    }
-
-    /* Responsive improvements */
-    @media (max-width: 768px) {
-      body { padding: 10px; }
-      .container { border-radius: 12px; }
-    }
-    </style>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/utils.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -359,37 +223,8 @@
       </>
     );
 
-    // Branded placeholder images based on category
-    const getPlaceholderImage = (category, title = '') => {
-      // Use category-specific professional images
-      const placeholders = {
-        transactions: [
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop', // Modern building
-          'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop', // Keys/deal
-          'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop', // Business meeting
-        ],
-        availabilities: [
-          'https://images.unsplash.com/photo-1565610222536-ef125c59da2e?w=600&h=400&fit=crop', // Industrial building
-          'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop', // Warehouse
-          'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop', // Construction
-        ],
-        people: [
-          'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop', // Business person
-          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=400&fit=crop', // Professional
-          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop', // Executive
-        ],
-        relevant: [
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop', // Skyline
-          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop', // Office building
-          'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop', // Construction
-        ]
-      };
-
-      const categoryImages = placeholders[category] || placeholders.relevant;
-      // Use title hash to get consistent image for same article
-      const hash = (title || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      return categoryImages[hash % categoryImages.length];
-    };
+    // Placeholder images - from external utils.js
+    const { getPlaceholderImage } = window.WoodmontUtils;
 
     const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle }) => {
       const category = item.category || 'relevant';
@@ -968,143 +803,16 @@
     // TRACKING COMPONENTS
     // ============================================
 
-    // LocalStorage tracking utilities (inline for simplicity)
-    const TRACKED_TOPICS_KEY = 'woodmont_tracked_topics';
-    const TRACKED_ARTICLES_KEY = 'woodmont_tracked_articles';
-
-    const getTrackedTopics = () => {
-      try {
-        const stored = localStorage.getItem(TRACKED_TOPICS_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) { return []; }
-    };
-
-    const addTrackedTopic = (keyword, articleTitle = '') => {
-      const topics = getTrackedTopics();
-      const normalizedKeyword = keyword.toLowerCase().trim();
-      if (topics.some(t => t.keyword.toLowerCase() === normalizedKeyword)) return false;
-      topics.push({ keyword: keyword.trim(), addedAt: new Date().toISOString(), articleTitle });
-      try {
-        localStorage.setItem(TRACKED_TOPICS_KEY, JSON.stringify(topics));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    const removeTrackedTopic = (keyword) => {
-      const topics = getTrackedTopics();
-      const filtered = topics.filter(t => t.keyword.toLowerCase() !== keyword.toLowerCase().trim());
-      try {
-        localStorage.setItem(TRACKED_TOPICS_KEY, JSON.stringify(filtered));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    const getMatchingTrackedTopics = (article) => {
-      const topics = getTrackedTopics();
-      const matches = [];
-      const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
-      for (const topic of topics) {
-        if (searchText.includes(topic.keyword.toLowerCase())) {
-          matches.push(topic.keyword);
-        }
-      }
-      return matches;
-    };
-
-    const extractTrackableKeywords = (article) => {
-      const keywords = [];
-      const title = article.title || '';
-      // Extract company names
-      const companyMatches = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/g) || [];
-      keywords.push(...companyMatches.slice(0, 3));
-      // Extract locations
-      const locationMatches = title.match(/(New\s+Jersey|New\s+York|South\s+Florida|Pennsylvania|Miami-Dade|Broward|Philadelphia|Newark|Fort\s+Lauderdale|Miami)/gi) || [];
-      keywords.push(...locationMatches.slice(0, 2));
-      // Remove duplicates
-      return [...new Set(keywords.map(k => k.trim()))].filter(k => k.length > 2 && k.length < 50);
-    };
-
-    // ============================================
-    // IGNORE FUNCTIONS
-    // ============================================
-    const IGNORED_TOPICS_KEY = 'woodmont_ignored_topics';
-    const IGNORED_ARTICLES_KEY = 'woodmont_ignored_articles';
-
-    const getIgnoredTopics = () => {
-      try {
-        const stored = localStorage.getItem(IGNORED_TOPICS_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) { return []; }
-    };
-
-    // Get ignored articles (by ID)
-    const getIgnoredArticles = () => {
-      try {
-        const stored = localStorage.getItem(IGNORED_ARTICLES_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) { return []; }
-    };
-
-    const addIgnoredTopic = (keyword) => {
-      const topics = getIgnoredTopics();
-      const normalizedKeyword = keyword.toLowerCase().trim();
-      if (topics.some(t => t.keyword.toLowerCase() === normalizedKeyword)) return false;
-      topics.push({ keyword: keyword.trim(), addedAt: new Date().toISOString() });
-      try {
-        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(topics));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    // Add ignored article by ID with reason
-    const addIgnoredArticle = (article, reason = 'Not relevant') => {
-      const ignored = getIgnoredArticles();
-      const articleId = article.id || article.link || article.title;
-      if (ignored.some(a => a.id === articleId)) return false;
-      ignored.push({
-        id: articleId,
-        title: article.title,
-        source: article.source,
-        reason: reason,
-        addedAt: new Date().toISOString()
-      });
-      try {
-        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(ignored));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    const removeIgnoredTopic = (keyword) => {
-      const topics = getIgnoredTopics();
-      const filtered = topics.filter(t => t.keyword.toLowerCase() !== keyword.toLowerCase().trim());
-      try {
-        localStorage.setItem(IGNORED_TOPICS_KEY, JSON.stringify(filtered));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    // Remove ignored article by ID
-    const removeIgnoredArticle = (articleId) => {
-      const ignored = getIgnoredArticles();
-      const filtered = ignored.filter(a => a.id !== articleId);
-      try {
-        localStorage.setItem(IGNORED_ARTICLES_KEY, JSON.stringify(filtered));
-        return true;
-      } catch (e) { return false; }
-    };
-
-    const isArticleIgnored = (article) => {
-      // Check if article ID is ignored
-      const ignoredArticles = getIgnoredArticles();
-      const articleId = article.id || article.link || article.title;
-      if (ignoredArticles.some(a => a.id === articleId)) return true;
-
-      // Also check topic-based ignoring (legacy)
-      const topics = getIgnoredTopics();
-      if (topics.length === 0) return false;
-      const searchText = `${article.title || ''} ${article.description || ''} ${article.source || ''}`.toLowerCase();
-      return topics.some(t => searchText.includes(t.keyword.toLowerCase()));
-    };
+    // Tracking & ignore utilities - from external utils.js
+    const {
+      TRACKED_TOPICS_KEY, TRACKED_ARTICLES_KEY,
+      IGNORED_TOPICS_KEY, IGNORED_ARTICLES_KEY,
+      getTrackedTopics, addTrackedTopic, removeTrackedTopic,
+      getMatchingTrackedTopics, extractTrackableKeywords,
+      getIgnoredTopics, getIgnoredArticles,
+      addIgnoredTopic, addIgnoredArticle,
+      removeIgnoredTopic, removeIgnoredArticle, isArticleIgnored
+    } = window.WoodmontUtils;
 
     // Tracked & Ignored Topics Panel Component
     const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, ignoredArticles = [], onRemoveTopic, onAddTopic, onRemoveIgnored, onRemoveIgnoredArticle, matchingCount }) => {

@@ -58,7 +58,10 @@ export type FeedConfig = {
     url: string;
     name: string;
     region?: string;
+    source?: string;
     type?: string;
+    timeout?: number;
+    headers?: Record<string, string>;
     enabled?: boolean;
 };
 

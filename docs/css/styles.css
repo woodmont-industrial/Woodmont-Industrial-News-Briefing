@@ -1,0 +1,137 @@
+/* Woodmont Industrial News Feed Styles */
+body {
+  background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  min-height: 100vh;
+}
+.card-anim {
+  transition: transform 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.card-anim:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
+  opacity: 1;
+}
+.img-anim { transition: transform 300ms ease; }
+.card-anim:hover .img-anim { transform: scale(1.05); }
+.clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+/* Dark theme styles */
+.dark { background-color: #0f172a; color: #f1f5f9; }
+.dark .card-anim {
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+}
+.dark .card-anim:hover {
+  background-color: #334155;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white !important;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.25), 0 10px 30px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.dark .container {
+  background: #1e293b !important;
+}
+
+.newsletter-content .section {
+  margin-bottom: 35px;
+}
+.newsletter-content .section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #10b981;
+}
+.newsletter-content .section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-weight: bold;
+  color: white;
+}
+.newsletter-content .article-item {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #10b981;
+}
+.newsletter-content .article-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+.newsletter-content .article-meta {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.newsletter-content .article-summary {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+.newsletter-content .transaction-highlight {
+  background: #fef3c7;
+  border-left-color: #f59e0b;
+}
+.newsletter-content .availability-highlight {
+  background: #ecfdf5;
+  border-left-color: #10b981;
+}
+.newsletter-content .people-highlight {
+  background: #fef3c7;
+  border-left-color: #f59e0b;
+}
+
+/* Tracked article highlighting */
+.tracked-highlight {
+  position: relative;
+  border: 2px solid #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+}
+.tracked-highlight::before {
+  content: 'TRACKED';
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  z-index: 10;
+}
+.track-btn {
+  transition: all 0.2s ease;
+}
+.track-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  body { padding: 10px; }
+  .container { border-radius: 12px; }
+}

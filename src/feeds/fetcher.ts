@@ -7,132 +7,10 @@ import { itemStore, feedStats, fetchCache, manualArticles, pruneItemStore, archi
 import { FetchResult, FeedConfig, NormalizedItem, FeedStat, RawRSSItem, RSSLink, RSSEnclosure, RSSMediaContent } from '../types/index.js';
 import { playwrightFetchRSS, isCloudflareChallenge as detectCloudflare, closeBrowser, getPlaywrightStats } from './playwright-fallback.js';
 import { runAllScrapers } from '../scrapers/index.js';
+import { USER_AGENT_POOL, getRotatingUserAgent, buildStealthHeaders, RSS_FEED_HEADERS, SIMPLE_RSS_HEADERS } from './stealth-headers.js';
+import { circuitBreaker, BLOCKED_COOLDOWN_MS, MAX_FAILURES_BEFORE_BLOCK, markFeedBlocked, getBlockedFeeds as _getBlockedFeeds } from './circuit-breaker.js';
+import { allowedDomains, isAllowedLink as _isAllowedLink, shouldRejectUrl as _shouldRejectUrl, isFromMandatorySource as _isFromMandatorySource, shouldIncludeArticle as _shouldIncludeArticle } from './link-validation.js';
 
-// ============================================
-// BLOCKED FEED TRACKING (24-hour cooldown)
-// ============================================
-interface CircuitBreakerState {
-    failureCount: number;
-    blockedUntil: number;
-    lastError?: string;
-    last403Preview?: string; // Store 403 response preview for debugging
-}
-
-const circuitBreaker = new Map<string, CircuitBreakerState>();
-const FETCH_CACHE_TTL_MS = 20 * 60 * 1000; // 20 minutes
-const BLOCKED_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours for blocked feeds
-const MAX_FAILURES_BEFORE_BLOCK = 3;
-
-// ============================================
-// ENHANCED BROWSER HEADERS FOR BLOCKED FEEDS
-// ============================================
-// User-Agent pool for rotation - mix of Chrome, Firefox, Safari
-const USER_AGENT_POOL = [
-    // Chrome on Windows
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    // Chrome on Mac
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-    // Firefox
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:123.0) Gecko/20100101 Firefox/123.0',
-    // Safari
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15',
-    // Edge
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0'
-];
-
-// Get rotating user agent (use URL hash for consistency per feed)
-function getRotatingUserAgent(seed?: string): string {
-    if (seed) {
-        // Use consistent UA per feed URL for better session handling
-        let hash = 0;
-        for (let i = 0; i < seed.length; i++) {
-            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-            hash = hash & hash;
-        }
-        return USER_AGENT_POOL[Math.abs(hash) % USER_AGENT_POOL.length];
-    }
-    return USER_AGENT_POOL[Math.floor(Math.random() * USER_AGENT_POOL.length)];
-}
-
-// Build stealth headers with rotating UA
-function buildStealthHeaders(url: string): Record<string, string> {
-    const ua = getRotatingUserAgent(url);
-    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
-    const isFirefox = ua.includes('Firefox');
-
-    const headers: Record<string, string> = {
-        "User-Agent": ua,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Cache-Control": "max-age=0",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1"
-    };
-
-    // Add browser-specific headers
-    if (isChrome) {
-        headers["Sec-Ch-Ua"] = '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"';
-        headers["Sec-Ch-Ua-Mobile"] = "?0";
-        headers["Sec-Ch-Ua-Platform"] = ua.includes('Windows') ? '"Windows"' : '"macOS"';
-        headers["Sec-Fetch-Dest"] = "document";
-        headers["Sec-Fetch-Mode"] = "navigate";
-        headers["Sec-Fetch-Site"] = "none";
-        headers["Sec-Fetch-User"] = "?1";
-    } else if (isFirefox) {
-        headers["Sec-Fetch-Dest"] = "document";
-        headers["Sec-Fetch-Mode"] = "navigate";
-        headers["Sec-Fetch-Site"] = "none";
-        headers["Sec-Fetch-User"] = "?1";
-    }
-
-    return headers;
-}
-
-// Legacy constant for backward compatibility
-const STEALTH_BROWSER_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Cache-Control": "max-age=0",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-    "Sec-Ch-Ua-Mobile": "?0",
-    "Sec-Ch-Ua-Platform": '"Windows"',
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1"
-};
-
-// RSS-specific headers (some sites prefer these for feed requests)
-const RSS_FEED_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Cache-Control": "no-cache",
-    "Connection": "keep-alive"
-};
-
-// Simple RSS headers for feeds that do content negotiation (like FeedBlitz)
-// No quality values = they return XML instead of HTML
-const SIMPLE_RSS_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; RSSReader/1.0)",
-    "Accept": "application/rss+xml, application/xml, text/xml, */*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Cache-Control": "no-cache",
-    "Connection": "keep-alive"
-};
-
-// Domains that need simple RSS headers (content negotiation)
 const SIMPLE_ACCEPT_DOMAINS = ['feedblitz.com'];
 
 // Domains that commonly block automated requests - these get stealth headers
@@ -220,37 +98,8 @@ function isCloudflareChallenge(body: string): boolean {
     return indicators.some(indicator => lower.includes(indicator));
 }
 
-// Mark a feed as blocked with extended cooldown
-function markFeedBlocked(feedUrl: string, reason: string, preview?: string): void {
-    const cb = circuitBreaker.get(feedUrl) || { failureCount: 0, blockedUntil: 0 };
-    cb.failureCount = MAX_FAILURES_BEFORE_BLOCK;
-    cb.blockedUntil = Date.now() + BLOCKED_COOLDOWN_MS;
-    cb.lastError = reason;
-    if (preview) {
-        cb.last403Preview = preview.slice(0, 500);
-    }
-    circuitBreaker.set(feedUrl, cb);
-    console.log(`🚫 [${feedUrl}] Blocked for 24 hours: ${reason}`);
-}
-
-// Get blocked feed status for health endpoint
-export function getBlockedFeeds(): { url: string; reason: string; blockedUntil: string; preview?: string }[] {
-    const blocked: { url: string; reason: string; blockedUntil: string; preview?: string }[] = [];
-    const now = Date.now();
-    
-    circuitBreaker.forEach((state, url) => {
-        if (state.blockedUntil > now) {
-            blocked.push({
-                url,
-                reason: state.lastError || 'Unknown',
-                blockedUntil: new Date(state.blockedUntil).toISOString(),
-                preview: state.last403Preview
-            });
-        }
-    });
-    
-    return blocked;
-}
+// Re-export from extracted modules for backward compatibility
+export const getBlockedFeeds = _getBlockedFeeds;
 
 // Track last fetch information
 export let lastFetchInfo = {
@@ -497,85 +346,7 @@ async function validateLink(link: string): Promise<{ ok: boolean; status: number
     }
 }
 
-export function isAllowedLink(link: string): boolean {
-    try {
-        const u = new URL(link);
-        return allowedDomains.some(d => u.hostname === d || u.hostname.endsWith(`.${d}`));
-    } catch {
-        return false;
-    }
-}
-
-// Allowed domains for URL validation - includes all mandatory sources
-const allowedDomains = [
-    // MANDATORY SOURCES (Boss's Priority List)
-    "re-nj.com",            // Real Estate NJ
-    "commercialsearch.com", // Commercial Search
-    "commercialcafe.com",   // Commercial Cafe (same company as Commercial Search)
-    "wsj.com",              // WSJ
-    "dowjones.com",         // WSJ parent
-    "bisnow.com",           // Bisnow
-    "globest.com",          // GlobeSt
-    "feedblitz.com",        // GlobeSt FeedBlitz feeds
-    "naiop.org",            // NAIOP
-    "blog.naiop.org",       // NAIOP Blog
-    "naiopma.org",          // NAIOP Massachusetts
-    "cpexecutive.com",      // Commercial Property Executive
-    "bizjournals.com",      // South FL Business Journal + others
-    "feeds.bizjournals.com", // Direct RSS feeds for Business Journals
-    "loopnet.com",          // LoopNet
-    "costar.com",           // CoStar
-    "costargroup.com",      // CoStar Group
-    "lvb.com",              // Lehigh Valley Business
-    "dailyrecord.com",      // Daily Record
-    "northjersey.com",      // North Jersey (Daily Record alternative)
-    "njbiz.com",            // NJBIZ
-
-    // Additional Quality Sources
-    "connectcre.com",
-    "credaily.com",
-    "therealdeal.com",
-    "supplychaindive.com",
-    "freightwaves.com",
-    "dcvelocity.com",
-    "bloomberg.com",
-    "reuters.com",
-    "apnews.com",
-    "cbre.com",
-    "jll.com",
-    "cushwake.com",
-    "colliers.com",
-    "traded.co",
-    "crexi.com",
-    "areadevelopment.com",
-    "rebusinessonline.com",
-    "multihousingnews.com",
-    "wealthmanagement.com",
-    "nreionline.com",
-    "reit.com",
-
-    // Google News (for bypass feeds)
-    "news.google.com",
-    "google.com",
-
-    // Additional logistics/industrial sources
-    "supplychainbrain.com",
-    "inboundlogistics.com",
-    "logisticsmgmt.com",
-    "constructiondive.com",
-    "sior.com",
-    "prologis.com",
-    "commercialobserver.com",
-    "rejournals.com",
-    "naikeystone.com",
-    "naiplatform.com",
-
-    // Additional regional sources
-    "roi-nj.com",
-    "philadelphiabusinessjournal.com",
-    "floridatrend.com",
-    "southfloridabusinessjournal.com"
-];
+export const isAllowedLink = _isAllowedLink;
 
 // Generate a consistent fallback thumbnail based on URL hash
 function generateFallbackThumbnail(url: string): string {
@@ -614,76 +385,9 @@ function parseArticleDate(...dateValues: (string | undefined | null)[]): string 
     return new Date().toISOString();
 }
 
-// Enhanced article filtering with expanded market coverage for better article yield
-// Mandatory sources - these get VERY light filtering (basically allow everything)
-const MANDATORY_SOURCE_PATTERNS = [
-    'realestatenj', 'real estate nj',
-    'commercialsearch', 'commercial search',
-    'wsj', 'wall street journal',
-    'bisnow',
-    'globest',
-    'naiop',
-    'cpexecutive', 'commercial property executive', 'cpe',
-    'bizjournals', 'business journal',
-    'loopnet', 'loop net',
-    'costar',
-    'lehighvalley', 'lehigh valley', 'lvb',
-    'dailyrecord', 'daily record',
-    'njbiz'
-];
-
-export function isFromMandatorySource(item: NormalizedItem): boolean {
-    const source = (item.source || '').toLowerCase();
-    const link = (item.link || '').toLowerCase();
-
-    return MANDATORY_SOURCE_PATTERNS.some(pattern =>
-        source.includes(pattern) ||
-        link.includes(pattern.replace(/\s+/g, ''))
-    );
-}
-
-function shouldIncludeArticle(item: NormalizedItem): boolean {
-    // Check if URL should be rejected (spam, etc)
-    if (shouldRejectUrl(item.link)) {
-        return false;
-    }
-
-    // MANDATORY SOURCES: Very light filtering - allow almost everything
-    if (isFromMandatorySource(item)) {
-        // Only reject if it's clearly non-CRE content (e.g., sports, entertainment)
-        const titleAndDesc = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
-        const isNonCREContent = /\b(sports?|game|score|team|player|celebrity|movie|tv show|recipe|horoscope)\b/i.test(titleAndDesc);
-        return !isNonCREContent;
-    }
-
-    // Check approved domains for non-mandatory sources
-    if (!isAllowedLink(item.link)) {
-        return false;
-    }
-
-    // For other sources, check for CRE/industrial keywords
-    const titleAndDesc = (item.title || '') + ' ' + (item.description || '');
-    const hasCRESignal = /industrial|warehouse|logistics|distribution|manufacturing|real estate|commercial|property|lease|office|retail|development|investment|tenant|landlord|market|construction|acquisition/i.test(titleAndDesc);
-
-    return hasCRESignal;
-}
-
-// Enhanced URL filtering for tracking parameters and redirects
-export function shouldRejectUrl(url: string): boolean {
-    const rejectPatterns = [
-        /utm_/i,
-        /redirect/i,
-        /cache/i,
-        /preview/i,
-        /bing\.com/i,
-        /fbclid/i,
-        /gclid/i,
-        /mc_cid/i,
-        /mc_eid/i
-    ];
-
-    return rejectPatterns.some(pattern => pattern.test(url));
-}
+export const isFromMandatorySource = _isFromMandatorySource;
+export const shouldRejectUrl = _shouldRejectUrl;
+const shouldIncludeArticle = _shouldIncludeArticle;
 
 // Improved fetch function using axios + rss-parser (for header support)
 async function fetchRSSFeedImproved(feed: FeedConfig): Promise<FetchResult> {
