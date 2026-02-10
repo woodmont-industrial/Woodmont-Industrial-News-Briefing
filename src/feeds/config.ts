@@ -180,14 +180,16 @@ export const RSS_FEEDS: FeedConfig[] = [
   // 9. LOOPNET/COSTAR - No public RSS, using CRE alternatives
   // Note: LoopNet and CoStar don't offer public RSS feeds
 
-  // 10. LEHIGH VALLEY BUSINESS ✅ - Working
+  // 10. LEHIGH VALLEY BUSINESS - DISABLED: 403 Forbidden
+  // Coverage provided via Google News RSS feed instead
   {
     url: "https://lvb.com/feed/",
     name: "Lehigh Valley Business",
     region: "PA",
     source: "Lehigh Valley Business",
     type: FEED_TYPES.NEWS,
-    timeout: 30000
+    timeout: 30000,
+    enabled: false  // 403 - use Google News Lehigh Valley feed
   },
 
   // 11. NJBIZ - DISABLED: nginx 403 block (not Cloudflare, needs residential proxy)
@@ -998,7 +1000,8 @@ export const RSS_FEEDS: FeedConfig[] = [
       timeout: 15000
 },
 
-    // NJBIZ - New Jersey Business News
+    // NJBIZ - DISABLED: 403 Forbidden (duplicate, already disabled at line ~196)
+    // Coverage provided via Google News NJ Business feed
 {
       url: "https://njbiz.com/feed/",
       name: "NJBIZ",
@@ -1006,7 +1009,8 @@ export const RSS_FEEDS: FeedConfig[] = [
       source: "NJBIZ",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
       timeout: 30000,
-      headers: BROWSER_HEADERS
+      headers: BROWSER_HEADERS,
+      enabled: false  // 403 - use Google News NJ Business feed
 },
 
     // ROI-NJ - Another NJ Real Estate Source
