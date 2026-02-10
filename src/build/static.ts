@@ -891,6 +891,15 @@ export async function buildStaticRSS(): Promise<void> {
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
         log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
 
+        // Generate Raw Feed for the Raw Articles tab (all fetched items, 72h, cap 500)
+        const feedItemIds = new Set(rssItems.map(item => item.id));
+        const rawFeed = generateRawFeed(allItems, feedItemIds);
+        fs.writeFileSync(path.join(DOCS_DIR, 'raw-feed.json'), JSON.stringify(rawFeed), 'utf8');
+        log('info', 'Generated docs/raw-feed.json', {
+            rawCount: (rawFeed as any).stats.included_in_raw,
+            totalFetched: (rawFeed as any).stats.total_fetched
+        });
+
         // NOTE: docs/index.html is a separate vanilla JS implementation
         // Do NOT auto-copy frontend/index.html (React version) to docs/
         // The docs version is maintained separately for GitHub Pages
@@ -1097,6 +1106,75 @@ interface FeedHealthReport {
         failed: number;
         articlesFetched: number;
         articlesKept: number;
+    };
+}
+
+function generateRawFeed(
+    allItems: NormalizedItem[],
+    feedItemIds: Set<string>,
+    maxAgeHours: number = 72,
+    maxItems: number = 500
+): object {
+    const cutoff = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
+    const industrialKW = ['warehouse', 'logistics', 'distribution', 'manufacturing',
+        'cold storage', 'industrial', 'fulfillment', 'supply chain', 'freight',
+        'e-commerce', 'last mile', 'flex space', '3pl', 'lease', 'acquisition',
+        'development', 'vacancy', 'absorption', 'cap rate'];
+
+    const detectRegion = (item: NormalizedItem): string => {
+        if (item.region) return item.region;
+        if (item.regions && item.regions.length > 0) return item.regions[0];
+        const text = ((item.title || '') + ' ' + (item.description || '')).toUpperCase();
+        if (/\bNEW JERSEY\b|, NJ\b|\bNJ,|\bNEWARK\b|\bJERSEY CITY\b/.test(text)) return 'NJ';
+        if (/\bPENNSYLVANIA\b|\bPHILADELPHIA\b|, PA\b|\bLEHIGH\b/.test(text)) return 'PA';
+        if (/\bFLORIDA\b|\bMIAMI\b|\bTAMPA\b|, FL\b|\bJACKSONVILLE\b/.test(text)) return 'FL';
+        return 'US';
+    };
+
+    const extractKW = (item: NormalizedItem): string[] => {
+        const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+        return industrialKW.filter(kw => text.includes(kw)).slice(0, 5);
+    };
+
+    // Filter to recent, valid items and deduplicate by title
+    const seenTitles = new Set<string>();
+    const recentItems = allItems
+        .filter(item => {
+            if (!item.title || !item.link) return false;
+            const pubDate = new Date(item.pubDate || item.fetchedAt || Date.now());
+            if (isNaN(pubDate.getTime()) || pubDate < cutoff) return false;
+            const normTitle = item.title.toLowerCase().trim().substring(0, 60);
+            if (seenTitles.has(normTitle)) return false;
+            seenTitles.add(normTitle);
+            return true;
+        })
+        .sort((a, b) =>
+            new Date(b.pubDate || b.fetchedAt || 0).getTime() -
+            new Date(a.pubDate || a.fetchedAt || 0).getTime()
+        )
+        .slice(0, maxItems);
+
+    return {
+        version: '1.0',
+        generated_at: new Date().toISOString(),
+        stats: {
+            total_fetched: allItems.length,
+            included_in_raw: recentItems.length,
+            included_in_feed: feedItemIds.size,
+            window_hours: maxAgeHours
+        },
+        items: recentItems.map(item => ({
+            id: item.id,
+            t: (item.title || '').substring(0, 200),
+            u: item.link,
+            s: item.source || 'Unknown',
+            d: item.pubDate || item.fetchedAt || new Date().toISOString(),
+            c: item.category || 'relevant',
+            r: detectRegion(item),
+            ex: (item.description || '').substring(0, 150),
+            in_feed: feedItemIds.has(item.id),
+            kw: extractKW(item)
+        }))
     };
 }
 

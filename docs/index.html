@@ -270,6 +270,12 @@
               {stats.filtered} of {stats.total} articles • Updated {stats.updated}
             </div>
               <div className="flex gap-2">
+              <a
+                  href="raw.html"
+                  className="px-4 py-2 rounded-xl font-medium transition-all bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900 no-underline"
+              >
+                  📋 Raw
+              </a>
               <button
                   onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
@@ -1350,6 +1356,22 @@
                     ✓ Generated
                   </span>
                 )}
+                {(() => {
+                  try {
+                    const rp = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+                    const cnt = Object.keys(rp).length;
+                    if (cnt > 0) return (
+                      <span className="flex items-center gap-2">
+                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 rounded-full text-sm">
+                          {cnt} raw pick{cnt !== 1 ? 's' : ''} ready
+                        </span>
+                        <button onClick={() => { localStorage.removeItem('woodmont_raw_picks'); window.location.reload(); }}
+                          className="text-xs text-red-500 hover:underline">Clear</button>
+                      </span>
+                    );
+                    return null;
+                  } catch { return null; }
+                })()}
               </div>
               
               <div className="flex items-center gap-3">
@@ -2089,6 +2111,23 @@
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
             });
+
+            // Merge raw picks from localStorage (picked in raw.html)
+            try {
+              const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+              const pickIds = new Set(recentArticles.map(a => a.id));
+              const catMap = { relevant: 'relevant', transactions: 'transaction', people: 'people', availabilities: 'availabilities', excluded: 'relevant' };
+              Object.entries(rawPicks).forEach(([id, p]) => {
+                if (!pickIds.has(id)) {
+                  recentArticles.unshift({
+                    id, title: p.t || 'Untitled', link: p.u || '#', source: p.s || 'Unknown',
+                    pubDate: p.d || new Date().toISOString(), description: p.ex || '',
+                    category: catMap[p.c] || 'relevant', _fromRawPick: true
+                  });
+                }
+              });
+            } catch (e) { console.warn('Could not load raw picks:', e); }
+
             // Use selected theme (work is default)
             let html;
             if (newsletterTheme === 'work') {
