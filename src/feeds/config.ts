@@ -964,42 +964,38 @@ export const RSS_FEEDS: FeedConfig[] = [
       timeout: 30000
 },
 
-    // BUSINESS JOURNAL FEEDS (Regional Business News)
+    // BUSINESS JOURNAL FEEDS — via Google News (Cloudflare blocks direct RSS)
 {
-      url: "https://www.bizjournals.com/philadelphia/news/commercial-real-estate.rss",
+      url: "https://news.google.com/rss/search?q=site:bizjournals.com/philadelphia+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       name: "Philadelphia Business Journal CRE",
       region: "PA",
       source: "Philadelphia Business Journal",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
-      timeout: 30000,
-      headers: BROWSER_HEADERS
+      timeout: 15000
 },
 {
-      url: "https://www.bizjournals.com/southflorida/news/commercial-real-estate.rss",
+      url: "https://news.google.com/rss/search?q=site:bizjournals.com/southflorida+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       name: "South Florida Business Journal CRE",
       region: "FL",
       source: "South Florida Business Journal",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
-      timeout: 30000,
-      headers: BROWSER_HEADERS
+      timeout: 15000
 },
 {
-      url: "https://www.bizjournals.com/tampabay/news/commercial-real-estate.rss",
+      url: "https://news.google.com/rss/search?q=site:bizjournals.com/tampabay+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       name: "Tampa Bay Business Journal CRE",
       region: "FL",
       source: "Tampa Bay Business Journal",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
-      timeout: 30000,
-      headers: BROWSER_HEADERS
+      timeout: 15000
 },
 {
-      url: "https://www.bizjournals.com/jacksonville/news/commercial-real-estate.rss",
+      url: "https://news.google.com/rss/search?q=site:bizjournals.com/jacksonville+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       name: "Jacksonville Business Journal CRE",
       region: "FL",
       source: "Jacksonville Business Journal",
       type: FEED_TYPES.INDUSTRIAL_NEWS,
-      timeout: 30000,
-      headers: BROWSER_HEADERS
+      timeout: 15000
 },
 
     // NJBIZ - New Jersey Business News
