@@ -32,6 +32,31 @@ SOURCE: {source}
 
 Summary:`;
 
+// Skip AI generation for paywalled sources — AI can't read the article anyway
+const PAYWALLED_SOURCES = [
+    'wsj', 'wall street journal', 'bloomberg', 'costar', 'bisnow',
+    'globest', 'commercial observer', 'therealdeal', 'the real deal',
+    'bizjournals', 'business journal', 'njbiz', 'lvb'
+];
+
+function isPaywalled(source: string, url: string): boolean {
+    const check = (source + ' ' + url).toLowerCase();
+    return PAYWALLED_SOURCES.some(pw => check.includes(pw));
+}
+
+// Reject garbage AI responses
+const GARBAGE_PATTERNS = [
+    'no specific information',
+    'please provide',
+    'i cannot',
+    'i don\'t have',
+    'not enough information',
+    'unable to summarize',
+    'no article details',
+    'no details provided',
+    'insufficient information'
+];
+
 /**
  * Generate descriptions for articles missing them
  */
@@ -42,7 +67,12 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
         return;
     }
 
-    const needsDesc = articles.filter(a => !a.description || a.description.trim().length < 20);
+    const needsDesc = articles.filter(a => {
+        if (a.description && a.description.trim().length >= 20) return false;
+        // Skip paywalled — AI will hallucinate without article content
+        if (isPaywalled(a.source || '', (a as any).url || a.link || '')) return false;
+        return true;
+    });
     if (needsDesc.length === 0) {
         console.log('[AI Desc] All articles already have descriptions');
         return;
@@ -133,6 +163,13 @@ async function generateSingleDescription(
             .replace(/^Summary:\s*/i, '')
             .replace(/\*\*/g, '')
             .trim();
+
+        // Reject garbage responses where AI couldn't generate a real summary
+        const descLower = desc.toLowerCase();
+        if (GARBAGE_PATTERNS.some(p => descLower.includes(p))) {
+            console.log(`[AI Desc] Rejected garbage response for "${article.title?.substring(0, 40)}"`);
+            return null;
+        }
 
         if (desc.length > 200) {
             desc = desc.substring(0, 197).replace(/\s+\S*$/, '') + '...';

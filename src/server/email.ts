@@ -899,14 +899,21 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             'COLUMBUS', 'INDIANAPOLIS', 'MEMPHIS', 'RALEIGH', 'RICHMOND', 'MILWAUKEE', 'KANSAS CITY',
             'ST. LOUIS', 'CLEVELAND', 'CINCINNATI', 'LAS VEGAS', 'SALT LAKE', 'BOISE', 'SACRAMENTO',
             'OKLAHOMA CITY', 'TUCSON', 'ALBUQUERQUE', 'NEW ORLEANS', 'MESA, ARIZONA', 'ARIZONA',
-            'TENNESSEE', 'KENTUCKY', 'LOUISVILLE', 'ALABAMA', 'ARKANSAS', 'INDIANAPOLIS'];
+            'TENNESSEE', 'KENTUCKY', 'LOUISVILLE', 'ALABAMA', 'ARKANSAS',
+            'CALIFORNIA', ', CA', 'FREMONT, CA', 'FREMONT,', 'SAN JOSE', 'SILICON VALLEY', 'BAY AREA',
+            'OREGON', 'WASHINGTON STATE', 'HAWAII', 'IOWA', 'NEBRASKA', 'MONTANA', 'WYOMING',
+            'NORTH DAKOTA', 'SOUTH DAKOTA', 'IDAHO', 'UTAH', 'MISSISSIPPI', 'WEST VIRGINIA',
+            'GEORGIA', 'SOUTH CAROLINA', 'NORTH CAROLINA', 'VIRGINIA', 'MARYLAND',
+            'COLORADO', 'MINNESOTA', 'WISCONSIN', 'MICHIGAN', 'OHIO', 'MISSOURI',
+            'FORT PAYNE', 'DEKALB COUNTY, AL'];
 
         // International terms — ALWAYS exclude
         const internationalExclude = ['EUROPE', 'EUROPEAN', 'UK ', 'U.K.', 'UNITED KINGDOM', 'BRITAIN',
             'ASIA', 'ASIAN', 'PACIFIC', 'APAC', 'CHINA', 'JAPAN', 'INDIA', 'SINGAPORE', 'HONG KONG',
-            'AUSTRALIA', 'CANADA', 'CANADIAN', 'LATIN AMERICA', 'MIDDLE EAST', 'AFRICA', 'GLOBAL OUTLOOK',
-            'GLOBAL MARKET', 'WORLD MARKET', 'GERMANY', 'FRANCE', 'KOREA', 'VIETNAM', 'BRAZIL',
-            'MEXICO', 'LONDON', 'TOKYO', 'SHANGHAI', 'BEIJING', 'SYDNEY', 'TORONTO', 'DUBAI'];
+            'AUSTRALIA', 'CANADA', 'CANADIAN', 'MONTREAL', 'VANCOUVER', 'LATIN AMERICA', 'MIDDLE EAST',
+            'AFRICA', 'GLOBAL OUTLOOK', 'GLOBAL MARKET', 'WORLD MARKET', 'GERMANY', 'FRANCE', 'KOREA',
+            'VIETNAM', 'BRAZIL', 'MEXICO', 'LONDON', 'TOKYO', 'SHANGHAI', 'BEIJING', 'SYDNEY',
+            'TORONTO', 'DUBAI', 'OTTAWA', 'CALGARY', 'EDMONTON'];
 
         // Approved source domains for newsletter
         const approvedDomains = ['bisnow.com', 'globest.com', 'costar.com', 'reuters.com', 'apnews.com',
@@ -1102,10 +1109,21 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return filtered;
         };
 
+        // Transaction action words — if text has these, it's a transaction not people news
+        const transactionActionWords = [
+            'acquired', 'acquisition', 'purchased', 'purchase', 'sold', 'sale of', 'sells',
+            'leased', 'lease', 'signed', 'closes', 'closed', 'financing', 'refinanc',
+            'arranges', 'arranged', 'brokered', 'negotiated', 'completed',
+            'bought', 'buying', 'invested', 'investment in', 'joint venture',
+            'recapitalization', 'disposition', 'capitalization'
+        ];
+
         const applyTransactionFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
                 if (isPolitical(text)) return false;
+                // Accept if it has transaction action words (acquired, sold, leased, etc.)
+                if (containsAny(text, transactionActionWords)) return true;
                 if (!isIndustrialProperty(text)) return false;
                 const isApproval = containsAny(text, approvalKeywords);
                 if (isApproval) return true;
@@ -1120,6 +1138,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const filtered = items.filter(article => {
                 const text = getText(article);
                 if (isPolitical(text)) return false;
+                // Accept availability-specific language
+                const availabilityWords = ['available', 'for sale', 'for lease', 'listing', 'on the market', 'seeking buyer', 'buyer wanted'];
+                if (containsAny(text, availabilityWords)) return true;
                 if (!isIndustrialProperty(text)) return false;
                 const threshold = meetsDealThreshold(text);
                 return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
@@ -1131,18 +1152,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const applyPeopleFilter = (items: NormalizedItem[]): NormalizedItem[] => {
             const filtered = items.filter(article => {
                 const text = getText(article);
-                const url = (article.url || article.link || '').toLowerCase();
                 if (isPolitical(text)) return false;
                 if (containsAny(text, excludeFromPeople)) return false;
+                // If it's actually a transaction, don't put it in people
+                if (containsAny(text, transactionActionWords)) return false;
                 const hasAction = containsAny(text, peopleActionKeywords);
                 const hasIndustrial = containsAny(text, industrialContextKeywords);
-                const brokerageSources = ['bisnow.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
-                    'newmark', 'nai', 'sior.com', 'ccim.com', 'naiop.org', 're-nj.com', 'globest.com',
-                    'commercialsearch.com', 'cpexecutive.com', 'therealdeal.com'];
-                const isFromBrokerageSource = brokerageSources.some(s => url.includes(s));
-                return hasAction || hasIndustrial || isFromBrokerageSource;
+                return hasAction && hasIndustrial;
             });
-            console.log(`🔍 People News: ${items.length} → ${filtered.length} (relaxed filter)`);
+            console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);
             return filtered;
         };
 
@@ -1305,6 +1323,30 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // AI DESCRIPTIONS: generate for articles missing them
         // =====================================================================
         await generateDescriptions(allNewsletterArticles);
+
+        // =====================================================================
+        // POST-DESCRIPTION REGIONAL RE-CHECK
+        // Now that descriptions exist, re-filter to catch wrong regions
+        // that were invisible at title-only filtering time
+        // =====================================================================
+        const postDescFilter = (article: NormalizedItem): boolean => {
+            const desc = (article.description || '').toUpperCase();
+            if (!desc) return true; // no description = keep (was already filtered by title)
+            // Check if description reveals excluded regions or international content
+            if (majorExcludeRegions.some(r => desc.includes(r))) {
+                console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (excluded region in description)`);
+                return false;
+            }
+            if (internationalExclude.some(t => desc.includes(t))) {
+                console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (international in description)`);
+                return false;
+            }
+            return true;
+        };
+        relevant = relevant.filter(postDescFilter);
+        transactions = transactions.filter(postDescFilter);
+        availabilities = availabilities.filter(postDescFilter);
+        people = people.filter(postDescFilter);
 
         // =====================================================================
         // DEAL HIGHLIGHTING: sort big deals to top of their section
