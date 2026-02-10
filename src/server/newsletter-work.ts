@@ -90,12 +90,6 @@ export function buildWorkBriefing(
         const sourceName = getSourceName(source, url);
         const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
-        // Truncate title at 120 chars
-        let displayText = title;
-        if (displayText.length > 120) {
-            displayText = displayText.substring(0, 117).replace(/\s+\S*$/, '') + '...';
-        }
-
         // Big deal badge
         const dealText = `${title} ${item.description || ''}`;
         const dealSize = isBigDeal(dealText);
@@ -118,6 +112,12 @@ export function buildWorkBriefing(
             }
         }
 
+        // Use description as the display text if available, otherwise fall back to title
+        let displayText = description || title;
+        if (displayText.length > 200) {
+            displayText = displayText.substring(0, 197).replace(/\s+\S*$/, '') + '...';
+        }
+
         // Action links
         const trackKeyword = extractTrackKeyword(title);
         const trackUrl = `${actionUrl}?action=track&keyword=${encodeURIComponent(trackKeyword)}`;
@@ -128,12 +128,8 @@ export function buildWorkBriefing(
         const shareBody = encodeURIComponent(`Thought you'd find this relevant:\n\n${title}\n${url}`);
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
-        const descHtml = description
-            ? `<br><span style="color: #555; font-size: 13px;">${description}</span>`
-            : '';
-
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}${descHtml}
+            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}
             <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
         </li>`;
     };
