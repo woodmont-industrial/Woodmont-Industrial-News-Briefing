@@ -13,6 +13,7 @@ import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-class
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
+import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES } from '../shared/region-data.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
 // Directory for static output
@@ -89,120 +90,21 @@ export async function buildStaticRSS(): Promise<void> {
 
         // === STRICT FILTERING: Regional + Content + Categorization ===
 
-        // States/regions to EXCLUDE (everything except NJ, PA, FL)
-        const excludeStates = [
-            'TEXAS', 'TX,', ', TX', 'VIRGINIA', 'VA,', ', VA', 'MARYLAND', 'MD,', ', MD',
-            'MONTANA', 'MT,', ', MT', 'GEORGIA', 'GA,', ', GA', 'CALIFORNIA', 'CA,', ', CA',
-            'NORTH CAROLINA', 'NC,', ', NC', 'SOUTH CAROLINA', 'SC,', ', SC',
-            'TENNESSEE', 'TN,', ', TN', 'OHIO', 'OH,', ', OH', 'ILLINOIS', 'IL,', ', IL',
-            'MICHIGAN', 'MI,', ', MI', 'INDIANA', 'IN,', ', IN', 'WISCONSIN', 'WI,', ', WI',
-            'MINNESOTA', 'MN,', ', MN', 'MISSOURI', 'MO,', ', MO', 'KENTUCKY', 'KY,', ', KY',
-            'ALABAMA', 'AL,', ', AL', 'LOUISIANA', 'LA,', ', LA', 'ARKANSAS', 'AR,', ', AR',
-            'OKLAHOMA', 'OK,', ', OK', 'KANSAS', 'KS,', ', KS', 'NEBRASKA', 'NE,', ', NE',
-            'IOWA', 'IA,', ', IA', 'COLORADO', 'CO,', ', CO', 'ARIZONA', 'AZ,', ', AZ',
-            'NEVADA', 'NV,', ', NV', 'UTAH', 'UT,', ', UT', 'NEW MEXICO', 'NM,', ', NM',
-            'WYOMING', 'WY,', ', WY', 'IDAHO', 'ID,', ', ID', 'WASHINGTON', 'WA,', ', WA',
-            'OREGON', 'OR,', ', OR', 'MASSACHUSETTS', 'MA,', ', MA', 'CONNECTICUT', 'CT,', ', CT',
-            'NEW HAMPSHIRE', 'NH,', ', NH', 'VERMONT', 'VT,', ', VT', 'MAINE', 'ME,', ', ME',
-            'RHODE ISLAND', 'RI,', ', RI', 'NEW YORK', 'NY,', ', NY', 'DELAWARE', 'DE,', ', DE'
-        ];
+        // States/regions/cities to EXCLUDE (everything except NJ, PA, FL) — from shared module
+        const excludeStates = MAJOR_EXCLUDE_REGIONS;
 
-        // Major cities in excluded states
-        const excludeCities = [
-            'HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO', 'FORT WORTH', 'EL PASO',
-            'ATLANTA', 'BALTIMORE', 'RICHMOND', 'NORFOLK', 'VIRGINIA BEACH', 'ROANOKE',
-            'LOS ANGELES', 'SAN FRANCISCO', 'SAN DIEGO', 'SACRAMENTO', 'SAN JOSE',
-            'SEATTLE', 'PORTLAND', 'DENVER', 'PHOENIX', 'LAS VEGAS', 'SALT LAKE',
-            'CHICAGO', 'DETROIT', 'CLEVELAND', 'CINCINNATI', 'COLUMBUS', 'INDIANAPOLIS',
-            'NASHVILLE', 'MEMPHIS', 'CHARLOTTE', 'RALEIGH', 'CHARLESTON', 'COLUMBIA',
-            'BOSTON', 'HARTFORD', 'PROVIDENCE', 'NEW HAVEN', 'ALBANY', 'BUFFALO',
-            'MINNEAPOLIS', 'MILWAUKEE', 'ST. LOUIS', 'KANSAS CITY', 'OMAHA',
-            'BIRMINGHAM', 'MOBILE', 'LITTLE ROCK', 'BATON ROUGE', 'NEW ORLEANS',
-            'OKLAHOMA CITY', 'TULSA', 'ALBUQUERQUE', 'TUCSON', 'BOISE', 'CHEYENNE',
-            'BEE CAVE', 'BOZEMAN', 'CHESTERFIELD COUNTY'
-        ];
+        // NJ/PA/FL target regions — from shared module
+        const targetRegions = TARGET_REGIONS;
 
-        // NJ/PA/FL target regions - EXPANDED for better coverage
-        const targetRegions = [
-            // State identifiers
-            'NJ', 'PA', 'FL', 'NEW JERSEY', 'PENNSYLVANIA', 'FLORIDA',
-            // NJ Cities
-            'NEWARK', 'JERSEY CITY', 'TRENTON', 'CAMDEN', 'EDISON', 'ELIZABETH', 'PATERSON',
-            'WOODBRIDGE', 'TOMS RIVER', 'CLIFTON', 'PASSAIC', 'BAYONNE', 'HOBOKEN', 'UNION CITY',
-            'NEW BRUNSWICK', 'PERTH AMBOY', 'HACKENSACK', 'SAYREVILLE', 'VINELAND', 'LINDEN',
-            'SECAUCUS', 'KEARNY', 'CARTERET', 'SOUTH BRUNSWICK', 'EAST BRUNSWICK', 'PISCATAWAY',
-            // NJ Regions & Counties
-            'CENTRAL JERSEY', 'NORTH JERSEY', 'SOUTH JERSEY', 'RARITAN', 'MONROE', 'MIDDLESEX',
-            'BERGEN', 'ESSEX', 'HUDSON', 'PASSAIC', 'UNION', 'MORRIS', 'SOMERSET', 'MERCER',
-            'MONMOUTH', 'OCEAN', 'BURLINGTON', 'GLOUCESTER', 'ATLANTIC', 'CUMBERLAND',
-            'MEADOWLANDS', 'EXIT 8A', 'I-95 CORRIDOR', 'TURNPIKE', 'GARDEN STATE PARKWAY',
-            // PA Cities
-            'PHILADELPHIA', 'PITTSBURGH', 'ALLENTOWN', 'BETHLEHEM', 'HARRISBURG', 'SCRANTON',
-            'READING', 'LANCASTER', 'ERIE', 'WILKES-BARRE', 'CHESTER', 'NORRISTOWN', 'KING OF PRUSSIA',
-            'PLYMOUTH MEETING', 'CONSHOHOCKEN', 'BLUE BELL', 'EXTON', 'MALVERN', 'WAYNE',
-            // PA Regions & Counties
-            'LEHIGH VALLEY', 'DELAWARE VALLEY', 'BUCKS COUNTY', 'CHESTER COUNTY', 'MONTGOMERY COUNTY',
-            'DELAWARE COUNTY', 'BERKS COUNTY', 'LANCASTER COUNTY', 'YORK COUNTY', 'DAUPHIN COUNTY',
-            'GREATER PHILADELPHIA', 'PHILLY', 'PENNSYLVANIA TURNPIKE',
-            // FL Cities
-            'MIAMI', 'ORLANDO', 'TAMPA', 'JACKSONVILLE', 'FORT LAUDERDALE', 'WEST PALM', 'BOCA RATON',
-            'ST. PETERSBURG', 'HIALEAH', 'TALLAHASSEE', 'PORT ST. LUCIE', 'CAPE CORAL', 'PEMBROKE PINES',
-            'HOLLYWOOD', 'MIRAMAR', 'GAINESVILLE', 'CORAL SPRINGS', 'CLEARWATER', 'PALM BAY',
-            'POMPANO BEACH', 'DORAL', 'CORAL GABLES', 'SUNRISE', 'PLANTATION', 'DAVIE', 'WESTON',
-            // FL Regions & Counties
-            'SOUTH FLORIDA', 'CENTRAL FLORIDA', 'BROWARD', 'MIAMI-DADE', 'PALM BEACH', 'HILLSBOROUGH',
-            'ORANGE COUNTY', 'DUVAL', 'PINELLAS', 'LEE COUNTY', 'POLK COUNTY', 'BREVARD',
-            'PORT EVERGLADES', 'PORT OF MIAMI', 'TRI-COUNTY',
-            // Major CRE players (include national news about these)
-            'PROLOGIS', 'DUKE REALTY', 'BLACKSTONE', 'CBRE', 'JLL', 'CUSHMAN', 'COLLIERS',
-            'NEWMARK', 'MARCUS & MILLICHAP', 'EASTDIL', 'HFF', 'BRIDGE INDUSTRIAL', 'DERMODY',
-            'FIRST INDUSTRIAL', 'STAG INDUSTRIAL', 'REXFORD', 'TERRENO', 'MONMOUTH REAL ESTATE',
-            // Industrial/logistics keywords that suggest regional relevance
-            'PORT NEWARK', 'ELIZABETH PORT', 'SEAGIRT', 'PORTSIDE'
-        ];
+        // Content to EXCLUDE - political + international — from shared module
+        const excludeContent = [...EXCLUDE_POLITICAL.map(s => s.toUpperCase()), ...INTERNATIONAL_EXCLUDE];
 
-        // Content to EXCLUDE - political + non-CRE junk + international
-        const excludeContent = [
-            // POLITICAL CONTENT - STRICT EXCLUSION
-            'TRUMP', 'BIDEN', 'PRESIDENT TRUMP', 'PRESIDENT BIDEN', 'WHITE HOUSE',
-            'EXECUTIVE ORDER', 'TARIFF WAR', 'TRADE WAR', 'CONGRESS', 'SENATE',
-            'REPUBLICAN', 'DEMOCRAT', 'ELECTION', 'POLITICAL',
-            // NON-CRE JUNK - STRICT EXCLUSION
-            'CRYPTOCURRENCY', 'BITCOIN', 'CRYPTO', 'NFT',
-            'STUDENT LOAN', 'STUDENT DEBT',
-            'SUPER BOWL', 'WORLD SERIES', 'PLAYOFFS', 'CHAMPIONSHIP',
-            'HOROSCOPE', 'WEATHER FORECAST', 'COOKIES SETTINGS',
-            'RECIPE', 'RESTAURANT REVIEW',
-            'ELON MUSK', 'SPACEX', 'JEFF BEZOS', 'MARK ZUCKERBERG', 'BILL GATES',
-            // NON-INDUSTRIAL PROPERTY TYPES (when mentioned as primary topic)
-            'APARTMENT RENT', 'APARTMENT OCCUPANCY', 'MULTIFAMILY REPORT',
-            'HOTEL OCCUPANCY', 'HOSPITALITY SECTOR',
-            'SELF-STORAGE', 'SELF STORAGE',
-            // INTERNATIONAL - US domestic only
-            'EUROPEAN REAL ESTATE', 'UK REAL ESTATE', 'ASIA PACIFIC', 'ASIA REAL ESTATE',
-            'GLOBAL OUTLOOK', 'GLOBAL MARKET OUTLOOK', 'CHINA EVERGRANDE',
-            'UNITED KINGDOM', 'HONG KONG', 'SINGAPORE', 'TOKYO', 'SHANGHAI', 'BEIJING',
-            'LONDON MARKET', 'SYDNEY', 'TORONTO', 'DUBAI', 'LATIN AMERICA',
-            'MIDDLE EAST', 'AFRICA MARKET', 'APAC MARKET', 'EMEA'
-        ];
-
-        // INDUSTRIAL-focused keywords - strict set for filtering national sources
-        const industrialKeywords = [
-            'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTION', 'MANUFACTURING', 'COLD STORAGE',
-            'INDUSTRIAL', 'FULFILLMENT', 'LAST MILE', 'LAST-MILE', 'E-COMMERCE', 'ECOMMERCE',
-            'SUPPLY CHAIN', 'FREIGHT', 'CARGO', 'INTERMODAL', '3PL', 'THIRD-PARTY LOGISTICS',
-            'FLEX SPACE', 'FLEX INDUSTRIAL', 'INDUSTRIAL PARK', 'DISTRIBUTION CENTER',
-            'FULFILLMENT CENTER', 'CROSS-DOCK', 'SPEC INDUSTRIAL', 'LOADING DOCK',
-            'TRUCK COURT', 'CLEAR HEIGHT', 'DOCK DOORS', 'RAIL-SERVED'
-        ];
+        // INDUSTRIAL-focused keywords — from shared module
+        const industrialKeywords = INDUSTRIAL_PROPERTY_KEYWORDS.map(s => s.toUpperCase());
 
         // Broader CRE keywords (what to INCLUDE - focused on industrial CRE, no non-industrial property types)
+        // Industrial keywords are already covered by industrialKeywords above
         const realEstateKeywords = [
-            // Industrial/logistics (same as above)
-            'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTION', 'MANUFACTURING', 'COLD STORAGE',
-            'INDUSTRIAL', 'FULFILLMENT', 'LAST MILE', 'LAST-MILE', 'E-COMMERCE', 'ECOMMERCE',
-            'SUPPLY CHAIN', 'FREIGHT', 'CARGO', 'INTERMODAL', '3PL', 'THIRD-PARTY LOGISTICS',
-            'FLEX SPACE', 'FLEX INDUSTRIAL',
             // Transactions & deals (CRE-specific)
             'COMMERCIAL REAL ESTATE', 'REAL ESTATE', 'CRE', 'PROPERTY', 'DEVELOPMENT', 'LEASE',
             'SOLD', 'ACQUIRED', 'TRANSACTION', 'VACANCY', 'RENT',
@@ -216,14 +118,15 @@ export async function buildStaticRSS(): Promise<void> {
             // Listing/availability
             'FOR LEASE', 'FOR SALE', 'ON THE MARKET',
             // Financing (CRE-specific)
-            'REFINANCING', 'MORTGAGE'
+            'REFINANCING', 'MORTGAGE',
+            // Also include all industrial keywords for combined CRE context check
+            ...industrialKeywords
         ];
 
         // Deal thresholds: imported from shared/deal-threshold.ts
 
-        // Regional sources (always include if from these)
-        const regionalSources = ['re-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com/new-jersey',
-            'bisnow.com/philadelphia', 'bisnow.com/south-florida', 'therealdeal.com/miami'];
+        // Regional sources (always include if from these) — from shared module
+        const regionalSources = REGIONAL_SOURCES;
 
         // Boss-preferred sources - VERY LIGHT filter (only exclude political, include everything else)
         // These sources are trusted by boss - include articles from ALL states
@@ -302,8 +205,8 @@ export async function buildStaticRSS(): Promise<void> {
             const hasTransactionWords = /\b(PURCHASED|ACQUIRES?D?|BOUGHT|SIGNS?\s*LEASE|LEASED|CLOSED|SOLD|SALE\s*OF|ACQUIRED|ACQUISITION|DISPOSITION)\b/.test(text);
 
             // Check for excluded states/cities - but be more lenient
+            // excludeStates now includes cities from MAJOR_EXCLUDE_REGIONS
             const mentionsExcludedState = excludeStates.some(s => text.includes(s));
-            const mentionsExcludedCity = excludeCities.some(c => text.includes(c));
             // Use flexible matching for target regions
             const mentionsTargetRegion = targetRegions.some(r => {
                 if (r.length <= 2) {
@@ -338,8 +241,8 @@ export async function buildStaticRSS(): Promise<void> {
                 // Include if has industrial content (not just generic CRE/finance)
                 if (hasIndustrialContext || (hasRealEstateContext && mentionsTargetRegion)) {
                     // Only exclude if STRONGLY about wrong state
-                    if ((mentionsExcludedState || mentionsExcludedCity) && !mentionsTargetRegion) {
-                        const wrongStateMentions = [...excludeStates, ...excludeCities].filter(s => text.includes(s)).length;
+                    if (mentionsExcludedState && !mentionsTargetRegion) {
+                        const wrongStateMentions = excludeStates.filter(s => text.includes(s)).length;
                         const rightStateMentions = targetRegions.filter(r => text.includes(r)).length;
                         if (wrongStateMentions > 1 && rightStateMentions === 0) {
                             log('info', `EXCLUDED (strongly out-of-state): ${item.title?.substring(0, 60)}`);
@@ -372,12 +275,12 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // If has real estate context and no wrong state mention, include
-            if (hasRealEstateContext && !mentionsExcludedState && !mentionsExcludedCity) {
+            if (hasRealEstateContext && !mentionsExcludedState) {
                 return true;
             }
 
             // Exclude articles that mention excluded states without target region
-            if (mentionsExcludedState || mentionsExcludedCity) {
+            if (mentionsExcludedState) {
                 log('info', `EXCLUDED (out-of-state): ${item.title?.substring(0, 60)}`);
                 return false;
             }

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem, FeedType } from '../types/index.js';
-import { OUT_OF_MARKET_KEYWORDS, MARKET_KEYWORDS } from './classifier.js';
+import { OUT_OF_MARKET_KEYWORDS, MARKET_KEYWORDS } from '../shared/region-data.js';
 
 interface ClassificationRules {
     categories: Record<string, any>;

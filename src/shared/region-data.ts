@@ -205,3 +205,163 @@ export const BROKERAGE_SOURCES = [
     'newmark', 'nai', 'sior.com', 'ccim.com', 'naiop.org', 're-nj.com', 'globest.com',
     'commercialsearch.com', 'cpexecutive.com', 'therealdeal.com'
 ];
+
+// ============================================
+// CLASSIFIER-SPECIFIC KEYWORDS
+// ============================================
+
+// Industrial/Warehouse keywords - expanded set for classification scoring
+export const INDUSTRIAL_KEYWORDS = [
+    "industrial", "warehouse", "distribution", "logistics", "fulfillment",
+    "last-mile", "last mile", "3pl", "port", "drayage", "intermodal",
+    "ios", "outdoor storage", "manufacturing", "manufacturing plant",
+    "cold storage", "refrigerated", "temperature-controlled", "cold chain",
+    "data center", "data centre", "server farm", "cloud facility",
+    "cross-dock", "cross dock", "spec industrial", "speculative industrial",
+    "flex space", "flex industrial", "r&d", "research and development",
+    "food processing", "food facility", "beverage facility", "brewery",
+    "automotive", "auto parts", "assembly plant", "stamping plant",
+    "aerospace", "aviation", "aircraft facility", "mro facility",
+    "life sciences", "biotech", "pharmaceutical", "medtech",
+    "chemical plant", "processing plant", "industrial park",
+    "trade hub", "distribution hub", "logistics hub", "fulfillment hub",
+    "e-commerce", "ecommerce", "online retail", "digital commerce",
+    "supply chain", "supply chain network", "distribution network",
+    "material handling", "conveyor", "automation", "robotics",
+    "industrial real estate", "logistics real estate", "warehouse real estate"
+];
+
+// CRE Intent keywords for classification
+export const CRE_INTENT_KEYWORDS = [
+    "commercial real estate", "real estate", "cre",
+    "lease", "leasing", "tenant", "landlord",
+    "broker", "brokerage", "listing", "for lease", "for sale",
+    "zoning", "entitlement", "planning board", "rezoning",
+    "square feet", "sq ft", "sf", "acres",
+    "rent", "asking rent", "nnn", "triple net", "gross lease",
+    "cap rate", "noi", "acquisition", "sale", "sold", "purchased",
+    "development", "redevelopment", "ground-up development",
+    "investment", "investor", "institutional", "private equity",
+    "reit", "real estate investment trust", "fund", "fund manager",
+    "property", "asset", "portfolio", "asset management",
+    "prologis", "dltr", "dre", "equity", "blackstone", "cbre", "jll",
+    "cushman", "colliers", "newmark", "cushman & wakefield",
+    "industrial landlord", "industrial developer", "logistics developer",
+    "build-to-suit", "bts", "design-build", "turnkey",
+    "net lease", "absolute net lease", "ground lease",
+    "sale-leaseback", "sale leaseback", "monetization",
+    "refinance", "mortgage", "loan", "financing"
+];
+
+// Property signals for classification
+export const PROPERTY_SIGNALS = [
+    "facility", "building", "site", "development", "project",
+    "spec", "speculative", "build-to-suit", "bts",
+    "groundbreaking", "construction", "delivered", "deliveries",
+    "zoning", "entitlement", "rezoning",
+    "industrial park", "distribution center", "fulfillment center",
+    "square-foot", "square feet", "sf", "sq ft", "acres",
+    "clear height", "dock doors", "loading docks", "truck court",
+    "rail service", "rail spur", "rail-served", "rail access",
+    "highway access", "interstate access", "infrastructure",
+    "power capacity", "electrical service", "utilities",
+    "sprinkler system", "fire suppression", "esfr",
+    "temperature control", "climate control", "refrigeration",
+    "security", "fenced", "gated", "24/7 access",
+    "parking ratio", "truck parking", "car parking",
+    "expansion", "addition", "renovation", "retrofit",
+    "vacancy", "occupancy", "absorption", "demand",
+    "rent rates", "rental rates", "market rent"
+];
+
+// Hard negative - non-CRE content
+export const HARD_NEGATIVE_NON_CRE = [
+    "opens", "grand opening", "reopens", "giveaway", "menu",
+    "restaurant", "coffee", "dunkin", "starbucks", "mcdonald",
+    "retail", "store", "shop", "mall", "rack", "nordstrom", "walmart",
+    "cannabis", "dispensary", "marijuana", "weed",
+    "gaming", "casino", "lottery", "revenue record", "sports betting",
+    "sports", "bears", "nfl", "mlb", "nba", "nhl", "mls",
+    "concert", "festival", "event", "entertainment", "movie theater",
+    "residential", "apartment", "multifamily", "condo", "single-family",
+    "hotel", "hospitality", "resort", "motel", "airbnb",
+    "self-storage", "self storage", "storage unit", "climate storage",
+    "school", "university", "college", "hospital", "medical center",
+    "church", "religious", "museum", "library", "government building",
+    "gas station", "car wash", "auto repair", "tire shop"
+];
+
+// Market keywords for NJ/PA/FL focus (lowercase for classifier)
+export const MARKET_KEYWORDS = [
+    "new jersey","nj","pennsylvania","pa","florida","fl",
+    "port newark","elizabeth","newark","jersey city","bayonne",
+    "trenton","camden","princeton","morris county","bergen county",
+    "hudson county","essex county","middlesex county","union county",
+    "monmouth county","somerset county",
+    "central jersey","north jersey","south jersey","shore",
+    "philadelphia","pittsburgh","lehigh valley","allentown","bethlehem","easton",
+    "bucks county","montgomery county","chester county","delaware county",
+    "miami","tampa","orlando","jacksonville",
+    "fort lauderdale","west palm","palm beach","fort myers","naples",
+    "south florida","gold coast","treasure coast","space coast",
+    "miami-dade","broward","hillsborough","duval"
+];
+
+// Geography keywords (highways, ports, corridors)
+export const GEOGRAPHY_KEYWORDS = [
+    "port newark", "elizabeth", "newark", "bayonne", "jersey city",
+    "port of new york", "port of new jersey", "ny nj port",
+    "turnpike", "garden state parkway", "i-78", "i-80", "i-287", "i-95", "i-81",
+    "i-295", "i-195", "i-76", "i-476", "route 1", "route 9", "route 18",
+    "exit 8a", "exit 7a", "exit 13", "exit 15", "exit 16",
+    "lehigh valley", "allentown", "bethlehem", "easton",
+    "i-76 pa", "pennsylvania turnpike", "i-83", "i-79", "route 309",
+    "port of philadelphia", "philadelphia port", "pittsburgh",
+    "i-95 florida", "i-75", "i-4", "i-595", "florida turnpike",
+    "miami-dade", "broward", "palm beach", "fort lauderdale",
+    "port miami", "port everglades", "port of tampa", "port of jacksonville",
+    "south florida", "gold coast", "treasure coast",
+    "logistics corridor", "distribution corridor", "industrial corridor",
+    "inland port", "intermodal facility", "rail yard"
+];
+
+// Classifier exclusion keywords (combines political + international + non-CRE)
+export const EXCLUSION_KEYWORDS = [
+    "apartment", "multifamily", "condo", "single-family", "homebuilder",
+    "hotel", "hospitality", "self-storage", "self storage",
+    "office building", "office lease", "office space", "class a office",
+    "retail center", "shopping center", "strip mall", "outlet mall",
+    "trump", "biden", "president trump", "president biden", "white house",
+    "congress", "senate", "republican", "democrat", "political", "election",
+    "executive order", "administration", "tariff war", "trade war",
+    "governor", "legislation", "campaign", "ballot", "voting", "gop",
+    "supreme court", "cabinet", "impeach", "partisan", "bipartisan",
+    "shutdown", "debt ceiling", "stimulus", "government spending",
+    "foreign policy", "military", "defense budget", "pentagon",
+    "nato", "sanctions", "diplomatic",
+    "elon musk", "musk", "spacex", "doge", "jeff bezos",
+    "mark zuckerberg", "zuckerberg", "bill gates",
+    "india", "china", "uk", "europe", "asia", "mexico", "canada",
+    "london", "beijing", "shanghai", "mumbai", "delhi", "tokyo",
+    "hong kong", "singapore", "dubai", "australia", "germany", "france",
+    "stock price", "earnings report", "quarterly earnings", "ipo",
+    "cryptocurrency", "bitcoin", "crypto", "nft",
+    "layoffs", "job cuts", "workforce reduction",
+    "super bowl", "world series", "playoffs", "championship",
+    "movie", "film", "streaming", "netflix", "disney",
+    "black friday", "cyber monday", "holiday shopping", "consumer spending"
+];
+
+// Out-of-market keywords (non-NJ/PA/FL regions)
+export const OUT_OF_MARKET_KEYWORDS = [
+    "texas", "houston", "dallas", "austin", "san antonio", "fort worth",
+    "dfw", "dallas-fort worth", "plano", "irving", "arlington",
+    "california", "los angeles", "san francisco", "bay area", "silicon valley",
+    "san diego", "sacramento", "seattle", "portland",
+    "denver", "phoenix", "las vegas", "salt lake", "boise", "tucson", "albuquerque",
+    "chicago", "detroit", "minneapolis", "st. louis", "kansas city",
+    "columbus", "indianapolis", "milwaukee", "cincinnati", "cleveland",
+    "atlanta", "nashville", "charlotte", "raleigh", "richmond",
+    "memphis", "birmingham", "charleston", "new orleans",
+    "boston", "connecticut", "massachusetts", "baltimore", "maryland", "virginia"
+];
