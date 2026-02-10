@@ -52,6 +52,8 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
+          # AI description generation
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           echo "📧 Sending Work daily briefing (boss preferred format)..."
           echo "To: $EMAIL_TO"
