@@ -53,7 +53,7 @@ export function buildWorkBriefing(
     });
     const isFriday = today.getDay() === 5;
 
-    const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/action.html';
+    const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/index.html';
 
     const extractTrackKeyword = (title: string): string => {
         const companyMatch = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/);

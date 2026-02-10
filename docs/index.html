@@ -1107,7 +1107,7 @@
     };
 
     // Tracked & Ignored Topics Panel Component
-    const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, onRemoveTopic, onAddTopic, onRemoveIgnored, matchingCount }) => {
+    const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, ignoredArticles = [], onRemoveTopic, onAddTopic, onRemoveIgnored, onRemoveIgnoredArticle, matchingCount }) => {
       const [newTopic, setNewTopic] = useState('');
       const [isExpanded, setIsExpanded] = useState(true);
       const [activeTab, setActiveTab] = useState('tracked'); // 'tracked' or 'ignored'
@@ -1132,9 +1132,9 @@
                   {matchingCount} tracking
                 </span>
               )}
-              {ignoredTopics.length > 0 && (
+              {(ignoredTopics.length + ignoredArticles.length) > 0 && (
                 <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
-                  {ignoredTopics.length} ignored
+                  {ignoredTopics.length + ignoredArticles.length} ignored
                 </span>
               )}
             </div>
@@ -1163,7 +1163,7 @@
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
-                  Ignored ({ignoredTopics.length})
+                  Ignored ({ignoredTopics.length + ignoredArticles.length})
                 </button>
               </div>
 
@@ -1215,27 +1215,61 @@
 
               {activeTab === 'ignored' && (
                 <>
-                  {ignoredTopics.length === 0 ? (
+                  {ignoredTopics.length === 0 && ignoredArticles.length === 0 ? (
                     <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                      No topics ignored. Click "Ignore" on articles to hide similar content.
+                      No topics or articles ignored. Click "Ignore" on articles to hide them.
                     </p>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {ignoredTopics.map((topic, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full px-3 py-1"
-                        >
-                          <span className="text-sm font-medium text-red-700 dark:text-red-300">{topic.keyword}</span>
-                          <button
-                            onClick={() => onRemoveIgnored(topic.keyword)}
-                            className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none"
-                            title="Stop ignoring"
-                          >
-                            ×
-                          </button>
+                    <div className="space-y-3">
+                      {/* Ignored Articles */}
+                      {ignoredArticles.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-2">Ignored Articles ({ignoredArticles.length})</p>
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {ignoredArticles.map((article) => (
+                              <div
+                                key={article.id}
+                                className="flex items-center justify-between gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg px-3 py-2"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium text-red-700 dark:text-red-300 truncate">{article.title || 'Untitled'}</p>
+                                  <p className="text-xs text-red-500 dark:text-red-400">{article.source || ''}{article.reason ? ` — ${article.reason}` : ''}</p>
+                                </div>
+                                <button
+                                  onClick={() => onRemoveIgnoredArticle && onRemoveIgnoredArticle(article.id)}
+                                  className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none flex-shrink-0"
+                                  title="Stop ignoring this article"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
+                      {/* Ignored Topics */}
+                      {ignoredTopics.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-2">Ignored Topics ({ignoredTopics.length})</p>
+                          <div className="flex flex-wrap gap-2">
+                            {ignoredTopics.map((topic, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full px-3 py-1"
+                              >
+                                <span className="text-sm font-medium text-red-700 dark:text-red-300">{topic.keyword}</span>
+                                <button
+                                  onClick={() => onRemoveIgnored(topic.keyword)}
+                                  className="text-red-400 hover:text-slate-600 transition-colors text-lg leading-none"
+                                  title="Stop ignoring"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
@@ -1672,6 +1706,12 @@
         }
       }, []);
 
+      const handleRemoveIgnoredArticle = useCallback((articleId) => {
+        if (removeIgnoredArticle(articleId)) {
+          setIgnoredArticles(getIgnoredArticles());
+        }
+      }, []);
+
       // Count matching articles for the badge
       const matchingArticlesCount = useMemo(() => {
         let count = 0;
@@ -1720,11 +1760,21 @@
 
         let actionTaken = false;
 
+        const articleId = urlParams.get('articleId');
+        const articleTitle = urlParams.get('title');
+
         // Handle ?action=track&keyword=value format
         if (action === 'track' && keyword) {
           handleTrackKeyword(decodeURIComponent(keyword));
           actionTaken = true;
           alert(`Added "${decodeURIComponent(keyword)}" to tracked sources!`);
+        } else if (action === 'ignore' && articleId) {
+          // Ignore specific article (from newsletter links)
+          const decodedId = decodeURIComponent(articleId);
+          const decodedTitle = articleTitle ? decodeURIComponent(articleTitle) : 'Unknown article';
+          handleIgnoreArticle({ id: decodedId, link: decodedId, title: decodedTitle, source: '' }, 'Ignored from newsletter');
+          actionTaken = true;
+          alert(`Ignored "${decodedTitle}". It will be hidden from your feed.`);
         } else if (action === 'ignore' && keyword) {
           handleIgnoreKeyword(decodeURIComponent(keyword));
           actionTaken = true;
@@ -1745,7 +1795,7 @@
         if (actionTaken) {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
-      }, [handleTrackKeyword, handleIgnoreKeyword]);
+      }, [handleTrackKeyword, handleIgnoreKeyword, handleIgnoreArticle]);
 
       const fetchItems = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);
@@ -2041,7 +2091,7 @@
         const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 6);
         const people = articles.filter(a => a.category === 'people').slice(0, 6);
 
-        const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/action.html';
+        const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/index.html';
 
         const formatBullet = (item) => {
           const title = item.title || 'Untitled';
@@ -2424,9 +2474,11 @@
                   <TrackedTopicsPanel
                     trackedTopics={trackedTopics}
                     ignoredTopics={ignoredTopics}
+                    ignoredArticles={ignoredArticles}
                     onRemoveTopic={handleRemoveTrackedTopic}
                     onAddTopic={handleTrackKeyword}
                     onRemoveIgnored={handleRemoveIgnoredTopic}
+                    onRemoveIgnoredArticle={handleRemoveIgnoredArticle}
                     matchingCount={matchingArticlesCount}
                   />
                 </div>
