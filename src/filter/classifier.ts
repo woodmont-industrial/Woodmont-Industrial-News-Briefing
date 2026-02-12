@@ -165,6 +165,27 @@ function classifyArticleOriginal330(description: string, link: string, source?: 
             break;
     }
 
+    // SECTION 0: STRONG AVAILABILITY SIGNALS (checked first — these clearly indicate a property being marketed)
+    const strongAvailabilityKeywords = [
+        "for lease", "for sale", "for rent", "for sublease", "now leasing", "now available",
+        "available for lease", "available for sale", "seeking tenants", "marketing for lease",
+        "space available", "industrial space for lease", "warehouse for lease",
+        "distribution center for lease", "industrial property for sale",
+        "newly listed", "just listed", "on the market",
+        "for lease or sale", "sublease opportunity", "direct for lease",
+        "build-to-suit", "available space", "vacant"
+    ];
+    const hasStrongAvailability = containsAny(t, strongAvailabilityKeywords);
+
+    // Completed-deal signals that override availability (e.g. "leased 100K SF" = transaction, not availability)
+    const completedDealKeywords = ["sold", "acquired", "bought", "purchased", "leased", "closed",
+                                   "signed", "inked", "secured", "landed", "completed"];
+    const isCompletedDeal = containsAny(t, completedDealKeywords);
+
+    if (hasStrongAvailability && industrialFocus && !isCompletedDeal) {
+        return { isRelevant: true, category: "availabilities", score: 8, tier: 'A' };
+    }
+
     // SECTION 1: RELEVANT ARTICLES - Macro trends and major industrial real estate news
     const hasMacro = containsAny(t, ["rates", "inflation", "freight", "construction", "labor", "market", "trend",
                           "outlook", "forecast", "demand", "supply", "vacancy", "absorption",
@@ -209,18 +230,13 @@ function classifyArticleOriginal330(description: string, link: string, source?: 
         };
     }
 
-    // SECTION 3: AVAILABILITIES - Properties for sale or lease
-    const availabilityKeywords = ["for sale", "for lease", "available", "offering", "marketing",
-                                 "listing", "listed", "seeking", "looking for", "on the market",
-                                 "for rent", "lease space", "space available", "industrial space for lease",
-                                 "warehouse for lease", "distribution center for lease", "industrial property for sale",
-                                 "now available", "newly listed", "just listed", "available for lease",
-                                 "available for sale", "for lease or sale", "sale-leaseback opportunity",
-                                 "development opportunity", "build-to-suit", "spec building", "available space",
-                                 "vacant", "for sublease", "sublease opportunity", "direct for lease"];
+    // SECTION 3: AVAILABILITIES - Softer signals (may overlap with completed deals caught above)
+    const availabilityKeywords = ["available", "offering", "marketing",
+                                 "listing", "listed", "seeking", "looking for",
+                                 "lease space", "sale-leaseback opportunity",
+                                 "development opportunity", "spec building"];
     const hasAvailability = containsAny(t, availabilityKeywords);
 
-    // More lenient availability detection
     if (hasAvailability && industrialFocus) {
         return { isRelevant: true, category: "availabilities", score: 7, tier: 'B' };
     }

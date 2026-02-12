@@ -313,14 +313,24 @@ export async function buildStaticRSS(): Promise<void> {
 
             // Apply categorization rules in order of priority:
 
-            // 1. TRANSACTIONS - Deal signals WITH CRE context
+            // Strong availability signals (property being marketed, not a completed deal)
+            const hasStrongAvailability = /\b(for\s*lease|for\s*sale|now\s*leasing|now\s*available|seeking\s*tenants|available\s*for\s*lease|available\s*for\s*sale|for\s*sublease|on\s*the\s*market|space\s*available|build-?to-?suit|vacant)\b/i.test(text);
+            const isCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(text);
+
+            // 1. STRONG AVAILABILITIES - Clearly marketed property, not a completed deal
+            if (hasStrongAvailability && hasPropertyType && !isCompletedDeal) {
+                item.category = 'availabilities';
+                return item;
+            }
+
+            // 2. TRANSACTIONS - Deal signals WITH CRE context
             if (hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
                 item.category = 'transactions';
                 return item;
             }
 
-            // 2. AVAILABILITIES - Property coming to market WITH property type context
-            if (hasAvailabilityWords && hasPropertyType) {
+            // 3. SOFTER AVAILABILITIES - Property coming to market WITH property type context (may overlap with deals)
+            if (hasAvailabilityWords && hasPropertyType && !isCompletedDeal) {
                 item.category = 'availabilities';
                 return item;
             }
