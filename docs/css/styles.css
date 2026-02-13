@@ -32,6 +32,36 @@ body {
   box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.3);
 }
 
+/* Dark mode text — all text turns white/light for readability */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 { color: #f1f5f9; }
+.dark p, .dark span, .dark li, .dark td, .dark th, .dark label { color: #e2e8f0; }
+.dark a { color: #6ee7b7; }
+.dark a:hover { color: #a7f3d0; }
+
+/* Dark mode newsletter content */
+.dark .newsletter-content .article-title { color: #f1f5f9; }
+.dark .newsletter-content .article-meta { color: #94a3b8; }
+.dark .newsletter-content .article-summary { color: #cbd5e1; }
+.dark .newsletter-content .article-item {
+  background: #1e293b;
+  border-left-color: #10b981;
+}
+.dark .newsletter-content .transaction-highlight {
+  background: #292524;
+  border-left-color: #f59e0b;
+}
+.dark .newsletter-content .availability-highlight {
+  background: #022c22;
+  border-left-color: #10b981;
+}
+.dark .newsletter-content .people-highlight {
+  background: #292524;
+  border-left-color: #f59e0b;
+}
+.dark .newsletter-content .section-header {
+  border-bottom-color: #10b981;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
