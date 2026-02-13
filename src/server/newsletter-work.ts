@@ -97,25 +97,25 @@ export function buildWorkBriefing(
             ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
             : '';
 
-        // Get 1-2 sentence description (max 200 chars)
+        // Get 2-3 sentence description (up to 450 chars for richer summaries)
         let description = '';
         const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
         if (rawDesc && rawDesc.length > 10) {
             const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
             if (sentences && sentences.length > 0) {
-                description = sentences.slice(0, 2).join('').trim();
+                description = sentences.slice(0, 3).join('').trim();
             } else {
                 description = rawDesc;
             }
-            if (description.length > 200) {
-                description = description.substring(0, 197).replace(/\s+\S*$/, '') + '...';
+            if (description.length > 450) {
+                description = description.substring(0, 447).replace(/\s+\S*$/, '') + '...';
             }
         }
 
         // Use description as the display text if available, otherwise fall back to title
         let displayText = description || title;
-        if (displayText.length > 200) {
-            displayText = displayText.substring(0, 197).replace(/\s+\S*$/, '') + '...';
+        if (displayText.length > 450) {
+            displayText = displayText.substring(0, 447).replace(/\s+\S*$/, '') + '...';
         }
 
         // Action links

@@ -1,7 +1,7 @@
 /**
  * AI-Powered Article Description Generator using Groq
  *
- * Generates 1-2 sentence summaries for articles missing descriptions.
+ * Generates detailed 2-3 sentence summaries for articles missing descriptions.
  * Focuses on: location, size, key players, terms — per boss's briefing spec.
  */
 
@@ -10,25 +10,32 @@ import { NormalizedItem } from '../types/index.js';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODEL = 'llama-3.1-8b-instant';
 
-const SYSTEM_PROMPT = `You write concise article summaries for an industrial real estate daily briefing.
+const SYSTEM_PROMPT = `You are a senior commercial real estate analyst writing article summaries for an industrial real estate daily briefing read by executives at Woodmont Industrial Partners.
 
-Rules:
-- Write exactly 1-2 sentences, max 180 characters total.
-- Include: location, deal size (SF or $), key players/companies, and terms when available.
-- Focus on industrial CRE: warehouse, logistics, distribution, manufacturing.
-- Target markets: New Jersey, Pennsylvania, Florida.
-- Be factual and specific. No filler words.
-- If the title already says everything, just rephrase it more concisely with any extra context.
+Your summaries must be:
+- 2-3 sentences, approximately 250-400 characters
+- Factual, specific, and professional — no filler words or vague language
+- Focused on actionable intelligence: WHO did WHAT, WHERE, for HOW MUCH, and WHY it matters
+- Include: exact location (city, state), deal size (SF and/or $), key players/companies, and deal terms when available
+- For market reports: cite specific metrics (vacancy %, absorption SF, rent $/SF, cap rates)
+- For personnel moves: name, new title, firm, and significance
+- Target markets: New Jersey, Pennsylvania (especially Lehigh Valley, Philadelphia), Florida (especially South Florida, Miami)
+- Industrial CRE focus: warehouse, logistics, distribution, manufacturing, last-mile, cold storage
 
-Examples of good summaries:
-- "Prologis signed a 250,000 SF warehouse lease in Edison, NJ with Amazon for a last-mile distribution center."
-- "CBRE reports NJ industrial vacancy fell to 4.2% in Q4, with 8.5M SF of net absorption driven by logistics demand."
-- "NAI Hanson brokered the $32M sale of a 180,000 SF distribution facility in Carteret, NJ to Bridge Industrial."`;
+If the title contains specific deal details, expand on the significance — don't just rephrase the title.
+If limited info is available, provide context about the market or players mentioned.
 
-const USER_PROMPT = `Summarize this article in 1-2 sentences (max 180 chars). Include location, size, players, terms if available.
+Examples:
+- "Prologis signed a 250,000 SF warehouse lease in Edison, NJ with Amazon for a last-mile distribution center. The deal reflects continued e-commerce demand in the Exit 8A corridor where vacancy sits below 3%."
+- "CBRE reports NJ industrial vacancy fell to 4.2% in Q4 2025, with 8.5M SF of net absorption driven by 3PL and logistics tenants. Asking rents climbed 6.2% year-over-year to $17.50/SF NNN."
+- "NAI Hanson brokered the $32M sale of a 180,000 SF distribution facility in Carteret, NJ to Bridge Industrial. The 5.1% cap rate signals strong investor appetite for Class A logistics assets in the northern NJ submarket."
+- "Crow Holdings completed a 294,000 SF spec warehouse in Burlington, NJ with 156,000 SF still available for lease. The 40-foot clear height building targets e-commerce and distribution users along the I-295 corridor."`;
+
+const USER_PROMPT = `Write a detailed 2-3 sentence summary (250-400 characters) for this article. Include location, deal size, key players, and market significance.
 
 TITLE: {title}
 SOURCE: {source}
+EXISTING DESCRIPTION: {existing_desc}
 
 Summary:`;
 
@@ -61,7 +68,11 @@ const GARBAGE_PATTERNS = [
     'not available',
     'no information available',
     'cannot determine',
-    'no details available'
+    'no details available',
+    'based on the title alone',
+    'without more context',
+    'without additional details',
+    'the article appears to'
 ];
 
 /**
@@ -87,9 +98,9 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
 
     console.log(`[AI Desc] Generating descriptions for ${needsDesc.length} articles...`);
 
-    // Process in batches of 2 to stay under rate limits
-    const BATCH_SIZE = 2;
-    const BATCH_DELAY_MS = 3000;
+    // Process in batches of 3 (llama-3.1-8b-instant handles this easily)
+    const BATCH_SIZE = 3;
+    const BATCH_DELAY_MS = 2000;
     let generated = 0;
 
     for (let i = 0; i < needsDesc.length; i += BATCH_SIZE) {
@@ -131,9 +142,13 @@ async function generateSingleDescription(
             } catch {}
         }
 
+        // Include any existing short description as context for the AI
+        const existingDesc = (article.description || (article as any).content_text || '').trim();
+
         const prompt = USER_PROMPT
             .replace('{title}', article.title || 'No title')
-            .replace('{source}', sourceName || 'Industry publication');
+            .replace('{source}', sourceName || 'Industry publication')
+            .replace('{existing_desc}', existingDesc.length > 5 ? existingDesc.substring(0, 500) : 'None');
 
         let response: Response | null = null;
         let retries = 0;
@@ -151,8 +166,8 @@ async function generateSingleDescription(
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: prompt }
                     ],
-                    temperature: 0.3,
-                    max_tokens: 150
+                    temperature: 0.4,
+                    max_tokens: 300
                 })
             });
 
@@ -171,13 +186,14 @@ async function generateSingleDescription(
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content?.trim();
 
-        if (!content || content.length < 10) return null;
+        if (!content || content.length < 20) return null;
 
         // Clean up: remove quotes, markdown, ensure max length
         let desc = content
             .replace(/^["']|["']$/g, '')
             .replace(/^Summary:\s*/i, '')
             .replace(/\*\*/g, '')
+            .replace(/^[-•]\s*/gm, '')
             .trim();
 
         // Reject garbage responses where AI couldn't generate a real summary
@@ -187,8 +203,9 @@ async function generateSingleDescription(
             return null;
         }
 
-        if (desc.length > 200) {
-            desc = desc.substring(0, 197).replace(/\s+\S*$/, '') + '...';
+        // Cap at 500 chars (2-3 good sentences)
+        if (desc.length > 500) {
+            desc = desc.substring(0, 497).replace(/\s+\S*$/, '') + '...';
         }
 
         return desc;
