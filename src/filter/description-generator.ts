@@ -1,8 +1,8 @@
 /**
  * AI-Powered Article Description Generator using Groq
  *
- * Generates detailed 2-3 sentence summaries for articles missing descriptions.
- * Focuses on: location, size, key players, terms — per boss's briefing spec.
+ * Generates factual 1-3 sentence summaries for articles missing descriptions.
+ * CRITICAL: Only states facts from the title/description — never invents details.
  */
 
 import { NormalizedItem } from '../types/index.js';
@@ -10,34 +10,40 @@ import { NormalizedItem } from '../types/index.js';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODEL = 'llama-3.1-8b-instant';
 
-const SYSTEM_PROMPT = `You are a senior commercial real estate analyst writing article summaries for an industrial real estate daily briefing read by executives at Woodmont Industrial Partners.
+const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
 
-Your summaries must be:
-- 2-3 sentences, approximately 250-400 characters
-- Factual, specific, and professional — no filler words or vague language
-- Focused on actionable intelligence: WHO did WHAT, WHERE, for HOW MUCH, and WHY it matters
-- Include: exact location (city, state), deal size (SF and/or $), key players/companies, and deal terms when available
-- For market reports: cite specific metrics (vacancy %, absorption SF, rent $/SF, cap rates)
-- For personnel moves: name, new title, firm, and significance
-- Target markets: New Jersey, Pennsylvania (especially Lehigh Valley, Philadelphia), Florida (especially South Florida, Miami)
-- Industrial CRE focus: warehouse, logistics, distribution, manufacturing, last-mile, cold storage
+CRITICAL RULES — NEVER VIOLATE THESE:
+1. ONLY state facts that appear in the TITLE or EXISTING DESCRIPTION provided. Do NOT invent, assume, or fabricate any details.
+2. NEVER make up dollar amounts, square footage, company names, locations, cap rates, or any specific numbers that are not in the provided text.
+3. NEVER mention companies or people not named in the title or description.
+4. If the title only names a company and an action, just describe that action concisely — do NOT add fake specifics.
+5. If you don't know a detail, LEAVE IT OUT. A shorter accurate summary is always better than a longer fabricated one.
+6. Write 1-3 sentences. Be concise and professional.
+7. Focus on: who, what, where, deal size — but ONLY if these details are explicitly provided.
 
-If the title contains specific deal details, expand on the significance — don't just rephrase the title.
-If limited info is available, provide context about the market or players mentioned.
+GOOD (only uses facts from title):
+Title: "Prologis signs 250,000 SF lease in Edison, NJ with Amazon"
+→ "Prologis signed a 250,000 SF lease in Edison, NJ with Amazon as the tenant."
 
-Examples:
-- "Prologis signed a 250,000 SF warehouse lease in Edison, NJ with Amazon for a last-mile distribution center. The deal reflects continued e-commerce demand in the Exit 8A corridor where vacancy sits below 3%."
-- "CBRE reports NJ industrial vacancy fell to 4.2% in Q4 2025, with 8.5M SF of net absorption driven by 3PL and logistics tenants. Asking rents climbed 6.2% year-over-year to $17.50/SF NNN."
-- "NAI Hanson brokered the $32M sale of a 180,000 SF distribution facility in Carteret, NJ to Bridge Industrial. The 5.1% cap rate signals strong investor appetite for Class A logistics assets in the northern NJ submarket."
-- "Crow Holdings completed a 294,000 SF spec warehouse in Burlington, NJ with 156,000 SF still available for lease. The 40-foot clear height building targets e-commerce and distribution users along the I-295 corridor."`;
+GOOD (title has limited info, keeps it short):
+Title: "Industrial vacancy rates decline in Q4"
+→ "Industrial vacancy rates declined in the fourth quarter, signaling tightening market conditions."
 
-const USER_PROMPT = `Write a detailed 2-3 sentence summary (250-400 characters) for this article. Include location, deal size, key players, and market significance.
+BAD (invents numbers not in title):
+Title: "Retail Centers Portfolio Expands With Town Lane Acquisition"
+→ "Town Lane acquired a 1.1M SF portfolio for $500M in South Florida." ← FABRICATED! None of these details were in the title.
+
+CORRECT version:
+Title: "Retail Centers Portfolio Expands With Town Lane Acquisition"
+→ "Town Lane expanded its retail centers portfolio through a new acquisition."`;
+
+const USER_PROMPT = `Summarize ONLY using facts from the title and description below. Do NOT invent any details.
 
 TITLE: {title}
 SOURCE: {source}
 EXISTING DESCRIPTION: {existing_desc}
 
-Summary:`;
+Factual summary:`;
 
 // Skip AI generation for paywalled sources — AI can't read the article anyway
 const PAYWALLED_SOURCES = [
@@ -76,6 +82,50 @@ const GARBAGE_PATTERNS = [
 ];
 
 /**
+ * Verify the AI description doesn't contain fabricated details.
+ * Checks that specific numbers/names in the description actually appear in the source text.
+ */
+function containsFabrication(desc: string, title: string, existingDesc: string): boolean {
+    const sourceText = (title + ' ' + existingDesc).toLowerCase();
+    const descLower = desc.toLowerCase();
+
+    // Extract dollar amounts from description — they must exist in source
+    const descDollars = descLower.match(/\$[\d,.]+\s*(?:million|billion|m|b|k)/gi) || [];
+    for (const amount of descDollars) {
+        // Check if this amount (or its core number) appears in source
+        const num = amount.replace(/[$,\s]/g, '').match(/[\d.]+/)?.[0];
+        if (num && !sourceText.includes(num)) {
+            return true; // Fabricated dollar amount
+        }
+    }
+
+    // Extract SF amounts from description — they must exist in source
+    const descSF = descLower.match(/[\d,.]+ ?(sf|square feet|sq\.?\s*ft)/gi) || [];
+    for (const sf of descSF) {
+        const num = sf.match(/[\d,.]+/)?.[0]?.replace(/,/g, '');
+        if (num && !sourceText.replace(/,/g, '').includes(num)) {
+            return true; // Fabricated SF amount
+        }
+    }
+
+    // Check for percentage figures
+    const descPct = descLower.match(/[\d.]+\s*%/g) || [];
+    for (const pct of descPct) {
+        const num = pct.replace(/\s*%/, '');
+        if (!sourceText.includes(num)) {
+            return true; // Fabricated percentage
+        }
+    }
+
+    // Never mention "woodmont" — the AI shouldn't reference the reader's company
+    if (descLower.includes('woodmont')) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Generate descriptions for articles missing them
  */
 export async function generateDescriptions(articles: NormalizedItem[]): Promise<void> {
@@ -102,6 +152,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
     const BATCH_SIZE = 3;
     const BATCH_DELAY_MS = 2000;
     let generated = 0;
+    let rejected = 0;
 
     for (let i = 0; i < needsDesc.length; i += BATCH_SIZE) {
         const batch = needsDesc.slice(i, i + BATCH_SIZE);
@@ -113,8 +164,15 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
             if (results[j].status === 'fulfilled') {
                 const desc = (results[j] as PromiseFulfilledResult<string | null>).value;
                 if (desc) {
-                    batch[j].description = desc;
-                    generated++;
+                    // Post-generation fabrication check
+                    const existingDesc = (batch[j].description || (batch[j] as any).content_text || '').trim();
+                    if (containsFabrication(desc, batch[j].title || '', existingDesc)) {
+                        console.log(`[AI Desc] REJECTED fabrication for "${batch[j].title?.substring(0, 50)}": ${desc.substring(0, 80)}...`);
+                        rejected++;
+                    } else {
+                        batch[j].description = desc;
+                        generated++;
+                    }
                 }
             }
         }
@@ -125,7 +183,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
         }
     }
 
-    console.log(`[AI Desc] Generated ${generated}/${needsDesc.length} descriptions`);
+    console.log(`[AI Desc] Generated ${generated}/${needsDesc.length} descriptions (${rejected} rejected as fabrication)`);
 }
 
 async function generateSingleDescription(
@@ -166,7 +224,7 @@ async function generateSingleDescription(
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: prompt }
                     ],
-                    temperature: 0.4,
+                    temperature: 0.1,
                     max_tokens: 300
                 })
             });
@@ -191,7 +249,7 @@ async function generateSingleDescription(
         // Clean up: remove quotes, markdown, ensure max length
         let desc = content
             .replace(/^["']|["']$/g, '')
-            .replace(/^Summary:\s*/i, '')
+            .replace(/^(Summary|Factual summary):\s*/i, '')
             .replace(/\*\*/g, '')
             .replace(/^[-•]\s*/gm, '')
             .trim();
