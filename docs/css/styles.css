@@ -62,6 +62,13 @@ body {
   border-bottom-color: #10b981;
 }
 
+/* Dark mode for newsletter template view (inline dangerouslySetInnerHTML) */
+.dark-newsletter { background: #1e293b; padding: 20px; border-radius: 8px; }
+.dark-newsletter h1, .dark-newsletter h2, .dark-newsletter h3, .dark-newsletter h4 { color: #f1f5f9 !important; }
+.dark-newsletter p, .dark-newsletter li, .dark-newsletter span, .dark-newsletter td { color: #e2e8f0 !important; }
+.dark-newsletter a { color: #6ee7b7 !important; }
+.dark-newsletter hr { border-color: #475569 !important; }
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

@@ -993,7 +993,7 @@
       );
     };
 
-    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
+    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
       
@@ -1221,10 +1221,19 @@
           </div>
               <div className="p-6">
                 {showTemplate ? (
-                  <div className="newsletter-content" dangerouslySetInnerHTML={{ __html: html }} />
+                  <div className={`newsletter-content ${darkMode ? 'dark-newsletter' : ''}`} dangerouslySetInnerHTML={{ __html: html }} />
                 ) : (
                   <iframe
-                    srcDoc={`<html><head><style>body{font-family:Arial,sans-serif;margin:20px;background:white;} .newsletter-content{max-width:800px;margin:0 auto;}</style></head><body><div class="newsletter-content">${html}</div></body></html>`}
+                    srcDoc={`<html><head><style>
+                      body{font-family:Arial,sans-serif;margin:20px;background:${darkMode ? '#1e293b' : 'white'};color:${darkMode ? '#e2e8f0' : '#333'};}
+                      .newsletter-content{max-width:800px;margin:0 auto;}
+                      ${darkMode ? `
+                        h1,h2,h3,h4{color:#f1f5f9 !important;}
+                        p,li,span,td{color:#e2e8f0 !important;}
+                        a{color:#6ee7b7 !important;}
+                        hr{border-color:#475569 !important;}
+                      ` : ''}
+                    </style></head><body><div class="newsletter-content">${html}</div></body></html>`}
                     className="w-full h-96 border border-slate-200 dark:border-slate-700 rounded-lg"
                     title="Newsletter Preview"
                   />
@@ -1772,13 +1781,12 @@
         </body></html>`;
       };
 
-      // Work theme newsletter builder - clean, professional, minimal styling (Boss's preferred)
+      // Work theme newsletter builder - mirrors newsletter-work.ts buildWorkBriefing() exactly
       const buildWorkNewsletterHTML = (articles, days) => {
         const now = new Date();
         const isFriday = now.getDay() === 5;
         const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Known paywalled sources (matching newsletter-work.ts)
         const PAYWALLED_SOURCES = ['wsj', 'wall street journal', 'bloomberg', 'costar', 'bisnow', 'globest', 'commercial observer', 'therealdeal', 'the real deal', 'bizjournals', 'business journal', 'njbiz', 'lvb'];
 
         const isPaywalled = (source, url) => {
@@ -1796,11 +1804,38 @@
         };
 
         const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
-        const transactions = articles.filter(a => a.category === 'transaction').slice(0, 6);
+        const transactions = articles.filter(a => a.category === 'transactions').slice(0, 6);
         const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 6);
         const people = articles.filter(a => a.category === 'people').slice(0, 6);
 
         const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/index.html';
+
+        const extractTrackKeyword = (title) => {
+          const companyMatch = title.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/);
+          if (companyMatch) return companyMatch[0];
+          const locationMatch = title.match(/(New\s+Jersey|South\s+Florida|Pennsylvania|Miami-Dade|Broward|Philadelphia|Newark)/i);
+          if (locationMatch) return locationMatch[0];
+          const words = title.split(' ').slice(0, 3).join(' ');
+          return words.length > 5 ? words : title.substring(0, 30);
+        };
+
+        // Detect big deals (>=100K SF or >=$25M)
+        const isBigDeal = (text) => {
+          const upper = text.toUpperCase();
+          const sfMatch = upper.match(/(\d{1,3}(?:,\d{3})*)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/);
+          if (sfMatch) {
+            const sf = parseInt(sfMatch[1].replace(/,/g, ''));
+            if (sf >= 100000) return `${(sf / 1000).toFixed(0)}K SF`;
+          }
+          const dollarMatch = upper.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/);
+          if (dollarMatch) {
+            const amount = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            if (amount >= 25) return `$${amount}M`;
+          }
+          const billionMatch = upper.match(/\$(\d{1,3}(?:\.\d+)?)\s*(?:BILLION|B\b)/);
+          if (billionMatch) return `$${billionMatch[1]}B`;
+          return null;
+        };
 
         const formatBullet = (item) => {
           const title = item.title || 'Untitled';
@@ -1809,32 +1844,73 @@
           const sourceName = getSourceName(source, url);
           const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
-          // Truncate title to ~120 chars for 2 lines
-          let displayText = title;
-          if (displayText.length > 120) {
-            displayText = displayText.substring(0, 117).replace(/\s+\S*$/, '') + '...';
+          // Big deal badge
+          const dealText = `${title} ${item.description || ''}`;
+          const dealSize = isBigDeal(dealText);
+          const dealBadge = dealSize
+            ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
+            : '';
+
+          // Get 2-3 sentence description (up to 450 chars)
+          let description = '';
+          const rawDesc = (item.description || item.content_text || item.summary || '').trim();
+          if (rawDesc && rawDesc.length > 10) {
+            const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
+            if (sentences && sentences.length > 0) {
+              description = sentences.slice(0, 3).join('').trim();
+            } else {
+              description = rawDesc;
+            }
+            if (description.length > 450) {
+              description = description.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+            }
           }
 
-          const trackKeyword = title.split(' ').slice(0, 3).join(' ');
+          // Use description as display text if available, otherwise title
+          let displayText = description || title;
+          if (displayText.length > 450) {
+            displayText = displayText.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+          }
+
+          // Action links
+          const trackKeyword = extractTrackKeyword(title);
           const trackUrl = `${actionUrl}?action=track&keyword=${encodeURIComponent(trackKeyword)}`;
           const articleId = encodeURIComponent(url);
-          const ignoreUrl = `${actionUrl}?action=ignore&articleId=${articleId}&title=${encodeURIComponent(title.substring(0, 80))}`;
-          const shareUrl = `mailto:?subject=${encodeURIComponent('FW: ' + title)}&body=${encodeURIComponent('Thought you\'d find this relevant:\n\n' + title + '\n' + url)}`;
+          const titleParam = encodeURIComponent(title.substring(0, 80));
+          const ignoreUrl = `${actionUrl}?action=ignore&articleId=${articleId}&title=${titleParam}`;
+          const shareSubject = encodeURIComponent(`FW: ${title}`);
+          const shareBody = encodeURIComponent(`Thought you'd find this relevant:\n\n${title}\n${url}`);
+          const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
-          return `<li style="margin-bottom: 12px; line-height: 1.5; color: #333;">
-            ${displayText} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled} <a href="${trackUrl}" style="color: #10b981; text-decoration: none; font-size: 11px;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none; font-size: 11px;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none; font-size: 11px;">[Ignore]</a>
+          return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
+            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}
+            <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
           </li>`;
         };
 
-        const renderSection = (title, items, maxItems = 6) => {
-          if (!items || items.length === 0) {
-            return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${title}</h2>
+        const renderSection = (sectionTitle, sectionItems, maxItems = 6) => {
+          if (!sectionItems || sectionItems.length === 0) {
+            return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${sectionTitle}</h2>
               <p style="color: #666; font-style: italic; margin: 10px 0 20px 0;">No updated information provided for this section.</p>`;
           }
-          const bullets = items.slice(0, maxItems).map(formatBullet).join('');
-          return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${title}</h2>
+          const bullets = sectionItems.slice(0, maxItems).map(formatBullet).join('');
+          return `<h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">${sectionTitle}</h2>
             <ul style="margin: 10px 0 20px 0; padding-left: 25px; list-style-type: disc;">${bullets}</ul>`;
         };
+
+        // Week-in-Review on Fridays (top 5 from all categories)
+        let weekInReviewHtml = '';
+        if (isFriday) {
+          const allSorted = [...articles].sort((a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0));
+          const top5 = allSorted.slice(0, 5);
+          if (top5.length > 0) {
+            weekInReviewHtml = `
+            <h2 style="margin: 25px 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold; border-top: 2px solid #2563eb; padding-top: 15px;">
+              Week-in-Review — Top 5 Developments
+            </h2>
+            ${renderSection('', top5, 5).replace(/<h2[^>]*>.*?<\/h2>/, '')}`;
+          }
+        }
 
         const headerTitle = isFriday
           ? 'Woodmont Industrial Partners — Weekly Industrial News Briefing'
@@ -1850,6 +1926,7 @@
     ${renderSection('Transactions', transactions, 6)}
     ${renderSection('Availabilities', availabilities, 6)}
     ${renderSection('People News', people, 6)}
+    ${weekInReviewHtml}
     <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
     <p style="font-size: 11px; color: #888; margin: 0;">
       This briefing is automatically generated for Woodmont Industrial Partners.<br>
@@ -2210,6 +2287,7 @@
               setTimeframe={setNewsletterTimeframe}
               theme={newsletterTheme}
               setTheme={setNewsletterTheme}
+              darkMode={theme === 'dark'}
               onGenerate={generateNewsletter}
               onClear={clearNewsletter}
               generated={newsletterGenerated}
