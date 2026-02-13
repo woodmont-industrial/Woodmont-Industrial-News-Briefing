@@ -39,14 +39,14 @@
 
       return (
         <header className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-500"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-500 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700"></div>
           <div className="relative px-6 py-10 text-center text-white">
             <div className="flex items-center justify-center gap-6">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight drop-shadow-lg">
                   🏢 Woodmont Industrial Partners
                 </h1>
-                <p className="text-2xl md:text-3xl font-semibold mb-4 text-emerald-100">
+                <p className="text-2xl md:text-3xl font-semibold mb-4 text-emerald-100 dark:text-slate-300">
                   Daily Real Estate News Briefing
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
@@ -312,10 +312,10 @@
               {isValidDate && <span>{published.toLocaleDateString()}</span>}
               {item.category && (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  item.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                  item.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
-                  'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                  item.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' :
+                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-amber-900/60 text-green-800 dark:text-amber-300' :
+                  item.category === 'people' ? 'bg-purple-100 dark:bg-amber-900/60 text-purple-800 dark:text-amber-300' :
+                  'bg-slate-100 dark:bg-amber-900/60 text-slate-800 dark:text-amber-300'
                 }`}>
                   {item.category === 'transactions' ? 'Transactions' :
                    item.category === 'availabilities' ? 'Availabilities' :
@@ -492,10 +492,10 @@
                     {isValidDate && <span>{published.toLocaleDateString()}</span>}
                     {article.category && (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        article.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                        article.category === 'availabilities' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                        article.category === 'people' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
-                        'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                        article.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' :
+                        article.category === 'availabilities' ? 'bg-green-100 dark:bg-amber-900/60 text-green-800 dark:text-amber-300' :
+                        article.category === 'people' ? 'bg-purple-100 dark:bg-amber-900/60 text-purple-800 dark:text-amber-300' :
+                        'bg-slate-100 dark:bg-amber-900/60 text-slate-800 dark:text-amber-300'
                       }`}>
                         {article.category === 'transactions' ? 'Transactions' :
                          article.category === 'availabilities' ? 'Availabilities' :
