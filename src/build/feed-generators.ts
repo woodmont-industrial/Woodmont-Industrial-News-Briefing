@@ -143,10 +143,10 @@ export function generateJSONFeed(items: NormalizedItem[]): object {
                 image: imageUrl,
                 author: { name: authorName || item.source || websiteDomain },
                 _source: {
-                    name: item.source || 'Unknown',
+                    name: item.source || websiteDomain || 'Unknown',
                     website: websiteDomain,
                     url: itemLink,
-                    feedName: item.source
+                    feedName: item.source || websiteDomain
                 },
                 category: category,
                 tags: [categoryLabels[category] || category, websiteDomain, ...(item.regions || [])]

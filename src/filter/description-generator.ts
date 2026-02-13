@@ -54,7 +54,14 @@ const GARBAGE_PATTERNS = [
     'unable to summarize',
     'no article details',
     'no details provided',
-    'insufficient information'
+    'insufficient information',
+    'source is unknown',
+    'no summary available',
+    'summary unavailable',
+    'not available',
+    'no information available',
+    'cannot determine',
+    'no details available'
 ];
 
 /**
@@ -115,9 +122,18 @@ async function generateSingleDescription(
     apiKey: string
 ): Promise<string | null> {
     try {
+        // Derive source from article metadata or URL domain
+        let sourceName = article.source || '';
+        if (!sourceName) {
+            try {
+                const url = (article as any).url || article.link || '';
+                if (url) sourceName = new URL(url).hostname.replace('www.', '');
+            } catch {}
+        }
+
         const prompt = USER_PROMPT
             .replace('{title}', article.title || 'No title')
-            .replace('{source}', article.source || 'Unknown');
+            .replace('{source}', sourceName || 'Industry publication');
 
         let response: Response | null = null;
         let retries = 0;
