@@ -334,16 +334,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const now = new Date();
         const today = new Date();
         const isFriday = today.getDay() === 5;
+        const isMonday = today.getDay() === 1;
 
         // Constants for section minimums and caps
         const MIN_RELEVANT = 4;
         const MIN_OTHER = 2;
         const MAX_PER_SECTION = 6;
 
-        // Start with 48 hours (max for daily briefing)
-        let timeRange = 48;
-        let recentArticles = filterArticlesByTimeRange(articles, 48);
+        // Monday: expand to 72h to catch weekend articles; otherwise 48h max
+        const maxRange = isMonday ? 72 : 48;
+        let timeRange = maxRange;
+        let recentArticles = filterArticlesByTimeRange(articles, maxRange);
         let regionalArticles = recentArticles.filter(isTargetRegion);
+        if (isMonday) console.log('📅 Monday detected — using 72h window to capture weekend articles');
 
         // If plenty of articles, try narrowing to 24h
         const recent24 = filterArticlesByTimeRange(articles, 24);
