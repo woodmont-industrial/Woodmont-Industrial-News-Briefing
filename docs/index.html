@@ -1537,24 +1537,33 @@
                   authorName = item.source || 'Unknown';
                 }
                 
-                // Determine category from tags
-                const firstTag = item.tags?.[0] || '';
-                const tagLower = firstTag.toLowerCase();
-                let category = 'relevant';
-                if (tagLower.includes('transaction')) category = 'transaction';
-                else if (tagLower.includes('availab')) category = 'availabilities';
-                else if (tagLower.includes('people')) category = 'people';
-                
                 return {
                   ...item,
                   link: item.url || item.link || '',
                   pubDate: item.date_published || item.pubDate || new Date().toISOString(),
                   description: item.content_text || item.content_html || item.description || '',
                   source: authorName,
-                  category: category
+                  category: item.category || 'relevant'
                 };
               })
             : (Array.isArray(data.items) ? data.items : []);
+          // Merge raw picks from localStorage into the articles list
+          if (IS_STATIC) {
+            try {
+              const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+              const existingIds = new Set(articles.map(a => a.id));
+              Object.entries(rawPicks).forEach(([id, p]) => {
+                if (!existingIds.has(id)) {
+                  articles.push({
+                    id, title: p.t || 'Untitled', link: p.u || '#', source: p.s || 'Unknown',
+                    pubDate: p.d || new Date().toISOString(), description: p.ex || '',
+                    category: p.c === 'excluded' ? 'relevant' : (p.c || 'relevant'),
+                    _fromRawPick: true
+                  });
+                }
+              });
+            } catch (e) { console.warn('Could not merge raw picks:', e); }
+          }
           setItems(articles);
           if (data.generatedAt) {
             const d = new Date(data.generatedAt);
@@ -1611,10 +1620,11 @@
         const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
         const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
 
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 10);
-        const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
-        const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
-        const people = articles.filter(a => a.category === 'people').slice(0, 5);
+        const byDate = (a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0);
+        const relevant = articles.filter(a => a.category === 'relevant').sort(byDate).slice(0, 10);
+        const transactions = articles.filter(a => a.category === 'transactions').sort(byDate).slice(0, 5);
+        const availabilities = articles.filter(a => a.category === 'availabilities').sort(byDate).slice(0, 5);
+        const people = articles.filter(a => a.category === 'people').sort(byDate).slice(0, 5);
 
         // Industrial relevance context based on category
         const relevanceContext = {
@@ -1725,10 +1735,11 @@
         const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
         const dateRange = `${startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} (ET)`;
 
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 10);
-        const transactions = articles.filter(a => a.category === 'transaction').slice(0, 5);
-        const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 5);
-        const people = articles.filter(a => a.category === 'people').slice(0, 5);
+        const byDate = (a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0);
+        const relevant = articles.filter(a => a.category === 'relevant').sort(byDate).slice(0, 10);
+        const transactions = articles.filter(a => a.category === 'transactions').sort(byDate).slice(0, 5);
+        const availabilities = articles.filter(a => a.category === 'availabilities').sort(byDate).slice(0, 5);
+        const people = articles.filter(a => a.category === 'people').sort(byDate).slice(0, 5);
 
         const formatBullet = (item) => {
           const title = item.title || 'Untitled';
@@ -1803,10 +1814,11 @@
           } catch { return 'Source'; }
         };
 
-        const relevant = articles.filter(a => a.category === 'relevant').slice(0, 6);
-        const transactions = articles.filter(a => a.category === 'transactions').slice(0, 6);
-        const availabilities = articles.filter(a => a.category === 'availabilities').slice(0, 6);
-        const people = articles.filter(a => a.category === 'people').slice(0, 6);
+        const byDate = (a, b) => new Date(b.pubDate || b.fetchedAt || 0) - new Date(a.pubDate || a.fetchedAt || 0);
+        const relevant = articles.filter(a => a.category === 'relevant').sort(byDate).slice(0, 6);
+        const transactions = articles.filter(a => a.category === 'transactions').sort(byDate).slice(0, 6);
+        const availabilities = articles.filter(a => a.category === 'availabilities').sort(byDate).slice(0, 6);
+        const people = articles.filter(a => a.category === 'people').sort(byDate).slice(0, 6);
 
         const actionUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/index.html';
 
@@ -1952,13 +1964,12 @@
             try {
               const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
               const pickIds = new Set(recentArticles.map(a => a.id));
-              const catMap = { relevant: 'relevant', transactions: 'transaction', people: 'people', availabilities: 'availabilities', excluded: 'relevant' };
               Object.entries(rawPicks).forEach(([id, p]) => {
                 if (!pickIds.has(id)) {
-                  recentArticles.unshift({
+                  recentArticles.push({
                     id, title: p.t || 'Untitled', link: p.u || '#', source: p.s || 'Unknown',
                     pubDate: p.d || new Date().toISOString(), description: p.ex || '',
-                    category: catMap[p.c] || 'relevant', _fromRawPick: true
+                    category: p.c === 'excluded' ? 'relevant' : (p.c || 'relevant'), _fromRawPick: true
                   });
                 }
               });
