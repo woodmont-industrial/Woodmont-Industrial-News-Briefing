@@ -182,6 +182,104 @@
     return topics.some(function(t) { return searchText.includes(t.keyword.toLowerCase()); });
   }
 
+  // ============================================
+  // GITHUB SYNC — persist ignores to excluded-articles.json
+  // ============================================
+  var GITHUB_TOKEN_KEY = 'woodmont_github_token';
+  var GITHUB_REPO = 'woodmont-industrial/Woodmont-Industrial-News-Briefing';
+  var EXCLUDE_FILE_PATH = 'docs/excluded-articles.json';
+
+  function getGitHubToken() {
+    return localStorage.getItem(GITHUB_TOKEN_KEY) || '';
+  }
+
+  function setGitHubToken(token) {
+    if (token) {
+      localStorage.setItem(GITHUB_TOKEN_KEY, token.trim());
+    } else {
+      localStorage.removeItem(GITHUB_TOKEN_KEY);
+    }
+  }
+
+  async function syncExcludeToGitHub(articleId, articleUrl, articleTitle) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + EXCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      // GET current file
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+      var content = JSON.parse(atob(fileData.content));
+
+      // Check if already excluded
+      var ids = content.excludedIds || [];
+      var urls = content.excludedUrls || [];
+      var alreadyExcluded = ids.indexOf(articleId) !== -1;
+      if (alreadyExcluded) return { ok: true, reason: 'already_excluded' };
+
+      // Add article
+      ids.push(articleId);
+      if (articleUrl && urls.indexOf(articleUrl) === -1) urls.push(articleUrl);
+      content.excludedIds = ids;
+      content.excludedUrls = urls;
+
+      // PUT updated file
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Exclude: ' + (articleTitle || '').substring(0, 60),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok, reason: putResp.ok ? 'synced' : 'put_failed' };
+    } catch (e) {
+      console.error('GitHub sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  async function removeExcludeFromGitHub(articleId) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + EXCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+      var content = JSON.parse(atob(fileData.content));
+
+      var ids = content.excludedIds || [];
+      var idx = ids.indexOf(articleId);
+      if (idx === -1) return { ok: true, reason: 'not_found' };
+
+      ids.splice(idx, 1);
+      content.excludedIds = ids;
+
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Un-exclude article ' + articleId.substring(0, 12),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok };
+    } catch (e) {
+      console.error('GitHub sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
   // Expose as global
   window.WoodmontUtils = {
     TRACKED_TOPICS_KEY: TRACKED_TOPICS_KEY,
@@ -200,6 +298,11 @@
     addIgnoredArticle: addIgnoredArticle,
     removeIgnoredTopic: removeIgnoredTopic,
     removeIgnoredArticle: removeIgnoredArticle,
-    isArticleIgnored: isArticleIgnored
+    isArticleIgnored: isArticleIgnored,
+    GITHUB_TOKEN_KEY: GITHUB_TOKEN_KEY,
+    getGitHubToken: getGitHubToken,
+    setGitHubToken: setGitHubToken,
+    syncExcludeToGitHub: syncExcludeToGitHub,
+    removeExcludeFromGitHub: removeExcludeFromGitHub
   };
 })();
