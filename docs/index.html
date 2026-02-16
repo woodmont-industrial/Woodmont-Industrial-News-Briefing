@@ -227,7 +227,7 @@
     // Placeholder images - from external utils.js
     const { getPlaceholderImage } = window.WoodmontUtils;
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle }) => {
+    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw }) => {
       const category = item.category || 'relevant';
       const fallback = getPlaceholderImage(category, item.title);
       const [imgSrc, setImgSrc] = useState(item.image || fallback);
@@ -371,6 +371,19 @@
                   {isTracked ? 'TRACKING' : 'Track'}
                 </button>
 
+                {/* Send to Raw Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSendToRaw && onSendToRaw(item);
+                  }}
+                  className="px-3 py-1 rounded-lg text-xs font-bold bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all cursor-pointer"
+                  title="Send to Raw picks"
+                >
+                  Raw &rarr;
+                </button>
+
                 {/* Ignore Button with dropdown menu */}
                 <div className="relative">
                   <button
@@ -415,7 +428,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, ignoredTopics, ignoredArticles }) => {
+    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -463,6 +476,7 @@
                   trackedMatches={getArticleMatches(item)}
                   onTrackKeyword={onTrackKeyword}
                   onIgnoreArticle={onIgnoreArticle}
+                  onSendToRaw={onSendToRaw}
                 />
               ))}
             </div>
@@ -1460,6 +1474,22 @@
         }
       }, []);
 
+      // Send article to Raw picks (moves from Articles to Raw)
+      const handleSendToRaw = useCallback((article) => {
+        try {
+          const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+          const id = article.id || article.link;
+          rawPicks[id] = {
+            t: article.title || '', u: article.link || '', s: article.source || article.publisher || '',
+            d: article.pubDate || new Date().toISOString(), ex: article.description || '',
+            c: article.category || 'relevant', r: article.region || '', kw: article.keywords || []
+          };
+          localStorage.setItem('woodmont_raw_picks', JSON.stringify(rawPicks));
+          handleIgnoreArticle(article, 'Moved to Raw');
+          console.log(`Sent to Raw: "${article.title}"`);
+        } catch (e) { console.error('Error sending to raw:', e); }
+      }, [handleIgnoreArticle]);
+
       const handleRemoveIgnoredTopic = useCallback((keyword) => {
         if (removeIgnoredTopic(keyword)) {
           setIgnoredTopics(getIgnoredTopics());
@@ -1956,6 +1986,7 @@
             const days = parseInt(newsletterTimeframe, 10);
             const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
             const recentArticles = items.filter(item => {
+              if (isArticleIgnored(item)) return false;
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
             });
@@ -1966,11 +1997,14 @@
               const pickIds = new Set(recentArticles.map(a => a.id));
               Object.entries(rawPicks).forEach(([id, p]) => {
                 if (!pickIds.has(id)) {
-                  recentArticles.push({
+                  const rawArticle = {
                     id, title: p.t || 'Untitled', link: p.u || '#', source: p.s || 'Unknown',
                     pubDate: p.d || new Date().toISOString(), description: p.ex || '',
                     category: p.c === 'excluded' ? 'relevant' : (p.c || 'relevant'), _fromRawPick: true
-                  });
+                  };
+                  if (!isArticleIgnored(rawArticle)) {
+                    recentArticles.push(rawArticle);
+                  }
                 }
               });
             } catch (e) { console.warn('Could not load raw picks:', e); }
@@ -2288,6 +2322,7 @@
                   ignoredArticles={ignoredArticles}
                   onTrackKeyword={handleTrackKeyword}
                   onIgnoreArticle={handleIgnoreArticle}
+                  onSendToRaw={handleSendToRaw}
                 />
               </>
             ) : viewMode === "newsletter" ? (

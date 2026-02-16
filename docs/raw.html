@@ -129,6 +129,7 @@ function RawApp() {
     return Object.keys(p.keywords).length > 0 ? 'ai' : 'newest';
   });
   const [hideInFeed, setHideInFeed] = useState(false);
+  const [hidePicked, setHidePicked] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
 
   // Dark mode
@@ -156,6 +157,7 @@ function RawApp() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     let list = items.filter(i => {
+      if (hidePicked && picks[i.id]) return false;
       if (hideInFeed && i.in_feed) return false;
       if (sourceFilter !== 'all' && i.s !== sourceFilter) return false;
       if (catFilter !== 'all' && i.c !== catFilter) return false;
@@ -173,7 +175,7 @@ function RawApp() {
       list.sort((a, b) => new Date(b.d) - new Date(a.d));
     }
     return list;
-  }, [items, search, sourceFilter, catFilter, regionFilter, sortBy, hideInFeed, prefs]);
+  }, [items, search, sourceFilter, catFilter, regionFilter, sortBy, hideInFeed, hidePicked, picks, prefs]);
 
   const pickCount = Object.keys(picks).length;
   const prefTags = useMemo(() => topPrefs(prefs), [prefs]);
@@ -298,6 +300,11 @@ function RawApp() {
           <option value="ai">AI Score</option>
         </select>
         <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer whitespace-nowrap">
+          <input type="checkbox" checked={hidePicked} onChange={e => setHidePicked(e.target.checked)}
+            className="rounded border-slate-300 text-orange-500 focus:ring-orange-300" />
+          Hide picked
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer whitespace-nowrap">
           <input type="checkbox" checked={hideInFeed} onChange={e => setHideInFeed(e.target.checked)}
             className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300" />
           Hide in-feed
@@ -377,7 +384,7 @@ function RawApp() {
                               Open article &rarr;
                             </a>
                             <button onClick={() => togglePick(item)} className={`text-xs font-medium ${picked ? 'text-red-600' : 'text-orange-600'}`}>
-                              {picked ? 'Remove pick' : 'Pick for newsletter'}
+                              {picked ? '\u2190 Back to Raw' : 'Pick for newsletter'}
                             </button>
                           </div>
                         </div>

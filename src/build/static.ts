@@ -10,6 +10,7 @@ import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySou
 import { NormalizedItem, FetchResult } from '../types/index.js';
 import { RSS_FEEDS } from '../feeds/config.js';
 import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
+import { generateDescriptions } from '../filter/description-generator.js';
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
@@ -399,6 +400,18 @@ export async function buildStaticRSS(): Promise<void> {
             }
         } else {
             log('info', 'GROQ_API_KEY not set, skipping AI classification');
+        }
+
+        // === AI DESCRIPTION GENERATION (if GROQ_API_KEY is set) ===
+        if (process.env.GROQ_API_KEY) {
+            log('info', 'Generating AI descriptions for articles missing summaries...');
+            try {
+                await generateDescriptions(aiFilteredItems);
+                const withDesc = aiFilteredItems.filter(a => a.description && a.description.length >= 20).length;
+                log('info', `AI description generation complete`, { articlesWithDescriptions: withDesc, total: aiFilteredItems.length });
+            } catch (error) {
+                log('warn', 'AI description generation failed, continuing with existing descriptions', { error: String(error) });
+            }
         }
 
         // === POST-AI REGIONAL VALIDATION ===
