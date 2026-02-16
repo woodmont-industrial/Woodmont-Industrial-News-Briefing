@@ -414,6 +414,26 @@ export async function buildStaticRSS(): Promise<void> {
             }
         }
 
+        // === USER EXCLUDE LIST ===
+        // Remove articles the user has explicitly excluded via docs/excluded-articles.json
+        try {
+            const excludePath = path.join(DOCS_DIR, 'excluded-articles.json');
+            if (fs.existsSync(excludePath)) {
+                const excludeData = JSON.parse(fs.readFileSync(excludePath, 'utf-8'));
+                const excludedIds = new Set(excludeData.excludedIds || []);
+                const excludedUrls = new Set((excludeData.excludedUrls || []).map((u: string) => u.toLowerCase()));
+                const beforeExclude = aiFilteredItems.length;
+                aiFilteredItems = aiFilteredItems.filter(a => {
+                    if (a.id && excludedIds.has(a.id)) return false;
+                    const url = (a.link || '').toLowerCase();
+                    if (url && excludedUrls.has(url)) return false;
+                    return true;
+                });
+                const removed = beforeExclude - aiFilteredItems.length;
+                if (removed > 0) log('info', `User exclude list: removed ${removed} article(s)`);
+            }
+        } catch (e) { log('warn', 'Could not load excluded-articles.json', { error: String(e) }); }
+
         // === POST-AI REGIONAL VALIDATION ===
         // Double-check that articles are actually about NJ/PA/FL - EXPANDED keyword list
         const njpaflKeywords = [

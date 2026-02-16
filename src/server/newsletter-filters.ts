@@ -188,17 +188,51 @@ export function mapFeedItemsToArticles(feedItems: any[]): NormalizedItem[] {
     }));
 }
 
+/**
+ * Load user-excluded article IDs/URLs from docs/excluded-articles.json
+ */
+function loadExcludedArticles(docsDir: string): { ids: Set<string>; urls: Set<string> } {
+    const excludePath = path.join(docsDir, 'excluded-articles.json');
+    try {
+        if (fs.existsSync(excludePath)) {
+            const data = JSON.parse(fs.readFileSync(excludePath, 'utf-8'));
+            return {
+                ids: new Set(data.excludedIds || []),
+                urls: new Set((data.excludedUrls || []).map((u: string) => u.toLowerCase()))
+            };
+        }
+    } catch (e) { console.warn('Could not load excluded-articles.json:', e); }
+    return { ids: new Set(), urls: new Set() };
+}
+
 export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: string } {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const feedPath = path.join(__dirname, '../../docs/feed.json');
+    const docsDir = path.join(__dirname, '../../docs');
+    const feedPath = path.join(docsDir, 'feed.json');
 
     if (!fs.existsSync(feedPath)) {
         throw new Error(`Feed file not found: ${feedPath}`);
     }
 
     const feedData = JSON.parse(fs.readFileSync(feedPath, 'utf-8'));
-    return { articles: mapFeedItemsToArticles(feedData.items || []), feedPath };
+    let articles = mapFeedItemsToArticles(feedData.items || []);
+
+    // Filter out user-excluded articles
+    const excluded = loadExcludedArticles(docsDir);
+    if (excluded.ids.size > 0 || excluded.urls.size > 0) {
+        const before = articles.length;
+        articles = articles.filter(a => {
+            if (a.id && excluded.ids.has(a.id)) return false;
+            const url = ((a as any).url || a.link || '').toLowerCase();
+            if (url && excluded.urls.has(url)) return false;
+            return true;
+        });
+        const removed = before - articles.length;
+        if (removed > 0) console.log(`🚫 Excluded ${removed} article(s) from user exclude list`);
+    }
+
+    return { articles, feedPath };
 }
 
 export function filterArticlesByTimeRange(articles: NormalizedItem[], hours: number): NormalizedItem[] {
