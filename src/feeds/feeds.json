@@ -140,7 +140,8 @@
     "source": "Lehigh Valley Business",
     "type": "news",
     "timeout": 30000,
-    "enabled": false
+    "enabled": false,
+    "_note": "403 blocked — use Google News proxy instead"
   },
   {
     "url": "https://njbiz.com/feed/",
@@ -158,8 +159,7 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://www.connectcre.com/feed?story-market=new-jersey",
@@ -168,8 +168,7 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://www.connectcre.com/feed?story-market=pennsylvania",
@@ -178,8 +177,7 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://www.supplychaindive.com/feeds/news/",
@@ -204,7 +202,9 @@
     "region": "US",
     "source": "CRE Daily",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false,
+    "_note": "Disabled — broad CRE, high multifamily/retail noise"
   },
   {
     "url": "https://www.therealdeal.com/miami/feed/",
@@ -222,8 +222,7 @@
     "source": "REBusiness",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://news.google.com/rss/search?q=industrial+real+estate+New+Jersey+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
@@ -255,7 +254,9 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false,
+    "_note": "Disabled — too broad, pulls multifamily/retail noise"
   },
   {
     "url": "https://news.google.com/rss/search?q=industrial+REIT+Prologis+OR+Duke+OR+Rexford&hl=en-US&gl=US&ceid=US:en",
@@ -372,7 +373,9 @@
     "source": "Bloomberg",
     "type": "macro",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — generic markets, not industrial-specific"
   },
   {
     "url": "https://www.areadevelopment.com/rss/rss.xml?t=5",
@@ -1312,5 +1315,41 @@
     "type": "industrial-news",
     "timeout": 30000,
     "headers": "browser"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:njbiz.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News NJBIZ",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for njbiz.com (403 blocked direct feed)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:lvb.com+industrial+OR+warehouse+OR+logistics+OR+%22Lehigh+Valley%22+development&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News LVB",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for lvb.com (403 blocked direct feed)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:costar.com+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CoStar",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for costar.com (403 Akamai blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:mhlnews.com+warehouse+OR+logistics+OR+%22material+handling%22+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News MHL News",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for mhlnews.com (404 RSS endpoint removed)"
   }
 ]

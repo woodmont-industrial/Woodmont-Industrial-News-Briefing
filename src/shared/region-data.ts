@@ -191,7 +191,13 @@ export const APPROVED_DOMAINS = [
     'bizjournals.com', 'traded.co', 're-nj.com', 'njbiz.com', 'lvb.com', 'naiop.org',
     'naiopnj.org', 'cpexecutive.com', 'commercialcafe.com', 'freightwaves.com',
     'areadevelopment.com', 'connectcre.com', 'therealdeal.com', 'rejournals.com',
-    'credaily.com', 'supplychaindive.com'
+    'credaily.com', 'supplychaindive.com',
+    'rebusinessonline.com', 'mhlnews.com', 'dcvelocity.com',
+    'inboundlogistics.com', 'supplychainbrain.com', 'ttnews.com',
+    'logisticsviewpoints.com', 'commercialobserver.com', 'roi-nj.com',
+    'njspotlightnews.org', 'connect.media', 'constructiondive.com',
+    'naikeystone.com', 'naiplatform.com', 'prologis.com', 'retaildive.com',
+    'prnewswire.com', 'globenewswire.com', 'businesswire.com'
 ];
 
 // Regional sources — always include articles from these

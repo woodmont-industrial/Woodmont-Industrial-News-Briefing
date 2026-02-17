@@ -1380,16 +1380,49 @@
 
             return (
             <>
-            {/* RSS Feed Health */}
+            {/* Data Files */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-6">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Data Files</h3>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="feed.json"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors text-sm no-underline inline-flex items-center gap-2"
+                  >
+                    View feed.json
+                  </a>
+                  <a
+                    href="rss.xml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm no-underline inline-flex items-center gap-2"
+                  >
+                    View rss.xml
+                  </a>
+                  <a
+                    href="raw-feed.json"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors text-sm no-underline inline-flex items-center gap-2"
+                  >
+                    View raw-feed.json
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* RSS Feed Health */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">📡 RSS Feed Health</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">RSS Feed Health</h3>
                   <button
                     onClick={() => setShowFeedHealth(false)}
                     className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                   >
-                    ✕ Close
+                    Close
                   </button>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm">
