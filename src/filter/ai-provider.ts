@@ -28,7 +28,7 @@ export interface AIProvider {
 const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
-    model: 'qwen-3-235b-a22b',
+    model: 'qwen-3-235b-a22b-instruct-2507',
     maxConcurrent: 5,
     batchDelayMs: 1000,
     maxArticles: 40,
