@@ -1,18 +1,17 @@
 /**
- * AI-Powered Article Classifier using Groq (FREE tier)
+ * AI-Powered Article Classifier
  *
  * Classifies articles for Woodmont Industrial Partners briefing:
  * - Determines category (relevant, transactions, availabilities, people, exclude)
  * - Scores relevance to NJ/PA/FL industrial real estate (0-100)
  * - Extracts tracking keywords
  * - Generates brief summary
+ *
+ * Provider: Cerebras (preferred) or Groq (fallback) via ai-provider.ts
  */
 
 import { NormalizedItem } from '../types/index.js';
-
-// Groq API configuration (FREE tier - very fast, generous limits)
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.1-8b-instant'; // Fast, free model
+import { getAIProvider, trackTokenUsage, logTokenUsage } from './ai-provider.js';
 
 export interface AIClassificationResult {
     category: 'relevant' | 'transactions' | 'availabilities' | 'people' | 'exclude';
@@ -96,17 +95,17 @@ Respond with JSON only (no markdown, no code blocks):
 }`;
 
 /**
- * Classify an article using Groq
+ * Classify an article using AI (Cerebras preferred, Groq fallback)
  */
 export async function classifyWithAI(
     title: string,
     description: string,
     source: string
 ): Promise<AIClassificationResult | null> {
-    const apiKey = process.env.GROQ_API_KEY;
+    const provider = getAIProvider();
 
-    if (!apiKey) {
-        console.warn('GROQ_API_KEY not set, skipping AI classification');
+    if (!provider) {
+        console.warn('No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping AI classification');
         return null;
     }
 
@@ -122,14 +121,14 @@ export async function classifyWithAI(
         const maxRetries = 3;
 
         while (retries < maxRetries) {
-            response = await fetch(GROQ_API_URL, {
+            response = await fetch(provider.url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+                    'Authorization': `Bearer ${provider.apiKey}`
                 },
                 body: JSON.stringify({
-                    model: MODEL,
+                    model: provider.model,
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: userPrompt }
@@ -142,8 +141,8 @@ export async function classifyWithAI(
             if (response.status === 429) {
                 // Rate limited - wait and retry
                 retries++;
-                const waitTime = Math.pow(2, retries) * 2000; // 4s, 8s, 16s (reduced from 10s, 20s, 40s)
-                console.log(`Rate limited, waiting ${waitTime / 1000}s before retry ${retries}/${maxRetries}`);
+                const waitTime = Math.pow(2, retries) * 2000;
+                console.log(`[${provider.name}] Rate limited, waiting ${waitTime / 1000}s before retry ${retries}/${maxRetries}`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
             }
@@ -153,15 +152,16 @@ export async function classifyWithAI(
 
         if (!response || !response.ok) {
             const error = response ? await response.text() : 'No response';
-            console.error('Groq API error:', response?.status, error);
+            console.error(`[${provider.name}] API error:`, response?.status, error);
             return null;
         }
 
         const data = await response.json();
+        trackTokenUsage(data.usage);
         const content = data.choices?.[0]?.message?.content;
 
         if (!content) {
-            console.error('No content in Groq response');
+            console.error(`[${provider.name}] No content in response`);
             return null;
         }
 
@@ -171,7 +171,7 @@ export async function classifyWithAI(
 
         const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-            console.error('Could not parse JSON from Groq response:', content);
+            console.error(`[${provider.name}] Could not parse JSON from response:`, content);
             return null;
         }
 
@@ -205,19 +205,19 @@ export async function batchClassifyWithAI(
         delayMs?: number;
     } = {}
 ): Promise<Map<string, AIClassificationResult>> {
+    const provider = getAIProvider();
     const {
         minRelevanceScore = 25,
-        maxConcurrent = 2, // 2 concurrent requests to avoid rate limits
-        delayMs = 5000 // 5 second delay between batches for Groq free tier
+        maxConcurrent = provider?.maxConcurrent ?? 2,
+        delayMs = provider?.batchDelayMs ?? 5000
     } = options;
 
-    // Limit total articles to classify to avoid rate limits and timeout
-    // Groq free tier: 6k tokens/min, each request ~700 tokens
-    // 15 articles * 700 tokens = 10,500 tokens over ~2-3 mins is safe
-    const maxArticlesToClassify = 15;
+    const maxArticlesToClassify = provider?.maxArticles ?? 15;
     const articlesToProcess = articles.slice(0, maxArticlesToClassify);
     if (articles.length > maxArticlesToClassify) {
-        console.log(`AI classification limited to ${maxArticlesToClassify} articles (${articles.length} total) - remaining use rule-based filtering`);
+        console.log(`[${provider?.name ?? 'AI'}] Classification limited to ${maxArticlesToClassify} articles (${articles.length} total) - remaining use rule-based filtering`);
+    } else {
+        console.log(`[${provider?.name ?? 'AI'}] Classifying ${articlesToProcess.length} articles (batch: ${maxConcurrent}, delay: ${delayMs}ms)`);
     }
 
     const results = new Map<string, AIClassificationResult>();
@@ -298,6 +298,7 @@ export async function filterArticlesWithAI(
         } as any);
     }
 
+    logTokenUsage();
     return { included, excluded, classifications };
 }
 

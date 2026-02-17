@@ -364,10 +364,11 @@ export async function buildStaticRSS(): Promise<void> {
             fromMandatorySources: filteredNewItems.filter(i => isFromMandatorySource(i)).length
         });
 
-        // === AI FILTERING (if GROQ_API_KEY is set) ===
+        // === AI FILTERING (if CEREBRAS_API_KEY or GROQ_API_KEY is set) ===
         let aiFilteredItems = filteredNewItems;
-        if (process.env.GROQ_API_KEY) {
-            log('info', 'Running AI classification on articles...');
+        if (process.env.CEREBRAS_API_KEY || process.env.GROQ_API_KEY) {
+            const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
+            log('info', `Running AI classification on articles using ${aiProvider}...`);
             try {
                 const aiResult = await filterArticlesWithAI(filteredNewItems, 25); // 25% minimum relevance - more inclusive
                 aiFilteredItems = aiResult.included;
@@ -399,12 +400,13 @@ export async function buildStaticRSS(): Promise<void> {
                 aiFilteredItems = filteredNewItems;
             }
         } else {
-            log('info', 'GROQ_API_KEY not set, skipping AI classification');
+            log('info', 'No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping AI classification');
         }
 
-        // === AI DESCRIPTION GENERATION (if GROQ_API_KEY is set) ===
-        if (process.env.GROQ_API_KEY) {
-            log('info', 'Generating AI descriptions for articles missing summaries...');
+        // === AI DESCRIPTION GENERATION (if CEREBRAS_API_KEY or GROQ_API_KEY is set) ===
+        if (process.env.CEREBRAS_API_KEY || process.env.GROQ_API_KEY) {
+            const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
+            log('info', `Generating AI descriptions using ${aiProvider}...`);
             try {
                 await generateDescriptions(aiFilteredItems);
                 const withDesc = aiFilteredItems.filter(a => a.description && a.description.length >= 20).length;

@@ -35,6 +35,7 @@ jobs:
       - name: Build fresh RSS data with AI filtering
         run: npm run build
         env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SKIP_PLAYWRIGHT: 'true'
         timeout-minutes: 10

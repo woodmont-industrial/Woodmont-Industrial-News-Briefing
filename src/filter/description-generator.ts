@@ -1,14 +1,14 @@
 /**
- * AI-Powered Article Description Generator using Groq
+ * AI-Powered Article Description Generator
  *
  * Generates factual 1-3 sentence summaries for articles missing descriptions.
  * CRITICAL: Only states facts from the title/description — never invents details.
+ *
+ * Provider: Cerebras (preferred) or Groq (fallback) via ai-provider.ts
  */
 
 import { NormalizedItem } from '../types/index.js';
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.1-8b-instant';
+import { getAIProvider, trackTokenUsage, logTokenUsage } from './ai-provider.js';
 
 const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
 
@@ -129,9 +129,9 @@ function containsFabrication(desc: string, title: string, existingDesc: string):
  * Generate descriptions for articles missing them
  */
 export async function generateDescriptions(articles: NormalizedItem[]): Promise<void> {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-        console.log('[AI Desc] GROQ_API_KEY not set, skipping description generation');
+    const provider = getAIProvider();
+    if (!provider) {
+        console.log('[AI Desc] No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping description generation');
         return;
     }
 
@@ -146,18 +146,17 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
         return;
     }
 
-    console.log(`[AI Desc] Generating descriptions for ${needsDesc.length} articles...`);
+    console.log(`[AI Desc] [${provider.name}] Generating descriptions for ${needsDesc.length} articles (batch: ${provider.descBatchSize}, delay: ${provider.descBatchDelayMs}ms)...`);
 
-    // Process in batches of 3 (llama-3.1-8b-instant handles this easily)
-    const BATCH_SIZE = 3;
-    const BATCH_DELAY_MS = 2000;
+    const BATCH_SIZE = provider.descBatchSize;
+    const BATCH_DELAY_MS = provider.descBatchDelayMs;
     let generated = 0;
     let rejected = 0;
 
     for (let i = 0; i < needsDesc.length; i += BATCH_SIZE) {
         const batch = needsDesc.slice(i, i + BATCH_SIZE);
 
-        const promises = batch.map(article => generateSingleDescription(article, apiKey));
+        const promises = batch.map(article => generateSingleDescription(article, provider));
         const results = await Promise.allSettled(promises);
 
         for (let j = 0; j < results.length; j++) {
@@ -184,11 +183,12 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
     }
 
     console.log(`[AI Desc] Generated ${generated}/${needsDesc.length} descriptions (${rejected} rejected as fabrication)`);
+    logTokenUsage();
 }
 
 async function generateSingleDescription(
     article: NormalizedItem,
-    apiKey: string
+    provider: { name: string; url: string; model: string; apiKey: string }
 ): Promise<string | null> {
     try {
         // Derive source from article metadata or URL domain
@@ -212,14 +212,14 @@ async function generateSingleDescription(
         let retries = 0;
 
         while (retries < 3) {
-            response = await fetch(GROQ_API_URL, {
+            response = await fetch(provider.url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+                    'Authorization': `Bearer ${provider.apiKey}`
                 },
                 body: JSON.stringify({
-                    model: MODEL,
+                    model: provider.model,
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: prompt }
@@ -232,7 +232,7 @@ async function generateSingleDescription(
             if (response.status === 429) {
                 retries++;
                 const waitTime = Math.pow(2, retries) * 2000;
-                console.log(`[AI Desc] Rate limited, waiting ${waitTime / 1000}s (retry ${retries}/3)`);
+                console.log(`[AI Desc] [${provider.name}] Rate limited, waiting ${waitTime / 1000}s (retry ${retries}/3)`);
                 await new Promise(r => setTimeout(r, waitTime));
                 continue;
             }
@@ -242,6 +242,7 @@ async function generateSingleDescription(
         if (!response || !response.ok) return null;
 
         const data = await response.json();
+        trackTokenUsage(data.usage);
         const content = data.choices?.[0]?.message?.content?.trim();
 
         if (!content || content.length < 20) return null;

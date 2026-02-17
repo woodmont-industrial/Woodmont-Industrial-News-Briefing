@@ -35,6 +35,7 @@ jobs:
       - name: Build fresh RSS data with AI filtering
         run: npm run build
         env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SKIP_PLAYWRIGHT: 'true'
         timeout-minutes: 10
@@ -52,7 +53,8 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
-          # AI description generation (separate key to avoid rate limits)
+          # AI description generation
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY_2 }}
         run: |
           echo "📧 Sending Work daily briefing (boss preferred format)..."
