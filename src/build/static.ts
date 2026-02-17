@@ -140,154 +140,55 @@ export async function buildStaticRSS(): Promise<void> {
             're-nj.com'             // RE-NJ
         ];
 
-        // Trusted national sources (include if industrial context present)
-        const trustedNationalSources = ['news.google.com', 'bloomberg.com', 'wsj.com', 'reuters.com',
-            'freightwaves.com', 'supplychaindive.com', 'dcvelocity.com', 'areadevelopment.com',
-            'bisnow.com/national', 'commercialcafe.com', 'prologis.com',
-            'crexi.com', 'ten-x.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com'];
-
-        // Check if article should be included - MORE INCLUSIVE VERSION
+        // Check if article should be included — WIDENED GATE, let AI handle region+relevance
         const shouldIncludeArticle = (item: NormalizedItem): boolean => {
             const text = `${item.title || ''} ${item.description || ''}`.toUpperCase();
-            const textLower = text.toLowerCase();
-            // Check both 'link' (from fetcher) and 'url' (from feed.json)
             const url = (item.link || item.url || '').toLowerCase();
-            // Also check source name for Google News items
             const sourceName = (item.source || '').toLowerCase();
 
-            // Check for excluded content (political only now)
-            const hasExcludedContent = excludeContent.some(c => text.includes(c));
-
-            // Exclude political content from ALL sources
-            if (hasExcludedContent) {
-                log('info', `EXCLUDED (political): ${item.title?.substring(0, 60)}`);
+            // 1. EXCLUDE: Political + international content (from ALL sources)
+            if (excludeContent.some(c => text.includes(c))) {
+                log('info', `EXCLUDED (political/intl): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
-            // Exclude video content (boss feedback: avoid videos)
-            const isVideo = /\/(videos?)\//i.test(url) || url.endsWith('.mp4') || url.includes('video.foxbusiness') || url.includes('video.cnbc');
-            if (isVideo) {
+            // 2. EXCLUDE: Video content
+            if (/\/(videos?)\//i.test(url) || url.endsWith('.mp4') || url.includes('video.foxbusiness') || url.includes('video.cnbc')) {
                 log('info', `EXCLUDED (video): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
-            // BOSS PREFERRED SOURCES (e.g., GlobeSt) - light filter but require CRE relevance
-            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
-            if (isBossPreferred) {
-                // Even boss sources should exclude clearly non-industrial content
-                const nonIndustrialContent = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE)\b/.test(text);
-                if (nonIndustrialContent && !industrialKeywords.some(k => text.includes(k))) {
-                    log('info', `EXCLUDED (boss source, non-industrial): ${item.title?.substring(0, 60)}`);
-                    return false;
-                }
-                log('info', `INCLUDED (boss preferred): ${item.title?.substring(0, 60)}`);
-                return true;
-            }
-
-            // Always include from regional sources
-            const isRegionalSource = regionalSources.some(s => url.includes(s));
-
-            // Check if from trusted national/Google News source
-            const isTrustedNational = trustedNationalSources.some(s => url.includes(s) || sourceName.includes(s));
-            const isGoogleNews = url.includes('news.google.com') || sourceName.includes('google news');
-
-            // Check if has real estate context - use flexible matching
-            const hasRealEstateContext = realEstateKeywords.some(k => {
-                // Use word boundary matching for short keywords
-                if (k.length <= 3) {
-                    return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
-                }
-                return text.includes(k);
-            });
-
-            // Category-specific keywords - ALWAYS INCLUDE these regardless of region
-            const hasAvailabilityWords = /\b(AVAILABLE|LISTED|FOR\s*LEASE|FOR\s*SALE|ON\s*THE\s*MARKET|NEWLY\s*MARKETED|ASKING|MARKETED|LISTING)\b/.test(text);
-            const hasPeopleWords = /\b(PROMOTED|HIRED|JOINS|JOINED|NAMES|NAMED|APPOINTS|APPOINTED|EXPANDS?\s*TEAM|TAPS|WELCOMES|RECRUITS|ELEVATED|NEW\s*HIRE|EXECUTIVE)\b/.test(text);
-            const hasTransactionWords = /\b(PURCHASED|ACQUIRES?D?|BOUGHT|SIGNS?\s*LEASE|LEASED|CLOSED|SOLD|SALE\s*OF|ACQUIRED|ACQUISITION|DISPOSITION)\b/.test(text);
-
-            // Check for excluded states/cities - but be more lenient
-            // excludeStates now includes cities from MAJOR_EXCLUDE_REGIONS
-            const mentionsExcludedState = excludeStates.some(s => text.includes(s));
-            // Use flexible matching for target regions
-            const mentionsTargetRegion = targetRegions.some(r => {
-                if (r.length <= 2) {
-                    // State codes need word boundaries
-                    return text.includes(` ${r} `) || text.includes(`${r},`) || text.includes(`${r}.`) || text.endsWith(` ${r}`);
-                }
-                return text.includes(r);
-            });
-
-            // If from regional source, always include (already passed political check)
-            if (isRegionalSource) {
-                return true;
-            }
-
-            // CATEGORY EXCEPTIONS: Include people news and availability news even without specific region
-            // These categories are valuable regardless of explicit state mention
-            if (hasPeopleWords && hasRealEstateContext) {
-                log('info', `INCLUDED (people news with CRE context): ${item.title?.substring(0, 60)}`);
-                return true;
-            }
-
-            // Check for industrial context (stricter than general CRE)
-            const hasIndustrialContext = industrialKeywords.some(k => {
-                if (k.length <= 3) {
-                    return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
-                }
-                return text.includes(k);
-            });
-
-            // Google News and trusted national sources: Require INDUSTRIAL context
-            if (isGoogleNews || isTrustedNational) {
-                // Include if has industrial content (not just generic CRE/finance)
-                if (hasIndustrialContext || (hasRealEstateContext && mentionsTargetRegion)) {
-                    // Only exclude if STRONGLY about wrong state
-                    if (mentionsExcludedState && !mentionsTargetRegion) {
-                        const wrongStateMentions = excludeStates.filter(s => text.includes(s)).length;
-                        const rightStateMentions = targetRegions.filter(r => text.includes(r)).length;
-                        if (wrongStateMentions > 1 && rightStateMentions === 0) {
-                            log('info', `EXCLUDED (strongly out-of-state): ${item.title?.substring(0, 60)}`);
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                // Exclude generic finance/business news from national sources
-                if (!hasRealEstateContext && !mentionsTargetRegion) {
-                    log('info', `EXCLUDED (national source, no CRE context): ${item.title?.substring(0, 60)}`);
-                    return false;
-                }
-                // Include if mentions target region with CRE context
-                if (mentionsTargetRegion && hasRealEstateContext) {
-                    return true;
-                }
-            }
-
-            // For articles with availability or transaction signals, be inclusive
-            if (hasAvailabilityWords || hasTransactionWords) {
-                if (mentionsTargetRegion || !mentionsExcludedState) {
-                    return true;
-                }
-            }
-
-            // For other sources, require target region OR real estate context without wrong state
-            if (mentionsTargetRegion) {
-                return true;
-            }
-
-            // If has real estate context and no wrong state mention, include
-            if (hasRealEstateContext && !mentionsExcludedState) {
-                return true;
-            }
-
-            // Exclude articles that mention excluded states without target region
-            if (mentionsExcludedState) {
-                log('info', `EXCLUDED (out-of-state): ${item.title?.substring(0, 60)}`);
+            // 3. EXCLUDE: Non-industrial property types when NO industrial keywords present
+            const nonIndustrialPrimary = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE)\b/.test(text);
+            if (nonIndustrialPrimary && !industrialKeywords.some(k => text.includes(k))) {
+                log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
-            // Include anything with real estate context
-            return hasRealEstateContext;
+            // 4. INCLUDE: Boss preferred sources (GlobeSt, Bisnow, NAIOP, etc.)
+            if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
+                return true;
+            }
+
+            // 5. INCLUDE: Regional sources (RE-NJ, NJBIZ, LVB, etc.)
+            if (regionalSources.some(s => url.includes(s))) {
+                return true;
+            }
+
+            // 6. INCLUDE: Any article with CRE or industrial keywords — let AI judge relevance
+            const hasRealEstateContext = realEstateKeywords.some(k => {
+                if (k.length <= 3) {
+                    return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
+                }
+                return text.includes(k);
+            });
+            if (hasRealEstateContext) {
+                return true;
+            }
+
+            // 7. EXCLUDE: Articles with zero CRE/industrial context
+            log('info', `EXCLUDED (no CRE context): ${item.title?.substring(0, 60)}`);
+            return false;
         };
 
         // Re-categorize articles based on content - REQUIRE CRE/INDUSTRIAL CONTEXT
@@ -436,48 +337,43 @@ export async function buildStaticRSS(): Promise<void> {
             }
         } catch (e) { log('warn', 'Could not load excluded-articles.json', { error: String(e) }); }
 
-        // === POST-AI REGIONAL VALIDATION ===
-        // Double-check that articles are actually about NJ/PA/FL - EXPANDED keyword list
-        const njpaflKeywords = [
-            // NJ identifiers and cities
-            'new jersey', 'newjersey', ' nj ', ', nj', 'nj,', 'jersey city', 'newark', 'edison', 'trenton',
-            'exit 8a', 'turnpike', 'meadowlands', 'bergen', 'middlesex', 'monmouth', 'camden',
-            'woodbridge', 'elizabeth', 'paterson', 'clifton', 'passaic', 'bayonne', 'hoboken',
-            'secaucus', 'kearny', 'carteret', 'piscataway', 'south brunswick', 'east brunswick',
-            'new brunswick', 'perth amboy', 'hackensack', 'sayreville', 'linden', 'union',
-            'morris', 'somerset', 'mercer', 'ocean', 'burlington', 'gloucester', 'atlantic',
-            'garden state', 'i-95', 'north jersey', 'south jersey', 'central jersey',
-            // PA identifiers and cities
-            'pennsylvania', 'philadelphia', 'philly', 'lehigh valley', 'allentown', 'harrisburg',
-            'pittsburgh', 'bucks county', 'chester county', 'delaware valley', 'montgomery county',
-            ', pa ', ', pa,', 'king of prussia', 'conshohocken', 'plymouth meeting', 'exton',
-            'malvern', 'wayne', 'blue bell', 'reading', 'lancaster', 'scranton', 'wilkes-barre',
-            'berks', 'york county', 'dauphin', 'greater philadelphia', 'pa turnpike',
-            // FL identifiers and cities
-            'florida', 'miami', 'tampa', 'orlando', 'jacksonville', 'fort lauderdale',
-            'boca raton', 'palm beach', 'broward', 'dade', 'clearwater', 'port everglades',
-            ', fl ', ', fl,', 'south florida', 'central florida', 'st. petersburg', 'hialeah',
-            'pembroke pines', 'hollywood', 'miramar', 'coral springs', 'pompano beach', 'doral',
-            'coral gables', 'sunrise', 'plantation', 'davie', 'weston', 'hillsborough',
-            'orange county', 'duval', 'pinellas', 'lee county', 'polk county', 'brevard',
-            'port of miami', 'tri-county', 'palm bay', 'cape coral',
-            // Major CRE firms (include national news about them)
-            'prologis', 'duke realty', 'blackstone', 'bridge industrial', 'dermody',
-            'first industrial', 'stag industrial', 'monmouth real estate'
-        ];
+        // === USER INCLUDE LIST (raw picks synced from UI) ===
+        // Add articles the user manually picked via docs/included-articles.json
+        try {
+            const includePath = path.join(DOCS_DIR, 'included-articles.json');
+            if (fs.existsSync(includePath)) {
+                const includeData = JSON.parse(fs.readFileSync(includePath, 'utf-8'));
+                const pickedArticles = includeData.articles || [];
+                if (pickedArticles.length > 0) {
+                    const existingIds = new Set(aiFilteredItems.map(a => a.id));
+                    let added = 0;
+                    for (const pick of pickedArticles) {
+                        if (pick.id && !existingIds.has(pick.id)) {
+                            aiFilteredItems.push({
+                                id: pick.id,
+                                title: pick.title || 'Untitled',
+                                link: pick.url || '',
+                                source: pick.source || 'Unknown',
+                                pubDate: pick.date_published || new Date().toISOString(),
+                                description: pick.description || '',
+                                category: pick.category || 'relevant',
+                                regions: pick.region ? [pick.region] : [],
+                            } as NormalizedItem);
+                            existingIds.add(pick.id);
+                            added++;
+                        }
+                    }
+                    if (added > 0) log('info', `User include list: added ${added} article(s) from raw picks`);
+                }
+            }
+        } catch (e) { log('warn', 'Could not load included-articles.json', { error: String(e) }); }
 
-        const wrongStateKeywords = [
-            'texas', 'california', 'ohio', 'indiana', 'illinois', 'georgia', 'arizona',
-            'tennessee', 'louisiana', 'colorado', 'washington', 'oregon', 'nevada',
-            'carolina', 'virginia', 'maryland', 'michigan', 'wisconsin', 'minnesota',
-            'alabama', 'kentucky', 'arkansas', 'iowa', 'kansas', 'missouri', 'oklahoma',
-            'new mexico', 'utah', 'montana', 'idaho', 'wyoming', 'nebraska', 'connecticut',
-            'massachusetts', 'new york', 'maine', 'vermont', 'new hampshire', 'rhode island',
+        // === POST-AI REGIONAL VALIDATION ===
+        // Light pass: AI already scored relevance — only exclude strong wrong-city signals
+        const wrongCityKeywords = [
             'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
             'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
-            'birmingham', 'mobile', 'auburn', 'huntsville', 'louisville', 'baton rouge',
-            'new orleans', 'little rock', 'memphis', 'st. louis', 'kansas city', 'oklahoma city',
-            'albuquerque', 'salt lake', 'boise', 'boston', 'hartford', 'buffalo', 'albany'
+            'birmingham', 'memphis', 'st. louis', 'san antonio', 'san francisco'
         ];
 
         const regionallyValidated = aiFilteredItems.filter(item => {
@@ -485,44 +381,27 @@ export async function buildStaticRSS(): Promise<void> {
             const url = (item.link || (item as any).url || '').toLowerCase();
             const sourceName = (item.source || '').toLowerCase();
 
-            // BOSS PREFERRED SOURCES (GlobeSt) - skip state filtering entirely
-            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
-            if (isBossPreferred) {
-                return true; // Always include GlobeSt
-            }
-
-            // Check if it has CRE context - be VERY lenient for articles with CRE signals
-            const hasCREContext = /\b(warehouse|logistics|industrial|commercial|real estate|property|cre|multifamily|office|retail|lease|acquisition|transaction|development|construction|investor|reit|broker|tenant|landlord)\b/i.test(text);
-            const hasPeopleNews = /\b(promoted|hired|joins|joined|named|appointed|taps|welcomes|executive|ceo|cfo|president|director)\b/i.test(text);
-            const hasAvailability = /\b(available|listed|for lease|for sale|on the market|marketing|groundbreaking|delivered|construction)\b/i.test(text);
-            const hasTransaction = /\b(acquired|sold|purchased|leased|signed|closed|deal|financing)\b/i.test(text);
-            const hasMacroTrend = /\b(cap rate|vacancy|absorption|rent growth|market report|outlook|forecast|trend|demand|supply)\b/i.test(text);
-
-            // Check if it mentions wrong states (and doesn't mention NJ/PA/FL)
-            const hasWrongState = wrongStateKeywords.some(kw => text.includes(kw));
-            const hasRightState = njpaflKeywords.some(kw => text.includes(kw));
-
-            // Include people news, availability, transaction, or macro news even without explicit region
-            if ((hasPeopleNews || hasAvailability || hasTransaction || hasMacroTrend) && hasCREContext) {
+            // Boss preferred sources — always pass
+            if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
                 return true;
             }
 
-            // If has any CRE context and mentions right state, always include
-            if (hasCREContext && hasRightState) {
+            // If article has industrial context, always keep (national trends are valuable)
+            if (/\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|last.?mile|supply chain|freight)\b/i.test(text)) {
                 return true;
             }
 
-            // If it has wrong state keywords and NO right state keywords and NO CRE value
-            if (hasWrongState && !hasRightState) {
-                // Count how many SPECIFIC wrong state keywords appear (cities are stronger signals)
-                const wrongCities = ['dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-                    'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis', 'birmingham',
-                    'mobile', 'auburn', 'huntsville', 'louisville', 'memphis', 'st. louis'];
-                const wrongCityCount = wrongCities.filter(c => text.includes(c)).length;
+            // If article has CRE context (people, transactions, availability, macro), keep
+            if (/\b(promoted|hired|named|appointed|acquired|sold|purchased|leased|for lease|for sale|cap rate|vacancy|absorption|rent growth)\b/i.test(text)) {
+                return true;
+            }
 
-                // Only exclude if has city-level wrong state mention (stronger signal)
-                if (wrongCityCount >= 1) {
-                    log('info', `POST-AI EXCLUDED (wrong state): ${(item.title || '').substring(0, 50)}`);
+            // Only exclude if article mentions specific wrong cities with NO NJ/PA/FL reference
+            const hasWrongCity = wrongCityKeywords.some(c => text.includes(c));
+            if (hasWrongCity) {
+                const hasRightState = TARGET_REGIONS.some(r => text.toUpperCase().includes(r));
+                if (!hasRightState) {
+                    log('info', `POST-AI EXCLUDED (wrong city): ${(item.title || '').substring(0, 50)}`);
                     return false;
                 }
             }
@@ -594,137 +473,73 @@ export async function buildStaticRSS(): Promise<void> {
         const mergedArticles = [...newItems, ...recategorizedExisting];
         log('info', `Merged: ${newItems.length} new + ${recategorizedExisting.length} existing = ${mergedArticles.length} total`);
 
-        // Also filter out bad existing articles (out-of-state that slipped through before)
-        // Apply SAME strict regional validation to ALL articles including existing ones
-        const wrongStateKeywordsClean = [
-            'texas', 'california', 'ohio', 'indiana', 'illinois', 'georgia', 'arizona',
-            'tennessee', 'louisiana', 'colorado', 'washington', 'oregon', 'nevada',
-            'carolina', 'virginia', 'maryland', 'michigan', 'wisconsin', 'minnesota',
-            'alabama', 'kentucky', 'arkansas', 'iowa', 'kansas', 'missouri', 'oklahoma',
-            'new mexico', 'utah', 'montana', 'idaho', 'wyoming', 'nebraska', 'connecticut',
-            'massachusetts', 'new york', 'maine', 'vermont', 'new hampshire', 'rhode island',
-            'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
-            'birmingham', 'mobile', 'auburn', 'huntsville', 'louisville', 'baton rouge',
-            'new orleans', 'little rock', 'memphis', 'st. louis', 'kansas city', 'oklahoma city',
-            'albuquerque', 'salt lake', 'boise', 'boston', 'hartford', 'buffalo', 'albany'
-        ];
-        const njpaflKeywordsClean = [
-            // NJ
-            'new jersey', 'jersey', ' nj ', ', nj', 'newark', 'edison', 'trenton', 'exit 8a',
-            'jersey city', 'meadowlands', 'bergen', 'middlesex', 'woodbridge', 'secaucus',
-            'hackensack', 'hoboken', 'elizabeth', 'passaic', 'union', 'morris', 'somerset',
-            // PA
-            'pennsylvania', 'philadelphia', 'philly', 'lehigh valley', 'allentown', 'pittsburgh',
-            'harrisburg', 'king of prussia', 'bucks county', 'chester county', 'montgomery county',
-            ', pa ', 'delaware valley', 'greater philadelphia',
-            // FL
-            'florida', 'miami', 'tampa', 'orlando', 'jacksonville', 'fort lauderdale',
-            'boca raton', 'palm beach', 'broward', 'dade', 'south florida', 'central florida',
-            ', fl ', 'hialeah', 'pembroke pines', 'coral springs', 'pompano beach', 'doral',
-            // Major CRE players
-            'prologis', 'duke realty', 'blackstone', 'bridge industrial'
-        ];
-        // Only exclude political content
+        // Clean merged articles — light pass, articles already passed AI classification
         const politicalKeywords = [
             'trump', 'biden', 'election', 'executive order', 'tariff war', 'trade war',
             'congress', 'senate', 'republican', 'democrat', 'political'
+        ];
+        const junkPatterns = [
+            'cryptocurrency', 'bitcoin', 'crypto', 'nft',
+            'student loan', 'student debt',
+            'super bowl', 'world series', 'playoffs', 'championship',
+            'horoscope', 'weather forecast', 'cookies settings', 'cookie policy',
+            'recipe', 'restaurant review',
+            'elon musk', 'spacex', 'jeff bezos', 'mark zuckerberg',
+            'skip to content', 'skip to main', 'privacy policy', 'terms of service',
+            'subscribe now', 'sign up for', 'newsletter signup'
+        ];
+        const cleanWrongCities = [
+            'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
+            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
+            'birmingham', 'memphis', 'st. louis', 'san antonio', 'san francisco'
         ];
 
         const cleanMerged = mergedArticles.filter(item => {
             const title = (item.title || '').trim();
             const text = (title + ' ' + (item.description || '')).toLowerCase();
             const url = (item.link || (item as any).url || '').toLowerCase();
-            const sourceName = (item.source || '').toLowerCase();
 
-            // Minimum title length - filter out "Cookies Settings", "Skip to content", etc
+            // Short title filter
             if (title.length < 15) {
                 log('info', `CLEANED (short title): "${title}"`);
                 return false;
             }
 
-            // Check for political content (exclude from ALL sources including GlobeSt)
+            // Political content exclusion
             if (politicalKeywords.some(kw => text.includes(kw))) {
                 log('info', `CLEANED (political): ${title.substring(0, 50)}`);
                 return false;
             }
 
-            // Exclude junk content patterns
-            const junkPatterns = [
-                'cryptocurrency', 'bitcoin', 'crypto', 'nft',
-                'student loan', 'student debt',
-                'super bowl', 'world series', 'playoffs', 'championship',
-                'horoscope', 'weather forecast', 'cookies settings', 'cookie policy',
-                'recipe', 'restaurant review',
-                'elon musk', 'spacex', 'jeff bezos', 'mark zuckerberg',
-                'skip to content', 'skip to main', 'privacy policy', 'terms of service',
-                'subscribe now', 'sign up for', 'newsletter signup'
-            ];
+            // Junk pattern exclusion
             if (junkPatterns.some(kw => text.includes(kw))) {
                 log('info', `CLEANED (junk): ${title.substring(0, 50)}`);
                 return false;
             }
 
-            // Exclude non-industrial property types (when mentioned as PRIMARY topic, not incidental)
-            const nonIndustrialPrimary = /^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title);
-            if (nonIndustrialPrimary) {
+            // Non-industrial primary topic exclusion (title starts with non-industrial type)
+            if (/^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title)) {
                 log('info', `CLEANED (non-industrial primary): ${title.substring(0, 50)}`);
                 return false;
             }
 
-            // Exclude video content
+            // Video exclusion
             if (/\/(videos?)\//i.test(url) || url.endsWith('.mp4')) {
                 log('info', `CLEANED (video): ${title.substring(0, 50)}`);
                 return false;
             }
 
-            // BOSS PREFERRED SOURCES (GlobeSt) - skip state filtering
-            const isBossPreferred = bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s));
-            if (isBossPreferred) {
-                return true;
+            // Wrong-city exclusion — only strong city-name signals, not state names
+            const hasWrongCity = cleanWrongCities.some(c => text.includes(c));
+            if (hasWrongCity) {
+                const hasRightState = TARGET_REGIONS.some(r => text.toUpperCase().includes(r));
+                if (!hasRightState) {
+                    log('info', `CLEANED (wrong city): ${title.substring(0, 50)}`);
+                    return false;
+                }
             }
 
-            // Check if has industrial/CRE context - use STRICT industrial keywords
-            const hasIndustrialContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|last.?mile|supply chain|freight|3pl|flex.?space|loading dock|clear height)\b/i.test(text);
-            const hasCREContext = /\b(commercial real estate|real estate|property|cre|lease|acquisition|transaction|development|construction|investor|reit|broker|tenant|landlord|deal|financing|vacancy|absorption|rent growth)\b/i.test(text);
-
-            // Check wrong state vs right state
-            const hasRightState = njpaflKeywordsClean.some(kw => text.includes(kw));
-
-            // If has industrial context, always keep (regardless of state)
-            if (hasIndustrialContext) {
-                return true;
-            }
-
-            // If mentions NJ/PA/FL location with CRE context, keep
-            if (hasRightState && hasCREContext) {
-                return true;
-            }
-
-            // If mentions NJ/PA/FL location, keep
-            if (hasRightState) {
-                return true;
-            }
-
-            // If has CRE context without wrong state mention, keep
-            const wrongCities = ['dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-                'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis', 'birmingham',
-                'mobile', 'auburn', 'huntsville', 'louisville', 'memphis', 'st. louis'];
-            const hasWrongCity = wrongCities.some(c => text.includes(c));
-
-            if (hasWrongCity && !hasRightState) {
-                log('info', `CLEANED (wrong city): ${title.substring(0, 50)}`);
-                return false;
-            }
-
-            // Keep articles with CRE context
-            if (hasCREContext) {
-                return true;
-            }
-
-            // Exclude articles without any CRE/industrial/regional relevance
-            log('info', `CLEANED (no CRE context): ${title.substring(0, 50)}`);
-            return false;
+            return true;
         });
         if (cleanMerged.length < mergedArticles.length) {
             log('info', `Cleaned ${mergedArticles.length - cleanMerged.length} bad articles from feed`);

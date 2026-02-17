@@ -2095,11 +2095,29 @@
             // Generate newsletter client-side using loaded articles
             const days = parseInt(newsletterTimeframe, 10);
             const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+            // Fetch server-synced excluded articles (in addition to localStorage)
+            let serverExcludedIds = new Set();
+            try {
+              const exRes = await fetch('excluded-articles.json');
+              if (exRes.ok) {
+                const exData = await exRes.json();
+                (exData.excludedIds || []).forEach(id => serverExcludedIds.add(id));
+                (exData.excludedUrls || []).forEach(u => serverExcludedIds.add(u.toLowerCase()));
+              }
+            } catch (e) { console.warn('Could not load server excludes:', e); }
+
             const recentArticles = items.filter(item => {
+              const articleId = item.id || item.link || item.title;
+              const articleUrl = (item.link || item.url || '').toLowerCase();
+              // Check both localStorage ignores AND server-synced excludes
               if (isArticleIgnored(item)) return false;
+              if (serverExcludedIds.has(articleId) || serverExcludedIds.has(articleUrl)) return false;
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
             });
+
+            console.log(`[Newsletter] ${items.length} total items, ${recentArticles.length} after filter (${days}d cutoff: ${cutoff.toISOString()}, ${serverExcludedIds.size} server excludes)`);
 
             // Merge raw picks from localStorage (picked in raw.html)
             try {
@@ -2118,6 +2136,28 @@
                 }
               });
             } catch (e) { console.warn('Could not load raw picks:', e); }
+
+            // Fetch server-synced included articles (raw picks synced to GitHub)
+            try {
+              const incRes = await fetch('included-articles.json');
+              if (incRes.ok) {
+                const incData = await incRes.json();
+                const existingIds = new Set(recentArticles.map(a => a.id));
+                (incData.articles || []).forEach(a => {
+                  if (a.id && !existingIds.has(a.id) && !isArticleIgnored(a)) {
+                    recentArticles.push({
+                      id: a.id, title: a.title || 'Untitled', link: a.url || '#',
+                      source: a.source || 'Unknown', pubDate: a.date_published || new Date().toISOString(),
+                      description: a.description || '', category: a.category || 'relevant',
+                      _fromServerPick: true
+                    });
+                  }
+                });
+                console.log(`[Newsletter] Merged ${(incData.articles || []).length} server-synced picks, now ${recentArticles.length} articles`);
+              }
+            } catch (e) { console.warn('Could not load server includes:', e); }
+
+            console.log(`[Newsletter] Final: ${recentArticles.length} articles for newsletter`, recentArticles.map(a => `[${a.category}] ${(a.title||'').substring(0,50)}`));
 
             // Use selected theme (work is default)
             let html;
