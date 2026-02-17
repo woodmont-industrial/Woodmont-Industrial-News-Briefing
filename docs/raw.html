@@ -33,6 +33,7 @@
 </head>
 <body>
 <div id="root"></div>
+<script src="js/utils.js"></script>
 <script type="text/babel">
 const { useState, useEffect, useMemo, useCallback } = React;
 
@@ -131,6 +132,7 @@ function RawApp() {
   const [hideInFeed, setHideInFeed] = useState(false);
   const [hidePicked, setHidePicked] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'synced' | 'failed'
 
   // Dark mode
   useEffect(() => {
@@ -184,7 +186,8 @@ function RawApp() {
     setPicks(prev => {
       const next = { ...prev };
       let newPrefs = { ...prefs };
-      if (next[article.id]) {
+      const wasRemoved = !!next[article.id];
+      if (wasRemoved) {
         delete next[article.id];
         newPrefs = removePrefs(article, newPrefs);
       } else {
@@ -194,6 +197,15 @@ function RawApp() {
       savePicks(next);
       setPrefs(newPrefs);
       savePrefs(newPrefs);
+      // Fire-and-forget GitHub sync
+      if (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
+        setSyncStatus('syncing');
+        const syncFn = wasRemoved
+          ? window.WoodmontUtils.removeIncludeFromGitHub(article.id)
+          : window.WoodmontUtils.syncIncludeToGitHub(article.id, next[article.id]);
+        syncFn.then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+              .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+      }
       return next;
     });
   }, [prefs]);
@@ -201,14 +213,23 @@ function RawApp() {
   const clearPicks = useCallback(() => {
     setPicks({});
     savePicks({});
+    if (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
+      setSyncStatus('syncing');
+      window.WoodmontUtils.clearIncludesOnGitHub()
+        .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+        .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+    }
   }, []);
 
   const selectAll = useCallback(() => {
     const newPicks = { ...picks };
+    const newlyAdded = {};
     let newPrefs = { ...prefs };
     filtered.forEach(item => {
       if (!newPicks[item.id]) {
-        newPicks[item.id] = { t: item.t, u: item.u, s: item.s, d: item.d, ex: item.ex, c: item.c, r: item.r, kw: item.kw };
+        const pickData = { t: item.t, u: item.u, s: item.s, d: item.d, ex: item.ex, c: item.c, r: item.r, kw: item.kw };
+        newPicks[item.id] = pickData;
+        newlyAdded[item.id] = pickData;
         newPrefs = updatePrefs(item, newPrefs);
       }
     });
@@ -216,6 +237,12 @@ function RawApp() {
     savePicks(newPicks);
     setPrefs(newPrefs);
     savePrefs(newPrefs);
+    if (Object.keys(newlyAdded).length > 0 && window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
+      setSyncStatus('syncing');
+      window.WoodmontUtils.syncMultipleIncludesToGitHub(newlyAdded)
+        .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+        .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+    }
   }, [filtered, picks, prefs]);
 
   if (loading) return (
@@ -413,6 +440,11 @@ function RawApp() {
             <a href="./index.html" className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition text-sm no-underline">
               Go to Newsletter ({pickCount} picks ready)
             </a>
+          )}
+          {syncStatus && (
+            <span className={`text-xs font-medium ${syncStatus === 'syncing' ? 'text-blue-500' : syncStatus === 'synced' ? 'text-emerald-500' : 'text-red-500'}`}>
+              {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'synced' ? 'Synced!' : 'Sync failed'}
+            </span>
           )}
           <span className="text-xs text-slate-400 dark:text-slate-500">
             Picks saved to browser &bull; AI learns your preferences

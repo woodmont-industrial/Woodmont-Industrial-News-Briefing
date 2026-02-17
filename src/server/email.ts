@@ -9,7 +9,8 @@ import {
     getText, containsAny, isPolitical, isTargetRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
-    sortByDealThenDate, getValidDate, mapFeedItemsToArticles
+    sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
+    loadIncludedArticles, clearIncludedArticles
 } from './newsletter-filters.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 
@@ -328,7 +329,7 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 export async function sendDailyNewsletterWork(): Promise<boolean> {
     try {
         console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
-        const { articles } = loadArticlesFromFeed();
+        const { articles, docsDir } = loadArticlesFromFeed();
         console.log(`📰 Loaded ${articles.length} articles from feed`);
 
         const now = new Date();
@@ -392,6 +393,22 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         addFromAllSources(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
         addFromAllSources(people, MIN_OTHER, applyPeopleFilter, 'people');
 
+        // Merge manually included articles from raw picks
+        const includedArticles = loadIncludedArticles(docsDir);
+        for (const article of includedArticles) {
+            const articleKey = article.id || article.link;
+            if (usedIds.has(articleKey)) continue;
+            usedIds.add(articleKey);
+            const cat = article.category || 'relevant';
+            if (cat === 'transactions') transactions.push(article);
+            else if (cat === 'availabilities') availabilities.push(article);
+            else if (cat === 'people') people.push(article);
+            else relevant.push(article);
+        }
+        if (includedArticles.length > 0) {
+            console.log(`📌 Merged ${includedArticles.length} manually included article(s)`);
+        }
+
         // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);
         transactions = transactions.slice(0, MAX_PER_SECTION);
@@ -436,6 +453,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         availabilities = availabilities.filter(postDescriptionRegionCheck);
         people = people.filter(postDescriptionRegionCheck);
 
+        const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
+        if (postFilterTotal === 0) {
+            console.log('⚠️ All articles removed by post-description region check — skipping Work newsletter');
+            return true;
+        }
+
         // Sort by deal size then date
         relevant.sort(sortByDealThenDate);
         transactions.sort(sortByDealThenDate);
@@ -449,6 +472,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         console.log(`📤 Sending Work newsletter to ${recipients.length} recipient(s)...`);
         const success = await sendEmail(recipients, subject, html);
+        if (success && includedArticles.length > 0) {
+            clearIncludedArticles(docsDir);
+        }
         console.log(success ? `✅ Work ${isFriday ? 'weekly' : 'daily'} newsletter sent!` : '❌ Failed to send Work newsletter');
         return success;
     } catch (error) {

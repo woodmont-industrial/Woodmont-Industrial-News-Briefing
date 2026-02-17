@@ -244,6 +244,172 @@
     }
   }
 
+  var INCLUDE_FILE_PATH = 'docs/included-articles.json';
+
+  /**
+   * Map abbreviated raw-feed fields to full names for server consumption.
+   */
+  function mapPickToArticle(pickData) {
+    return {
+      title: pickData.t || '',
+      url: pickData.u || '',
+      source: pickData.s || '',
+      date_published: pickData.d || '',
+      description: pickData.ex || '',
+      category: pickData.c || 'relevant',
+      region: pickData.r || '',
+      keywords: pickData.kw || []
+    };
+  }
+
+  async function syncIncludeToGitHub(articleId, pickData) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + INCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+      var content = JSON.parse(atob(fileData.content));
+
+      var articles = content.articles || [];
+      if (articles.some(function(a) { return a.id === articleId; })) return { ok: true, reason: 'already_included' };
+
+      var mapped = mapPickToArticle(pickData);
+      mapped.id = articleId;
+      articles.push(mapped);
+      content.articles = articles;
+
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Include: ' + (pickData.t || '').substring(0, 60),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok, reason: putResp.ok ? 'synced' : 'put_failed' };
+    } catch (e) {
+      console.error('GitHub include sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  async function removeIncludeFromGitHub(articleId) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + INCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+      var content = JSON.parse(atob(fileData.content));
+
+      var articles = content.articles || [];
+      var idx = articles.findIndex(function(a) { return a.id === articleId; });
+      if (idx === -1) return { ok: true, reason: 'not_found' };
+
+      articles.splice(idx, 1);
+      content.articles = articles;
+
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Remove include: ' + articleId.substring(0, 12),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok };
+    } catch (e) {
+      console.error('GitHub include sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  async function clearIncludesOnGitHub() {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + INCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+
+      var content = { _comment: 'Articles manually picked from raw feed for newsletter inclusion.', articles: [] };
+
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Clear included articles',
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok };
+    } catch (e) {
+      console.error('GitHub include sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  async function syncMultipleIncludesToGitHub(picksMap) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    try {
+      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + INCLUDE_FILE_PATH;
+      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+      var getResp = await fetch(apiBase, { headers: headers });
+      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
+      var fileData = await getResp.json();
+      var content = JSON.parse(atob(fileData.content));
+
+      var articles = content.articles || [];
+      var existingIds = new Set(articles.map(function(a) { return a.id; }));
+      var added = 0;
+
+      Object.keys(picksMap).forEach(function(id) {
+        if (existingIds.has(id)) return;
+        var mapped = mapPickToArticle(picksMap[id]);
+        mapped.id = id;
+        articles.push(mapped);
+        added++;
+      });
+
+      if (added === 0) return { ok: true, reason: 'all_already_included' };
+
+      content.articles = articles;
+
+      var putResp = await fetch(apiBase, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Include ' + added + ' article(s) from raw picks',
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+          sha: fileData.sha
+        })
+      });
+      return { ok: putResp.ok, reason: putResp.ok ? 'synced' : 'put_failed', added: added };
+    } catch (e) {
+      console.error('GitHub include sync error:', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
   async function removeExcludeFromGitHub(articleId) {
     var token = getGitHubToken();
     if (!token) return { ok: false, reason: 'no_token' };
@@ -303,6 +469,10 @@
     getGitHubToken: getGitHubToken,
     setGitHubToken: setGitHubToken,
     syncExcludeToGitHub: syncExcludeToGitHub,
-    removeExcludeFromGitHub: removeExcludeFromGitHub
+    removeExcludeFromGitHub: removeExcludeFromGitHub,
+    syncIncludeToGitHub: syncIncludeToGitHub,
+    removeIncludeFromGitHub: removeIncludeFromGitHub,
+    clearIncludesOnGitHub: clearIncludesOnGitHub,
+    syncMultipleIncludesToGitHub: syncMultipleIncludesToGitHub
   };
 })();

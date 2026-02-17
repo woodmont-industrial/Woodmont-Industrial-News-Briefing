@@ -205,7 +205,7 @@ function loadExcludedArticles(docsDir: string): { ids: Set<string>; urls: Set<st
     return { ids: new Set(), urls: new Set() };
 }
 
-export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: string } {
+export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: string; docsDir: string } {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const docsDir = path.join(__dirname, '../../docs');
@@ -232,7 +232,7 @@ export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: 
         if (removed > 0) console.log(`🚫 Excluded ${removed} article(s) from user exclude list`);
     }
 
-    return { articles, feedPath };
+    return { articles, feedPath, docsDir };
 }
 
 export function filterArticlesByTimeRange(articles: NormalizedItem[], hours: number): NormalizedItem[] {
@@ -242,6 +242,49 @@ export function filterArticlesByTimeRange(articles: NormalizedItem[], hours: num
         if (!pubDate) return false;
         return pubDate >= cutoff;
     });
+}
+
+// =====================================================================
+// INCLUDED ARTICLES (manually picked from raw feed)
+// =====================================================================
+
+export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
+    const includePath = path.join(docsDir, 'included-articles.json');
+    try {
+        if (!fs.existsSync(includePath)) return [];
+        const data = JSON.parse(fs.readFileSync(includePath, 'utf-8'));
+        const articles = data.articles || [];
+        if (articles.length === 0) return [];
+        console.log(`📌 Loaded ${articles.length} manually included article(s)`);
+        return articles.map((a: any) => ({
+            id: a.id || a.url || '',
+            title: a.title || '',
+            link: a.url || '',
+            pubDate: a.date_published || '',
+            description: a.description || '',
+            source: a.source || '',
+            category: a.category || 'relevant',
+            regions: a.region ? [a.region] : [],
+            keywords: a.keywords || [],
+        } as NormalizedItem));
+    } catch (e) {
+        console.warn('Could not load included-articles.json:', e);
+        return [];
+    }
+}
+
+export function clearIncludedArticles(docsDir: string): void {
+    const includePath = path.join(docsDir, 'included-articles.json');
+    try {
+        const content = {
+            _comment: 'Articles manually picked from raw feed for newsletter inclusion.',
+            articles: []
+        };
+        fs.writeFileSync(includePath, JSON.stringify(content, null, 2) + '\n', 'utf-8');
+        console.log('🧹 Cleared included-articles.json');
+    } catch (e) {
+        console.warn('Could not clear included-articles.json:', e);
+    }
 }
 
 export function sortByDealThenDate(a: NormalizedItem, b: NormalizedItem): number {
