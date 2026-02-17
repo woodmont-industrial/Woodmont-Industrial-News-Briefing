@@ -25,10 +25,13 @@ export interface AIProvider {
     descBatchDelayMs: number;
 }
 
+// Model override via env: CEREBRAS_MODEL=qwen-3-235b-a22b-instruct-2507
+// Default: llama3.1-8b (production, guaranteed available)
+// Upgrade to qwen-3-235b-a22b-instruct-2507 once preview access is confirmed
 const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
-    model: 'qwen-3-235b-a22b-instruct-2507',
+    model: process.env.CEREBRAS_MODEL || 'llama3.1-8b',
     maxConcurrent: 5,
     batchDelayMs: 1000,
     maxArticles: 40,
