@@ -6,8 +6,8 @@
   <title>Raw Articles — Woodmont Industrial</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <style>
     body {
@@ -38,14 +38,10 @@
 const { useState, useEffect, useMemo, useCallback } = React;
 
 const RAW_FEED_URL = './raw-feed.json';
-const PICKS_KEY = 'woodmont_raw_picks';
 const PREFS_KEY = 'woodmont_ai_preferences';
 
-// ── localStorage helpers ──
-function loadPicks() {
-  try { return JSON.parse(localStorage.getItem(PICKS_KEY) || '{}'); } catch { return {}; }
-}
-function savePicks(picks) { localStorage.setItem(PICKS_KEY, JSON.stringify(picks)); }
+// Server-backed picks via WoodmontUtils
+const { getUserId, loadServerPreferences, getRawPicks, setAllRawPicks, clearRawPicks } = window.WoodmontUtils;
 
 function loadPrefs() {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{"sources":{},"categories":{},"regions":{},"keywords":{}}'); }
@@ -116,9 +112,10 @@ function RawApp() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [picks, setPicks] = useState(loadPicks);
+  const [picks, setPicks] = useState(() => getRawPicks());
   const [prefs, setPrefs] = useState(loadPrefs);
   const [dark, setDark] = useState(() => localStorage.getItem('woodmont_theme') === 'dark');
+  const [currentUser, setCurrentUser] = useState(() => getUserId());
 
   // Filters
   const [search, setSearch] = useState('');
@@ -140,14 +137,29 @@ function RawApp() {
     localStorage.setItem('woodmont_theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  // Fetch raw feed
+  // Load server preferences, then fetch raw feed
   useEffect(() => {
-    setLoading(true);
-    fetch(RAW_FEED_URL)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(data => { setItems(data.items || []); setStats(data.stats || null); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+    const init = async () => {
+      const userId = getUserId();
+      if (userId) {
+        await loadServerPreferences(userId);
+        setPicks(getRawPicks());
+        setCurrentUser(userId);
+      }
+      setLoading(true);
+      try {
+        const r = await fetch(RAW_FEED_URL);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        setItems(data.items || []);
+        setStats(data.stats || null);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
   // Unique values for filter dropdowns
@@ -194,7 +206,7 @@ function RawApp() {
         next[article.id] = { t: article.t, u: article.u, s: article.s, d: article.d, ex: article.ex, c: article.c, r: article.r, kw: article.kw };
         newPrefs = updatePrefs(article, newPrefs);
       }
-      savePicks(next);
+      setAllRawPicks(next);
       setPrefs(newPrefs);
       savePrefs(newPrefs);
       // Fire-and-forget GitHub sync
@@ -212,7 +224,7 @@ function RawApp() {
 
   const clearPicks = useCallback(() => {
     setPicks({});
-    savePicks({});
+    clearRawPicks();
     if (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
       setSyncStatus('syncing');
       window.WoodmontUtils.clearIncludesOnGitHub()
@@ -234,7 +246,7 @@ function RawApp() {
       }
     });
     setPicks(newPicks);
-    savePicks(newPicks);
+    setAllRawPicks(newPicks);
     setPrefs(newPrefs);
     savePrefs(newPrefs);
     if (Object.keys(newlyAdded).length > 0 && window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
@@ -253,8 +265,8 @@ function RawApp() {
   );
   if (error) return (
     <div className="container p-12 text-center">
-      <p className="text-red-600">Failed to load: {error}</p>
-      <p className="text-sm text-slate-500 mt-2">Make sure <code>raw-feed.json</code> exists (run build first).</p>
+      <p className="text-red-600">Unable to load raw articles</p>
+      <p className="text-sm text-slate-500 mt-2">The raw article feed is temporarily unavailable. Please try again later.</p>
     </div>
   );
 
@@ -265,6 +277,11 @@ function RawApp() {
         <div className="flex items-center gap-3">
           <span className="text-2xl font-bold text-white tracking-tight">Woodmont Industrial</span>
           <span className="text-emerald-200 dark:text-slate-400 text-sm hidden sm:inline">Raw Article Feed</span>
+          {currentUser && (
+            <span className="px-3 py-1 bg-white/20 text-white rounded-full text-xs font-medium">
+              {currentUser}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <a href="./" className="px-4 py-2 rounded-xl font-medium text-sm bg-white/20 text-white hover:bg-white/30 transition no-underline">Articles</a>
@@ -447,7 +464,7 @@ function RawApp() {
             </span>
           )}
           <span className="text-xs text-slate-400 dark:text-slate-500">
-            Picks saved to browser &bull; AI learns your preferences
+            {currentUser ? `Picks synced for ${currentUser}` : 'Picks saved to browser'} &bull; AI learns your preferences
           </span>
         </div>
       </div>

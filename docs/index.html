@@ -8,8 +8,8 @@
   <script>tailwind.config = { darkMode: 'class' }</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/utils.js"></script>
@@ -444,10 +444,9 @@
             <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
               {hiddenCount} article{hiddenCount !== 1 ? 's' : ''} hidden based on your ignore preferences
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (confirm('Clear all ignored articles?')) {
-                    localStorage.removeItem('woodmont_ignored_articles');
-                    localStorage.removeItem('woodmont_ignored_topics');
+                    await clearAllIgnored();
                     window.location.reload();
                   }
                 }}
@@ -485,7 +484,7 @@
       );
     };
 
-    const ArticlePreview = ({ article, onClose, onBlacklist }) => {
+    const ArticlePreview = ({ article, onClose, onExclude }) => {
       if (!article) return null;
 
       const published = article.pubDate ? new Date(article.pubDate) : null;
@@ -582,17 +581,17 @@
             <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
               <div className="flex justify-between items-center">
                 <div>
-                  {onBlacklist && (
+                  {onExclude && (
                     <button
                       onClick={() => {
-                        if (confirm('Blacklist this article? It will be hidden from the feed.')) {
-                          onBlacklist(article.id);
+                        if (confirm('Exclude this article? It will be hidden from the feed.')) {
+                          onExclude(article.id);
                           onClose();
                         }
                       }}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
                     >
-                      Blacklist Article
+                      Exclude Article
                     </button>
                   )}
                 </div>
@@ -619,7 +618,7 @@
         );
     };
 
-    const AdminPanel = ({ manualTitle, setManualTitle, manualUrl, setManualUrl, manualSummary, setManualSummary, manualCategory, setManualCategory, manualSource, setManualSource, showManualForm, setShowManualForm, onAddManualArticle, newsletterRecipients, setNewsletterRecipients, reviewMode, setReviewMode, filteredArticles, fetchFilteredArticles, approveArticle, blacklistArticle, reviewCategory, setReviewCategory }) => {
+    const AdminPanel = ({ manualTitle, setManualTitle, manualUrl, setManualUrl, manualSummary, setManualSummary, manualCategory, setManualCategory, manualSource, setManualSource, showManualForm, setShowManualForm, onAddManualArticle, newsletterRecipients, setNewsletterRecipients, reviewMode, setReviewMode, filteredArticles, fetchFilteredArticles, approveArticle, excludeArticle, reviewCategory, setReviewCategory }) => {
       return (
         <div className="max-w-6xl mx-auto px-4 pb-12">
           {/* Article Review Section */}
@@ -688,10 +687,10 @@
                             <option value="people">PEOPLE NEWS</option>
                           </select>
                           <button
-                            onClick={() => blacklistArticle(article.id)}
+                            onClick={() => excludeArticle(article.id)}
                             className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
                           >
-                            Blacklist
+                            Exclude
                           </button>
                         </div>
                       </div>
@@ -827,16 +826,22 @@
       getIgnoredTopics, getIgnoredArticles,
       addIgnoredTopic, addIgnoredArticle,
       removeIgnoredTopic, removeIgnoredArticle, isArticleIgnored,
-      getGitHubToken, setGitHubToken, syncExcludeToGitHub, removeExcludeFromGitHub
+      getGitHubToken, setGitHubToken, syncExcludeToGitHub, removeExcludeFromGitHub,
+      getUserId, setUserId, loadServerPreferences, saveServerPreferences,
+      getServerPrefs, getRawPicks, setRawPick, clearRawPicks, setAllRawPicks,
+      migrateAndClearLocalStorage, clearAllIgnored
     } = window.WoodmontUtils;
 
     // Tracked & Ignored Topics Panel Component
-    const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, ignoredArticles = [], onRemoveTopic, onAddTopic, onRemoveIgnored, onRemoveIgnoredArticle, matchingCount }) => {
+    const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, ignoredArticles = [], onRemoveTopic, onAddTopic, onRemoveIgnored, onRemoveIgnoredArticle, matchingCount, onUserChange, currentUser }) => {
       const [newTopic, setNewTopic] = useState('');
       const [isExpanded, setIsExpanded] = useState(true);
       const [activeTab, setActiveTab] = useState('tracked');
       const [ghToken, setGhToken] = useState(() => getGitHubToken());
       const [tokenSaved, setTokenSaved] = useState(false);
+      const [userInput, setUserInput] = useState(() => getUserId());
+      const [migrating, setMigrating] = useState(false);
+      const [migrated, setMigrated] = useState(() => localStorage.getItem('woodmont_prefs_migrated') === 'true');
 
       const handleAddTopic = () => {
         if (newTopic.trim()) {
@@ -1013,6 +1018,71 @@
 
               {activeTab === 'settings' && (
                 <div className="space-y-3">
+                  {/* User Identity */}
+                  <div className="pb-3 border-b border-slate-200 dark:border-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Who are you?
+                      {currentUser && <span className="ml-2 text-emerald-500 text-xs font-normal">● {currentUser}</span>}
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                      Your preferences (tracked topics, ignored articles) are stored per user and synced to GitHub.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const name = userInput.trim().toLowerCase();
+                            if (name) { setUserId(name); onUserChange && onUserChange(name); }
+                          }
+                        }}
+                        placeholder="Enter your name..."
+                        className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-300 outline-none"
+                      />
+                      <button
+                        onClick={() => {
+                          const name = userInput.trim().toLowerCase();
+                          if (name) { setUserId(name); onUserChange && onUserChange(name); }
+                        }}
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+                      >
+                        {currentUser ? 'Switch User' : 'Login'}
+                      </button>
+                    </div>
+                    {currentUser && (
+                      <div className="flex gap-2 mt-2">
+                        {!migrated && (
+                          <button
+                            onClick={async () => {
+                              setMigrating(true);
+                              const ok = await migrateAndClearLocalStorage();
+                              setMigrating(false);
+                              if (ok) { setMigrated(true); alert('Preferences imported successfully!'); }
+                              else { alert('Migration failed. Make sure GitHub token is set.'); }
+                            }}
+                            disabled={migrating}
+                            className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-colors disabled:opacity-50"
+                          >
+                            {migrating ? 'Importing...' : 'Import from this browser'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            localStorage.removeItem(TRACKED_TOPICS_KEY);
+                            localStorage.removeItem(IGNORED_TOPICS_KEY);
+                            localStorage.removeItem(IGNORED_ARTICLES_KEY);
+                            localStorage.removeItem('woodmont_raw_picks');
+                            alert('Local cache cleared.');
+                          }}
+                          className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
+                        >
+                          Clear local cache
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       GitHub Token
@@ -1060,7 +1130,7 @@
               )}
 
               <p className="text-xs text-slate-400 mt-3">
-                Preferences are stored in your browser{ghToken ? ' and synced to GitHub' : ''}. Tracked articles are highlighted, ignored articles are hidden.
+                Preferences are stored {currentUser ? ('for ' + currentUser + ' on the server') : 'in your browser'}{ghToken ? ' and synced to GitHub' : ''}. Tracked articles are highlighted, ignored articles are hidden.
               </p>
             </div>
           )}
@@ -1176,14 +1246,14 @@
                 )}
                 {(() => {
                   try {
-                    const rp = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+                    const rp = getRawPicks();
                     const cnt = Object.keys(rp).length;
                     if (cnt > 0) return (
                       <span className="flex items-center gap-2">
                         <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 rounded-full text-sm">
                           {cnt} raw pick{cnt !== 1 ? 's' : ''} ready
                         </span>
-                        <button onClick={() => { localStorage.removeItem('woodmont_raw_picks'); window.location.reload(); }}
+                        <button onClick={() => { clearRawPicks(); window.location.reload(); }}
                           className="text-xs text-red-500 hover:underline">Clear</button>
                       </span>
                     );
@@ -1219,7 +1289,7 @@
                   >
                     <option value="work">Work (Clean & Professional)</option>
                     <option value="default">Default (Colorful)</option>
-                    <option value="goth">Goth (Executive)</option>
+                    <option value="goth">Executive Dark</option>
                   </select>
                 </div>
 
@@ -1514,6 +1584,8 @@
       const [feedHealthReport, setFeedHealthReport] = useState(null);
       const [showFeedHealth, setShowFeedHealth] = useState(false);
       const [feedHealthLoading, setFeedHealthLoading] = useState(false);
+      const [currentUser, setCurrentUser] = useState(() => getUserId());
+
       // Tracking state
       const [trackedTopics, setTrackedTopics] = useState(() => getTrackedTopics());
 
@@ -1521,8 +1593,6 @@
       const handleTrackKeyword = useCallback((keyword, articleTitle = '') => {
         if (addTrackedTopic(keyword, articleTitle)) {
           setTrackedTopics(getTrackedTopics());
-          // Show brief confirmation (could use toast in future)
-          console.log(`Now tracking: ${keyword}`);
         }
       }, []);
 
@@ -1537,7 +1607,7 @@
           setIgnoredArticles(getIgnoredArticles());
           // Also remove from GitHub exclude list
           removeExcludeFromGitHub(articleId).then(result => {
-            if (result.ok) console.log('Removed exclude from GitHub:', articleId);
+            // Silently sync
           });
         }
       }, []);
@@ -1560,7 +1630,6 @@
       const handleIgnoreKeyword = useCallback((keyword) => {
         if (addIgnoredTopic(keyword)) {
           setIgnoredTopics(getIgnoredTopics());
-          console.log(`Now ignoring keyword: ${keyword}`);
         }
       }, []);
 
@@ -1568,35 +1637,23 @@
       const handleIgnoreArticle = useCallback((article, reason) => {
         if (addIgnoredArticle(article, reason)) {
           setIgnoredArticles(getIgnoredArticles());
-          console.log(`Ignored article: "${article.title}" - Reason: ${reason}`);
           // Sync to GitHub excluded-articles.json so server-side newsletters also exclude it
           const articleId = article.id || article.link || article.title;
           const articleUrl = article.link || article.url || '';
-          syncExcludeToGitHub(articleId, articleUrl, article.title).then(result => {
-            if (result.ok && result.reason === 'synced') {
-              console.log(`Synced exclude to GitHub: "${article.title}"`);
-            } else if (result.reason === 'no_token') {
-              console.log('GitHub token not set — ignore is local only. Set token in Preferences > Settings.');
-            } else if (result.reason !== 'already_excluded') {
-              console.warn('GitHub sync failed:', result.reason);
-            }
-          });
+          syncExcludeToGitHub(articleId, articleUrl, article.title);
         }
       }, []);
 
       // Send article to Raw picks (moves from Articles to Raw)
       const handleSendToRaw = useCallback((article) => {
         try {
-          const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
           const id = article.id || article.link;
-          rawPicks[id] = {
+          setRawPick(id, {
             t: article.title || '', u: article.link || '', s: article.source || article.publisher || '',
             d: article.pubDate || new Date().toISOString(), ex: article.description || '',
             c: article.category || 'relevant', r: article.region || '', kw: article.keywords || []
-          };
-          localStorage.setItem('woodmont_raw_picks', JSON.stringify(rawPicks));
+          });
           handleIgnoreArticle(article, 'Moved to Raw');
-          console.log(`Sent to Raw: "${article.title}"`);
         } catch (e) { console.error('Error sending to raw:', e); }
       }, [handleIgnoreArticle]);
 
@@ -1604,6 +1661,16 @@
         if (removeIgnoredTopic(keyword)) {
           setIgnoredTopics(getIgnoredTopics());
         }
+      }, []);
+
+      // Handle user switching (loads server preferences for new user)
+      const handleUserChange = useCallback(async (newUserId) => {
+        setCurrentUser(newUserId);
+        setUserId(newUserId);
+        await loadServerPreferences(newUserId);
+        setTrackedTopics(getTrackedTopics());
+        setIgnoredTopics(getIgnoredTopics());
+        setIgnoredArticles(getIgnoredArticles());
       }, []);
 
       // Handle tracking/ignoring from URL parameters (for newsletter links)
@@ -1687,10 +1754,10 @@
                 };
               })
             : (Array.isArray(data.items) ? data.items : []);
-          // Merge raw picks from localStorage into the articles list
+          // Merge raw picks into the articles list
           if (IS_STATIC) {
             try {
-              const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+              const rawPicks = getRawPicks();
               const existingIds = new Set(articles.map(a => a.id));
               Object.entries(rawPicks).forEach(([id, p]) => {
                 if (!existingIds.has(id)) {
@@ -1741,12 +1808,9 @@
         }
         setRefreshLoading(true);
         try {
-          console.log('Starting refresh...');
           const refreshResponse = await fetch('/api/refresh');
-          console.log('Refresh API completed, fetching updated articles...');
           await fetchItems(true);
           await fetchLastFetchInfo();
-          console.log('Refresh completed successfully');
         } catch (e) {
           console.error('Error refreshing:', e);
         } finally {
@@ -1869,7 +1933,7 @@
         </div></body></html>`;
       };
 
-      // Goth theme newsletter builder - executive style, dark header
+      // Executive Dark theme newsletter builder - dark header, minimal style
       const buildGothNewsletterHTML = (articles, days) => {
         const now = new Date();
         const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -2110,8 +2174,7 @@
             const recentArticles = items.filter(item => {
               const articleId = item.id || item.link || item.title;
               const articleUrl = (item.link || item.url || '').toLowerCase();
-              // Check both localStorage ignores AND server-synced excludes
-              if (isArticleIgnored(item)) return false;
+              // Newsletter is a team product — only check team-level server excludes, not per-user ignores
               if (serverExcludedIds.has(articleId) || serverExcludedIds.has(articleUrl)) return false;
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
@@ -2119,20 +2182,17 @@
 
             console.log(`[Newsletter] ${items.length} total items, ${recentArticles.length} after filter (${days}d cutoff: ${cutoff.toISOString()}, ${serverExcludedIds.size} server excludes)`);
 
-            // Merge raw picks from localStorage (picked in raw.html)
+            // Merge raw picks (from server preferences)
             try {
-              const rawPicks = JSON.parse(localStorage.getItem('woodmont_raw_picks') || '{}');
+              const rawPicks = getRawPicks();
               const pickIds = new Set(recentArticles.map(a => a.id));
               Object.entries(rawPicks).forEach(([id, p]) => {
                 if (!pickIds.has(id)) {
-                  const rawArticle = {
+                  recentArticles.push({
                     id, title: p.t || 'Untitled', link: p.u || '#', source: p.s || 'Unknown',
                     pubDate: p.d || new Date().toISOString(), description: p.ex || '',
                     category: p.c === 'excluded' ? 'relevant' : (p.c || 'relevant'), _fromRawPick: true
-                  };
-                  if (!isArticleIgnored(rawArticle)) {
-                    recentArticles.push(rawArticle);
-                  }
+                  });
                 }
               });
             } catch (e) { console.warn('Could not load raw picks:', e); }
@@ -2144,7 +2204,7 @@
                 const incData = await incRes.json();
                 const existingIds = new Set(recentArticles.map(a => a.id));
                 (incData.articles || []).forEach(a => {
-                  if (a.id && !existingIds.has(a.id) && !isArticleIgnored(a)) {
+                  if (a.id && !existingIds.has(a.id) && !serverExcludedIds.has(a.id)) {
                     recentArticles.push({
                       id: a.id, title: a.title || 'Untitled', link: a.url || '#',
                       source: a.source || 'Unknown', pubDate: a.date_published || new Date().toISOString(),
@@ -2201,7 +2261,7 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + (localStorage.getItem('api_key') || 'demo-key')
+              'Authorization': 'Bearer ' + (localStorage.getItem('api_key') || '')
             },
             body: JSON.stringify({
               title: manualTitle,
@@ -2228,7 +2288,7 @@
           }
         } catch (error) {
           console.error('Error adding manual article:', error);
-          alert('Error adding article. Check console for details.');
+          alert('Error adding article. Please try again.');
         }
       }, [manualTitle, manualUrl, manualSummary, manualCategory, manualSource, fetchItems]);
 
@@ -2262,7 +2322,7 @@
           }
         } catch (error) {
           console.error('Error sending newsletter:', error);
-          alert('Error sending newsletter. Check console for details.');
+          alert('Error sending newsletter. Please try again.');
         } finally {
           setEmailLoading(false);
         }
@@ -2314,12 +2374,12 @@
           }
         } catch (error) {
           console.error('Error approving article:', error);
-          alert('Error approving article. Check console for details.');
+          alert('Error approving article. Please try again.');
         }
       }, [fetchItems, fetchFilteredArticles]);
 
-      const blacklistArticle = useCallback(async (articleId) => {
-        if (!confirm('Are you sure you want to blacklist this article?')) return;
+      const excludeArticle = useCallback(async (articleId) => {
+        if (!confirm('Are you sure you want to exclude this article?')) return;
         
         try {
           const response = await fetch((API_BASE || '') + '/api/blacklist-article', {
@@ -2333,16 +2393,16 @@
           });
 
           if (response.ok) {
-            alert('Article blacklisted successfully!');
+            alert('Article excluded successfully!');
             fetchItems(true);
             fetchFilteredArticles();
           } else {
             const error = await response.text();
-            alert('Error blacklisting article: ' + error);
+            alert('Error excluding article. Please try again.');
           }
         } catch (error) {
-          console.error('Error blacklisting article:', error);
-          alert('Error blacklisting article. Check console for details.');
+          console.error('Error excluding article:', error);
+          alert('Error excluding article. Please try again.');
         }
       }, [fetchItems, fetchFilteredArticles]);
 
@@ -2365,9 +2425,20 @@
       }, []);
 
       useEffect(() => {
+        const init = async () => {
+          // Load server preferences before fetching items (so rawPicks merge works)
+          const userId = getUserId();
+          if (userId) {
+            await loadServerPreferences(userId);
+            setTrackedTopics(getTrackedTopics());
+            setIgnoredTopics(getIgnoredTopics());
+            setIgnoredArticles(getIgnoredArticles());
+          }
           fetchItems();
-        fetchLastFetchInfo();
-        
+          fetchLastFetchInfo();
+        };
+        init();
+
         const interval = setInterval(() => {
           if (viewMode === "articles") {
             fetchItems(false);
@@ -2461,6 +2532,8 @@
                     onRemoveIgnored={handleRemoveIgnoredTopic}
                     onRemoveIgnoredArticle={handleRemoveIgnoredArticle}
                     matchingCount={matchingArticlesCount}
+                    onUserChange={handleUserChange}
+                    currentUser={currentUser}
                   />
                 </div>
                 <ArticleGrid
@@ -2519,7 +2592,7 @@
                 filteredArticles={filteredArticles}
                 fetchFilteredArticles={fetchFilteredArticles}
                 approveArticle={approveArticle}
-                blacklistArticle={blacklistArticle}
+                excludeArticle={excludeArticle}
                 reviewCategory={reviewCategory}
                 setReviewCategory={setReviewCategory}
               />
@@ -2530,7 +2603,7 @@
               <ArticlePreview
                 article={selectedArticle}
                 onClose={closeArticlePreview}
-                onBlacklist={blacklistArticle}
+                onExclude={excludeArticle}
               />
             )}
           </div>
