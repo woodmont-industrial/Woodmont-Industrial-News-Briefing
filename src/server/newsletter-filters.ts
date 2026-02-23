@@ -98,6 +98,8 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) return false;
+        // Trust AI classification — articles already categorized by AI passed its relevance check
+        if (article.category && article.category !== 'exclude') return true;
         return containsAny(text, keywords);
     });
     console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict filter)`);
