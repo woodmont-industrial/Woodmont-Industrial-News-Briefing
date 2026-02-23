@@ -147,17 +147,25 @@ async function sendStandardNewsletter(period: StandardPeriod): Promise<boolean> 
             periodLabel = '5 days';
             recentArticles = filterArticlesByTimeRange(allArticles, 5 * 24);
         } else {
-            // Adaptive time range: 24h or 48h
-            const articles24h = filterArticlesByTimeRange(allArticles, 24);
-            const relevant24h = articles24h.filter(a => a.category === 'relevant');
-            const needsMoreContent = relevant24h.length <= 3;
-            const hoursBack = needsMoreContent ? 48 : 24;
-            periodLabel = needsMoreContent ? '48 hours' : '24 hours';
+            const isMonday = now.getDay() === 1;
+            if (isMonday) {
+                // Monday: look back 72 hours to cover the full weekend (Friday 9 AM → Monday 9 AM)
+                console.log('📅 Monday detected — expanding lookback to 72 hours to cover the weekend');
+                recentArticles = filterArticlesByTimeRange(allArticles, 72);
+                periodLabel = '72 hours (weekend recap)';
+            } else {
+                // Adaptive time range: 24h or 48h
+                const articles24h = filterArticlesByTimeRange(allArticles, 24);
+                const relevant24h = articles24h.filter(a => a.category === 'relevant');
+                const needsMoreContent = relevant24h.length <= 3;
+                const hoursBack = needsMoreContent ? 48 : 24;
+                periodLabel = needsMoreContent ? '48 hours' : '24 hours';
 
-            if (needsMoreContent) {
-                console.log(`📈 Only ${relevant24h.length} relevant articles in 24h - expanding to 48 hours`);
+                if (needsMoreContent) {
+                    console.log(`📈 Only ${relevant24h.length} relevant articles in 24h - expanding to 48 hours`);
+                }
+                recentArticles = filterArticlesByTimeRange(allArticles, hoursBack);
             }
-            recentArticles = filterArticlesByTimeRange(allArticles, hoursBack);
         }
         console.log(`📅 Articles from last ${periodLabel}: ${recentArticles.length}`);
 
