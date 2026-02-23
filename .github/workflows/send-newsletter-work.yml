@@ -15,23 +15,55 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      - name: Check for duplicate run (skip if already sent in last 2 hours)
+        id: dedup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'send-newsletter-work.yml',
+              status: 'success',
+              per_page: 1
+            });
+            if (runs.data.workflow_runs.length > 0) {
+              const lastRun = new Date(runs.data.workflow_runs[0].created_at);
+              const hoursAgo = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
+              if (hoursAgo < 2 && runs.data.workflow_runs[0].id !== context.runId) {
+                core.setOutput('skip', 'true');
+                console.log(`Skipping — last successful run was ${hoursAgo.toFixed(1)} hours ago`);
+                return;
+              }
+            }
+            core.setOutput('skip', 'false');
+
       - name: Checkout repository
+        if: steps.dedup.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Skip notice
+        if: steps.dedup.outputs.skip == 'true'
+        run: echo "⏭️ Newsletter already sent in the last 2 hours — skipping to avoid duplicate."
+
       - name: Setup Node.js
+        if: steps.dedup.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install dependencies
+        if: steps.dedup.outputs.skip != 'true'
         run: npm install
 
       - name: Install Playwright browsers
+        if: steps.dedup.outputs.skip != 'true'
         run: npx playwright install chromium --with-deps
 
       - name: Build fresh RSS data with AI filtering
+        if: steps.dedup.outputs.skip != 'true'
         run: npm run build
         env:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
@@ -41,6 +73,7 @@ jobs:
         timeout-minutes: 10
 
       - name: Send Work Newsletter Email
+        if: steps.dedup.outputs.skip != 'true'
         env:
           # Primary: Power Automate Webhook (corporate O365 email)
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
@@ -68,6 +101,7 @@ jobs:
           npx tsx rssfeed.ts --send-newsletter-work
 
       - name: Commit updated articles
+        if: steps.dedup.outputs.skip != 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -81,13 +115,13 @@ jobs:
           fi
 
       - name: Report Success
-        if: success()
+        if: success() && steps.dedup.outputs.skip != 'true'
         run: |
           echo "✅ Work newsletter sent successfully!"
           echo "📊 Check email inbox for delivery"
 
       - name: Report Failure
-        if: failure()
+        if: failure() && steps.dedup.outputs.skip != 'true'
         run: |
           echo "❌ Work newsletter send failed!"
           echo "Check the logs above for error details"
