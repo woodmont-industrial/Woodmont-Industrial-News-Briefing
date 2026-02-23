@@ -158,6 +158,14 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
 export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
     const desc = (article.description || '').toUpperCase();
     if (!desc) return true;
+
+    // Never filter out Woodmont's own articles
+    const text = `${article.title || ''} ${article.source || ''}`.toLowerCase();
+    if (text.includes('woodmont')) return true;
+
+    // Don't region-filter "relevant" category — macro industry news is nationally significant
+    if (article.category === 'relevant') return true;
+
     if (MAJOR_EXCLUDE_REGIONS.some(r => desc.includes(r))) {
         console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (excluded region in description)`);
         return false;
