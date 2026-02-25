@@ -162,6 +162,23 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
  * about a person (contain people action keywords + industrial context).
  * Returns { relevant, people } with articles moved as needed.
  */
+// Strong people action words — these unambiguously indicate personnel news
+// (excludes generic words like "nabs", "leads", "heads" that trigger false positives)
+const STRONG_PEOPLE_ACTIONS = [
+    'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped',
+    'hires', 'appoints', 'promotes', 'names',
+    'movers', 'shakers', 'power broker', 'rising star', 'top producer',
+    'recognized', 'award', 'honored', 'featured', 'profile', 'spotlight',
+];
+
+// Title/role keywords — presence of these strongly signals a people article
+const PERSON_ROLE_KEYWORDS = [
+    'ceo', 'cfo', 'coo', 'cio', 'cto', 'president', 'chairman', 'chairwoman',
+    'vice president', 'vp ', 'svp ', 'evp ', 'managing director',
+    'director', 'principal', 'partner', 'executive', 'officer',
+    'broker', 'head of', 'chief', 'senior advisor',
+];
+
 export function reCategorizeRelevantAsPeople(
     relevant: NormalizedItem[],
     people: NormalizedItem[]
@@ -180,9 +197,11 @@ export function reCategorizeRelevantAsPeople(
             keptRelevant.push(article);
             continue;
         }
-        const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
+        // Require STRONG people signal: a clear personnel action word + a role/title keyword
+        const hasStrongAction = containsAny(text, STRONG_PEOPLE_ACTIONS);
+        const hasRole = containsAny(text, PERSON_ROLE_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
-        if (hasAction && hasIndustrial) {
+        if (hasStrongAction && hasRole && hasIndustrial) {
             console.log(`👤 Re-categorized to People: "${article.title?.substring(0, 60)}"`);
             movedToPeople.push(article);
         } else {
