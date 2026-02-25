@@ -8,9 +8,11 @@ import { cleanArticleUrl } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
+    reCategorizeRelevantAsPeople,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
-    loadIncludedArticles, clearIncludedArticles
+    loadIncludedArticles, clearIncludedArticles,
+    loadSentArticles, saveSentArticles
 } from './newsletter-filters.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 
@@ -297,6 +299,11 @@ async function sendGothNewsletter(period: GothPeriod): Promise<boolean> {
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
 
+        // Re-categorize: move people articles out of "relevant" into "people"
+        const reCatGoth = reCategorizeRelevantAsPeople(relevant, people);
+        relevant = reCatGoth.relevant;
+        people = reCatGoth.people;
+
         console.log(`📋 Final article breakdown (NJ, PA, FL + industrial content):`);
         console.log(`  - Relevant: ${relevant.length}`);
         console.log(`  - Transactions: ${transactions.length}`);
@@ -337,8 +344,17 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 export async function sendDailyNewsletterWork(): Promise<boolean> {
     try {
         console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
-        const { articles, docsDir } = loadArticlesFromFeed();
-        console.log(`📰 Loaded ${articles.length} articles from feed`);
+        const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
+        console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
+
+        // Filter out previously sent articles to prevent day-to-day repeats
+        const sentArticleIds = loadSentArticles(docsDir);
+        const articles = allLoadedArticles.filter(a => {
+            const id = a.id || a.link || '';
+            return !sentArticleIds.has(id);
+        });
+        const dedupRemoved = allLoadedArticles.length - articles.length;
+        if (dedupRemoved > 0) console.log(`🔁 Dedup: removed ${dedupRemoved} previously sent article(s)`);
 
         const now = new Date();
         const today = new Date();
@@ -378,6 +394,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
+
+        // Re-categorize: move people articles out of "relevant" into "people"
+        const reCat = reCategorizeRelevantAsPeople(relevant, people);
+        relevant = reCat.relevant;
+        people = reCat.people;
 
         // Fill empty sections from ALL regional articles
         const usedIds = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
@@ -480,8 +501,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         console.log(`📤 Sending Work newsletter to ${recipients.length} recipient(s)...`);
         const success = await sendEmail(recipients, subject, html);
-        if (success && includedArticles.length > 0) {
-            clearIncludedArticles(docsDir);
+        if (success) {
+            // Save sent article IDs to prevent repeats in future newsletters
+            const allSentArticles = [...relevant, ...transactions, ...availabilities, ...people];
+            const sentIds = allSentArticles.map(a => a.id || a.link || '').filter(id => id);
+            saveSentArticles(docsDir, sentIds);
+
+            if (includedArticles.length > 0) {
+                clearIncludedArticles(docsDir);
+            }
         }
         console.log(success ? `✅ Work ${isFriday ? 'weekly' : 'daily'} newsletter sent!` : '❌ Failed to send Work newsletter');
         return success;

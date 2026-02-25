@@ -56,6 +56,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'CALIFORNIA', ', CA', 'FREMONT, CA', 'FREMONT,', 'SAN JOSE', 'SILICON VALLEY', 'BAY AREA',
     'OREGON', 'WASHINGTON STATE', 'HAWAII', 'IOWA', 'NEBRASKA', 'MONTANA', 'WYOMING',
     'NORTH DAKOTA', 'SOUTH DAKOTA', 'IDAHO', 'UTAH', 'MISSISSIPPI', 'WEST VIRGINIA',
+    'WASHINGTON, DC', 'WASHINGTON, D.C.', 'WASHINGTON DC', 'D.C.', ', DC',
     'GEORGIA', 'SOUTH CAROLINA', 'NORTH CAROLINA', 'VIRGINIA', 'MARYLAND',
     'COLORADO', 'MINNESOTA', 'WISCONSIN', 'MICHIGAN', 'OHIO', 'MISSOURI',
     'FORT PAYNE', 'DEKALB COUNTY, AL',
@@ -371,5 +372,6 @@ export const OUT_OF_MARKET_KEYWORDS = [
     "columbus", "indianapolis", "milwaukee", "cincinnati", "cleveland",
     "atlanta", "nashville", "charlotte", "raleigh", "richmond",
     "memphis", "birmingham", "charleston", "new orleans",
-    "boston", "connecticut", "massachusetts", "baltimore", "maryland", "virginia"
+    "boston", "connecticut", "massachusetts", "baltimore", "maryland", "virginia",
+    "washington dc", "washington, dc", "washington, d.c.", "d.c."
 ];

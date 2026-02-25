@@ -75,7 +75,7 @@ export function isTargetRegion(article: NormalizedItem): boolean {
     const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
 
     if (isFromRegionalSource) {
-        if (excludeCount > targetCount && excludeCount >= 2) return false;
+        if (excludeCount > targetCount && excludeCount >= 1) return false;
         return true;
     }
 
@@ -151,6 +151,49 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
     });
     console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);
     return filtered;
+}
+
+// =====================================================================
+// PEOPLE RE-CATEGORIZATION PASS
+// =====================================================================
+
+/**
+ * Second pass: move articles from "relevant" to "people" if they're primarily
+ * about a person (contain people action keywords + industrial context).
+ * Returns { relevant, people } with articles moved as needed.
+ */
+export function reCategorizeRelevantAsPeople(
+    relevant: NormalizedItem[],
+    people: NormalizedItem[]
+): { relevant: NormalizedItem[]; people: NormalizedItem[] } {
+    const movedToPeople: NormalizedItem[] = [];
+    const keptRelevant: NormalizedItem[] = [];
+
+    for (const article of relevant) {
+        const text = getText(article);
+        if (containsAny(text, EXCLUDE_FROM_PEOPLE)) {
+            keptRelevant.push(article);
+            continue;
+        }
+        // If it's a transaction, keep in relevant
+        if (containsAny(text, TRANSACTION_ACTION_WORDS)) {
+            keptRelevant.push(article);
+            continue;
+        }
+        const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
+        const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
+        if (hasAction && hasIndustrial) {
+            console.log(`👤 Re-categorized to People: "${article.title?.substring(0, 60)}"`);
+            movedToPeople.push(article);
+        } else {
+            keptRelevant.push(article);
+        }
+    }
+
+    return {
+        relevant: keptRelevant,
+        people: [...people, ...movedToPeople]
+    };
 }
 
 // =====================================================================
@@ -295,6 +338,69 @@ export function clearIncludedArticles(docsDir: string): void {
     } catch (e) {
         console.warn('Could not clear included-articles.json:', e);
     }
+}
+
+// =====================================================================
+// SENT-ARTICLE DEDUP TRACKING
+// =====================================================================
+
+interface SentEntry { id: string; sentAt: string }
+interface SentArticlesData { sent: SentEntry[] }
+
+/**
+ * Load previously sent article IDs from docs/sent-articles.json.
+ * Returns a Set of article IDs that were sent in the last 7 days.
+ */
+export function loadSentArticles(docsDir: string): Set<string> {
+    const sentPath = path.join(docsDir, 'sent-articles.json');
+    try {
+        if (!fs.existsSync(sentPath)) return new Set();
+        const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const recentIds = (data.sent || [])
+            .filter(e => new Date(e.sentAt) >= sevenDaysAgo)
+            .map(e => e.id);
+        console.log(`📋 Loaded ${recentIds.length} previously sent article IDs (last 7 days)`);
+        return new Set(recentIds);
+    } catch (e) {
+        console.warn('Could not load sent-articles.json:', e);
+        return new Set();
+    }
+}
+
+/**
+ * Save current article IDs to docs/sent-articles.json.
+ * Appends new IDs and prunes entries older than 7 days.
+ */
+export function saveSentArticles(docsDir: string, articleIds: string[]): void {
+    const sentPath = path.join(docsDir, 'sent-articles.json');
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    let existing: SentEntry[] = [];
+    try {
+        if (fs.existsSync(sentPath)) {
+            const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
+            existing = data.sent || [];
+        }
+    } catch { /* start fresh */ }
+
+    // Prune old entries
+    const pruned = existing.filter(e => new Date(e.sentAt) >= sevenDaysAgo);
+    const prunedCount = existing.length - pruned.length;
+    if (prunedCount > 0) console.log(`🧹 Pruned ${prunedCount} sent-article entries older than 7 days`);
+
+    // Append new IDs
+    const existingIds = new Set(pruned.map(e => e.id));
+    const newEntries = articleIds
+        .filter(id => !existingIds.has(id))
+        .map(id => ({ id, sentAt: today }));
+
+    const updated: SentArticlesData = { sent: [...pruned, ...newEntries] };
+    fs.writeFileSync(sentPath, JSON.stringify(updated, null, 2) + '\n', 'utf-8');
+    console.log(`💾 Saved ${newEntries.length} new article IDs to sent-articles.json (total: ${updated.sent.length})`);
 }
 
 export function sortByDealThenDate(a: NormalizedItem, b: NormalizedItem): number {

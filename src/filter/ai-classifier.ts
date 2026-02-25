@@ -49,13 +49,17 @@ CATEGORIES:
    - Spec developments, build-to-suit, new construction
    - Highlight >= 100,000 SF
 
-4. "people" — Personnel moves/promotions in industrial CRE:
-   - Hires, promotions at brokerages, developers, investment firms
-   - Firms active in NJ/PA/FL: NAI, CBRE, JLL, Cushman, Colliers, Newmark, Prologis, etc.
+4. "people" — ANY personnel moves, promotions, hires, appointments, awards, or profiles in CRE:
+   - Hires, promotions, appointments at brokerages, developers, REITs, investment firms, associations
+   - Industry awards, recognitions, profiles, "power broker" lists, "rising stars"
+   - If the article is primarily ABOUT a person and their career, it's "people" not "relevant"
+   - Firms: NAI, CBRE, JLL, Cushman, Colliers, Newmark, Prologis, NAIOP, ULI, etc.
 
 5. "exclude" — MUST exclude:
    - Articles primarily about states other than NJ, PA, FL
    - Texas is NOT a target market (exclude Houston, Dallas, Austin, San Antonio, DFW)
+   - Washington DC / D.C. is NOT a target market
+   - Bay Area / Silicon Valley / San Francisco is NOT a target market
    - Political content, public figures not in CRE (Trump, Biden, Congress, Elon Musk, etc.)
    - Non-industrial properties (office, retail, multifamily, hotel, residential, self-storage)
    - International news, sports, entertainment, crypto
