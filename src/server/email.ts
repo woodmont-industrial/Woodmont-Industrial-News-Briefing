@@ -435,6 +435,35 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         addFromAllSources(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
         addFromAllSources(people, MIN_OTHER, applyPeopleFilter, 'people');
 
+        // Deep backfill: if any section is still below minimum, expand to 7-day window
+        const needsDeepBackfill = relevant.length < MIN_RELEVANT || transactions.length < MIN_OTHER || availabilities.length < MIN_OTHER || people.length < MIN_OTHER;
+        if (needsDeepBackfill) {
+            const deepArticles = filterArticlesByTimeRange(articles, 7 * 24);
+            const deepRegional = deepArticles.filter(isTargetRegion).filter(a => !usedIds.has(a.id || a.link));
+            // Also broader pool for relevant
+            const deepAll = deepArticles.filter(a => !usedIds.has(a.id || a.link));
+            console.log(`📅 Deep backfill (7-day window): ${deepRegional.length} regional, ${deepAll.length} total unused`);
+
+            const deepFill = (section: NormalizedItem[], min: number,
+                filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
+                pool: NormalizedItem[]) => {
+                if (section.length >= min) return;
+                const candidates = filterFn(pool.filter(a => !usedIds.has(a.id || a.link)));
+                console.log(`🔎 Deep backfill ${label}: ${section.length} < ${min}, found ${candidates.length} in 7-day pool`);
+                for (const a of candidates) {
+                    if (section.length >= min) break;
+                    section.push(a);
+                    usedIds.add(a.id || a.link);
+                }
+            };
+
+            deepFill(relevant, MIN_RELEVANT,
+                (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepAll);
+            deepFill(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', deepRegional);
+            deepFill(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', deepRegional);
+            deepFill(people, MIN_OTHER, applyPeopleFilter, 'people', deepRegional);
+        }
+
         // Merge manually included articles from raw picks
         const includedArticles = loadIncludedArticles(docsDir);
         for (const article of includedArticles) {
@@ -528,6 +557,36 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', regionalPostDescPool);
         refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', regionalPostDescPool);
         refillSection(people, MIN_OTHER, applyPeopleFilter, 'people', regionalPostDescPool);
+
+        // Deep post-desc refill: if sections still below minimum, try 7-day pool with descriptions
+        const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_OTHER || availabilities.length < MIN_OTHER || people.length < MIN_OTHER;
+        if (stillNeedsDeep) {
+            const deepArticles7d = filterArticlesByTimeRange(articles, 7 * 24);
+            const deepUnused = deepArticles7d.filter(a => !usedIdsPostDesc.has(a.id || a.link));
+            const deepRegional7d = deepUnused.filter(isTargetRegion);
+            if (deepUnused.length > 0) {
+                console.log(`📅 Deep post-desc refill: ${deepRegional7d.length} regional, ${deepUnused.length} total from 7-day pool`);
+                // Generate descriptions for deep candidates before post-desc check
+                const deepCandidates = [
+                    ...applyStrictFilter(deepUnused, RELEVANT_KEYWORDS, 'Relevant (deep-pd)'),
+                    ...applyTransactionFilter(deepRegional7d),
+                    ...applyAvailabilityFilter(deepRegional7d),
+                    ...applyPeopleFilter(deepRegional7d),
+                ].filter(a => !usedIdsPostDesc.has(a.id || a.link));
+                if (deepCandidates.length > 0) {
+                    deepCandidates.forEach(cleanArticleUrl);
+                    await generateDescriptions(deepCandidates);
+                    const deepPostDescPool = deepCandidates.filter(postDescriptionRegionCheck);
+                    const deepPostDescRegional = deepPostDescPool.filter(isTargetRegion);
+
+                    refillSection(relevant, MIN_RELEVANT,
+                        (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'relevant', deepPostDescPool);
+                    refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', deepPostDescRegional);
+                    refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', deepPostDescRegional);
+                    refillSection(people, MIN_OTHER, applyPeopleFilter, 'people', deepPostDescRegional);
+                }
+            }
+        }
 
         const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
         if (postFilterTotal === 0) {
