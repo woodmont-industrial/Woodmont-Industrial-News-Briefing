@@ -482,6 +482,35 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         availabilities = availabilities.filter(postDescriptionRegionCheck);
         people = people.filter(postDescriptionRegionCheck);
 
+        // Second backfill: post-desc filtering can drop sections below minimum,
+        // so refill from unused regional articles that also pass post-desc check
+        const usedIdsPostDesc = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
+        const postDescPool = regionalArticles
+            .filter(a => !usedIdsPostDesc.has(a.id || a.link))
+            .filter(postDescriptionRegionCheck);
+
+        const refillSection = (
+            section: NormalizedItem[], min: number,
+            filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string
+        ) => {
+            if (section.length >= min) return;
+            const candidates = filterFn(postDescPool.filter(a => !usedIdsPostDesc.has(a.id || a.link)));
+            if (candidates.length > 0) {
+                console.log(`🔄 Post-desc refill ${label}: ${section.length} < ${min}, found ${candidates.length} candidates`);
+            }
+            for (const a of candidates) {
+                if (section.length >= min) break;
+                section.push(a);
+                usedIdsPostDesc.add(a.id || a.link);
+            }
+        };
+
+        refillSection(relevant, MIN_RELEVANT,
+            (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant');
+        refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions');
+        refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
+        refillSection(people, MIN_OTHER, applyPeopleFilter, 'people');
+
         const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
         if (postFilterTotal === 0) {
             console.log('⚠️ All articles removed by post-description region check — skipping Work newsletter');
