@@ -235,12 +235,21 @@ export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
     // Don't region-filter "relevant" category — macro industry news is nationally significant
     if (article.category === 'relevant') return true;
 
-    if (MAJOR_EXCLUDE_REGIONS.some(r => desc.includes(r))) {
-        console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (excluded region in description)`);
-        return false;
-    }
+    // International content — always reject
     if (INTERNATIONAL_EXCLUDE.some(t => desc.includes(t))) {
         console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (international in description)`);
+        return false;
+    }
+
+    // Compare target vs exclude mentions in full text (title + description).
+    // An article about "Wynwood, Miami" from a "NY brokerage" should pass because
+    // FL target mentions outweigh the NY exclude mention.
+    const fullText = `${article.title || ''} ${desc}`.toUpperCase();
+    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (fullText.split(r).length - 1), 0);
+    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (fullText.split(r).length - 1), 0);
+
+    if (excludeCount > 0 && excludeCount > geoTargetCount) {
+        console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (exclude=${excludeCount} > target=${geoTargetCount})`);
         return false;
     }
     return true;
