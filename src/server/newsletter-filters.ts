@@ -9,12 +9,15 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import {
-    TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
+    TARGET_REGIONS, CRE_COMPANY_NAMES, MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
     EXCLUDE_POLITICAL, EXCLUDE_NON_INDUSTRIAL, INDUSTRIAL_PROPERTY_KEYWORDS,
     RELEVANT_KEYWORDS, PEOPLE_ACTION_KEYWORDS, INDUSTRIAL_CONTEXT_KEYWORDS,
     TRANSACTION_ACTION_WORDS, APPROVAL_KEYWORDS, EXCLUDE_FROM_PEOPLE,
     APPROVED_DOMAINS, REGIONAL_SOURCES, BROKERAGE_SOURCES
 } from '../shared/region-data.js';
+
+// Geographic-only target regions (no CRE company names)
+const TARGET_REGIONS_GEO = TARGET_REGIONS.filter(r => !CRE_COMPANY_NAMES.includes(r));
 
 // =====================================================================
 // TEXT HELPERS
@@ -71,23 +74,25 @@ export function isTargetRegion(article: NormalizedItem): boolean {
     // INCLUDE if from a NJ/PA/FL regional source
     const isFromRegionalSource = REGIONAL_SOURCES.some(s => url.includes(s));
 
-    const targetCount = TARGET_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    // Use geographic-only terms (not CRE company names) for region matching.
+    // "CBRE arranges financing in Arizona" should NOT pass because of "CBRE".
+    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
     const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
 
     if (isFromRegionalSource) {
-        if (excludeCount > targetCount && excludeCount >= 1) return false;
+        if (excludeCount > geoTargetCount && excludeCount >= 1) return false;
         return true;
     }
 
     if (article.regions && article.regions.length > 0) {
-        const hasTarget = article.regions.some(r => TARGET_REGIONS.some(tr => r.toUpperCase().includes(tr)));
+        const hasTarget = article.regions.some(r => TARGET_REGIONS_GEO.some(tr => r.toUpperCase().includes(tr)));
         if (hasTarget) return true;
     }
 
-    const hasTargetRegion = TARGET_REGIONS.some(r => text.includes(r));
-    if (hasTargetRegion && targetCount >= excludeCount) return true;
+    const hasGeoTarget = TARGET_REGIONS_GEO.some(r => text.includes(r));
+    if (hasGeoTarget && geoTargetCount >= excludeCount) return true;
 
-    return hasTargetRegion && excludeCount === 0;
+    return hasGeoTarget && excludeCount === 0;
 }
 
 // =====================================================================

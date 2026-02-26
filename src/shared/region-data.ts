@@ -36,12 +36,16 @@ export const TARGET_REGIONS = [
     'SOUTH FLORIDA', 'CENTRAL FLORIDA', 'BROWARD', 'MIAMI-DADE', 'PALM BEACH',
     'HILLSBOROUGH', 'ORANGE COUNTY', 'DUVAL', 'PINELLAS', 'LEE COUNTY', 'POLK COUNTY',
     'BREVARD', 'PORT EVERGLADES', 'PORT OF MIAMI', 'TRI-COUNTY',
-    // Major CRE players (include national news about these)
+    // Industrial/logistics keywords that suggest regional relevance
+    'PORT NEWARK', 'ELIZABETH PORT', 'SEAGIRT', 'PORTSIDE'
+];
+
+// Major CRE players — used for "relevant" category inclusion but NOT geographic matching.
+// An article mentioning CBRE doesn't mean it's about NJ/PA/FL.
+export const CRE_COMPANY_NAMES = [
     'PROLOGIS', 'DUKE REALTY', 'BLACKSTONE', 'CBRE', 'JLL', 'CUSHMAN', 'COLLIERS',
     'NEWMARK', 'MARCUS & MILLICHAP', 'EASTDIL', 'HFF', 'BRIDGE INDUSTRIAL', 'DERMODY',
     'FIRST INDUSTRIAL', 'STAG INDUSTRIAL', 'REXFORD', 'TERRENO', 'MONMOUTH REAL ESTATE',
-    // Industrial/logistics keywords that suggest regional relevance
-    'PORT NEWARK', 'ELIZABETH PORT', 'SEAGIRT', 'PORTSIDE'
 ];
 
 // States/cities to EXCLUDE (everything except NJ, PA, FL)
