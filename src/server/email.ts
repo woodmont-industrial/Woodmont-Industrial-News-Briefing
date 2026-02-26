@@ -389,8 +389,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         }
         console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
-        // Apply strict section filters
-        let relevant = applyStrictFilter(regionalArticles.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant');
+        // "Relevant" = macro/national trends (interest rates, freight, supply chain) —
+        // these don't need NJ/PA/FL geography, the AI already vetted them as relevant.
+        // Transactions/Availabilities/People must be regionally focused.
+        let relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant');
         let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
@@ -416,8 +418,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         };
 
-        addFromAllSources(relevant, MIN_RELEVANT,
-            (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (backfill)'), 'relevant');
+        // Relevant backfill from ALL recent articles (macro/national OK)
+        if (relevant.length < MIN_RELEVANT) {
+            const relevantCandidates = applyStrictFilter(
+                recentArticles.filter(a => !usedIds.has(a.id || a.link)),
+                RELEVANT_KEYWORDS, 'Relevant (backfill)'
+            );
+            console.log(`⚠️ Only ${relevant.length} relevant — found ${relevantCandidates.length} from all sources`);
+            for (const a of relevantCandidates) {
+                if (relevant.length >= MIN_RELEVANT) break;
+                relevant.push(a);
+                usedIds.add(a.id || a.link);
+            }
+        }
         addFromAllSources(transactions, MIN_OTHER, applyTransactionFilter, 'transactions');
         addFromAllSources(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
         addFromAllSources(people, MIN_OTHER, applyPeopleFilter, 'people');
@@ -483,18 +496,23 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         people = people.filter(postDescriptionRegionCheck);
 
         // Second backfill: post-desc filtering can drop sections below minimum,
-        // so refill from unused regional articles that also pass post-desc check
+        // so refill from unused articles that also pass post-desc check
         const usedIdsPostDesc = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
-        const postDescPool = regionalArticles
+        const regionalPostDescPool = regionalArticles
+            .filter(a => !usedIdsPostDesc.has(a.id || a.link))
+            .filter(postDescriptionRegionCheck);
+        // Broader pool for relevant (macro/national OK)
+        const allPostDescPool = recentArticles
             .filter(a => !usedIdsPostDesc.has(a.id || a.link))
             .filter(postDescriptionRegionCheck);
 
         const refillSection = (
             section: NormalizedItem[], min: number,
-            filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string
+            filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
+            pool: NormalizedItem[]
         ) => {
             if (section.length >= min) return;
-            const candidates = filterFn(postDescPool.filter(a => !usedIdsPostDesc.has(a.id || a.link)));
+            const candidates = filterFn(pool.filter(a => !usedIdsPostDesc.has(a.id || a.link)));
             if (candidates.length > 0) {
                 console.log(`🔄 Post-desc refill ${label}: ${section.length} < ${min}, found ${candidates.length} candidates`);
             }
@@ -506,10 +524,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         };
 
         refillSection(relevant, MIN_RELEVANT,
-            (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant');
-        refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions');
-        refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
-        refillSection(people, MIN_OTHER, applyPeopleFilter, 'people');
+            (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant', allPostDescPool);
+        refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', regionalPostDescPool);
+        refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', regionalPostDescPool);
+        refillSection(people, MIN_OTHER, applyPeopleFilter, 'people', regionalPostDescPool);
 
         const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
         if (postFilterTotal === 0) {
