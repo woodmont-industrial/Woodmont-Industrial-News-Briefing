@@ -6,7 +6,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
 import { cleanArticleUrl } from '../shared/url-utils.js';
 import {
-    getText, containsAny, isPolitical, isTargetRegion,
+    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     reCategorizeRelevantAsPeople,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
@@ -390,9 +390,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
         // "Relevant" = macro/national trends (interest rates, freight, supply chain) —
-        // these don't need NJ/PA/FL geography, the AI already vetted them as relevant.
+        // these don't need NJ/PA/FL geography, but MUST NOT be about excluded regions.
         // Transactions/Availabilities/People must be regionally focused.
-        let relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant');
+        let relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion), RELEVANT_KEYWORDS, 'Relevant');
         let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
@@ -418,10 +418,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         };
 
-        // Relevant backfill from ALL recent articles (macro/national OK)
+        // Relevant backfill from recent articles (macro/national OK, but no excluded regions)
         if (relevant.length < MIN_RELEVANT) {
             const relevantCandidates = applyStrictFilter(
-                recentArticles.filter(a => !usedIds.has(a.id || a.link)),
+                recentArticles.filter(a => !usedIds.has(a.id || a.link)).filter(isNotExcludedRegion),
                 RELEVANT_KEYWORDS, 'Relevant (backfill)'
             );
             console.log(`⚠️ Only ${relevant.length} relevant — found ${relevantCandidates.length} from all sources`);
@@ -440,9 +440,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         if (needsDeepBackfill) {
             const deepArticles = filterArticlesByTimeRange(articles, 7 * 24);
             const deepRegional = deepArticles.filter(isTargetRegion).filter(a => !usedIds.has(a.id || a.link));
-            // Also broader pool for relevant
-            const deepAll = deepArticles.filter(a => !usedIds.has(a.id || a.link));
-            console.log(`📅 Deep backfill (7-day window): ${deepRegional.length} regional, ${deepAll.length} total unused`);
+            // Broader pool for relevant: not excluded region (national OK, but no Alabama/Texas/etc.)
+            const deepNotExcluded = deepArticles.filter(a => !usedIds.has(a.id || a.link)).filter(isNotExcludedRegion);
+            console.log(`📅 Deep backfill (7-day window): ${deepRegional.length} regional, ${deepNotExcluded.length} not-excluded`);
 
             const deepFill = (section: NormalizedItem[], min: number,
                 filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
@@ -458,7 +458,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             };
 
             deepFill(relevant, MIN_RELEVANT,
-                (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepAll);
+                (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepNotExcluded);
             deepFill(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', deepRegional);
             deepFill(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', deepRegional);
             deepFill(people, MIN_OTHER, applyPeopleFilter, 'people', deepRegional);
@@ -530,9 +530,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const regionalPostDescPool = regionalArticles
             .filter(a => !usedIdsPostDesc.has(a.id || a.link))
             .filter(postDescriptionRegionCheck);
-        // Broader pool for relevant (macro/national OK)
+        // Broader pool for relevant (macro/national OK, but no excluded regions)
         const allPostDescPool = recentArticles
             .filter(a => !usedIdsPostDesc.has(a.id || a.link))
+            .filter(isNotExcludedRegion)
             .filter(postDescriptionRegionCheck);
 
         const refillSection = (
@@ -568,7 +569,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 console.log(`📅 Deep post-desc refill: ${deepRegional7d.length} regional, ${deepUnused.length} total from 7-day pool`);
                 // Generate descriptions for deep candidates before post-desc check
                 const deepCandidates = [
-                    ...applyStrictFilter(deepUnused, RELEVANT_KEYWORDS, 'Relevant (deep-pd)'),
+                    ...applyStrictFilter(deepUnused.filter(isNotExcludedRegion), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'),
                     ...applyTransactionFilter(deepRegional7d),
                     ...applyAvailabilityFilter(deepRegional7d),
                     ...applyPeopleFilter(deepRegional7d),

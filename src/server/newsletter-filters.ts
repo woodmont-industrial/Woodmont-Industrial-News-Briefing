@@ -95,6 +95,31 @@ export function isTargetRegion(article: NormalizedItem): boolean {
     return hasGeoTarget && excludeCount === 0;
 }
 
+/**
+ * Exclude-region gate for the "relevant" section.
+ * Relevant articles don't need to mention NJ/PA/FL (macro/national is OK),
+ * but they MUST NOT be about an excluded region.
+ * - "10-Year Yield Rises" → no region → allowed (national news)
+ * - "Alabama Manufacturing Plant" → excluded region, no target → blocked
+ * - "NJ Industrial Market" → target region → allowed
+ */
+export function isNotExcludedRegion(article: NormalizedItem): boolean {
+    const text = `${article.title || ''} ${article.description || ''} ${(article as any).summary || ''}`.toUpperCase();
+
+    // Block international
+    if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return false;
+
+    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+    // If mentions excluded region(s) but no target region → block
+    if (excludeCount > 0 && geoTargetCount === 0) return false;
+    // If more excluded than target → block
+    if (excludeCount > geoTargetCount) return false;
+
+    return true;
+}
+
 // =====================================================================
 // SECTION FILTERS
 // =====================================================================
