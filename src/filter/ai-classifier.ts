@@ -41,13 +41,13 @@ CATEGORIES:
 
 2. "transactions" — Notable industrial land/building sales or leases:
    - Warehouse, logistics, distribution deals in NJ/PA/FL
-   - Highlight deals >= 100,000 SF or >= $25 million
+   - Highlight deals >= 50,000 SF or >= $10 million
    - Acquisitions, dispositions, signed leases
 
 3. "availabilities" — New/notable industrial land or building availabilities:
    - Properties for sale or lease in NJ/PA/FL
    - Spec developments, build-to-suit, new construction
-   - Highlight >= 100,000 SF
+   - Highlight >= 50,000 SF
 
 4. "people" — ANY personnel moves, promotions, hires, appointments, awards, or profiles in CRE:
    - Hires, promotions, appointments at brokerages, developers, REITs, investment firms, associations

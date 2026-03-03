@@ -34,7 +34,7 @@ const CEREBRAS_CONFIG = {
     model: process.env.CEREBRAS_MODEL || 'llama3.1-8b',
     maxConcurrent: 5,
     batchDelayMs: 1000,
-    maxArticles: 40,
+    maxArticles: 60,
     descBatchSize: 8,
     descBatchDelayMs: 500,
 };

@@ -1,6 +1,6 @@
 /**
  * Deal threshold utilities — shared across newsletter filters and static build.
- * Boss rules: >=100,000 SF or >=$25M
+ * Thresholds: >=50,000 SF or >=$10M
  */
 
 import { NormalizedItem } from '../types/index.js';
@@ -29,12 +29,12 @@ export function meetsDealThreshold(text: string): DealThreshold {
     const bigDollarMatch = upperText.match(/\$(\d{2,3}(?:,\d{3}){2,})/);
     if (!priceMillion && bigDollarMatch) {
         const rawAmount = parseInt(bigDollarMatch[1].replace(/,/g, ''));
-        if (rawAmount >= 25000000) priceMillion = rawAmount / 1000000;
+        if (rawAmount >= 10000000) priceMillion = rawAmount / 1000000;
     }
 
     return {
-        meetsSF: sizeSF !== null && sizeSF >= 100000,
-        meetsDollar: priceMillion !== null && priceMillion >= 25,
+        meetsSF: sizeSF !== null && sizeSF >= 50000,
+        meetsDollar: priceMillion !== null && priceMillion >= 10,
         sizeSF,
         priceMillion
     };
@@ -48,8 +48,9 @@ export function getDealScore(article: NormalizedItem): number {
     const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
     if (sfMatch) {
         const sf = parseInt(sfMatch[1].replace(/,/g, ''));
-        if (sf >= 100000) score += 2;
-        else if (sf >= 50000) score += 1;
+        if (sf >= 100000) score += 3;
+        else if (sf >= 50000) score += 2;
+        else if (sf >= 25000) score += 1;
     }
 
     // Check dollar amount

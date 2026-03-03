@@ -15,6 +15,7 @@ import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES } from '../shared/region-data.js';
+import { isTargetRegion, isNotExcludedRegion } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
 // Directory for static output
@@ -158,24 +159,40 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // 3. EXCLUDE: Non-industrial property types when NO industrial keywords present
+            // 3. NJ regional sources — include ALL CRE (retail, office, industrial, etc.)
+            //    Only exclude residential/multifamily/hotel from NJ regional sources
+            const njRegionalSources = ['re-nj.com', 'njbiz.com', 'roi-nj.com'];
+            const isNJRegional = njRegionalSources.some(s => url.includes(s) || sourceName.includes(s.replace('.com', '')));
+
+            if (isNJRegional) {
+                // Only exclude purely residential content from NJ regional sources
+                const residentialOnly = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY)\b/.test(text);
+                const hasCREContext = /\b(COMMERCIAL|REAL ESTATE|CRE|PROPERTY|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|BROKER|REIT|PORTFOLIO|TRANSACTION|INDUSTRIAL|WAREHOUSE|RETAIL|OFFICE|MIXED.?USE|SF|SQUARE FEET)\b/.test(text);
+                if (residentialOnly && !hasCREContext) {
+                    log('info', `EXCLUDED (residential, NJ regional): ${item.title?.substring(0, 60)}`);
+                    return false;
+                }
+                return true;
+            }
+
+            // 4. EXCLUDE: Non-industrial property types when NO industrial keywords present (PA/FL/national)
             const nonIndustrialPrimary = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE)\b/.test(text);
             if (nonIndustrialPrimary && !industrialKeywords.some(k => text.includes(k))) {
                 log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
-            // 4. INCLUDE: Boss preferred sources (GlobeSt, Bisnow, NAIOP, etc.)
+            // 5. INCLUDE: Boss preferred sources (GlobeSt, Bisnow, NAIOP, etc.)
             if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
                 return true;
             }
 
-            // 5. INCLUDE: Regional sources (RE-NJ, NJBIZ, LVB, etc.)
+            // 6. INCLUDE: Regional sources (RE-NJ, NJBIZ, LVB, etc.)
             if (regionalSources.some(s => url.includes(s))) {
                 return true;
             }
 
-            // 6. INCLUDE: Any article with CRE or industrial keywords — let AI judge relevance
+            // 7. INCLUDE: Any article with CRE or industrial keywords — let AI judge relevance
             const hasRealEstateContext = realEstateKeywords.some(k => {
                 if (k.length <= 3) {
                     return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
@@ -186,7 +203,7 @@ export async function buildStaticRSS(): Promise<void> {
                 return true;
             }
 
-            // 7. EXCLUDE: Articles with zero CRE/industrial context
+            // 8. EXCLUDE: Articles with zero CRE/industrial context
             log('info', `EXCLUDED (no CRE context): ${item.title?.substring(0, 60)}`);
             return false;
         };
@@ -271,7 +288,7 @@ export async function buildStaticRSS(): Promise<void> {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Running AI classification on articles using ${aiProvider}...`);
             try {
-                const aiResult = await filterArticlesWithAI(filteredNewItems, 25); // 25% minimum relevance - more inclusive
+                const aiResult = await filterArticlesWithAI(filteredNewItems, 15); // 15% minimum relevance - wider net for NJ/PA/FL industrial
                 aiFilteredItems = aiResult.included;
 
                 // Log AI filtering stats
@@ -518,7 +535,9 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // Non-industrial primary topic exclusion (title starts with non-industrial type)
-            if (/^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title)) {
+            // Skip for NJ regional sources — they include all CRE
+            const isNJRegionalClean = ['re-nj.com', 'njbiz.com', 'roi-nj.com'].some(s => url.includes(s));
+            if (!isNJRegionalClean && /^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title)) {
                 log('info', `CLEANED (non-industrial primary): ${title.substring(0, 50)}`);
                 return false;
             }
@@ -545,18 +564,18 @@ export async function buildStaticRSS(): Promise<void> {
             log('info', `Cleaned ${mergedArticles.length - cleanMerged.length} bad articles from feed`);
         }
 
-        // === STEP 4: Apply 90-day cleanup ===
-        const ninetyDaysAgo = new Date();
-        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        // === STEP 4: Apply 31-day cleanup ===
+        const thirtyOneDaysAgo = new Date();
+        thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
 
         const cleanedArticles = cleanMerged.filter(item => {
             const pubDate = new Date(item.pubDate || item.date_published || item.fetchedAt || Date.now());
-            return pubDate >= ninetyDaysAgo;
+            return pubDate >= thirtyOneDaysAgo;
         });
 
         const removedCount = cleanMerged.length - cleanedArticles.length;
         if (removedCount > 0) {
-            log('info', `Auto-deleted ${removedCount} articles older than 90 days`);
+            log('info', `Auto-deleted ${removedCount} articles older than 31 days`);
         }
 
         // Sort by publication date (newest first)
@@ -565,9 +584,13 @@ export async function buildStaticRSS(): Promise<void> {
             new Date(a.pubDate || a.date_published || a.fetchedAt || 0).getTime()
         );
 
-        // Take top 150 for RSS feed
-        const rssItems = sortedItems.slice(0, 150);
-        log('info', `Final feed: ${rssItems.length} articles (capped at 150)`);
+        // Region filter: only keep NJ/PA/FL regional articles + national/macro (no excluded regions)
+        const regionFiltered = sortedItems.filter(a => isTargetRegion(a) || isNotExcludedRegion(a));
+        log('info', `Region filter: ${sortedItems.length} → ${regionFiltered.length} (removed ${sortedItems.length - regionFiltered.length} non-target articles)`);
+
+        // No cap — 31-day cleanup + region filter keeps the feed manageable
+        const rssItems = regionFiltered;
+        log('info', `Final feed: ${rssItems.length} articles`);
 
         // Ensure docs directory exists
         if (!fs.existsSync(DOCS_DIR)) {

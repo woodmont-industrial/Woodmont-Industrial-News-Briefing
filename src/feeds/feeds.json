@@ -159,7 +159,9 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://www.connectcre.com/feed?story-market=new-jersey",
@@ -168,7 +170,9 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://www.connectcre.com/feed?story-market=pennsylvania",
@@ -177,7 +181,9 @@
     "source": "ConnectCRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://www.supplychaindive.com/feeds/news/",
@@ -202,9 +208,7 @@
     "region": "US",
     "source": "CRE Daily",
     "type": "industrial-news",
-    "timeout": 30000,
-    "enabled": false,
-    "_note": "Disabled — broad CRE, high multifamily/retail noise"
+    "timeout": 30000
   },
   {
     "url": "https://www.therealdeal.com/miami/feed/",
@@ -222,7 +226,9 @@
     "source": "REBusiness",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — broken feed, replaced by Google News proxy"
   },
   {
     "url": "https://news.google.com/rss/search?q=industrial+real+estate+New+Jersey+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
@@ -919,8 +925,7 @@
     "source": "SIOR",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://ir.prologis.com/press-releases/rss",
@@ -1314,7 +1319,9 @@
     "source": "Connect CRE",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://news.google.com/rss/search?q=site:njbiz.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
@@ -1351,5 +1358,122 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for mhlnews.com (404 RSS endpoint removed)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:connectcre.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News ConnectCRE Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for connectcre.com industrial (Cloudflare blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:connectcre.com+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News ConnectCRE NJ",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for connectcre.com NJ (Cloudflare blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:connectcre.com+Pennsylvania+OR+Philadelphia+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News ConnectCRE PA",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for connectcre.com PA (Cloudflare blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:rebusinessonline.com+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News REBusiness Online",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for rebusinessonline.com (broken feed)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
+    "name": "NJ Zoning Approvals",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+Pennsylvania+OR+Philadelphia+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "PA Zoning Approvals",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+Florida+OR+Miami+OR+Tampa+OR+Orlando+OR+Jacksonville&hl=en-US&gl=US&ceid=US:en",
+    "name": "FL Zoning Approvals",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=groundbreaking+OR+%22under+construction%22+OR+%22breaks+ground%22+warehouse+OR+industrial+OR+logistics+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
+    "name": "NJ Construction Industrial",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Camden+County%22+OR+%22Gloucester+County%22+OR+%22Burlington+County%22+OR+%22South+Jersey%22+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "South Jersey Industrial",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Greater+Philadelphia%22+OR+%22Delaware+Valley%22+OR+%22Lehigh+Valley%22+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+    "name": "Greater Philly Industrial",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=Doral+OR+Medley+OR+Hialeah+warehouse+OR+industrial+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+    "name": "Doral Medley FL Industrial",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22signs+lease%22+OR+%22new+tenant%22+OR+%22signed+lease%22+warehouse+OR+industrial+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Tenant Moves NJ PA FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=EDA+OR+%22economic+development%22+OR+incentive+OR+%22tax+credit%22+industrial+OR+warehouse+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
+    "name": "NJ Economic Dev Industrial",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:constructiondive.com+OR+site:supplychaindive.com+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Construction/Supply Chain Dive",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for constructiondive.com and supplychaindive.com"
   }
 ]

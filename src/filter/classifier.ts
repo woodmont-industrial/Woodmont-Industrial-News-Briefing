@@ -68,7 +68,7 @@ export function containsAny(text: string, keywords: string[]): boolean {
 }
 
 // Classify article based on boss's four-section briefing format
-function classifyArticleOriginal330(description: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
+function classifyArticleOriginal330(title: string, description: string, link: string, source?: string, feedType?: FeedType): { isRelevant: boolean; category: string; score: number; tier?: 'A' | 'B' | 'C' } {
     const t = (title + " " + description + " " + link).toLowerCase();
 
     // APPROVED SOURCES - Only allow approved domains (same as before)
@@ -217,10 +217,10 @@ function classifyArticleOriginal330(description: string, link: string, source?: 
     // STRICTER: Must have transaction keyword + industrial focus + CRE intent + money/size + NOT non-real estate
     if (hasTransaction && industrialFocus && containsAny(t, CRE_INTENT_KEYWORDS) &&
         (hasMoneyAmount || hasSizeSignals(t)) && !isNonRealEstate) {
-        // Check if meets size/price threshold (≥100K SF or ≥$25M)
+        // Check if meets size/price threshold (≥50K SF or ≥$10M)
         const size = extractSize(t);
         const price = extractPrice(t);
-        const meetsThreshold = (size && size >= 100000) || (price && price >= 25000000);
+        const meetsThreshold = (size && size >= 50000) || (price && price >= 10000000);
 
         return {
             isRelevant: true,
@@ -276,7 +276,7 @@ export async function classifyArticle(
       } catch (error) {
               console.warn('Rule engine classification failed, falling back to original logic:', error);
               // Fallback to original implementation if rule engine fails
-              return classifyArticleOriginal(title, description, link, source, feedType);
+              return classifyArticleOriginal330(title, description, link, source, feedType);
       }
 }
 
