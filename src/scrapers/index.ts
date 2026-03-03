@@ -28,15 +28,16 @@ import { CREDailyScraper } from './domains/credaily.js';
 import { NJBIZScraper } from './domains/njbiz.js';
 import { LVBScraper } from './domains/lvb.js';
 import { REJournalsScraper } from './domains/rejournals.js';
+import { LoopNetScraper } from './domains/loopnet.js';
 
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
 
-// Total timeout for all scrapers combined (5 minutes - fail faster on blocked sites)
-const TOTAL_TIMEOUT_MS = 5 * 60 * 1000;
+// Total timeout for all scrapers combined (8 minutes — more scrapers re-enabled)
+const TOTAL_TIMEOUT_MS = 8 * 60 * 1000;
 
-// Per-scraper timeout (30 seconds - fail faster on blocked sites)
-const SCRAPER_TIMEOUT_MS = 30 * 1000;
+// Per-scraper timeout (45 seconds — SPA sites like JLL/CushWake need more time)
+const SCRAPER_TIMEOUT_MS = 45 * 1000;
 
 /**
  * Map domain to its scraper class
@@ -60,6 +61,7 @@ function createScraper(config: ScraperDomainConfig): BaseScraper {
         case 'njbiz.com': return new NJBIZScraper(config);
         case 'lvb.com': return new LVBScraper(config);
         case 'rejournals.com': return new REJournalsScraper(config);
+        case 'loopnet.com': return new LoopNetScraper(config);
         default:
             throw new Error(`No scraper implementation for domain: ${config.domain}`);
     }

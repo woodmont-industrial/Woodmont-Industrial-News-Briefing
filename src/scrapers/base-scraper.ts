@@ -2,9 +2,10 @@
  * Base Scraper Class
  *
  * Provides shared functionality for all domain scrapers:
- * - Playwright stealth patterns (reuses patterns from playwright-fallback.ts)
+ * - Playwright stealth patterns with modern bot-detection evasion
  * - Circuit breaker (3 failures → 24-hour cooldown)
  * - Rate limiting per domain
+ * - Retry logic (1 retry with fresh context on failure)
  * - Cache integration
  * - Returns FetchResult for pipeline compatibility
  */
@@ -64,15 +65,18 @@ function incrementRateLimit(domain: string): void {
 }
 
 // ============================================
-// STEALTH HELPERS (match playwright-fallback.ts)
+// STEALTH HELPERS
 // ============================================
 
+// Current 2026 browser user agents
 const USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0'
 ];
 
 function getRandomUserAgent(): string {
@@ -85,47 +89,71 @@ export function randomDelay(min: number, max: number): Promise<void> {
 }
 
 /**
- * Simulate human-like mouse movements on a page
+ * Simulate human-like mouse movements and scrolling
  */
 async function simulateHumanBehavior(page: Page): Promise<void> {
     try {
         const viewportSize = page.viewportSize() || { width: 1920, height: 1080 };
-        for (let i = 0; i < 3; i++) {
-            const x = Math.floor(Math.random() * viewportSize.width * 0.8) + 100;
-            const y = Math.floor(Math.random() * viewportSize.height * 0.6) + 100;
-            await page.mouse.move(x, y, { steps: Math.floor(Math.random() * 10) + 5 });
-            await randomDelay(100, 300);
+
+        // Random mouse movements with variable speed
+        const moveCount = Math.floor(Math.random() * 3) + 2;
+        for (let i = 0; i < moveCount; i++) {
+            const x = Math.floor(Math.random() * viewportSize.width * 0.7) + viewportSize.width * 0.15;
+            const y = Math.floor(Math.random() * viewportSize.height * 0.5) + viewportSize.height * 0.15;
+            await page.mouse.move(x, y, { steps: Math.floor(Math.random() * 15) + 8 });
+            await randomDelay(80, 250);
         }
-        const scrollAmount = Math.floor(Math.random() * 300) + 100;
+
+        // Natural scroll pattern
+        const scrollAmount = Math.floor(Math.random() * 400) + 150;
         await page.mouse.wheel(0, scrollAmount);
-        await randomDelay(200, 500);
+        await randomDelay(300, 700);
     } catch { /* ignore errors from simulation */ }
 }
 
+// Realistic viewport sizes
+const VIEWPORT_SIZES = [
+    { width: 1920, height: 1080 },
+    { width: 1536, height: 864 },
+    { width: 1440, height: 900 },
+    { width: 1366, height: 768 },
+    { width: 2560, height: 1440 }
+];
+
 /**
- * Create a stealth browser context
+ * Create a stealth browser context with realistic fingerprint
  */
 export async function createStealthContext(browser: Browser): Promise<BrowserContext> {
     const userAgent = getRandomUserAgent();
+    const viewport = VIEWPORT_SIZES[Math.floor(Math.random() * VIEWPORT_SIZES.length)];
+    const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Firefox');
+
     const context = await browser.newContext({
         userAgent,
-        viewport: { width: 1920, height: 1080 },
+        viewport,
         locale: 'en-US',
         timezoneId: 'America/New_York',
         javaScriptEnabled: true,
         hasTouch: false,
         isMobile: false,
-        deviceScaleFactor: 1,
+        deviceScaleFactor: Math.random() > 0.7 ? 2 : 1,
+        colorScheme: Math.random() > 0.3 ? 'light' : 'dark',
         extraHTTPHeaders: {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept': isChrome
+                ? 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
+                : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
             'DNT': '1',
             'Upgrade-Insecure-Requests': '1',
             'Sec-Fetch-Dest': 'document',
             'Sec-Fetch-Mode': 'navigate',
             'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1'
+            'Sec-Fetch-User': '?1',
+            'Sec-CH-UA': isChrome ? '"Chromium";v="133", "Not(A:Brand";v="99", "Google Chrome";v="133"' : '',
+            'Sec-CH-UA-Mobile': '?0',
+            'Sec-CH-UA-Platform': userAgent.includes('Windows') ? '"Windows"' : userAgent.includes('Macintosh') ? '"macOS"' : '"Linux"',
+            'Priority': 'u=0, i'
         }
     });
 
@@ -133,19 +161,106 @@ export async function createStealthContext(browser: Browser): Promise<BrowserCon
 }
 
 /**
- * Apply stealth init scripts to a page
+ * Comprehensive stealth init scripts that defeat common bot detectors
  */
 export async function applyStealthScripts(page: Page): Promise<void> {
     await page.addInitScript(() => {
+        // Hide webdriver flag
         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-        (window as any).chrome = { runtime: {} };
-        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+
+        // Realistic chrome object
+        if (!('chrome' in window)) {
+            const chrome = {
+                runtime: {
+                    connect: () => {},
+                    sendMessage: () => {},
+                    onMessage: { addListener: () => {}, removeListener: () => {} }
+                },
+                loadTimes: () => ({
+                    commitLoadTime: Date.now() / 1000,
+                    connectionInfo: 'h2',
+                    finishDocumentLoadTime: Date.now() / 1000 + 0.5,
+                    finishLoadTime: Date.now() / 1000 + 1.0,
+                    firstPaintAfterLoadTime: 0,
+                    firstPaintTime: Date.now() / 1000 + 0.1,
+                    navigationType: 'Other',
+                    npnNegotiatedProtocol: 'h2',
+                    requestTime: Date.now() / 1000 - 0.5,
+                    startLoadTime: Date.now() / 1000,
+                    wasAlternateProtocolAvailable: false,
+                    wasFetchedViaSpdy: true,
+                    wasNpnNegotiated: true
+                }),
+                csi: () => ({ startE: Date.now(), onloadT: Date.now() + 500 })
+            };
+            Object.defineProperty(window, 'chrome', { get: () => chrome, configurable: true });
+        }
+
+        // Realistic plugins array
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => {
+                const plugins = [
+                    { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+                    { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '' },
+                    { name: 'Native Client', filename: 'internal-nacl-plugin', description: '' }
+                ];
+                const arr = Object.create(PluginArray.prototype);
+                plugins.forEach((p, i) => { arr[i] = p; });
+                Object.defineProperty(arr, 'length', { value: plugins.length });
+                arr.item = (i: number) => arr[i] || null;
+                arr.namedItem = (n: string) => plugins.find(p => p.name === n) || null;
+                arr.refresh = () => {};
+                return arr;
+            }
+        });
+
+        // Languages
         Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+
+        // Hardware concurrency (realistic range)
+        Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => [4, 8, 12, 16][Math.floor(Math.random() * 4)] });
+
+        // Device memory
+        Object.defineProperty(navigator, 'deviceMemory', { get: () => [4, 8, 16][Math.floor(Math.random() * 3)] });
+
+        // Connection info
+        if ('connection' in navigator) {
+            Object.defineProperty((navigator as any).connection, 'rtt', { get: () => 50 });
+        }
+
+        // WebGL vendor spoofing
+        const getParameter = WebGLRenderingContext.prototype.getParameter;
+        WebGLRenderingContext.prototype.getParameter = function (param) {
+            if (param === 37445) return 'Google Inc. (NVIDIA)';  // UNMASKED_VENDOR_WEBGL
+            if (param === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)'; // UNMASKED_RENDERER_WEBGL
+            return getParameter.call(this, param);
+        };
+        const getParameter2 = WebGL2RenderingContext.prototype.getParameter;
+        WebGL2RenderingContext.prototype.getParameter = function (param) {
+            if (param === 37445) return 'Google Inc. (NVIDIA)';
+            if (param === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)';
+            return getParameter2.call(this, param);
+        };
+
+        // Permissions API
+        const originalQuery = window.navigator.permissions.query;
+        window.navigator.permissions.query = (params: any) => {
+            if (params.name === 'notifications') {
+                return Promise.resolve({ state: Notification.permission } as PermissionStatus);
+            }
+            return originalQuery.call(window.navigator.permissions, params);
+        };
+
+        // Prevent iframe detection
+        if (window.self === window.top) {
+            Object.defineProperty(document, 'hidden', { get: () => false });
+            Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
+        }
     });
 }
 
 /**
- * Navigate to a page with stealth behavior
+ * Navigate with stealth behavior and Cloudflare challenge handling
  */
 export async function stealthNavigate(
     page: Page,
@@ -156,26 +271,39 @@ export async function stealthNavigate(
 
     await page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 30000
+        timeout: 45000
     });
 
     await simulateHumanBehavior(page);
-    await randomDelay(2000, 4000);
+    await randomDelay(1500, 3000);
 
-    // Extended wait for Cloudflare-protected sites
+    // Cloudflare challenge handling with retry
     if (options?.cloudflare) {
-        const content = await page.content();
-        if (isCloudflareChallenge(content)) {
-            console.log(`[Scraper] Cloudflare challenge detected, waiting...`);
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const content = await page.content();
+            if (!isCloudflareChallenge(content)) break;
+
+            console.log(`[Scraper] Cloudflare challenge detected (attempt ${attempt + 1}), waiting...`);
             await simulateHumanBehavior(page);
-            await randomDelay(8000, 18000);
+            // Progressive wait: longer on second attempt
+            await randomDelay(10000 + attempt * 8000, 20000 + attempt * 10000);
+
+            // Check for Turnstile checkbox and click it
+            try {
+                const turnstileFrame = page.frameLocator('iframe[src*="challenges.cloudflare.com"]');
+                const checkbox = turnstileFrame.locator('input[type="checkbox"], [class*="checkbox"]');
+                if (await checkbox.count() > 0) {
+                    await checkbox.first().click();
+                    await randomDelay(3000, 6000);
+                }
+            } catch { /* no turnstile */ }
         }
     }
 
     // Wait for specific selector if provided
     if (options?.waitForSelector) {
         try {
-            await page.waitForSelector(options.waitForSelector, { timeout: 15000 });
+            await page.waitForSelector(options.waitForSelector, { timeout: 20000 });
         } catch {
             console.log(`[Scraper] Selector "${options.waitForSelector}" not found, continuing...`);
         }
@@ -185,9 +313,17 @@ export async function stealthNavigate(
 function isCloudflareChallenge(body: string): boolean {
     if (!body) return false;
     const lower = body.toLowerCase();
-    const indicators = ['just a moment', 'checking your browser', 'cf-browser-verification', 'challenge-platform', 'cloudflare', 'turnstile'];
+    const indicators = [
+        'just a moment', 'checking your browser', 'cf-browser-verification',
+        'challenge-platform', 'turnstile', 'cf-chl-bypass',
+        'cf_chl_opt', 'ray id', 'performance & security by cloudflare'
+    ];
     const hasIndicator = indicators.some(i => lower.includes(i));
-    const isChallengeHTML = lower.includes('<!doctype') && (lower.includes('just a moment') || lower.includes('checking your browser') || lower.includes('challenge'));
+    const isChallengeHTML = lower.includes('<!doctype') && (
+        lower.includes('just a moment') ||
+        lower.includes('checking your browser') ||
+        lower.includes('challenge')
+    );
     return hasIndicator && isChallengeHTML;
 }
 
@@ -257,17 +393,24 @@ export abstract class BaseScraper {
 
                 let articles: NormalizedItem[];
 
-                if (this.config.strategy === 'playwright' || (this.config.strategy === 'axios-pw-fallback' && !browser)) {
+                if (this.config.strategy === 'playwright') {
+                    // Playwright-only strategy
                     if (!browser) {
                         console.log(`[Scraper:${domain}] No browser available, skipping ${target.label}`);
                         continue;
                     }
                     articles = await this.scrapeWithPlaywright(browser, target);
+                    // Retry once with fresh context if no results
+                    if (articles.length === 0) {
+                        console.log(`[Scraper:${domain}] Retrying ${target.label} with fresh context...`);
+                        await randomDelay(2000, 4000);
+                        articles = await this.scrapeWithPlaywright(browser, target);
+                    }
                 } else {
-                    // axios-pw-fallback: try axios first, fall back to playwright
+                    // axios or axios-pw-fallback: try axios first
                     articles = await this.scrapeWithAxios(target);
                     if (articles.length === 0 && browser) {
-                        console.log(`[Scraper:${domain}] Axios returned 0 articles, trying Playwright...`);
+                        console.log(`[Scraper:${domain}] Axios returned 0 articles, trying Playwright for ${target.label}...`);
                         articles = await this.scrapeWithPlaywright(browser, target);
                     }
                 }
@@ -330,11 +473,15 @@ export abstract class BaseScraper {
      */
     private async scrapeWithAxios(target: ScraperTarget): Promise<NormalizedItem[]> {
         try {
+            const ua = getRandomUserAgent();
+            const isChrome = ua.includes('Chrome') && !ua.includes('Firefox');
             const response = await axios.get(target.url, {
-                timeout: 15000,
+                timeout: 20000,
                 headers: {
-                    'User-Agent': getRandomUserAgent(),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'User-Agent': ua,
+                    'Accept': isChrome
+                        ? 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
+                        : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
                     'Accept-Language': 'en-US,en;q=0.9',
                     'Accept-Encoding': 'gzip, deflate, br',
                     'Cache-Control': 'no-cache',
@@ -342,7 +489,11 @@ export abstract class BaseScraper {
                     'Sec-Fetch-Dest': 'document',
                     'Sec-Fetch-Mode': 'navigate',
                     'Sec-Fetch-Site': 'cross-site',
-                    'Sec-Fetch-User': '?1'
+                    'Sec-Fetch-User': '?1',
+                    'Sec-CH-UA': isChrome ? '"Chromium";v="133", "Not(A:Brand";v="99", "Google Chrome";v="133"' : '',
+                    'Sec-CH-UA-Mobile': '?0',
+                    'Sec-CH-UA-Platform': '"Windows"',
+                    'Priority': 'u=0, i'
                 },
                 maxRedirects: 5,
                 validateStatus: (s) => s < 400,

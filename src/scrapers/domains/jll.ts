@@ -2,12 +2,12 @@
  * JLL Scraper
  *
  * Scrapes JLL newsroom and trends/insights pages.
- * Uses axios with Playwright fallback (JS-heavy site).
+ * Uses Playwright (JS-heavy SPA site that requires rendering).
  */
 
 import { Page } from 'playwright';
 import { NormalizedItem } from '../../types/index.js';
-import { BaseScraper } from '../base-scraper.js';
+import { BaseScraper, randomDelay } from '../base-scraper.js';
 import { ScraperDomainConfig, ScraperTarget } from '../scraper-config.js';
 
 export class JLLScraper extends BaseScraper {
@@ -29,9 +29,9 @@ export class JLLScraper extends BaseScraper {
         const articles: NormalizedItem[] = [];
 
         try {
-            // Wait for any content to load (JLL uses dynamic rendering)
+            // Wait for content — JLL uses heavy JS rendering
             await page.waitForSelector('a[href], article, [class*="card"], main', {
-                timeout: 15000
+                timeout: 20000
             }).catch(() => {});
 
             // Handle cookie consent dialog if present
@@ -39,41 +39,41 @@ export class JLLScraper extends BaseScraper {
                 const acceptButton = await page.$('button:has-text("Accept All"), button:has-text("Accept"), #onetrust-accept-btn-handler');
                 if (acceptButton) {
                     await acceptButton.click();
-                    await new Promise(r => setTimeout(r, 1000));
+                    await randomDelay(500, 1000);
                 }
-            } catch { /* Cookie dialog not present or already dismissed */ }
+            } catch { /* Cookie dialog not present */ }
 
-            // Scroll to load lazy content
-            for (let i = 0; i < 3; i++) {
-                await page.evaluate(() => window.scrollBy(0, 800));
-                await new Promise(r => setTimeout(r, 1000));
+            // Scroll progressively to load lazy content
+            for (let i = 0; i < 4; i++) {
+                await page.evaluate(() => window.scrollBy(0, 600));
+                await randomDelay(800, 1500);
             }
+
+            // Wait for any late-loading content
+            await randomDelay(1000, 2000);
 
             const items = await page.evaluate(() => {
                 const results: { title: string; link: string; description: string; date: string }[] = [];
                 const seen = new Set<string>();
 
-                // Broad selector approach - look for all links
                 const allLinks = document.querySelectorAll('a[href]');
 
                 allLinks.forEach(el => {
                     const anchor = el as HTMLAnchorElement;
                     const link = anchor.href;
 
-                    // Filter for JLL content
                     if (!link.includes('jll.com')) return;
                     if (link === window.location.href) return;
 
-                    // Broad article link patterns
+                    // JLL article link patterns
                     const isArticleLink =
                         (link.includes('/news/') && !link.endsWith('/news/') && !link.endsWith('/news')) ||
                         (link.includes('/newsroom/') && !link.endsWith('/newsroom/') && !link.endsWith('/newsroom')) ||
-                        link.includes('/trends-and-insights/') && !link.endsWith('/trends-and-insights/') && link.split('/').length > 5 ||
-                        link.includes('/research/') && !link.endsWith('/research/') && !link.endsWith('/research') && link.split('/').length > 5 ||
+                        (link.includes('/trends-and-insights/') && !link.endsWith('/trends-and-insights/') && link.split('/').length > 5) ||
+                        (link.includes('/research/') && !link.endsWith('/research/') && !link.endsWith('/research') && link.split('/').length > 5) ||
                         link.includes('/press-releases/') ||
-                        link.match(/\/\d{4}\/\d{2}\//) || // Date patterns like /2024/01/
-                        link.includes('/investor/') && link.split('/').length > 6 ||
-                        link.includes('/cities/') && link.split('/').length > 6;
+                        !!link.match(/\/\d{4}\/\d{2}\//) ||
+                        (link.includes('/cities/') && link.split('/').length > 6);
 
                     if (!isArticleLink) return;
                     if (seen.has(link)) return;
@@ -88,13 +88,14 @@ export class JLLScraper extends BaseScraper {
                         title = anchor.textContent?.trim() || '';
                     }
 
-                    // Skip if title is too short or is navigation text
+                    // Clean up title - remove excessive whitespace
+                    title = title.replace(/\s+/g, ' ').trim();
+
                     if (!title || title.length < 15) return;
                     if (/^(read more|learn more|view all|see all|load more|back to|contact us)/i.test(title)) return;
 
                     seen.add(link);
 
-                    // Try to find description and date from parent container
                     const parent = anchor.closest('article, [class*="card"], [class*="item"], [class*="result"], [class*="tile"], [role="listitem"], li, div') || anchor.parentElement?.parentElement;
                     const descEl = parent?.querySelector('p, [class*="description"], [class*="summary"], [class*="excerpt"], [class*="body"]');
                     const dateEl = parent?.querySelector('time, [class*="date"], [datetime], [class*="time"]');
@@ -118,6 +119,8 @@ export class JLLScraper extends BaseScraper {
                     pubDate: item.date || undefined
                 }));
             }
+
+            console.log(`[JLL] Extracted ${articles.length} articles`);
         } catch (error) {
             console.error(`[JLL] Extraction error:`, (error as Error).message);
         }
@@ -127,7 +130,6 @@ export class JLLScraper extends BaseScraper {
 
     private extractFromHTML(html: string): NormalizedItem[] {
         const articles: NormalizedItem[] = [];
-        // Match JLL article links
         const linkPattern = /href="(https?:\/\/(?:www\.)?(?:us\.)?jll\.com\/[^"]*(?:news|research|insights|press)[^"]*)"/g;
         const seen = new Set<string>();
 
@@ -135,7 +137,6 @@ export class JLLScraper extends BaseScraper {
         while ((match = linkPattern.exec(html)) !== null) {
             const link = match[1];
             if (seen.has(link)) continue;
-            // Skip section index pages
             if (link.endsWith('/newsroom') || link.endsWith('/newsroom/') ||
                 link.endsWith('/research') || link.endsWith('/research/') ||
                 link.endsWith('/news') || link.endsWith('/news/')) continue;

@@ -8,7 +8,7 @@
 
 import { Page } from 'playwright';
 import { NormalizedItem } from '../../types/index.js';
-import { BaseScraper } from '../base-scraper.js';
+import { BaseScraper, randomDelay } from '../base-scraper.js';
 import { ScraperDomainConfig, ScraperTarget } from '../scraper-config.js';
 
 export class CBREScraper extends BaseScraper {
@@ -31,20 +31,31 @@ export class CBREScraper extends BaseScraper {
 
         try {
             await page.waitForSelector('a[href], article, [class*="card"], main', {
-                timeout: 20000
+                timeout: 25000
             }).catch(() => {});
 
+            // Handle cookie consent
+            try {
+                const acceptBtn = await page.$('button:has-text("Accept All"), button:has-text("Accept"), #onetrust-accept-btn-handler');
+                if (acceptBtn) {
+                    await acceptBtn.click();
+                    await randomDelay(500, 1000);
+                }
+            } catch { /* No consent dialog */ }
+
             // Scroll to load content
-            for (let i = 0; i < 2; i++) {
-                await page.evaluate(() => window.scrollBy(0, 1000));
-                await new Promise(r => setTimeout(r, 1500));
+            for (let i = 0; i < 3; i++) {
+                await page.evaluate(() => window.scrollBy(0, 800));
+                await randomDelay(800, 1500);
             }
+
+            // Wait for late content
+            await randomDelay(1000, 2000);
 
             const items = await page.evaluate(() => {
                 const results: { title: string; link: string; description: string; date: string }[] = [];
                 const seen = new Set<string>();
 
-                // Broad approach - find all links
                 const allLinks = document.querySelectorAll('a[href]');
 
                 allLinks.forEach(el => {
@@ -54,7 +65,6 @@ export class CBREScraper extends BaseScraper {
                     if (!link.includes('cbre.com')) return;
                     if (link === window.location.href) return;
 
-                    // Accept insights, reports, books, newsroom, and press-release links
                     const isArticleLink = (link.includes('/insights/') && link.split('/').length > 5) ||
                         link.includes('/press-releases/') ||
                         link.includes('/newsroom/') ||
@@ -63,10 +73,7 @@ export class CBREScraper extends BaseScraper {
                         link.includes('/books/');
 
                     if (!isArticleLink) return;
-                    // Skip index pages
-                    if (link.endsWith('/insights/') || link.endsWith('/insights') ||
-                        link.endsWith('/reports/') || link.endsWith('/reports') ||
-                        link.endsWith('/articles/') || link.endsWith('/articles')) return;
+                    if (/\/(insights|reports|articles|press-releases)\/?$/.test(link)) return;
                     if (seen.has(link)) return;
 
                     const titleEl = anchor.querySelector('h1, h2, h3, h4, h5, [class*="title"], [class*="heading"], span') || anchor;
@@ -74,6 +81,7 @@ export class CBREScraper extends BaseScraper {
                     if (!title || title.length < 10) {
                         title = anchor.textContent?.trim() || '';
                     }
+                    title = title.replace(/\s+/g, ' ').trim();
 
                     if (!title || title.length < 10 || title.length > 300) return;
                     if (/^(read more|learn more|view all|see all|load more|download)/i.test(title)) return;
@@ -101,6 +109,8 @@ export class CBREScraper extends BaseScraper {
                     pubDate: item.date || undefined
                 }));
             }
+
+            console.log(`[CBRE] Extracted ${articles.length} articles`);
         } catch (error) {
             console.error(`[CBRE] Extraction error:`, (error as Error).message);
         }
@@ -117,7 +127,6 @@ export class CBREScraper extends BaseScraper {
         while ((match = linkPattern.exec(html)) !== null) {
             const link = match[1];
             if (seen.has(link)) continue;
-            // Skip index pages
             if (/\/(insights|reports|articles|press-releases)\/?$/.test(link)) continue;
             seen.add(link);
 

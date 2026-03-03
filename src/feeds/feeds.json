@@ -1475,5 +1475,41 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for constructiondive.com and supplychaindive.com"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:reuters.com+%22real+estate%22+OR+%22industrial+property%22+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22+OR+REIT&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Reuters CRE",
+    "region": "US",
+    "source": "Google News",
+    "type": "macro",
+    "timeout": 30000,
+    "_note": "Proxy for reuters.com (Akamai bot detection blocks direct access)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:reuters.com+%22industrial+real+estate%22+OR+%22warehouse+deal%22+OR+%22logistics+facility%22+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Reuters Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for reuters.com industrial sector coverage"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:traded.co+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+sale+OR+acquisition&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Traded.co",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for traded.co (Cloudflare Turnstile blocks direct access)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:traded.co+%22New+Jersey%22+OR+NJ+OR+Pennsylvania+OR+PA+OR+Florida+OR+FL&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Traded.co NJ/PA/FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for traded.co regional deal coverage"
   }
 ]

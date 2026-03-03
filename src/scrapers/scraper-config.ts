@@ -1,7 +1,8 @@
 /**
- * Scraper Configuration for 13 Boss-Priority Sources
+ * Scraper Configuration
  *
  * Defines URLs, selectors, rate limits, and cache TTLs for each domain scraper.
+ * Scrapers disabled below are covered by Google News RSS proxies instead.
  */
 
 export interface ScraperTarget {
@@ -27,43 +28,17 @@ export interface ScraperDomainConfig {
 const HOURS = 60 * 60 * 1000;
 const NEWS_TTL = 4 * HOURS;       // reuters, apnews, bloomberg, wsj
 const CRE_TTL = 8 * HOURS;        // jll, cushwake, colliers, cbre, costar
-const DEAL_TTL = 6 * HOURS;       // traded.co
 const SUPPLEMENTARY_TTL = 6 * HOURS; // bisnow, globest, bizjournals
 
 export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     // ============================================
     // PRIMARY SCRAPERS (no working RSS)
     // ============================================
-    // CoStar disabled - paywalled + scraper timeouts, no useful content extracted
-    // {
-    //     domain: 'costar.com',
-    //     name: 'CoStar',
-    //     strategy: 'playwright',
-    //     type: 'primary',
-    //     targets: [
-    //         { url: 'https://www.costar.com/article/industrial', label: 'CoStar Industrial' },
-    //         { url: 'https://www.costar.com/article/national', label: 'CoStar National' },
-    //         { url: 'https://product.costar.com/home/news', label: 'CoStar Product News' }
-    //     ],
-    //     maxRunsPerDay: 8,
-    //     cacheTTLMs: CRE_TTL,
-    //     access: 'paywalled',
-    //     feedType: 'news'
-    // },
-    // Reuters disabled - strong bot detection blocks all automated access
-    // {
-    //     domain: 'reuters.com',
-    //     name: 'Reuters Real Estate',
-    //     strategy: 'playwright',
-    //     type: 'primary',
-    //     targets: [
-    //         { url: 'https://www.reuters.com/business/finance/', label: 'Reuters Finance' },
-    //         { url: 'https://www.reuters.com/business/', label: 'Reuters Business' }
-    //     ],
-    //     maxRunsPerDay: 10,
-    //     cacheTTLMs: NEWS_TTL,
-    //     feedType: 'news'
-    // },
+
+    // CoStar disabled - fully paywalled, no public article content to extract
+    // Reuters disabled - military-grade bot detection (Akamai), blocks all automated access
+    // Traded.co disabled - Cloudflare Turnstile captcha, requires human interaction
+
     {
         domain: 'apnews.com',
         name: 'AP News Business',
@@ -77,36 +52,32 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: NEWS_TTL,
         feedType: 'news'
     },
-    // JLL disabled - scraper timeouts, covered by Google News JLL NJ/PA/FL RSS
-    // {
-    //     domain: 'jll.com',
-    //     name: 'JLL',
-    //     strategy: 'axios-pw-fallback',
-    //     type: 'primary',
-    //     targets: [
-    //         { url: 'https://www.us.jll.com/en/newsroom', label: 'JLL Newsroom' },
-    //         { url: 'https://www.us.jll.com/en/trends-and-insights/research', label: 'JLL Research' },
-    //         { url: 'https://www.us.jll.com/en/trends-and-insights/cities', label: 'JLL Cities' }
-    //     ],
-    //     maxRunsPerDay: 8,
-    //     cacheTTLMs: CRE_TTL,
-    //     feedType: 'press-release'
-    // },
-    // Cushman & Wakefield disabled - scraper timeouts, covered by Google News Cushman NJ/PA/FL RSS
-    // {
-    //     domain: 'cushwake.com',
-    //     name: 'Cushman & Wakefield',
-    //     strategy: 'playwright',
-    //     type: 'primary',
-    //     targets: [
-    //         { url: 'https://www.cushmanwakefield.com/en/united-states/news/press-releases', label: 'C&W Press Releases' },
-    //         { url: 'https://www.cushmanwakefield.com/en/united-states/insights/us-articles', label: 'C&W Articles' },
-    //         { url: 'https://www.cushmanwakefield.com/en/united-states/insights/us-marketbeats', label: 'C&W MarketBeats' }
-    //     ],
-    //     maxRunsPerDay: 8,
-    //     cacheTTLMs: CRE_TTL,
-    //     feedType: 'press-release'
-    // },
+    {
+        domain: 'jll.com',
+        name: 'JLL',
+        strategy: 'playwright',
+        type: 'primary',
+        targets: [
+            { url: 'https://www.us.jll.com/en/newsroom', label: 'JLL Newsroom' },
+            { url: 'https://www.us.jll.com/en/trends-and-insights/research', label: 'JLL Research' }
+        ],
+        maxRunsPerDay: 8,
+        cacheTTLMs: CRE_TTL,
+        feedType: 'press-release'
+    },
+    {
+        domain: 'cushwake.com',
+        name: 'Cushman & Wakefield',
+        strategy: 'playwright',
+        type: 'primary',
+        targets: [
+            { url: 'https://www.cushmanwakefield.com/en/united-states/news/press-releases', label: 'C&W Press Releases' },
+            { url: 'https://www.cushmanwakefield.com/en/united-states/insights/us-articles', label: 'C&W Articles' }
+        ],
+        maxRunsPerDay: 8,
+        cacheTTLMs: CRE_TTL,
+        feedType: 'press-release'
+    },
     {
         domain: 'colliers.com',
         name: 'Colliers',
@@ -120,20 +91,6 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: CRE_TTL,
         feedType: 'press-release'
     },
-    // Traded.co disabled - Cloudflare protection too strong
-    // {
-    //     domain: 'traded.co',
-    //     name: 'Traded.co',
-    //     strategy: 'playwright',
-    //     type: 'primary',
-    //     targets: [
-    //         { url: 'https://www.traded.co/', label: 'Traded Deal Feed' }
-    //     ],
-    //     maxRunsPerDay: 6,
-    //     cacheTTLMs: DEAL_TTL,
-    //     cloudflareProtected: true,
-    //     feedType: 'news'
-    // },
 
     // ============================================
     // SUPPLEMENTARY SCRAPERS (RSS already works)
@@ -193,37 +150,21 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         access: 'paywalled',
         feedType: 'macro'
     },
-    // CBRE disabled - scraper timeouts, covered by CBRE IR RSS + Google News CBRE NJ/PA/FL
-    // {
-    //     domain: 'cbre.com',
-    //     name: 'CBRE',
-    //     strategy: 'axios-pw-fallback',
-    //     type: 'supplementary',
-    //     targets: [
-    //         { url: 'https://www.cbre.com/insights/articles', label: 'CBRE Articles' },
-    //         { url: 'https://www.cbre.com/insights/reports', label: 'CBRE Reports' },
-    //         { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
-    //     ],
-    //     maxRunsPerDay: 6,
-    //     cacheTTLMs: CRE_TTL,
-    //     feedType: 'press-release'
-    // },
-    // BizJournals disabled - Cloudflare blocks, covered by Google News BizJournals RSS feeds
-    // {
-    //     domain: 'bizjournals.com',
-    //     name: 'BizJournals',
-    //     strategy: 'playwright',
-    //     type: 'supplementary',
-    //     targets: [
-    //         { url: 'https://www.bizjournals.com/southflorida/news/commercial-real-estate', label: 'BizJournals SoFla CRE' },
-    //         { url: 'https://www.bizjournals.com/philadelphia/news/commercial-real-estate', label: 'BizJournals Philly CRE' }
-    //     ],
-    //     maxRunsPerDay: 6,
-    //     cacheTTLMs: SUPPLEMENTARY_TTL,
-    //     access: 'paywalled',
-    //     cloudflareProtected: true,
-    //     feedType: 'news'
-    // },
+    {
+        domain: 'cbre.com',
+        name: 'CBRE',
+        strategy: 'axios-pw-fallback',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.cbre.com/insights/articles', label: 'CBRE Articles' },
+            { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: CRE_TTL,
+        feedType: 'press-release'
+    },
+
+    // BizJournals disabled - Cloudflare Turnstile + paywall, covered by Google News BizJournals RSS
 
     // ============================================
     // FAILING RSS FEED REPLACEMENTS
@@ -240,38 +181,34 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: SUPPLEMENTARY_TTL,
         feedType: 'news'
     },
-    // NJBIZ disabled - 403 Forbidden, covered by Google News NJ Business RSS
-    // {
-    //     domain: 'njbiz.com',
-    //     name: 'NJBIZ',
-    //     strategy: 'axios-pw-fallback',
-    //     type: 'supplementary',
-    //     targets: [
-    //         { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' },
-    //         { url: 'https://njbiz.com/', label: 'NJBIZ Home' }
-    //     ],
-    //     maxRunsPerDay: 6,
-    //     cacheTTLMs: SUPPLEMENTARY_TTL,
-    //     access: 'paywalled',
-    //     region: 'NJ',
-    //     feedType: 'news'
-    // },
-    // LVB disabled - 403 Forbidden, covered by Google News Lehigh Valley RSS
-    // {
-    //     domain: 'lvb.com',
-    //     name: 'Lehigh Valley Business',
-    //     strategy: 'axios-pw-fallback',
-    //     type: 'supplementary',
-    //     targets: [
-    //         { url: 'https://lvb.com/category/real-estate/', label: 'LVB Real Estate' },
-    //         { url: 'https://lvb.com/', label: 'LVB Home' }
-    //     ],
-    //     maxRunsPerDay: 6,
-    //     cacheTTLMs: SUPPLEMENTARY_TTL,
-    //     access: 'paywalled',
-    //     region: 'PA',
-    //     feedType: 'news'
-    // },
+    {
+        domain: 'njbiz.com',
+        name: 'NJBIZ',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
+        region: 'NJ',
+        feedType: 'news'
+    },
+    {
+        domain: 'lvb.com',
+        name: 'Lehigh Valley Business',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://lvb.com/category/real-estate/', label: 'LVB Real Estate' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        access: 'paywalled',
+        region: 'PA',
+        feedType: 'news'
+    },
     {
         domain: 'rejournals.com',
         name: 'REJournals',
@@ -284,10 +221,31 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
         feedType: 'industrial-news'
+    },
+
+    // ============================================
+    // LISTING SCRAPERS (property availabilities)
+    // ============================================
+    {
+        domain: 'loopnet.com',
+        name: 'LoopNet',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.loopnet.com/search/industrial-space/nj/for-lease/', label: 'LoopNet NJ Industrial Lease' },
+            { url: 'https://www.loopnet.com/search/industrial-space/nj/for-sale/', label: 'LoopNet NJ Industrial Sale' },
+            { url: 'https://www.loopnet.com/search/industrial-space/pa/for-lease/', label: 'LoopNet PA Industrial Lease' },
+            { url: 'https://www.loopnet.com/search/industrial-space/fl/for-lease/', label: 'LoopNet FL Industrial Lease' }
+        ],
+        maxRunsPerDay: 4,
+        cacheTTLMs: CRE_TTL,
+        cloudflareProtected: true,
+        feedType: 'listings'
     }
 
-    // NOTE: Additional scrapers for blocked RSS feeds require implementations.
-    // These domains are covered via Google News RSS feeds instead:
+    // NOTE: These domains remain covered by Google News RSS proxies:
+    // - CoStar (paywalled), Reuters (Akamai bot detection), Traded.co (Cloudflare Turnstile)
+    // - BizJournals (Cloudflare + paywall)
     // - therealdeal.com, commercialobserver.com (paywalled CRE news)
     // - roi-nj.com, re-nj.com (NJ regional coverage)
     // - connectcre.com, commercialsearch.com (Cloudflare protected)
