@@ -261,7 +261,8 @@ export const APPROVED_DOMAINS = [
     'logisticsviewpoints.com', 'commercialobserver.com', 'roi-nj.com',
     'njspotlightnews.org', 'connect.media', 'constructiondive.com',
     'naikeystone.com', 'naiplatform.com', 'prologis.com', 'retaildive.com',
-    'prnewswire.com', 'globenewswire.com', 'businesswire.com'
+    'prnewswire.com', 'globenewswire.com', 'businesswire.com',
+    'joc.com', 'loopnet.com', 'propertyshark.com', 'commercialsearch.com'
 ];
 
 // Regional sources — always include articles from these

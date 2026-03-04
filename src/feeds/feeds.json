@@ -14,8 +14,7 @@
     "source": "Commercial Search",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser",
-    "enabled": false
+    "headers": "browser"
   },
   {
     "url": "https://www.commercialcafe.com/blog/feed/",
@@ -1511,5 +1510,51 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for traded.co regional deal coverage"
+  },
+  {
+    "url": "https://www.joc.com/api/rssfeed",
+    "name": "JOC All News",
+    "region": "US",
+    "source": "JOC",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser",
+    "_note": "Journal of Commerce — maritime, freight, logistics, supply chain"
+  },
+  {
+    "url": "https://www.joc.com/api/rssfeed/8876",
+    "name": "JOC Maritime",
+    "region": "US",
+    "source": "JOC",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser"
+  },
+  {
+    "url": "https://www.joc.com/api/rssfeed/24519",
+    "name": "JOC Surface Transport",
+    "region": "US",
+    "source": "JOC",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:loopnet.com+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+%22for+lease%22+OR+%22for+sale%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News LoopNet Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for loopnet.com/news (403 blocks direct RSS)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:propertyshark.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News PropertyShark",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for propertyshark.com (403 blocks direct RSS)"
   }
 ]

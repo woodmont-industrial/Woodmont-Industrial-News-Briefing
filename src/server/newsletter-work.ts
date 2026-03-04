@@ -88,7 +88,8 @@ export function buildWorkBriefing(
         const url = (item as any).url || item.link || '#';
         const source = item.source || '';
         const sourceName = getSourceName(source, url);
-        const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
+        const hasValidUrl = url && url.startsWith('http');
+        const paywalled = hasValidUrl && isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
         // Big deal badge
         const dealText = `${title} ${item.description || ''}`;
@@ -129,7 +130,7 @@ export function buildWorkBriefing(
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}
+            ${displayText}${dealBadge} — ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>` : '<span style="color: #999;">(Source unavailable)</span>'}${paywalled}
             <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
         </li>`;
     };
