@@ -227,7 +227,7 @@
     // Placeholder images - from external utils.js
     const { getPlaceholderImage } = window.WoodmontUtils;
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw }) => {
+    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
       const category = item.category || 'relevant';
       const fallback = getPlaceholderImage(category, item.title);
       const [imgSrc, setImgSrc] = useState(item.image || fallback);
@@ -371,6 +371,32 @@
                   {isTracked ? 'TRACKING' : 'Track'}
                 </button>
 
+                {/* Add to Newsletter Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onAddToNewsletter && onAddToNewsletter(item);
+                  }}
+                  className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all cursor-pointer"
+                  title="Add this article to the next newsletter"
+                >
+                  Newsletter +
+                </button>
+
+                {/* Remove from Newsletter Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onRemoveFromNewsletter && onRemoveFromNewsletter(item);
+                  }}
+                  className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer"
+                  title="Exclude this article from the newsletter"
+                >
+                  Newsletter -
+                </button>
+
                 {/* Send to Raw Button */}
                 <button
                   onClick={(e) => {
@@ -428,7 +454,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, ignoredTopics, ignoredArticles }) => {
+    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -476,6 +502,8 @@
                   onTrackKeyword={onTrackKeyword}
                   onIgnoreArticle={onIgnoreArticle}
                   onSendToRaw={onSendToRaw}
+                  onAddToNewsletter={onAddToNewsletter}
+                  onRemoveFromNewsletter={onRemoveFromNewsletter}
                 />
               ))}
             </div>
@@ -827,6 +855,7 @@
       addIgnoredTopic, addIgnoredArticle,
       removeIgnoredTopic, removeIgnoredArticle, isArticleIgnored,
       getGitHubToken, setGitHubToken, syncExcludeToGitHub, removeExcludeFromGitHub,
+      syncIncludeToGitHub, removeIncludeFromGitHub,
       getUserId, setUserId, loadServerPreferences, saveServerPreferences,
       getServerPrefs, getRawPicks, setRawPick, clearRawPicks, setAllRawPicks,
       migrateAndClearLocalStorage, clearAllIgnored
@@ -1656,6 +1685,38 @@
           handleIgnoreArticle(article, 'Moved to Raw');
         } catch (e) { console.error('Error sending to raw:', e); }
       }, [handleIgnoreArticle]);
+
+      // Add article directly to next newsletter (syncs to included-articles.json on GitHub)
+      const handleAddToNewsletter = useCallback(async (article) => {
+        const id = article.id || article.link;
+        const pickData = {
+          t: article.title || '', u: article.link || '', s: article.source || article.publisher || '',
+          d: article.pubDate || new Date().toISOString(), ex: article.description || '',
+          c: article.category || 'relevant', r: article.region || '', kw: article.keywords || []
+        };
+        const result = await syncIncludeToGitHub(id, pickData);
+        if (result.ok) {
+          alert('Added to newsletter! This article will appear in the next send.');
+        } else if (result.reason === 'no_token') {
+          alert('Set your GitHub token in Settings to sync newsletter changes.');
+        } else {
+          alert('Failed to add to newsletter: ' + (result.reason || 'unknown error'));
+        }
+      }, []);
+
+      // Remove article from next newsletter (syncs to excluded-articles.json on GitHub)
+      const handleRemoveFromNewsletter = useCallback(async (article) => {
+        const articleId = article.id || article.link || article.title;
+        const articleUrl = article.link || article.url || '';
+        const result = await syncExcludeToGitHub(articleId, articleUrl, article.title);
+        if (result.ok) {
+          alert('Removed from newsletter! This article will be excluded from all future sends.');
+        } else if (result.reason === 'no_token') {
+          alert('Set your GitHub token in Settings to sync newsletter changes.');
+        } else {
+          alert('Failed to remove from newsletter: ' + (result.reason || 'unknown error'));
+        }
+      }, []);
 
       const handleRemoveIgnoredTopic = useCallback((keyword) => {
         if (removeIgnoredTopic(keyword)) {
@@ -2546,6 +2607,8 @@
                   onTrackKeyword={handleTrackKeyword}
                   onIgnoreArticle={handleIgnoreArticle}
                   onSendToRaw={handleSendToRaw}
+                  onAddToNewsletter={handleAddToNewsletter}
+                  onRemoveFromNewsletter={handleRemoveFromNewsletter}
                 />
               </>
             ) : viewMode === "newsletter" ? (

@@ -200,6 +200,7 @@ const STRONG_PEOPLE_ACTIONS = [
     'hires', 'appoints', 'promotes', 'names',
     'movers', 'shakers', 'power broker', 'rising star', 'top producer',
     'recognized', 'award', 'honored', 'featured', 'profile', 'spotlight',
+    'milestone', 'anniversary', 'marks milestone', 'retirement', 'retiring',
 ];
 
 // Title/role keywords — presence of these strongly signals a people article
@@ -232,7 +233,9 @@ export function reCategorizeRelevantAsPeople(
         const hasStrongAction = containsAny(text, STRONG_PEOPLE_ACTIONS);
         const hasRole = containsAny(text, PERSON_ROLE_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
-        if (hasStrongAction && hasRole && hasIndustrial) {
+        // Very strong puff signals — move to people even without full industrial context
+        const isPeoplePuff = containsAny(text, ['milestone', 'anniversary', 'retirement', 'retiring', 'marks milestone']);
+        if ((hasStrongAction && hasRole && hasIndustrial) || (isPeoplePuff && hasRole)) {
             console.log(`👤 Re-categorized to People: "${article.title?.substring(0, 60)}"`);
             movedToPeople.push(article);
         } else {
