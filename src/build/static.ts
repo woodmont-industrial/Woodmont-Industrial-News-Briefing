@@ -159,47 +159,62 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // 3. NJ regional sources — include ALL CRE (retail, office, industrial, etc.)
-            //    Only exclude residential/multifamily/hotel from NJ regional sources
+            // 3. EXCLUDE: Non-industrial property types (from ALL sources including NJ regional)
+            //    Apartments, multifamily, hotels, condos, office-only, retail-only, self-storage, auto dealers
+            const nonIndustrialPrimary = /\b(APARTMENT|MULTIFAMILY|MULTI.?FAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|CONDOMINIUMS?|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE|AUTO\s*DEALER|CAR\s*DEALER|SENIOR\s*LIVING|ASSISTED\s*LIVING|STUDENT\s*HOUSING|CO.?WORKING|COWORKING)\b/.test(text);
+            const hasIndustrialContext = industrialKeywords.some(k => text.includes(k));
+            if (nonIndustrialPrimary && !hasIndustrialContext) {
+                log('info', `EXCLUDED (non-industrial property): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // 4. EXCLUDE: Pure people/hire announcements without industrial context
+            const isPeopleFluff = /\b(WELCOMES|JOINS|APPOINTED|PROMOTED|HIRED|NEW HIRE|TAPS|RECRUITS|ELEVATED|MARKS MILESTONE|ANNIVERSARY)\b/.test(text);
+            if (isPeopleFluff && !hasIndustrialContext) {
+                log('info', `EXCLUDED (people fluff, no industrial): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
+            // 5. NJ regional sources — require industrial/CRE context (not just any article)
             const njRegionalSources = ['re-nj.com', 'njbiz.com', 'roi-nj.com'];
             const isNJRegional = njRegionalSources.some(s => url.includes(s) || sourceName.includes(s.replace('.com', '')));
 
             if (isNJRegional) {
-                // Only exclude purely residential content from NJ regional sources
-                const residentialOnly = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY)\b/.test(text);
-                const hasCREContext = /\b(COMMERCIAL|REAL ESTATE|CRE|PROPERTY|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|BROKER|REIT|PORTFOLIO|TRANSACTION|INDUSTRIAL|WAREHOUSE|RETAIL|OFFICE|MIXED.?USE|SF|SQUARE FEET)\b/.test(text);
-                if (residentialOnly && !hasCREContext) {
-                    log('info', `EXCLUDED (residential, NJ regional): ${item.title?.substring(0, 60)}`);
+                // Must have some CRE or industrial relevance
+                const hasCREOrIndustrial = hasIndustrialContext ||
+                    /\b(COMMERCIAL|REAL ESTATE|CRE|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|BROKER|REIT|PORTFOLIO|TRANSACTION|SQUARE FEET|SF\b|ACRE)\b/.test(text);
+                if (!hasCREOrIndustrial) {
+                    log('info', `EXCLUDED (NJ regional, no CRE context): ${item.title?.substring(0, 60)}`);
                     return false;
                 }
                 return true;
             }
 
-            // 4. EXCLUDE: Non-industrial property types when NO industrial keywords present (PA/FL/national)
-            const nonIndustrialPrimary = /\b(APARTMENT|MULTIFAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE)\b/.test(text);
-            if (nonIndustrialPrimary && !industrialKeywords.some(k => text.includes(k))) {
-                log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
+            // 6. INCLUDE: Boss preferred sources — but still require industrial/CRE context
+            if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
+                // Even preferred sources should have some industrial/CRE relevance
+                const hasCREOrIndustrial = hasIndustrialContext ||
+                    /\b(COMMERCIAL|REAL ESTATE|CRE|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|BROKER|REIT|PORTFOLIO|TRANSACTION|SQUARE FEET|INTEREST RATE|INFLATION|FREIGHT|SUPPLY CHAIN|CAP RATE)\b/.test(text);
+                if (hasCREOrIndustrial) {
+                    return true;
+                }
+                log('info', `EXCLUDED (preferred source, no CRE context): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
-            // 5. INCLUDE: Boss preferred sources (GlobeSt, Bisnow, NAIOP, etc.)
-            if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
-                return true;
-            }
-
-            // 6. INCLUDE: Regional sources (RE-NJ, NJBIZ, LVB, etc.)
+            // 7. INCLUDE: Regional sources (RE-NJ, NJBIZ, LVB, etc.) — already filtered above
             if (regionalSources.some(s => url.includes(s))) {
                 return true;
             }
 
-            // 7. INCLUDE: Any article with CRE or industrial keywords — let AI judge relevance
-            const hasRealEstateContext = realEstateKeywords.some(k => {
-                if (k.length <= 3) {
-                    return text.includes(` ${k} `) || text.includes(`${k} `) || text.includes(` ${k}`);
-                }
-                return text.includes(k);
-            });
-            if (hasRealEstateContext) {
+            // 8. INCLUDE: Any article with industrial keywords — let AI judge relevance
+            if (hasIndustrialContext) {
+                return true;
+            }
+
+            // 9. INCLUDE: Articles with strong CRE deal signals (not just generic "property" or "broker")
+            const hasStrongCRESignal = /\b(COMMERCIAL REAL ESTATE|CRE|REIT|CAP RATE|NOI|SQUARE FEET|MILLION SF|FOR LEASE|FOR SALE|ACQUISITION|DISPOSITION|BUILD-TO-SUIT|GROUND-UP|SPEC DEVELOPMENT)\b/.test(text);
+            if (hasStrongCRESignal) {
                 return true;
             }
 
@@ -212,8 +227,10 @@ export async function buildStaticRSS(): Promise<void> {
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
 
-            // CRE/Industrial context check - article must be about real estate to be categorized
-            const hasCREContext = /\b(warehouse|logistics|industrial|commercial|real estate|property|cre|lease|acquisition|development|construction|tenant|landlord|brokerage|broker|reit|portfolio)\b/i.test(text);
+            // CRE/Industrial context check - article must be about industrial real estate
+            const hasCREContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|flex space|commercial real estate|cre|reit|portfolio)\b/i.test(text);
+            // Exclude non-industrial property types from transaction/availability categorization
+            const isNonIndustrial = /\b(apartment|multifamily|hotel|hospitality|residential|condo|single.?family|auto dealer|car dealer|senior living|student housing)\b/i.test(text) && !/\b(warehouse|industrial|logistics|distribution|manufacturing|cold storage|fulfillment)\b/i.test(text);
 
             // Check for dollar amounts ($) or square feet (SF/sq ft)
             const hasDollarAmount = /\$[\d,]+/.test(text) || /\d+\s*(million|m)\b/i.test(text);
@@ -242,8 +259,8 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
-            // 2. TRANSACTIONS - Deal signals WITH CRE context
-            if (hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
+            // 2. TRANSACTIONS - Deal signals WITH CRE context, NOT non-industrial
+            if (hasCREContext && !isNonIndustrial && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
                 item.category = 'transactions';
                 return item;
             }
@@ -288,7 +305,7 @@ export async function buildStaticRSS(): Promise<void> {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Running AI classification on articles using ${aiProvider}...`);
             try {
-                const aiResult = await filterArticlesWithAI(filteredNewItems, 15); // 15% minimum relevance - wider net for NJ/PA/FL industrial
+                const aiResult = await filterArticlesWithAI(filteredNewItems, 40); // 40% minimum relevance - tighter filter for industrial focus
                 aiFilteredItems = aiResult.included;
 
                 // Log AI filtering stats
