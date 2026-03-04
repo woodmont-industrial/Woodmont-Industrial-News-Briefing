@@ -13,7 +13,8 @@ import {
     EXCLUDE_POLITICAL, EXCLUDE_NON_INDUSTRIAL, INDUSTRIAL_PROPERTY_KEYWORDS,
     RELEVANT_KEYWORDS, PEOPLE_ACTION_KEYWORDS, INDUSTRIAL_CONTEXT_KEYWORDS,
     TRANSACTION_ACTION_WORDS, APPROVAL_KEYWORDS, EXCLUDE_FROM_PEOPLE,
-    APPROVED_DOMAINS, REGIONAL_SOURCES, BROKERAGE_SOURCES
+    APPROVED_DOMAINS, REGIONAL_SOURCES, BROKERAGE_SOURCES,
+    isStrictlyIndustrial
 } from '../shared/region-data.js';
 
 // Geographic-only target regions (no CRE company names)
@@ -36,8 +37,7 @@ export function isPolitical(text: string): boolean {
 }
 
 export function isIndustrialProperty(text: string): boolean {
-    if (containsAny(text, INDUSTRIAL_PROPERTY_KEYWORDS)) return true;
-    return !containsAny(text, EXCLUDE_NON_INDUSTRIAL);
+    return isStrictlyIndustrial(text);
 }
 
 // =====================================================================
@@ -128,7 +128,8 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) return false;
-        // Trust AI classification — articles already categorized by AI passed its relevance check
+        // Industrial gate — reject apartments, retail, office, etc.
+        if (!isStrictlyIndustrial(text)) return false;
         if (article.category && article.category !== 'exclude') return true;
         return containsAny(text, keywords);
     });

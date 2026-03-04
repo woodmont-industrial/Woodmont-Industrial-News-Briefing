@@ -109,20 +109,73 @@ export const EXCLUDE_POLITICAL = [
 
 // Non-industrial property types to exclude
 export const EXCLUDE_NON_INDUSTRIAL = [
-    'office lease', 'office building', 'office tower', 'coworking',
-    'multifamily', 'apartment', 'residential', 'condo',
-    'retail', 'restaurant', 'shopping center', 'mall',
-    'hotel', 'hospitality', 'resort',
-    'self-storage', 'mini storage',
-    'senior living', 'nursing home', 'medical office'
+    // Office
+    'office lease', 'office building', 'office tower', 'office space', 'coworking', 'co-working',
+    'class a office', 'class b office', 'office campus', 'office portfolio',
+    // Residential / Multifamily
+    'multifamily', 'multi-family', 'apartment', 'residential', 'condo', 'condominium',
+    'single-family', 'single family', 'townhouse', 'townhome', 'homebuilder', 'home builder',
+    'penthouse', 'luxury home', 'luxury condo', 'luxury residence',
+    'active adult', '55+', '55 and older', 'age-restricted',
+    'senior living', 'assisted living', 'nursing home', 'memory care',
+    'student housing', 'dormitory',
+    // Retail / Restaurant
+    'retail', 'restaurant', 'shopping center', 'mall', 'strip mall', 'outlet',
+    'bookstore', 'grocery store', 'supermarket', 'convenience store',
+    'bank branch',
+    // Hospitality
+    'hotel', 'hospitality', 'resort', 'motel', 'airbnb',
+    // Self-storage
+    'self-storage', 'self storage', 'mini storage',
+    // Auto / Car
+    'car dealer', 'auto dealer', 'car dealership', 'auto dealership',
+    // Medical (non-industrial)
+    'medical office', 'medical center', 'hospital',
+    // Misc non-industrial
+    'gym ', 'fitness center', 'boxing gym', 'yoga studio',
+    'church', 'religious', 'museum', 'library',
+    'charter school', 'public school',
+    // Crime / legal (not CRE news)
+    'bid-rigging', 'pleads guilty', 'guilty plea', 'indicted', 'sentenced',
+    'foreclosure', 'bankruptcy filing',
+    // Mixed-use (primarily residential)
+    'mixed-use residential', 'mixed use residential',
 ];
 
 // Industrial property keywords
 export const INDUSTRIAL_PROPERTY_KEYWORDS = [
     'warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage',
     'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land',
-    'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock'
+    'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock',
+    'supply chain', 'freight', 'trucking', 'shipping', 'cargo',
+    'e-commerce', 'ecommerce', 'automation', 'robotics',
+    'data center', 'cross-dock', 'cross dock',
 ];
+
+/**
+ * Unified industrial content gate — shared by frontend (static.ts) and newsletter (email.ts).
+ * Returns TRUE if the article is about industrial/logistics/manufacturing/supply-chain
+ * or general CRE macro trends (interest rates, cap rates, etc.).
+ * Returns FALSE for apartments, retail, office, hospitality, and other non-industrial content.
+ */
+export function isStrictlyIndustrial(text: string): boolean {
+    const lower = text.toLowerCase();
+    // If it has industrial keywords → always pass
+    if (INDUSTRIAL_PROPERTY_KEYWORDS.some(kw => lower.includes(kw))) return true;
+    // If it has non-industrial keywords → reject
+    if (EXCLUDE_NON_INDUSTRIAL.some(kw => lower.includes(kw))) return false;
+    // General CRE macro (interest rates, cap rates, etc.) with no property type → pass
+    const CRE_MACRO = [
+        'interest rate', 'federal reserve', 'fed ', 'inflation', 'capital markets',
+        'cap rate', 'noi', 'vacancy', 'absorption', 'rent growth',
+        'commercial real estate', 'cre', 'reit', 'cmbs',
+        'construction cost', 'labor cost', 'insurance cost',
+        'reshoring', 'nearshoring', 'onshoring',
+    ];
+    if (CRE_MACRO.some(kw => lower.includes(kw))) return true;
+    // No signal either way → pass (let other filters decide)
+    return true;
+}
 
 // Relevant articles: macro trends + industrial RE news
 export const RELEVANT_KEYWORDS = [

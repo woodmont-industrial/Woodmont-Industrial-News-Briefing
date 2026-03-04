@@ -14,7 +14,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
-import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES } from '../shared/region-data.js';
+import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
@@ -159,12 +159,10 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // 3. EXCLUDE: Non-industrial property types (from ALL sources including NJ regional)
-            //    Apartments, multifamily, hotels, condos, office-only, retail-only, self-storage, auto dealers
-            const nonIndustrialPrimary = /\b(APARTMENT|MULTIFAMILY|MULTI.?FAMILY|HOTEL|HOSPITALITY|RESIDENTIAL|CONDO|CONDOMINIUMS?|SINGLE.?FAMILY|RESTAURANT|SELF.?STORAGE|AUTO\s*DEALER|CAR\s*DEALER|SENIOR\s*LIVING|ASSISTED\s*LIVING|STUDENT\s*HOUSING|CO.?WORKING|COWORKING)\b/.test(text);
+            // 3. EXCLUDE: Non-industrial property types — uses shared unified gate
             const hasIndustrialContext = industrialKeywords.some(k => text.includes(k));
-            if (nonIndustrialPrimary && !hasIndustrialContext) {
-                log('info', `EXCLUDED (non-industrial property): ${item.title?.substring(0, 60)}`);
+            if (!isStrictlyIndustrial(text.toLowerCase())) {
+                log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 

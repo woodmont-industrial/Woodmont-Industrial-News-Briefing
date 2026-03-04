@@ -361,10 +361,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const isFriday = today.getDay() === 5;
         const isMonday = today.getDay() === 1;
 
-        // Constants for section minimums and caps
-        const MIN_RELEVANT = 4;
-        const MIN_OTHER = 2;
-        const MAX_PER_SECTION = 6;
+        // Constants for section minimums and caps — target 6-8 articles total
+        const MIN_RELEVANT = 2;
+        const MIN_OTHER = 1;
+        const MAX_PER_SECTION = 3;
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;
