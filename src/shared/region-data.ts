@@ -141,6 +141,10 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     // Mixed-use (primarily residential)
     'mixed-use residential', 'mixed use residential',
     'mixed-use', 'mixed use',
+    // Residential brokerage
+    'realtor',
+    // Non-CRE institutions
+    'social work', 'university',
 ];
 
 // Industrial property keywords
@@ -174,8 +178,28 @@ export function isStrictlyIndustrial(text: string): boolean {
         'reshoring', 'nearshoring', 'onshoring',
     ];
     if (CRE_MACRO.some(kw => lower.includes(kw))) return true;
-    // No signal either way → pass (let other filters decide)
-    return true;
+    // CRE industry context — people, firms, deal signals → pass
+    const CRE_INDUSTRY = [
+        // Deal & property terms
+        'brokerage', 'broker', 'leasing', 'tenant', 'landlord',
+        'development', 'redevelopment', 'developer',
+        'acquisition', 'acquired', 'disposition', 'sold', 'purchased', 'sale of',
+        'portfolio', 'asset', 'property',
+        'square feet', 'sq ft', 'sq. ft', 'acres',
+        'zoning', 'rezoning', 'entitlement',
+        'economic development', ' eda ',
+        // CRE people signals
+        'vice president', 'managing director', 'principal',
+        'milestone', 'anniversary',
+        // Major CRE/industrial firms
+        'newmark', 'jll', 'cbre', 'cushman', 'colliers', 'blackstone',
+        'prologis', 'bridge industrial', 'nai ', 'naiop', 'sior', 'ccim',
+        'costar', 'avison young', 'marcus & millichap',
+        'eastdil', 'walker & dunlop', 'berkadia',
+    ];
+    if (CRE_INDUSTRY.some(kw => lower.includes(kw))) return true;
+    // No industrial, CRE, or industry signal → reject
+    return false;
 }
 
 // Relevant articles: macro trends + industrial RE news
