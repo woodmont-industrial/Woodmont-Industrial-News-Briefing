@@ -64,6 +64,34 @@ export function buildWorkBriefing(
         return words.length > 5 ? words : title.substring(0, 30);
     };
 
+    // Extract structured deal fields from combined title + description text
+    const extractDealFields = (title: string, desc: string): string => {
+        const text = title + ' ' + desc;
+        const parts: string[] = [];
+
+        // Location: "City, ST" or "City, State" patterns
+        const locMatch = text.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s*(NJ|PA|FL|N\.J\.|New Jersey|Pennsylvania|Florida|South Florida)\b/);
+        if (locMatch) parts.push(locMatch[0]);
+
+        // Size: square footage
+        const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*)\s*(?:SF|sq\.?\s*ft\.?|square\s*feet)/i);
+        if (sfMatch) {
+            const sf = parseInt(sfMatch[1].replace(/,/g, ''));
+            parts.push(sf >= 1000 ? (sf / 1000).toFixed(0) + 'K SF' : sf.toLocaleString() + ' SF');
+        }
+
+        // Dollar amount
+        const dollarMatch = text.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(million|M\b|billion|B\b)/i);
+        if (dollarMatch) {
+            const num = dollarMatch[1].replace(/,/g, '');
+            const unit = dollarMatch[2].charAt(0).toUpperCase();
+            parts.push('$' + num + unit);
+        }
+
+        if (parts.length === 0) return '';
+        return '<strong style="color: #1e3a5f;">' + parts.join(' · ') + '</strong> — ';
+    };
+
     // Format a single article bullet with 1-2 sentence description
     // Detect big deals (≥100K SF or ≥$25M)
     const isBigDeal = (text: string): string | null => {
@@ -98,26 +126,29 @@ export function buildWorkBriefing(
             ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
             : '';
 
-        // Get 2-3 sentence description (up to 450 chars for richer summaries)
+        // Get 1-2 sentence description (up to 350 chars for compact bullets)
         let description = '';
         const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
         if (rawDesc && rawDesc.length > 10) {
             const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
             if (sentences && sentences.length > 0) {
-                description = sentences.slice(0, 3).join('').trim();
+                description = sentences.slice(0, 2).join('').trim();
             } else {
                 description = rawDesc;
             }
-            if (description.length > 450) {
-                description = description.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+            if (description.length > 350) {
+                description = description.substring(0, 347).replace(/\s+\S*$/, '') + '...';
             }
         }
 
         // Use description as the display text if available, otherwise fall back to title
         let displayText = description || title;
-        if (displayText.length > 450) {
-            displayText = displayText.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+        if (displayText.length > 350) {
+            displayText = displayText.substring(0, 347).replace(/\s+\S*$/, '') + '...';
         }
+
+        // Structured deal fields prefix (Location · Size · $Amount)
+        const dealPrefix = extractDealFields(title, rawDesc);
 
         // Action links
         const trackKeyword = extractTrackKeyword(title);
@@ -130,7 +161,7 @@ export function buildWorkBriefing(
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText}${dealBadge} — ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>` : '<span style="color: #999;">(Source unavailable)</span>'}${paywalled}
+            ${dealPrefix}${displayText}${dealBadge} — ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>` : '<span style="color: #999;">(Source unavailable)</span>'}${paywalled}
             <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
         </li>`;
     };

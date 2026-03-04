@@ -18,23 +18,32 @@ CRITICAL RULES — NEVER VIOLATE THESE:
 3. NEVER mention companies or people not named in the title or description.
 4. If the title only names a company and an action, just describe that action concisely — do NOT add fake specifics.
 5. If you don't know a detail, LEAVE IT OUT. A shorter accurate summary is always better than a longer fabricated one.
-6. Write 1-3 sentences. Be concise and professional.
-7. Focus on: who, what, where, deal size — but ONLY if these details are explicitly provided.
+6. Write 1-2 sentences max. Be concise and scannable.
+7. ALWAYS lead with key deal fields in this order (skip any field not explicitly in the source):
+   Location + Size + Key Players + Terms → then a brief context sentence if needed.
 
-GOOD (only uses facts from title):
+FORMAT EXAMPLES (only use facts from source):
+
 Title: "Prologis signs 250,000 SF lease in Edison, NJ with Amazon"
-→ "Prologis signed a 250,000 SF lease in Edison, NJ with Amazon as the tenant."
+→ "Edison, NJ — 250,000 SF lease. Prologis signed with Amazon as tenant."
 
-GOOD (title has limited info, keeps it short):
+Title: "Seagis Property Group leases 25,000 sq. ft. at industrial building in Carlstadt"
+→ "Carlstadt, NJ — 25,000 SF. Seagis Property Group signed two new leases at an updated industrial building."
+
+Title: "Manufacturer buys 50,000 sq. ft. Edison warehouse for $18 million"
+→ "Edison, NJ — 50,000 SF, $18M sale. A manufacturer purchased a modern industrial warehouse from NAI DiLeo-Bram."
+
 Title: "Industrial vacancy rates decline in Q4"
-→ "Industrial vacancy rates declined in the fourth quarter, signaling tightening market conditions."
+→ "Industrial vacancy rates declined in Q4, signaling tightening market conditions."
+
+Title: "Brian Godau joins NAI James E. Hanson as vice president"
+→ "Brian Godau joined NAI James E. Hanson as vice president in the firm's Parsippany office."
 
 BAD (invents numbers not in title):
 Title: "Retail Centers Portfolio Expands With Town Lane Acquisition"
-→ "Town Lane acquired a 1.1M SF portfolio for $500M in South Florida." ← FABRICATED! None of these details were in the title.
+→ "Town Lane acquired a 1.1M SF portfolio for $500M in South Florida." ← FABRICATED!
 
 CORRECT version:
-Title: "Retail Centers Portfolio Expands With Town Lane Acquisition"
 → "Town Lane expanded its retail centers portfolio through a new acquisition."`;
 
 const USER_PROMPT = `Summarize ONLY using facts from the title and description below. Do NOT invent any details.
