@@ -140,6 +140,7 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'foreclosure', 'bankruptcy filing',
     // Mixed-use (primarily residential)
     'mixed-use residential', 'mixed use residential',
+    'mixed-use', 'mixed use',
 ];
 
 // Industrial property keywords

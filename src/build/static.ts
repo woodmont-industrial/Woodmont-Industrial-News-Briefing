@@ -549,11 +549,9 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // Non-industrial primary topic exclusion (title starts with non-industrial type)
-            // Skip for NJ regional sources — they include all CRE
-            const isNJRegionalClean = ['re-nj.com', 'njbiz.com', 'roi-nj.com'].some(s => url.includes(s));
-            if (!isNJRegionalClean && /^(?:apartment|multifamily|hotel|hospitality|residential|condo|single.?family|self.?storage)\b/i.test(title)) {
-                log('info', `CLEANED (non-industrial primary): ${title.substring(0, 50)}`);
+            // Non-industrial content gate — retroactively clean existing articles too
+            if (!isStrictlyIndustrial(text)) {
+                log('info', `CLEANED (non-industrial): ${title.substring(0, 50)}`);
                 return false;
             }
 
