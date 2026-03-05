@@ -149,12 +149,13 @@ export const EXCLUDE_NON_INDUSTRIAL = [
 
 // Industrial property keywords
 export const INDUSTRIAL_PROPERTY_KEYWORDS = [
-    'warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage',
+    'industrial', 'warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage',
     'last-mile', 'last mile', 'industrial outdoor storage', 'ios', 'industrial land',
     'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock',
     'supply chain', 'freight', 'trucking', 'shipping', 'cargo',
     'e-commerce', 'ecommerce', 'automation', 'robotics',
     'data center', 'cross-dock', 'cross dock',
+    'build-to-suit', 'vacancy rate',
 ];
 
 /**

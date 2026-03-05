@@ -1556,5 +1556,31 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for propertyshark.com (403 blocks direct RSS)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:traded.co+industrial+OR+warehouse+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+OR+%22delivered%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Traded.co Availabilities",
+    "region": "US",
+    "source": "Google News",
+    "type": "availabilities",
+    "timeout": 30000,
+    "_note": "Traded.co industrial availability coverage (Cloudflare blocks direct)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+space%22+OR+%22warehouse+space%22+%22for+lease%22+OR+%22for+sale%22+OR+%22now+available%22+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial Space NJ PA FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "availabilities",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:commercialsearch.com+%22industrial%22+OR+%22warehouse%22+%22for+lease%22+OR+%22available%22+OR+%22vacancy%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CommercialSearch Availabilities",
+    "region": "US",
+    "source": "Google News",
+    "type": "availabilities",
+    "timeout": 30000,
+    "_note": "CommercialSearch availability listings (Cloudflare backup)"
   }
 ]

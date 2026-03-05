@@ -235,7 +235,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
             { url: 'https://www.loopnet.com/search/industrial-space/nj/for-lease/', label: 'LoopNet NJ Industrial Lease' },
             { url: 'https://www.loopnet.com/search/industrial-space/nj/for-sale/', label: 'LoopNet NJ Industrial Sale' },
             { url: 'https://www.loopnet.com/search/industrial-space/pa/for-lease/', label: 'LoopNet PA Industrial Lease' },
-            { url: 'https://www.loopnet.com/search/industrial-space/fl/for-lease/', label: 'LoopNet FL Industrial Lease' }
+            { url: 'https://www.loopnet.com/search/industrial-space/pa/for-sale/', label: 'LoopNet PA Industrial Sale' },
+            { url: 'https://www.loopnet.com/search/industrial-space/fl/for-lease/', label: 'LoopNet FL Industrial Lease' },
+            { url: 'https://www.loopnet.com/search/industrial-space/fl/for-sale/', label: 'LoopNet FL Industrial Sale' }
         ],
         maxRunsPerDay: 4,
         cacheTTLMs: CRE_TTL,

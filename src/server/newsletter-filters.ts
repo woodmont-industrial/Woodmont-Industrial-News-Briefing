@@ -158,7 +158,12 @@ export function applyAvailabilityFilter(items: NormalizedItem[]): NormalizedItem
         const text = getText(article);
         if (isPolitical(text)) return false;
         // Accept availability-specific language
-        const availabilityWords = ['available', 'for sale', 'for lease', 'listing', 'on the market', 'seeking buyer', 'buyer wanted'];
+        const availabilityWords = [
+            'available', 'for sale', 'for lease', 'listing', 'on the market',
+            'seeking buyer', 'buyer wanted', 'now leasing', 'now available',
+            'seeking tenants', 'for sublease', 'sublease', 'space available',
+            'build-to-suit', 'vacant', 'vacancy', 'delivered', 'spec',
+        ];
         if (containsAny(text, availabilityWords)) return true;
         if (!isIndustrialProperty(text)) return false;
         const threshold = meetsDealThreshold(text);
