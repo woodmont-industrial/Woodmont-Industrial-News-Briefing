@@ -98,11 +98,27 @@ export function isTargetRegion(article: NormalizedItem): boolean {
 /**
  * Exclude-region gate for the "relevant" section.
  * Relevant articles don't need to mention NJ/PA/FL (macro/national is OK),
- * but they MUST NOT be about an excluded region.
+ * but they MUST NOT be about a specific non-target city/region.
  * - "10-Year Yield Rises" → no region → allowed (national news)
  * - "Alabama Manufacturing Plant" → excluded region, no target → blocked
  * - "NJ Industrial Market" → target region → allowed
+ * - "Varda Space Expands in El Segundo" → specific non-target city → blocked
  */
+// Non-target cities/areas that MAJOR_EXCLUDE_REGIONS might miss (abbreviations, neighborhoods)
+const EXCLUDE_CITIES_EXTRA = [
+    'EL SEGUNDO', 'DFW', 'DALLAS-FORT WORTH', 'INLAND EMPIRE', 'SOCAL',
+    'NORCAL', 'BAY AREA', 'SILICON VALLEY', 'RESEARCH TRIANGLE',
+    'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA', 'PERRIS', 'HESPERIA',
+    'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
+    'CADDO PARISH', 'SHREVEPORT', 'NILES', 'WALKER, LOUISIANA', 'LOUISIANA',
+    'TEMPLE, TX', 'COSTA MESA', 'OTAY MESA', 'CHINO', 'ONTARIO, CA',
+    'NORTH CAROLINA', 'SOUTH CAROLINA',
+    'NEW YORK', 'BROOKLYN', 'MANHATTAN', 'LONG ISLAND', 'QUEENS', 'BRONX', 'STATEN ISLAND',
+    'WEST VILLAGE', 'EAST VILLAGE', 'GREENWICH VILLAGE', 'DUMBO', 'WILLIAMSBURG',
+    'HARLEM', 'NOHO', 'NOLITA', 'RED HOOK', 'LOWER EAST SIDE',
+    'CONNECTICUT', 'MASSACHUSETTS', 'BOSTON',
+];
+
 export function isNotExcludedRegion(article: NormalizedItem): boolean {
     const text = `${article.title || ''} ${article.description || ''} ${(article as any).summary || ''}`.toUpperCase();
 
@@ -111,11 +127,13 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
 
     const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
     const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const extraExcludeCount = EXCLUDE_CITIES_EXTRA.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const totalExclude = excludeCount + extraExcludeCount;
 
     // If mentions excluded region(s) but no target region → block
-    if (excludeCount > 0 && geoTargetCount === 0) return false;
+    if (totalExclude > 0 && geoTargetCount === 0) return false;
     // If more excluded than target → block
-    if (excludeCount > geoTargetCount) return false;
+    if (totalExclude > geoTargetCount) return false;
 
     return true;
 }

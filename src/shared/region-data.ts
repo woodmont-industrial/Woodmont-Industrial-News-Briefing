@@ -78,7 +78,17 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'CHEYENNE', 'BEE CAVE', 'BOZEMAN', 'CHESTERFIELD COUNTY',
     'LEXINGTON', 'BIRMINGHAM', 'CHARLESTON', 'COLUMBIA, SC', 'PROVIDENCE', 'HARTFORD',
     'NEW YORK CITY', 'MANHATTAN', 'BROOKLYN', 'QUEENS', 'LONG ISLAND',
-    'CONNECTICUT', 'MASSACHUSETTS', 'NEW HAMPSHIRE', 'VERMONT', 'MAINE', 'RHODE ISLAND'
+    'CONNECTICUT', 'MASSACHUSETTS', 'NEW HAMPSHIRE', 'VERMONT', 'MAINE', 'RHODE ISLAND',
+    // Abbreviations and neighborhoods that slip past state-level checks
+    'DFW', 'DALLAS-FORT WORTH', 'EL SEGUNDO', 'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA',
+    'PERRIS', 'HESPERIA', 'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
+    'CADDO PARISH', 'SHREVEPORT', 'NILES', 'LOUISIANA',
+    'TEMPLE, TX', 'TEMPLE BATTERY', 'COSTA MESA', 'PINELLAS PARK',
+    'SOHO', 'MIDTOWN', 'TRIBECA', 'CHELSEA', 'FLATIRON',
+    'WEST VILLAGE', 'EAST VILLAGE', 'GREENWICH VILLAGE', 'DUMBO', 'WILLIAMSBURG',
+    'HARLEM', 'NOHO', 'NOLITA', 'RED HOOK', 'LOWER EAST SIDE',
+    'BRONX', 'STATEN ISLAND',
+    'SUFFERN', 'WESTCHESTER', 'ROCKLAND COUNTY'
 ];
 
 // International terms — ALWAYS exclude
@@ -145,6 +155,12 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'realtor',
     // Non-CRE institutions
     'social work', 'university',
+    // Banks / financial retail
+    'bank debuts', 'bank opens', 'bank branch', 'credit union',
+    // Residential home sales (catches "industrial heir sells Palm Beach home")
+    'industrial heir', 'lakefront home', 'waterfront home', 'beachfront home',
+    // Non-industrial land use
+    'polo field', 'polo club', 'golf course', 'country club',
 ];
 
 // Industrial property keywords
@@ -163,13 +179,59 @@ export const INDUSTRIAL_PROPERTY_KEYWORDS = [
  * Returns TRUE if the article is about industrial/logistics/manufacturing/supply-chain
  * or general CRE macro trends (interest rates, cap rates, etc.).
  * Returns FALSE for apartments, retail, office, hospitality, and other non-industrial content.
+ *
+ * KEY RULE: Articles must be about INDUSTRIAL real estate or CRE topics relevant to
+ * an industrial landlord. "Vibe coding" or generic tech articles do NOT qualify even
+ * if they mention "freight" in passing.
  */
 export function isStrictlyIndustrial(text: string): boolean {
     const lower = text.toLowerCase();
-    // If it has industrial keywords → always pass
-    if (INDUSTRIAL_PROPERTY_KEYWORDS.some(kw => lower.includes(kw))) return true;
-    // If it has non-industrial keywords → reject
-    if (EXCLUDE_NON_INDUSTRIAL.some(kw => lower.includes(kw))) return false;
+
+    // FIRST: If it has non-industrial keywords → reject immediately
+    // (prevents "industrial heir sells Palm Beach home" from passing on "industrial")
+    const hasNonIndustrial = EXCLUDE_NON_INDUSTRIAL.some(kw => lower.includes(kw));
+    if (hasNonIndustrial) {
+        // Exception: if it ALSO has strong industrial property keywords, keep it
+        const STRONG_INDUSTRIAL = [
+            'warehouse', 'logistics center', 'distribution center', 'fulfillment center',
+            'manufacturing facility', 'cold storage', 'industrial park', 'loading dock',
+            'industrial outdoor storage', 'flex space', 'cross-dock',
+        ];
+        if (!STRONG_INDUSTRIAL.some(kw => lower.includes(kw))) return false;
+    }
+
+    // Core industrial property keywords — direct industrial CRE relevance
+    const CORE_INDUSTRIAL = [
+        'industrial', 'warehouse', 'logistics', 'distribution', 'manufacturing',
+        'cold storage', 'last-mile', 'last mile', 'industrial outdoor storage',
+        'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock',
+        'data center', 'cross-dock', 'cross dock', 'build-to-suit', 'vacancy rate',
+    ];
+    if (CORE_INDUSTRIAL.some(kw => lower.includes(kw))) {
+        // "industrial" alone can be misleading ("industrial heir", "industrial revolution")
+        // If only match is "industrial", require a second CRE/property signal
+        const industrialOnly = lower.includes('industrial') &&
+            !CORE_INDUSTRIAL.filter(kw => kw !== 'industrial').some(kw => lower.includes(kw));
+        if (industrialOnly) {
+            const hasCRESignal = /\b(warehouse|lease|sold|acquired|sq\.?\s*ft|square feet|acres|property|building|facility|site|sites|development|tenant|portfolio|zoning|asset|assets|market|report|sector|demand|outlook|recovery|real estate|investor|investment|rent|cap rate|occupancy|ops|operations|leaders|users|space)\b/i.test(lower);
+            if (!hasCRESignal) return false;
+        }
+        return true;
+    }
+
+    // Supply chain / freight / shipping — only pass if article has CRE or physical-asset context
+    // "Vibe coding for FreightTech" should NOT pass; "Freight warehouse demand surges" should
+    const SUPPLY_CHAIN_KEYWORDS = [
+        'supply chain', 'freight', 'trucking', 'shipping', 'cargo',
+        'e-commerce', 'ecommerce', 'automation', 'autonomous', 'robotics',
+    ];
+    if (SUPPLY_CHAIN_KEYWORDS.some(kw => lower.includes(kw))) {
+        const hasPhysicalAsset = /\b(warehouse|facility|building|distribution|fulfillment|logistics center|port|terminal|yard|dock|fleet|carrier|3pl|drayage|intermodal|cold chain|inventory|trailer|unload|delivery|deliveries|operations|spending|officer|last.?mile)\b/i.test(lower);
+        if (hasPhysicalAsset) return true;
+        // Generic supply chain/freight tech articles without physical context → reject
+        return false;
+    }
+
     // General CRE macro (interest rates, cap rates, etc.) with no property type → pass
     const CRE_MACRO = [
         'interest rate', 'federal reserve', 'fed ', 'inflation', 'capital markets',
@@ -179,26 +241,47 @@ export function isStrictlyIndustrial(text: string): boolean {
         'reshoring', 'nearshoring', 'onshoring',
     ];
     if (CRE_MACRO.some(kw => lower.includes(kw))) return true;
-    // CRE industry context — people, firms, deal signals → pass
-    const CRE_INDUSTRY = [
-        // Deal & property terms
-        'brokerage', 'broker', 'leasing', 'tenant', 'landlord',
-        'development', 'redevelopment', 'developer',
+
+    // CRE deal signals — BUT only if the article is NOT about a non-industrial property type.
+    // "Fanatics Expands West Village Lease" has "lease" but is not industrial.
+    // If we already detected non-industrial keywords above and didn't have strong industrial
+    // override, we already returned false. But some articles may have generic "lease" without
+    // any explicit non-industrial keyword (e.g., "Lease to Entire Building" with no "office"/"retail").
+    // For those, require that the deal signal is paired with industrial/CRE property context.
+    const CRE_DEAL_SIGNALS = [
+        'for lease', 'for sale', 'for sublease', 'on the market',
         'acquisition', 'acquired', 'disposition', 'sold', 'purchased', 'sale of',
-        'portfolio', 'asset', 'property',
         'square feet', 'sq ft', 'sq. ft', 'acres',
         'zoning', 'rezoning', 'entitlement',
         'economic development', ' eda ',
-        // CRE people signals
-        'vice president', 'managing director', 'principal',
-        'milestone', 'anniversary',
-        // Major CRE/industrial firms
+    ];
+    if (CRE_DEAL_SIGNALS.some(kw => lower.includes(kw))) return true;
+
+    // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context
+    // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context
+    // "Fanatics Expands Lease to Entire Building" should NOT pass (non-industrial tenant)
+    // "Seagis signs lease at industrial building" SHOULD pass (industrial context)
+    const GENERIC_DEAL_WORDS = ['leasing', 'lease', 'tenant', 'landlord'];
+    if (GENERIC_DEAL_WORDS.some(kw => lower.includes(kw))) {
+        const hasIndustrialContext = /\b(warehouse|industrial|logistics|distribution|manufacturing|fulfillment|cold storage|flex space|commercial real estate|cre)\b/i.test(lower);
+        const hasStrongPropertySignal = /\b(sq\.?\s*ft|square feet|acres)\b/i.test(lower);
+        if (hasIndustrialContext || hasStrongPropertySignal) return true;
+    }
+
+    // CRE firms + development/brokerage context
+    const CRE_FIRMS = [
         'newmark', 'jll', 'cbre', 'cushman', 'colliers', 'blackstone',
         'prologis', 'bridge industrial', 'nai ', 'naiop', 'sior', 'ccim',
         'costar', 'avison young', 'marcus & millichap',
         'eastdil', 'walker & dunlop', 'berkadia',
     ];
-    if (CRE_INDUSTRY.some(kw => lower.includes(kw))) return true;
+    const CRE_ROLES = [
+        'brokerage', 'broker', 'development', 'redevelopment', 'developer',
+        'portfolio', 'asset', 'property',
+        'vice president', 'managing director', 'principal',
+    ];
+    if (CRE_FIRMS.some(kw => lower.includes(kw)) && CRE_ROLES.some(kw => lower.includes(kw))) return true;
+
     // No industrial, CRE, or industry signal → reject
     return false;
 }
@@ -462,5 +545,9 @@ export const OUT_OF_MARKET_KEYWORDS = [
     "atlanta", "nashville", "charlotte", "raleigh", "richmond",
     "memphis", "birmingham", "charleston", "new orleans",
     "boston", "connecticut", "massachusetts", "baltimore", "maryland", "virginia",
-    "washington dc", "washington, dc", "washington, d.c.", "d.c."
+    "washington dc", "washington, dc", "washington, d.c.", "d.c.",
+    "el segundo", "rancho dominguez", "rancho cucamonga", "perris", "hesperia",
+    "caddo parish", "shreveport", "louisiana", "niles, il", "niles, ohio",
+    "costa mesa", "pinellas park", "soho", "midtown manhattan", "tribeca",
+    "suffern", "westchester county"
 ];

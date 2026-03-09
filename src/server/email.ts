@@ -4,7 +4,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
-import { cleanArticleUrl } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -479,6 +479,25 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         if (includedArticles.length > 0) {
             console.log(`📌 Merged ${includedArticles.length} manually included article(s)`);
         }
+
+        // Fuzzy dedup: remove articles about the same deal (same SF + location from different sources)
+        const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
+            return articles.filter(a => {
+                const sig = extractDealSignature(a.title || '', a.description || '');
+                if (!sig) return true; // no deal signature, keep
+                if (seenSigs.has(sig)) {
+                    console.log(`🔁 Fuzzy dedup removed: "${a.title?.substring(0, 60)}" (same deal: ${sig})`);
+                    return false;
+                }
+                seenSigs.add(sig);
+                return true;
+            });
+        };
+        const dealSigs = new Set<string>();
+        // Dedup transactions first (highest priority for deal articles), then others
+        transactions = dedupeByDealSignature(transactions, dealSigs);
+        availabilities = dedupeByDealSignature(availabilities, dealSigs);
+        relevant = dedupeByDealSignature(relevant, dealSigs);
 
         // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);

@@ -2,8 +2,9 @@ name: Send Newsletter (Work)
 
 on:
   schedule:
-    # Run Monday-Friday at 9 AM EST (14:00 UTC)
-    - cron: '0 14 * * 1-5'
+    # Run Monday-Friday at 9 AM ET (13:00 UTC for EDT, 14:00 UTC for EST)
+    # Using 13:00 UTC = 9 AM EDT (Mar-Nov) / 8 AM EST (Nov-Mar)
+    - cron: '0 13 * * 1-5'
   workflow_dispatch:
     inputs:
       force_send:
@@ -117,13 +118,27 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add docs/
+          # Only commit sent-articles.json and feed data — the critical dedup state
+          git add docs/sent-articles.json docs/feed.json docs/rss.xml docs/raw-feed.json docs/feed-health.json docs/included-articles.json
           if git diff --staged --quiet; then
-            echo "📋 No changes to commit"
+            echo "No changes to commit"
           else
-            git commit -m "📧 Work Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git pull --rebase || true
-            git push
+            git commit -m "Work Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            # Retry push up to 3 times with rebase to handle race with update-articles
+            for i in 1 2 3; do
+              if git push; then
+                echo "Push succeeded on attempt $i"
+                break
+              fi
+              echo "Push failed (attempt $i), pulling with rebase..."
+              git fetch origin main
+              # On conflict, prefer our version of sent-articles.json (critical dedup state)
+              git rebase origin/main --strategy-option=ours || {
+                echo "Rebase failed, aborting and retrying with merge..."
+                git rebase --abort
+                git pull --no-rebase -X ours || true
+              }
+            done
           fi
 
       - name: Report Success

@@ -12,7 +12,7 @@ import { RSS_FEEDS } from '../feeds/config.js';
 import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
-import { normalizeTitle, normalizeUrlForDedupe } from '../shared/url-utils.js';
+import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion } from '../server/newsletter-filters.js';
@@ -449,27 +449,43 @@ export async function buildStaticRSS(): Promise<void> {
         const seenTitles = new Set<string>();
         const existingTitles = new Set(existingArticles.map(a => normalizeTitle(a.title || '')));
 
+        // Build deal signatures for existing articles (for same-story dedup)
+        const existingDealSigs = new Set<string>();
+        for (const a of existingArticles) {
+            const sig = extractDealSignature(a.title || '', a.description || '');
+            if (sig) existingDealSigs.add(sig);
+        }
+        const seenDealSigs = new Set(existingDealSigs);
+
         const newItems = aiFilteredItems.filter(item => {
             const normalizedUrl = normalizeUrlForDedupe(item.link || item.canonicalUrl || '');
             const normalizedTitle = normalizeTitle(item.title || '');
-            
+
             // Skip if we've already seen this URL in this batch
             if (seenUrls.has(normalizedUrl)) {
                 return false;
             }
-            
+
             // Skip if we've already seen this title in this batch (same article from different sources)
             if (seenTitles.has(normalizedTitle)) {
                 return false;
             }
-            
+
             // Skip if exists in previous feed (by ID, URL, or title)
             if (existingGuids.has(item.id) || existingUrls.has(normalizedUrl) || existingTitles.has(normalizedTitle)) {
                 return false;
             }
-            
+
+            // Skip if same deal signature already exists (same SF + location from different source)
+            const dealSig = extractDealSignature(item.title || '', item.description || '');
+            if (dealSig && seenDealSigs.has(dealSig)) {
+                log('info', `DEDUP (same deal): ${(item.title || '').substring(0, 60)} [sig: ${dealSig}]`);
+                return false;
+            }
+
             seenUrls.add(normalizedUrl);
             seenTitles.add(normalizedTitle);
+            if (dealSig) seenDealSigs.add(dealSig);
             return true;
         });
         
