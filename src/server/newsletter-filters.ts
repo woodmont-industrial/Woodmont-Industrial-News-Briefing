@@ -441,12 +441,12 @@ export function loadSentArticles(docsDir: string): Set<string> {
     try {
         if (!fs.existsSync(sentPath)) return new Set();
         const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const recentIds = (data.sent || [])
-            .filter(e => new Date(e.sentAt) >= sevenDaysAgo)
+            .filter(e => new Date(e.sentAt) >= thirtyDaysAgo)
             .map(e => e.id);
-        console.log(`📋 Loaded ${recentIds.length} previously sent article IDs (last 7 days)`);
+        console.log(`📋 Loaded ${recentIds.length} previously sent article IDs (last 30 days)`);
         return new Set(recentIds);
     } catch (e) {
         console.warn('Could not load sent-articles.json:', e);
@@ -461,8 +461,8 @@ export function loadSentArticles(docsDir: string): Set<string> {
 export function saveSentArticles(docsDir: string, articleIds: string[]): void {
     const sentPath = path.join(docsDir, 'sent-articles.json');
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     let existing: SentEntry[] = [];
     try {
@@ -473,9 +473,9 @@ export function saveSentArticles(docsDir: string, articleIds: string[]): void {
     } catch { /* start fresh */ }
 
     // Prune old entries
-    const pruned = existing.filter(e => new Date(e.sentAt) >= sevenDaysAgo);
+    const pruned = existing.filter(e => new Date(e.sentAt) >= thirtyDaysAgo);
     const prunedCount = existing.length - pruned.length;
-    if (prunedCount > 0) console.log(`🧹 Pruned ${prunedCount} sent-article entries older than 7 days`);
+    if (prunedCount > 0) console.log(`🧹 Pruned ${prunedCount} sent-article entries older than 30 days`);
 
     // Append new IDs
     const existingIds = new Set(pruned.map(e => e.id));

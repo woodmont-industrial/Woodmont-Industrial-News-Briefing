@@ -251,7 +251,18 @@ export async function buildStaticRSS(): Promise<void> {
             const hasStrongAvailability = /\b(for\s*lease|for\s*sale|now\s*leasing|now\s*available|seeking\s*tenants|available\s*for\s*lease|available\s*for\s*sale|for\s*sublease|on\s*the\s*market|space\s*available|build-?to-?suit|vacant)\b/i.test(text);
             const isCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(text);
 
-            // 1. STRONG AVAILABILITIES - Clearly marketed property, not a completed deal
+            // Check if availability signal is in the TITLE (stronger signal than body)
+            const titleLower = (item.title || '').toLowerCase();
+            const titleHasAvailability = /\b(for\s*lease|for\s*sale|now\s*leasing|now\s*available|for\s*sublease|on\s*the\s*market|space\s*available|vacant|delivers|delivered|breaks\s*ground|groundbreaking|under\s*construction)\b/i.test(titleLower);
+            const titleHasCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(titleLower);
+
+            // 1. STRONG AVAILABILITIES - Title says "for lease/sale" and title doesn't say "sold/leased"
+            if (titleHasAvailability && hasPropertyType && !titleHasCompletedDeal) {
+                item.category = 'availabilities';
+                return item;
+            }
+
+            // 1b. STRONG AVAILABILITIES in body - Clearly marketed property, not a completed deal
             if (hasStrongAvailability && hasPropertyType && !isCompletedDeal) {
                 item.category = 'availabilities';
                 return item;
