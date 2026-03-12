@@ -1582,5 +1582,222 @@
     "type": "availabilities",
     "timeout": 30000,
     "_note": "CommercialSearch availability listings (Cloudflare backup)"
+  },
+
+  {
+    "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CRE People Moves",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22joins%22+OR+%22taps%22+OR+%22names%22+CBRE+OR+JLL+OR+Cushman+OR+Newmark+OR+Colliers+OR+Prologis+industrial&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Brokerage People",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22senior+vice+president%22+OR+%22managing+director%22+OR+%22executive+vice+president%22+industrial+real+estate+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CRE Executives",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:re-nj.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News RE-NJ Industrial",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:rebusinessonline.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News REBusiness Online",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for broken direct feed"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:connectcre.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News ConnectCRE",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for Cloudflare-blocked direct feed"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:therealdeal.com+industrial+OR+warehouse+OR+logistics+Florida+OR+Miami&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Real Deal Industrial",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for Cloudflare-blocked Real Deal Miami"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:bisnow.com+industrial+OR+warehouse+%22New+Jersey%22+OR+Philadelphia+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Bisnow Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:globest.com+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News GlobeSt Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:commercialobserver.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Commercial Observer",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+lease%22+OR+%22warehouse+lease%22+%22square+feet%22+OR+%22sf%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial Lease Deals",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+sale%22+OR+%22warehouse+sale%22+%22million%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial Sale Deals",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22breaks+ground%22+OR+%22groundbreaking%22+OR+%22under+construction%22+industrial+OR+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial Construction NJ/PA/FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22delivers%22+OR+%22completed%22+OR+%22opens%22+industrial+OR+warehouse+OR+%22distribution+center%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial Deliveries NJ/PA/FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Woodmont+Industrial%22+OR+%22Link+Logistics%22+OR+%22Blackstone%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Woodmont/Link/Blackstone",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Panattoni%22+OR+%22Hillwood%22+OR+%22Scannell%22+OR+%22NorthPoint%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Major Developers",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22CenterPoint+Properties%22+OR+%22Realterm%22+OR+%22Seagis%22+OR+%22Endurance%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News NJ/PA Industrial Developers 2",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22data+center%22+%22New+Jersey%22+OR+Pennsylvania+OR+Florida+construction+OR+lease+OR+development&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Data Centers NJ/PA/FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://www.cpexecutive.com/feed/",
+    "name": "Commercial Property Executive",
+    "region": "US",
+    "source": "CP Executive",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser"
+  },
+  {
+    "url": "https://www.multihousingnews.com/feed/",
+    "name": "Multi-Housing News CRE",
+    "region": "US",
+    "source": "Multi-Housing News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — multifamily-focused, not industrial"
+  },
+  {
+    "url": "https://product.costar.com/home/news/rss",
+    "name": "CoStar News",
+    "region": "US",
+    "source": "CoStar",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "headers": "browser"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:cpexecutive.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CP Executive",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:product.costar.com+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CoStar Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22New+Jersey%22+OR+%22NJ%22+transaction+OR+lease+OR+sale+OR+development&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News NJ Industrial Transactions",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22Philadelphia%22+OR+%22Pennsylvania%22+transaction+OR+lease+OR+sale&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News PA Industrial Transactions",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22South+Florida%22+OR+%22Miami%22+OR+%22Florida%22+transaction+OR+lease+OR+sale&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News FL Industrial Transactions",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
   }
 ]

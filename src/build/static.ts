@@ -268,6 +268,13 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
+            // 1c. CONSTRUCTION/DELIVERY = AVAILABILITY (new supply coming to market)
+            const isNewSupply = /\b(breaks\s*ground|groundbreaking|under\s*construction|starts?\s*work|starts?\s*construction|delivers|delivered|spec\s*(industrial|warehouse|building|development)|plans\s*(to\s*build|construction|development|facility|warehouse|logistics|distribution)|proposed\s*(warehouse|industrial|logistics|distribution)|new\s*(warehouse|industrial|logistics|distribution)\s*(facility|building|center|park|development))\b/i.test(text);
+            if (isNewSupply && hasPropertyType && hasCREContext) {
+                item.category = 'availabilities';
+                return item;
+            }
+
             // 2. TRANSACTIONS - Deal signals WITH CRE context, NOT non-industrial
             if (hasCREContext && !isNonIndustrial && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
                 item.category = 'transactions';

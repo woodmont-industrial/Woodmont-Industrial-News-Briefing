@@ -361,10 +361,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const isFriday = today.getDay() === 5;
         const isMonday = today.getDay() === 1;
 
-        // Constants for section minimums and caps — target 4-6 bullets per section
-        const MIN_RELEVANT = 4;
-        const MIN_OTHER = 2;
+        // Constants for section minimums and caps
+        const MIN_RELEVANT = 4;       // 4-6 relevant articles
+        const MIN_TRANSACTIONS = 4;   // 4-6 transactions
+        const MIN_AVAILABILITIES = 1; // 1-3 availabilities (fewer listing-type articles exist)
+        const MIN_PEOPLE = 2;         // 2-4 people articles
         const MAX_PER_SECTION = 6;
+        const MAX_AVAILABILITIES = 3;
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;
@@ -381,7 +384,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             transactions: applyTransactionFilter(regional24.filter(a => a.category === 'transactions')),
         };
 
-        if (sections24.relevant.length >= MIN_RELEVANT && sections24.transactions.length >= MIN_OTHER) {
+        if (sections24.relevant.length >= MIN_RELEVANT && sections24.transactions.length >= MIN_TRANSACTIONS) {
             timeRange = 24;
             recentArticles = recent24;
             regionalArticles = regional24;
@@ -431,12 +434,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 usedIds.add(a.id || a.link);
             }
         }
-        addFromAllSources(transactions, MIN_OTHER, applyTransactionFilter, 'transactions');
-        addFromAllSources(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities');
-        addFromAllSources(people, MIN_OTHER, applyPeopleFilter, 'people');
+        addFromAllSources(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions');
+        addFromAllSources(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities');
+        addFromAllSources(people, MIN_PEOPLE, applyPeopleFilter, 'people');
 
         // Deep backfill: if any section is still below minimum, expand to 30-day window
-        const needsDeepBackfill = relevant.length < MIN_RELEVANT || transactions.length < MIN_OTHER || availabilities.length < MIN_OTHER || people.length < MIN_OTHER;
+        const needsDeepBackfill = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
         if (needsDeepBackfill) {
             const deepArticles = filterArticlesByTimeRange(articles, 30 * 24);
             const deepRegional = deepArticles.filter(isTargetRegion).filter(a => !usedIds.has(a.id || a.link));
@@ -459,9 +462,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
             deepFill(relevant, MIN_RELEVANT,
                 (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepNotExcluded);
-            deepFill(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', deepRegional);
-            deepFill(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', deepRegional);
-            deepFill(people, MIN_OTHER, applyPeopleFilter, 'people', deepRegional);
+            deepFill(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', deepRegional);
+            deepFill(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', deepRegional);
+            deepFill(people, MIN_PEOPLE, applyPeopleFilter, 'people', deepRegional);
         }
 
         // Merge manually included articles from raw picks
@@ -502,14 +505,14 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);
         transactions = transactions.slice(0, MAX_PER_SECTION);
-        availabilities = availabilities.slice(0, MAX_PER_SECTION);
+        availabilities = availabilities.slice(0, MAX_AVAILABILITIES);
         people = people.slice(0, MAX_PER_SECTION);
 
         console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
         console.log(`  - Relevant News: ${relevant.length} (min ${MIN_RELEVANT})`);
-        console.log(`  - Transactions: ${transactions.length} (min ${MIN_OTHER})`);
-        console.log(`  - Availabilities: ${availabilities.length} (min ${MIN_OTHER})`);
-        console.log(`  - People: ${people.length} (min ${MIN_OTHER})`);
+        console.log(`  - Transactions: ${transactions.length} (min ${MIN_TRANSACTIONS})`);
+        console.log(`  - Availabilities: ${availabilities.length} (min ${MIN_AVAILABILITIES})`);
+        console.log(`  - People: ${people.length} (min ${MIN_PEOPLE})`);
 
         const totalArticles = relevant.length + transactions.length + availabilities.length + people.length;
         if (totalArticles === 0) {
@@ -574,12 +577,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         refillSection(relevant, MIN_RELEVANT,
             (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant', allPostDescPool);
-        refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', regionalPostDescPool);
-        refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', regionalPostDescPool);
-        refillSection(people, MIN_OTHER, applyPeopleFilter, 'people', regionalPostDescPool);
+        refillSection(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', regionalPostDescPool);
+        refillSection(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', regionalPostDescPool);
+        refillSection(people, MIN_PEOPLE, applyPeopleFilter, 'people', regionalPostDescPool);
 
         // Deep post-desc refill: if sections still below minimum, try 30-day pool with descriptions
-        const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_OTHER || availabilities.length < MIN_OTHER || people.length < MIN_OTHER;
+        const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
         if (stillNeedsDeep) {
             const deepArticles7d = filterArticlesByTimeRange(articles, 30 * 24);
             const deepUnused = deepArticles7d.filter(a => !usedIdsPostDesc.has(a.id || a.link));
@@ -601,9 +604,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
                     refillSection(relevant, MIN_RELEVANT,
                         (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'relevant', deepPostDescPool);
-                    refillSection(transactions, MIN_OTHER, applyTransactionFilter, 'transactions', deepPostDescRegional);
-                    refillSection(availabilities, MIN_OTHER, applyAvailabilityFilter, 'availabilities', deepPostDescRegional);
-                    refillSection(people, MIN_OTHER, applyPeopleFilter, 'people', deepPostDescRegional);
+                    refillSection(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', deepPostDescRegional);
+                    refillSection(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', deepPostDescRegional);
+                    refillSection(people, MIN_PEOPLE, applyPeopleFilter, 'people', deepPostDescRegional);
                 }
             }
         }
