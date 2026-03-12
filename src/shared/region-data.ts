@@ -88,7 +88,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'WEST VILLAGE', 'EAST VILLAGE', 'GREENWICH VILLAGE', 'DUMBO', 'WILLIAMSBURG',
     'HARLEM', 'NOHO', 'NOLITA', 'RED HOOK', 'LOWER EAST SIDE',
     'BRONX', 'STATEN ISLAND',
-    'SUFFERN', 'WESTCHESTER', 'ROCKLAND COUNTY',
+    'SUFFERN', 'WESTCHESTER', 'WESTCHESTER COUNTY', 'ROCKLAND COUNTY',
     'PORT WASHINGTON', 'BROOKSHIRE', 'EAST BAY',
     'WEST 37TH STREET', 'WEST 37TH ST'
 ];
@@ -156,7 +156,8 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     // Residential brokerage
     'realtor',
     // Non-CRE institutions
-    'social work', 'university',
+    'social work', 'university', 'crisis response', 'disaster relief', 'humanitarian',
+    'aid network', 'nonprofit logistics', 'charity',
     // Banks / financial retail
     'bank debuts', 'bank opens', 'bank branch', 'credit union',
     // Residential home sales (catches "industrial heir sells Palm Beach home")

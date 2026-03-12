@@ -20,6 +20,38 @@ import {
 // Geographic-only target regions (no CRE company names)
 const TARGET_REGIONS_GEO = TARGET_REGIONS.filter(r => !CRE_COMPANY_NAMES.includes(r));
 
+// Substring collisions: target terms that are substrings of exclude terms.
+// E.g., target "CHESTER" matches inside exclude "WESTCHESTER", inflating target count.
+// We pre-compute these pairs so countRegionMatches can correct for them.
+const SUBSTRING_COLLISIONS: Array<{ target: string; exclude: string }> = [];
+for (const t of TARGET_REGIONS_GEO) {
+    for (const e of MAJOR_EXCLUDE_REGIONS) {
+        if (e.includes(t) && e !== t) {
+            SUBSTRING_COLLISIONS.push({ target: t, exclude: e });
+        }
+    }
+}
+
+/**
+ * Count region matches in text, correcting for substring collisions.
+ * Returns [targetCount, excludeCount] with false positives subtracted.
+ */
+function countRegionMatches(text: string): [number, number] {
+    let geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+
+    // Subtract false target hits caused by substring collisions
+    for (const { target, exclude } of SUBSTRING_COLLISIONS) {
+        const excludeHits = text.split(exclude).length - 1;
+        if (excludeHits > 0) {
+            // Each occurrence of the exclude term produces a false target hit
+            geoTargetCount -= excludeHits;
+        }
+    }
+
+    return [Math.max(0, geoTargetCount), excludeCount];
+}
+
 // =====================================================================
 // TEXT HELPERS
 // =====================================================================
@@ -76,8 +108,7 @@ export function isTargetRegion(article: NormalizedItem): boolean {
 
     // Use geographic-only terms (not CRE company names) for region matching.
     // "CBRE arranges financing in Arizona" should NOT pass because of "CBRE".
-    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
-    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const [geoTargetCount, excludeCount] = countRegionMatches(text);
 
     if (isFromRegionalSource) {
         if (excludeCount > geoTargetCount && excludeCount >= 1) return false;
@@ -117,6 +148,8 @@ const EXCLUDE_CITIES_EXTRA = [
     'WEST VILLAGE', 'EAST VILLAGE', 'GREENWICH VILLAGE', 'DUMBO', 'WILLIAMSBURG',
     'HARLEM', 'NOHO', 'NOLITA', 'RED HOOK', 'LOWER EAST SIDE',
     'CONNECTICUT', 'MASSACHUSETTS', 'BOSTON',
+    'ROCKAWAY BOULEVARD', 'ROCKAWAY BLVD', 'JAMAICA, NY', 'JAMAICA, NEW YORK',
+    'OZONE PARK', 'FAR ROCKAWAY', 'HOWARD BEACH',
 ];
 
 export function isNotExcludedRegion(article: NormalizedItem): boolean {
@@ -125,8 +158,7 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
     // Block international
     if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return false;
 
-    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
-    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
+    const [geoTargetCount, excludeCount] = countRegionMatches(text);
     const extraExcludeCount = EXCLUDE_CITIES_EXTRA.reduce((count, r) => count + (text.split(r).length - 1), 0);
     const totalExclude = excludeCount + extraExcludeCount;
 
@@ -297,8 +329,7 @@ export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
     // An article about "Wynwood, Miami" from a "NY brokerage" should pass because
     // FL target mentions outweigh the NY exclude mention.
     const fullText = `${article.title || ''} ${desc}`.toUpperCase();
-    const geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (fullText.split(r).length - 1), 0);
-    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (fullText.split(r).length - 1), 0);
+    const [geoTargetCount, excludeCount] = countRegionMatches(fullText);
 
     if (excludeCount > 0 && excludeCount > geoTargetCount) {
         console.log(`🚫 Post-desc filter removed: "${article.title?.substring(0, 50)}" (exclude=${excludeCount} > target=${geoTargetCount})`);
