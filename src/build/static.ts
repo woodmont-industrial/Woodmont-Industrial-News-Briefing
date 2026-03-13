@@ -235,7 +235,7 @@ export async function buildStaticRSS(): Promise<void> {
             const hasSquareFeet = /\d+[,\d]*\s*(sf|sq\.?\s*ft|square\s*feet)/i.test(text);
 
             // Transaction indicators (buyer/tenant actions) - must also have CRE context
-            const hasTransactionAction = /\b(purchased|acquires?d?|bought|signs?\s*lease|leased|closed|sale\s*of|sold\s*(to|for)?|acquisition|disposition|refinanc)\b/i.test(text);
+            const hasTransactionAction = /\b(purchased|purchases?|acquires?d?|bought|signs?\s*lease|leases?d?|closed|closes|sale\s*of|sells|sold\s*(to|for)?|acquisition|disposition|refinanc|takes?\s*\d)/i.test(text);
 
             // Availability indicators - must have property type context
             const hasAvailabilityWords = /\b(available|listed|for\s*lease|for\s*sale|on\s*the\s*market|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered)\b/i.test(text);
@@ -276,7 +276,8 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // 2. TRANSACTIONS - Deal signals WITH CRE context, NOT non-industrial
-            if (hasCREContext && !isNonIndustrial && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) {
+            // Also accept: transaction action + SF (e.g., "Leases 16,515 Square Feet") even without explicit "warehouse"
+            if (!isNonIndustrial && ((hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) || (hasTransactionAction && hasSquareFeet))) {
                 item.category = 'transactions';
                 return item;
             }
