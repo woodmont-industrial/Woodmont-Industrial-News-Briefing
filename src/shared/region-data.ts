@@ -73,7 +73,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'DTLA', 'DOWNTOWN LOS ANGELES', 'SOCAL', 'CHINO', 'ONTARIO, CA', 'INLAND EMPIRE',
     'LAKE FOREST', 'IRVINE', 'ANAHEIM', 'LONG BEACH', 'RIVERSIDE', 'SAN BERNARDINO',
     'OPELIKA', 'PORTSMOUTH',
-    'NEW HAVEN', 'ALBANY', 'BUFFALO',
+    'NEW HAVEN', 'ALBANY', 'BUFFALO', 'NEW LENOX', 'JOLIET',
     'OMAHA', 'DES MOINES', 'MOBILE', 'LITTLE ROCK', 'BATON ROUGE', 'TULSA',
     'CHEYENNE', 'BEE CAVE', 'BOZEMAN', 'CHESTERFIELD COUNTY',
     'LEXINGTON', 'BIRMINGHAM', 'CHARLESTON', 'COLUMBIA, SC', 'PROVIDENCE', 'HARTFORD',
@@ -122,8 +122,8 @@ export const EXCLUDE_POLITICAL = [
 // Non-industrial property types to exclude
 export const EXCLUDE_NON_INDUSTRIAL = [
     // Office
-    'office lease', 'office building', 'office tower', 'office space', 'coworking', 'co-working',
-    'class a office', 'class b office', 'office campus', 'office portfolio',
+    'office lease', 'office building', 'office tower', 'office space', 'offices', 'coworking', 'co-working',
+    'class a office', 'class b office', 'office campus', 'office portfolio', 'office property',
     // Residential / Multifamily
     'multifamily', 'multi-family', 'apartment', 'residential', 'condo', 'condominium',
     'single-family', 'single family', 'townhouse', 'townhome', 'homebuilder', 'home builder',
@@ -153,6 +153,8 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     // Mixed-use (primarily residential)
     'mixed-use residential', 'mixed use residential',
     'mixed-use', 'mixed use',
+    // Residential properties
+    'mansion', 'estate sale', 'penthouse sale', 'townhouse sale',
     // Residential brokerage
     'realtor',
     // Non-CRE institutions
