@@ -1799,5 +1799,37 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22New+Jersey%22+OR+%22NJ%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News NJ CRE People",
+    "region": "NJ",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22Pennsylvania%22+OR+%22Philadelphia%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News PA CRE People",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22Florida%22+OR+%22South+Florida%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News FL CRE People",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22joins%22+OR+%22welcomes%22+OR+%22taps%22+%22vice+president%22+OR+%22director%22+OR+%22broker%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Regional CRE Hires",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
   }
 ]

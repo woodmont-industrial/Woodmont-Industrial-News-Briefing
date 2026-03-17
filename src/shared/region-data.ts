@@ -166,6 +166,9 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'industrial heir', 'lakefront home', 'waterfront home', 'beachfront home',
     // Non-industrial land use
     'polo field', 'polo club', 'golf course', 'country club',
+    // Boardwalk / entertainment / community (not CRE)
+    'boardwalk', 'pavilion', 'community destination', 'amusement',
+    'convention center', 'arena',
 ];
 
 // Industrial property keywords

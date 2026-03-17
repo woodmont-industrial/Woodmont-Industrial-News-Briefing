@@ -229,10 +229,14 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
         const url = ((article as any).url || article.link || '').toLowerCase();
         if (isPolitical(text)) return false;
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
-        // If it's actually a transaction, don't put it in people
-        if (containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
         const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
+        // If title has strong people signal, allow even if body mentions transactions
+        const titleUpper = (article.title || '').toUpperCase();
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
+            || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
+        // If it's primarily a transaction (and title doesn't indicate people), skip
+        if (!titleHasPeopleSignal && containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
         return hasAction && hasIndustrial;
     });
     console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);

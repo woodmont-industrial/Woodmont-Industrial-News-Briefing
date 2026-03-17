@@ -228,7 +228,8 @@ export async function buildStaticRSS(): Promise<void> {
             // CRE/Industrial context check - article must be about industrial real estate
             const hasCREContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|flex space|commercial real estate|cre|reit|portfolio)\b/i.test(text);
             // Exclude non-industrial property types from transaction/availability categorization
-            const isNonIndustrial = /\b(apartment|multifamily|hotel|hospitality|residential|condo|single.?family|auto dealer|car dealer|senior living|student housing)\b/i.test(text) && !/\b(warehouse|industrial|logistics|distribution|manufacturing|cold storage|fulfillment)\b/i.test(text);
+            // Uses shared EXCLUDE_NON_INDUSTRIAL list for consistency with newsletter filters
+            const isNonIndustrial = EXCLUDE_NON_INDUSTRIAL.some(kw => text.includes(kw)) && !/\b(warehouse|industrial|logistics|distribution|manufacturing|cold storage|fulfillment)\b/i.test(text);
 
             // Check for dollar amounts ($) or square feet (SF/sq ft)
             const hasDollarAmount = /\$[\d,]+/.test(text) || /\d+\s*(million|m)\b/i.test(text);
