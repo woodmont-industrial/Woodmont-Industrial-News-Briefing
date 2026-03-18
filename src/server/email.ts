@@ -299,9 +299,10 @@ async function sendGothNewsletter(period: GothPeriod): Promise<boolean> {
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
 
-        // Re-categorize: move people articles out of "relevant" into "people"
-        const reCatGoth = reCategorizeRelevantAsPeople(relevant, people);
+        // Re-categorize: move people articles out of "relevant"/"transactions" into "people"
+        const reCatGoth = reCategorizeRelevantAsPeople(relevant, people, transactions);
         relevant = reCatGoth.relevant;
+        transactions = reCatGoth.transactions;
         people = reCatGoth.people;
 
         console.log(`📋 Final article breakdown (NJ, PA, FL + industrial content):`);
@@ -400,9 +401,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
 
-        // Re-categorize: move people articles out of "relevant" into "people"
-        const reCat = reCategorizeRelevantAsPeople(relevant, people);
+        // Re-categorize: move people articles out of "relevant"/"transactions" into "people"
+        const reCat = reCategorizeRelevantAsPeople(relevant, people, transactions);
         relevant = reCat.relevant;
+        transactions = reCat.transactions;
         people = reCat.people;
 
         // Fill empty sections from ALL regional articles

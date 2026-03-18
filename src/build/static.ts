@@ -192,7 +192,7 @@ export async function buildStaticRSS(): Promise<void> {
             if (bossPreferredSources.some(s => url.includes(s) || sourceName.includes(s))) {
                 // Even preferred sources should have some industrial/CRE relevance
                 const hasCREOrIndustrial = hasIndustrialContext ||
-                    /\b(COMMERCIAL|REAL ESTATE|CRE|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|BROKER|REIT|PORTFOLIO|TRANSACTION|SQUARE FEET|INTEREST RATE|INFLATION|FREIGHT|SUPPLY CHAIN|CAP RATE)\b/.test(text);
+                    /\b(COMMERCIAL REAL ESTATE|CRE|LEASE|SOLD|ACQUIRED|DEVELOPMENT|CONSTRUCTION|TENANT|REIT|PORTFOLIO|TRANSACTION|SQUARE FEET|INTEREST RATE|INFLATION|FREIGHT|SUPPLY CHAIN|CAP RATE|FOR SALE|FOR LEASE|ACQUISITION|DISPOSITION)\b/.test(text);
                 if (hasCREOrIndustrial) {
                     return true;
                 }
@@ -240,7 +240,7 @@ export async function buildStaticRSS(): Promise<void> {
 
             // Availability indicators - must have property type context
             const hasAvailabilityWords = /\b(available|listed|for\s*lease|for\s*sale|on\s*the\s*market|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered)\b/i.test(text);
-            const hasPropertyType = /\b(warehouse|industrial|distribution|logistics|building|facility|property|center|park|site|acres|square\s*feet|sf|sq\.?\s*ft)\b/i.test(text);
+            const hasPropertyType = /\b(warehouse|industrial|distribution|logistics|building|facility|property|center|park|site|acres|square\s*feet|sf|sq\.?\s*ft|space|campus|complex|portfolio)\b/i.test(text);
 
             // People News indicators - must have CRE firm/role context
             const hasPeopleWords = /\b(promoted|hired|new\s*hire|joins|joined|named|appoints|appointed|taps|welcomes|recruits|elevated)\b/i.test(text);
@@ -276,6 +276,14 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
+            // 1d. PEOPLE in TITLE — strong personnel signal in title takes priority over transactions
+            const titleUpper = (item.title || '').toUpperCase();
+            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+            if (titleHasPeopleSignal && hasCREFirmContext) {
+                item.category = 'people';
+                return item;
+            }
+
             // 2. TRANSACTIONS - Deal signals WITH CRE context, NOT non-industrial
             // Also accept: transaction action + SF (e.g., "Leases 16,515 Square Feet") even without explicit "warehouse"
             if (!isNonIndustrial && ((hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) || (hasTransactionAction && hasSquareFeet))) {
@@ -295,8 +303,12 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
-            // 4. RELEVANT ARTICLES - default for everything else
-            item.category = 'relevant';
+            // 4. RELEVANT ARTICLES - only if article has some CRE/industrial signal
+            if (hasCREContext || hasTransactionAction || hasAvailabilityWords || hasPeopleWords || hasCREFirmContext || hasDollarAmount || hasSquareFeet) {
+                item.category = 'relevant';
+            } else {
+                item.category = 'exclude';
+            }
             return item;
         };
 

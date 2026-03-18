@@ -234,7 +234,7 @@ export function isStrictlyIndustrial(text: string): boolean {
         'e-commerce', 'ecommerce', 'automation', 'autonomous', 'robotics',
     ];
     if (SUPPLY_CHAIN_KEYWORDS.some(kw => lower.includes(kw))) {
-        const hasPhysicalAsset = /\b(warehouse|facility|building|distribution|fulfillment|logistics center|port|terminal|yard|dock|fleet|carrier|3pl|drayage|intermodal|cold chain|inventory|trailer|unload|delivery|deliveries|operations|spending|officer|last.?mile)\b/i.test(lower);
+        const hasPhysicalAsset = /\b(warehouse|facility|building|distribution|fulfillment|logistics center|port|terminal|yard|dock|fleet|carrier|3pl|drayage|intermodal|cold chain|inventory|trailer|unload|delivery|deliveries|operations|last.?mile)\b/i.test(lower);
         if (hasPhysicalAsset) return true;
         // Generic supply chain/freight tech articles without physical context → reject
         return false;

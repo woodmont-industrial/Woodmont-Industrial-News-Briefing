@@ -180,7 +180,6 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
         if (isPolitical(text)) return false;
         // Industrial gate — reject apartments, retail, office, etc.
         if (!isStrictlyIndustrial(text)) return false;
-        if (article.category && article.category !== 'exclude') return true;
         return containsAny(text, keywords);
     });
     console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict filter)`);
@@ -213,6 +212,7 @@ export function applyAvailabilityFilter(items: NormalizedItem[]): NormalizedItem
             'seeking buyer', 'buyer wanted', 'now leasing', 'now available',
             'seeking tenants', 'for sublease', 'sublease', 'space available',
             'build-to-suit', 'vacant', 'vacancy', 'delivered', 'spec',
+            'under construction', 'breaks ground', 'groundbreaking', 'coming to market',
         ];
         if (containsAny(text, availabilityWords)) return true;
         if (!isIndustrialProperty(text)) return false;
@@ -231,12 +231,13 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
         const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
-        // If title has strong people signal, allow even if body mentions transactions
+        // If title OR body has strong people signal, allow even if body mentions transactions
         const titleUpper = (article.title || '').toUpperCase();
         const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
             || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
-        // If it's primarily a transaction (and title doesn't indicate people), skip
-        if (!titleHasPeopleSignal && containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
+        const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped']);
+        // If it's primarily a transaction (and neither title nor body indicate people), skip
+        if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
         return hasAction && hasIndustrial;
     });
     console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);
@@ -272,38 +273,64 @@ const PERSON_ROLE_KEYWORDS = [
 
 export function reCategorizeRelevantAsPeople(
     relevant: NormalizedItem[],
-    people: NormalizedItem[]
-): { relevant: NormalizedItem[]; people: NormalizedItem[] } {
+    people: NormalizedItem[],
+    transactions?: NormalizedItem[]
+): { relevant: NormalizedItem[]; people: NormalizedItem[]; transactions: NormalizedItem[] } {
     const movedToPeople: NormalizedItem[] = [];
     const keptRelevant: NormalizedItem[] = [];
+    const keptTransactions: NormalizedItem[] = [];
 
-    for (const article of relevant) {
+    const rescueArticle = (article: NormalizedItem): boolean => {
         const text = getText(article);
-        if (containsAny(text, EXCLUDE_FROM_PEOPLE)) {
-            keptRelevant.push(article);
-            continue;
-        }
-        // If it's a transaction, keep in relevant
-        if (containsAny(text, TRANSACTION_ACTION_WORDS)) {
-            keptRelevant.push(article);
-            continue;
-        }
-        // Require STRONG people signal: a clear personnel action word + a role/title keyword
+        if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
         const hasStrongAction = containsAny(text, STRONG_PEOPLE_ACTIONS);
         const hasRole = containsAny(text, PERSON_ROLE_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
-        // Very strong puff signals — move to people even without full industrial context
         const isPeoplePuff = containsAny(text, ['milestone', 'anniversary', 'retirement', 'retiring', 'marks milestone']);
-        if ((hasStrongAction && hasRole && hasIndustrial) || (isPeoplePuff && hasRole)) {
+        // Title-level people signal — very strong indicator
+        const titleUpper = (article.title || '').toUpperCase();
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+        // Require 2 of 3 conditions (action + role + industrial) instead of all 3
+        const conditionsMet = [hasStrongAction || titleHasPeopleSignal, hasRole, hasIndustrial].filter(Boolean).length;
+        if (conditionsMet >= 2 || (isPeoplePuff && hasRole)) {
             console.log(`👤 Re-categorized to People: "${article.title?.substring(0, 60)}"`);
+            return true;
+        }
+        return false;
+    };
+
+    for (const article of relevant) {
+        const text = getText(article);
+        // If it's a transaction AND doesn't have title-level people signal, keep in relevant
+        const titleUpper = (article.title || '').toUpperCase();
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+        if (!titleHasPeopleSignal && containsAny(text, TRANSACTION_ACTION_WORDS)) {
+            keptRelevant.push(article);
+            continue;
+        }
+        if (rescueArticle(article)) {
             movedToPeople.push(article);
         } else {
             keptRelevant.push(article);
         }
     }
 
+    // Also rescue misclassified people articles from transactions
+    if (transactions) {
+        for (const article of transactions) {
+            const titleUpper = (article.title || '').toUpperCase();
+            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+            if (titleHasPeopleSignal && rescueArticle(article)) {
+                movedToPeople.push(article);
+            } else {
+                keptTransactions.push(article);
+            }
+        }
+    }
+
     return {
         relevant: keptRelevant,
+        transactions: transactions ? keptTransactions : [],
         people: [...people, ...movedToPeople]
     };
 }
