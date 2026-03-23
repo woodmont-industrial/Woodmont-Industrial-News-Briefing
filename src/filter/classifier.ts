@@ -73,6 +73,8 @@ function classifyArticleOriginal330(title: string, description: string, link: st
 
     // APPROVED SOURCES - Only allow approved domains (same as before)
     const approvedDomains = [
+      // Google News RSS proxy (passes through to approved sources)
+      'news.google.com',
       // Boss's Mandatory Sources
       're-nj.com', 'commercialsearch.com', 'wsj.com', 'bisnow.com', 'globest.com',
       'naiop.org', 'cpexecutive.com', 'bizjournals.com', 'loopnet.com', 'costar.com',
@@ -98,7 +100,11 @@ function classifyArticleOriginal330(title: string, description: string, link: st
       'prnewswire.com', 'globenewswire.com', 'businesswire.com',
       // Industrial REIT Sources
       'prologis.com', 'dfreit.com', 'rfreit.com', 'firstindustrial.com',
-      'stagindustrial.com', 'terreno.com', 'eastgroup.net'
+      'stagindustrial.com', 'terreno.com', 'eastgroup.net',
+      // Additional sources from feeds
+      'connect.media', 'roi-nj.com', 'njspotlightnews.org',
+      'logisticsviewpoints.com', 'joc.com', 'retaildive.com', 'sior.com',
+      'ttnews.com', 'constructiondive.com'
     ];
 
     const hasApprovedSource = approvedDomains.some(domain => link.includes(domain)) ||
