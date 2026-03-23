@@ -414,7 +414,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string
         ) => {
             if (section.length >= min) return;
-            const candidates = filterFn(regionalArticles.filter(a => !usedIds.has(a.id || a.link)));
+            const candidates = filterFn(regionalArticles.filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude'));
             console.log(`⚠️ Only ${section.length} ${label} — found ${candidates.length} from all sources`);
             for (const a of candidates) {
                 if (section.length >= min) break;
@@ -426,7 +426,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Relevant backfill from recent articles (macro/national OK, but no excluded regions)
         if (relevant.length < MIN_RELEVANT) {
             const relevantCandidates = applyStrictFilter(
-                recentArticles.filter(a => !usedIds.has(a.id || a.link)).filter(isNotExcludedRegion),
+                recentArticles.filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude').filter(isNotExcludedRegion),
                 RELEVANT_KEYWORDS, 'Relevant (backfill)'
             );
             console.log(`⚠️ Only ${relevant.length} relevant — found ${relevantCandidates.length} from all sources`);
@@ -444,9 +444,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const needsDeepBackfill = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
         if (needsDeepBackfill) {
             const deepArticles = filterArticlesByTimeRange(articles, 30 * 24);
-            const deepRegional = deepArticles.filter(isTargetRegion).filter(a => !usedIds.has(a.id || a.link));
+            const deepRegional = deepArticles.filter(isTargetRegion).filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude');
             // Broader pool for relevant: not excluded region (national OK, but no Alabama/Texas/etc.)
-            const deepNotExcluded = deepArticles.filter(a => !usedIds.has(a.id || a.link)).filter(isNotExcludedRegion);
+            const deepNotExcluded = deepArticles.filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude').filter(isNotExcludedRegion);
             console.log(`📅 Deep backfill (30-day window): ${deepRegional.length} regional, ${deepNotExcluded.length} not-excluded`);
 
             const deepFill = (section: NormalizedItem[], min: number,
@@ -552,11 +552,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // so refill from unused articles that also pass post-desc check
         const usedIdsPostDesc = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
         const regionalPostDescPool = regionalArticles
-            .filter(a => !usedIdsPostDesc.has(a.id || a.link))
+            .filter(a => !usedIdsPostDesc.has(a.id || a.link) && a.category !== 'exclude')
             .filter(postDescriptionRegionCheck);
         // Broader pool for relevant (macro/national OK, but no excluded regions)
         const allPostDescPool = recentArticles
-            .filter(a => !usedIdsPostDesc.has(a.id || a.link))
+            .filter(a => !usedIdsPostDesc.has(a.id || a.link) && a.category !== 'exclude')
             .filter(isNotExcludedRegion)
             .filter(postDescriptionRegionCheck);
 
@@ -587,7 +587,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
         if (stillNeedsDeep) {
             const deepArticles7d = filterArticlesByTimeRange(articles, 30 * 24);
-            const deepUnused = deepArticles7d.filter(a => !usedIdsPostDesc.has(a.id || a.link));
+            const deepUnused = deepArticles7d.filter(a => !usedIdsPostDesc.has(a.id || a.link) && a.category !== 'exclude');
             const deepRegional7d = deepUnused.filter(isTargetRegion);
             if (deepUnused.length > 0) {
                 console.log(`📅 Deep post-desc refill: ${deepRegional7d.length} regional, ${deepUnused.length} total from 30-day pool`);

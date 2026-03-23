@@ -304,7 +304,9 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // 4. RELEVANT ARTICLES - only if article has some CRE/industrial signal
-            if (hasCREContext || hasTransactionAction || hasAvailabilityWords || hasPeopleWords || hasCREFirmContext || hasDollarAmount || hasSquareFeet) {
+            const strictIndustrial = isStrictlyIndustrial(text);
+            const hasAnyCRESignal = hasCREContext || hasIndustrialContext || hasTransactionAction || hasAvailabilityWords || hasPeopleWords || hasCREFirmContext || hasDollarAmount || hasSquareFeet || strictIndustrial;
+            if (hasAnyCRESignal) {
                 item.category = 'relevant';
             } else {
                 item.category = 'exclude';
