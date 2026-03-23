@@ -14,7 +14,9 @@
     "source": "Commercial Search",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://www.commercialcafe.com/blog/feed/",
@@ -216,7 +218,9 @@
     "source": "The Real Deal",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://rebusinessonline.com/feed/",
@@ -924,7 +928,9 @@
     "source": "SIOR",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — returns HTML not RSS, replaced by Google News proxy"
   },
   {
     "url": "https://ir.prologis.com/press-releases/rss",
@@ -1221,7 +1227,9 @@
     "source": "Connect Media",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://news.google.com/rss/search?q=site:globest.com+industrial+OR+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
@@ -1738,7 +1746,9 @@
     "source": "CP Executive",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Cloudflare blocked, replaced by Google News proxy"
   },
   {
     "url": "https://www.multihousingnews.com/feed/",
@@ -1758,7 +1768,9 @@
     "source": "CoStar",
     "type": "industrial-news",
     "timeout": 30000,
-    "headers": "browser"
+    "headers": "browser",
+    "enabled": false,
+    "_note": "Disabled — Akamai blocked, replaced by Google News proxy"
   },
   {
     "url": "https://news.google.com/rss/search?q=site:cpexecutive.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
@@ -1828,6 +1840,82 @@
     "url": "https://news.google.com/rss/search?q=%22joins%22+OR+%22welcomes%22+OR+%22taps%22+%22vice+president%22+OR+%22director%22+OR+%22broker%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
     "name": "Google News Regional CRE Hires",
     "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:sior.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News SIOR",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for sior.com (returns HTML not RSS)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:commercialsearch.com+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News CommercialSearch Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for commercialsearch.com industrial (Cloudflare blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:connect.media+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Connect Media",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "_note": "Proxy for connect.media (Cloudflare blocked)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:wsj.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News WSJ CRE",
+    "region": "US",
+    "source": "Google News",
+    "type": "macro",
+    "timeout": 30000,
+    "_note": "Proxy for WSJ Real Estate (paywall/feed issues)"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Pittsburgh%22+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Pittsburgh Industrial",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Pittsburgh%22+%22commercial+real+estate%22+OR+development+OR+warehouse+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Pittsburgh CRE",
+    "region": "PA",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:bizjournals.com/pittsburgh+%22commercial+real+estate%22+OR+industrial+OR+warehouse+OR+development&hl=en-US&gl=US&ceid=US:en",
+    "name": "Pittsburgh Business Times CRE",
+    "region": "PA",
+    "source": "Pittsburgh Business Times",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Jacksonville+port%22+OR+%22JAXPORT%22+OR+%22JaxPort%22+cargo+OR+logistics+OR+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News JAXPORT Logistics",
+    "region": "FL",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=%22Pennsylvania%22+manufacturing+%22industrial+land%22+OR+%22industrial+park%22+OR+%22manufacturing+facility%22+OR+expansion&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News PA Manufacturing Land",
+    "region": "PA",
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000
