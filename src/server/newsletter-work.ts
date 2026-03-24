@@ -161,8 +161,7 @@ export function buildWorkBriefing(
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${dealPrefix}${displayText}${dealBadge} — ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>` : '<span style="color: #999;">(Source unavailable)</span>'}${paywalled}
-            <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
+            ${displayText} ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a>
         </li>`;
     };
 
@@ -210,9 +209,9 @@ export function buildWorkBriefing(
         </p>
         <hr style="border: none; border-top: 2px solid #2563eb; margin: 0 0 25px 0;">
 
-        <!-- Relevant News -->
+        <!-- Relevant Articles -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
-            Relevant News
+            Relevant Articles
         </h2>
         ${renderSection(relevant, 6)}
 
