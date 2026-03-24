@@ -85,6 +85,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'CADDO PARISH', 'SHREVEPORT', 'NILES', 'LOUISIANA',
     'TEMPLE, TX', 'TEMPLE BATTERY', 'COSTA MESA', 'PINELLAS PARK',
     'SOHO', 'MIDTOWN', 'TRIBECA', 'CHELSEA', 'FLATIRON',
+    'HERMISTON', 'SEVIERVILLE', 'DONEGAL',
     'WEST VILLAGE', 'EAST VILLAGE', 'GREENWICH VILLAGE', 'DUMBO', 'WILLIAMSBURG',
     'HARLEM', 'NOHO', 'NOLITA', 'RED HOOK', 'LOWER EAST SIDE',
     'BRONX', 'STATEN ISLAND',
@@ -102,7 +103,18 @@ export const INTERNATIONAL_EXCLUDE = [
     'VIETNAM', 'BRAZIL', 'MEXICO', 'LONDON', 'TOKYO', 'SHANGHAI', 'BEIJING', 'SYDNEY',
     'TORONTO', 'DUBAI', 'OTTAWA', 'CALGARY', 'EDMONTON', 'EMEA',
     'TAIWAN', 'INDONESIA', 'MALAYSIA', 'THAILAND', 'PHILIPPINES', 'SAUDI ARABIA',
-    'PUERTO RICO', 'GUAM', 'U.S. VIRGIN ISLANDS'
+    'PUERTO RICO', 'GUAM', 'U.S. VIRGIN ISLANDS',
+    // Australian cities/states that leak via LoopNet international listings
+    'MELBOURNE, VIC', 'SYDNEY, NSW', 'BRISBANE, QLD', 'PERTH, WA',
+    'BROADMEADOWS', 'DRYSDALE', 'BYRON BAY', 'STAWELL', 'SOUTH NOWRA', 'COWES',
+    'BOTANY, NSW', 'AUBURN, NSW', 'DONEGAL', 'PRAYAGRAJ',
+    'NEW SOUTH WALES', 'QUEENSLAND', 'VICTORIA, AU',
+    // Non-US postcode patterns (4-digit Australian postcodes in LoopNet titles)
+    ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3222 ', ', 3380 ', ', 3922 ',
+    // Ireland
+    'DONEGAL TOWN', 'COUNTY DONEGAL',
+    // Non-CRE content that matches industrial keywords
+    'IMDB', '- IMDB', 'IMDB.COM'
 ];
 
 // Political / public figure exclusion
@@ -116,7 +128,11 @@ export const EXCLUDE_POLITICAL = [
     'mark zuckerberg', 'zuckerberg', 'bill gates',
     'shutdown', 'debt ceiling', 'stimulus', 'government spending',
     'foreign policy', 'military', 'defense budget', 'pentagon',
-    'nato', 'sanctions', 'diplomatic'
+    'nato', 'sanctions', 'diplomatic',
+    // Accidents / disasters / crime (not CRE news)
+    'killed', 'dead', 'injured', 'crash', 'collapsed', 'collapse', 'explosion',
+    'helicopter', 'shooting', 'homicide', 'murder', 'arson', 'fire kills',
+    'trapped', 'fatal', 'died'
 ];
 
 // Non-industrial property types to exclude
