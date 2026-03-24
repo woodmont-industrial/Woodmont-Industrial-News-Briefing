@@ -109,10 +109,13 @@ export const INTERNATIONAL_EXCLUDE = [
     'BROADMEADOWS', 'DRYSDALE', 'BYRON BAY', 'STAWELL', 'SOUTH NOWRA', 'COWES',
     'BOTANY, NSW', 'AUBURN, NSW', 'DONEGAL', 'PRAYAGRAJ',
     'NEW SOUTH WALES', 'QUEENSLAND', 'VICTORIA, AU',
-    // Non-US postcode patterns (4-digit Australian postcodes in LoopNet titles)
-    ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3222 ', ', 3380 ', ', 3922 ',
+    'BRAESIDE', 'SEYMOUR, VIC', 'CHELMSFORD',
+    // UK postcodes and locations
+    'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
+    // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
+    ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
-    'DONEGAL TOWN', 'COUNTY DONEGAL',
+    'DONEGAL TOWN', 'COUNTY DONEGAL', 'IRELAND',
     // Non-CRE content that matches industrial keywords
     'IMDB', '- IMDB', 'IMDB.COM'
 ];
