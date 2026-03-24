@@ -161,7 +161,7 @@ export function buildWorkBriefing(
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a>
+            ${displayText} ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 
