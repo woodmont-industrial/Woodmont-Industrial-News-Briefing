@@ -2,9 +2,8 @@ name: Send Newsletter (Work)
 
 on:
   schedule:
-    # Run Monday-Friday at 9 AM ET (13:00 UTC for EDT, 14:00 UTC for EST)
-    # Using 13:00 UTC = 9 AM EDT (Mar-Nov) / 8 AM EST (Nov-Mar)
-    - cron: '0 13 * * 1-5'
+    # Run Monday-Friday at 9 AM EST (14:00 UTC) / 10 AM EDT
+    - cron: '0 14 * * 1-5'
   workflow_dispatch:
     inputs:
       force_send:
