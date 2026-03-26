@@ -14,7 +14,6 @@ import {
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, saveSentArticles
 } from './newsletter-filters.js';
-import { meetsDealThreshold } from '../shared/deal-threshold.js';
 
 // =============================================================================
 // EMAIL SENDING - Power Automate Webhook (Primary) or SMTP (Fallback)
@@ -149,7 +148,7 @@ async function sendStandardNewsletter(period: StandardPeriod): Promise<boolean> 
             periodLabel = '5 days';
             recentArticles = filterArticlesByTimeRange(allArticles, 5 * 24);
         } else {
-            const isMonday = now.getDay() === 1;
+            const isMonday = new Date().getDay() === 1;
             if (isMonday) {
                 // Monday: look back 72 hours to cover the full weekend (Friday 9 AM → Monday 9 AM)
                 console.log('📅 Monday detected — expanding lookback to 72 hours to cover the weekend');
@@ -176,48 +175,21 @@ async function sendStandardNewsletter(period: StandardPeriod): Promise<boolean> 
         let relevant: NormalizedItem[];
         let people: NormalizedItem[];
 
-        if (isWeekly) {
-            // Weekly: no region filter, just categorize
-            transactions = recentArticles.filter(a => a.category === 'transactions');
-            availabilities = recentArticles.filter(a => a.category === 'availabilities');
-            relevant = recentArticles.filter(a => a.category === 'relevant');
-            people = recentArticles.filter(a => a.category === 'people');
-        } else {
-            // Daily: simple region filter + industrial filter
-            const targetRegionsSimple = ['NJ', 'PA', 'FL', 'New Jersey', 'Pennsylvania', 'Florida'];
-            const isSimpleTargetRegion = (article: NormalizedItem): boolean => {
-                if (article.regions && article.regions.length > 0) {
-                    return article.regions.some(r => targetRegionsSimple.some(tr => r.toUpperCase().includes(tr.toUpperCase())));
-                }
-                const text = `${article.title || ''} ${article.description || ''} ${(article as any).summary || ''}`.toUpperCase();
-                return targetRegionsSimple.some(r => text.includes(r.toUpperCase()));
-            };
-
-            const regionalArticles = recentArticles.filter(isSimpleTargetRegion);
+        {
+            // Apply strict regional + industrial filters (same as Goth/Work newsletters)
+            const regionalArticles = recentArticles.filter(isTargetRegion);
             console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
-            const excludeNonIndustrial = ['office lease', 'office building', 'multifamily', 'apartment', 'residential', 'retail', 'hotel', 'hospitality', 'self-storage'];
-            const industrialKw = ['warehouse', 'logistics', 'distribution', 'manufacturing', 'cold storage', 'fulfillment', 'industrial'];
-            const getTextSimple = (a: NormalizedItem) => `${a.title || ''} ${a.description || ''}`.toLowerCase();
-            const containsAnySimple = (text: string, kw: string[]) => kw.some(k => text.includes(k));
-            const isIndustrialSimple = (text: string) => containsAnySimple(text, industrialKw) || !containsAnySimple(text, excludeNonIndustrial);
+            relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion), RELEVANT_KEYWORDS, 'Relevant');
+            transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
+            availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
+            people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
 
-            transactions = regionalArticles.filter(a => a.category === 'transactions').filter(a => {
-                const text = getTextSimple(a);
-                if (!isIndustrialSimple(text)) return false;
-                const threshold = meetsDealThreshold(text);
-                return threshold.meetsSF || threshold.meetsDollar || (threshold.sizeSF !== null && threshold.sizeSF > 0);
-            });
-
-            availabilities = regionalArticles.filter(a => a.category === 'availabilities').filter(a => {
-                const text = getTextSimple(a);
-                if (!isIndustrialSimple(text)) return false;
-                const threshold = meetsDealThreshold(text);
-                return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
-            });
-
-            relevant = regionalArticles.filter(a => a.category === 'relevant');
-            people = regionalArticles.filter(a => a.category === 'people');
+            // Re-categorize: move people articles out of "relevant"/"transactions" into "people"
+            const reCatStd = reCategorizeRelevantAsPeople(relevant, people, transactions);
+            relevant = reCatStd.relevant;
+            transactions = reCatStd.transactions;
+            people = reCatStd.people;
         }
 
         console.log('📋 Article breakdown:');
@@ -304,6 +276,12 @@ async function sendGothNewsletter(period: GothPeriod): Promise<boolean> {
         relevant = reCatGoth.relevant;
         transactions = reCatGoth.transactions;
         people = reCatGoth.people;
+
+        // Post-description region check (catch wrong-region revealed by AI descriptions)
+        relevant = relevant.filter(postDescriptionRegionCheck);
+        transactions = transactions.filter(postDescriptionRegionCheck);
+        availabilities = availabilities.filter(postDescriptionRegionCheck);
+        people = people.filter(postDescriptionRegionCheck);
 
         console.log(`📋 Final article breakdown (NJ, PA, FL + industrial content):`);
         console.log(`  - Relevant: ${relevant.length}`);
@@ -469,20 +447,32 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             deepFill(people, MIN_PEOPLE, applyPeopleFilter, 'people', deepRegional);
         }
 
-        // Merge manually included articles from raw picks
+        // Merge manually included articles from raw picks — but validate region/industrial first
         const includedArticles = loadIncludedArticles(docsDir);
+        let includedCount = 0;
         for (const article of includedArticles) {
             const articleKey = article.id || article.link;
             if (usedIds.has(articleKey)) continue;
+            // Validate: must be target region or not-excluded, and must be industrial
+            const articleText = getText(article);
+            if (!isTargetRegion(article) && !isNotExcludedRegion(article)) {
+                console.log(`🚫 Included article skipped (wrong region): "${article.title?.substring(0, 60)}"`);
+                continue;
+            }
+            if (isPolitical(articleText)) {
+                console.log(`🚫 Included article skipped (political): "${article.title?.substring(0, 60)}"`);
+                continue;
+            }
             usedIds.add(articleKey);
             const cat = article.category || 'relevant';
             if (cat === 'transactions') transactions.push(article);
             else if (cat === 'availabilities') availabilities.push(article);
             else if (cat === 'people') people.push(article);
             else relevant.push(article);
+            includedCount++;
         }
         if (includedArticles.length > 0) {
-            console.log(`📌 Merged ${includedArticles.length} manually included article(s)`);
+            console.log(`📌 Merged ${includedCount}/${includedArticles.length} manually included article(s) (${includedArticles.length - includedCount} filtered out)`);
         }
 
         // Fuzzy dedup: remove articles about the same deal (same SF + location from different sources)
@@ -528,10 +518,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             console.log('📅 Friday detected — building Week-in-Review (top 5 from last 5 days)');
             const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
             const weekRegional = fiveDayArticles.filter(isTargetRegion).filter(a => !isPolitical(getText(a)));
-            const weekTransactions = weekRegional.filter(a => a.category === 'transactions');
-            const weekRelevant = weekRegional.filter(a => a.category === 'relevant');
-            const weekOther = weekRegional.filter(a => a.category !== 'transactions' && a.category !== 'relevant');
-            weekInReview = [...weekTransactions, ...weekRelevant, ...weekOther].slice(0, 5);
+            // Apply industrial + section filters to week-in-review candidates
+            const weekTransactions = applyTransactionFilter(weekRegional.filter(a => a.category === 'transactions'));
+            const weekRelevant = applyStrictFilter(
+                fiveDayArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion).filter(a => !isPolitical(getText(a))),
+                RELEVANT_KEYWORDS, 'Week-in-Review Relevant'
+            );
+            const weekAvailabilities = applyAvailabilityFilter(weekRegional.filter(a => a.category === 'availabilities'));
+            weekInReview = [...weekTransactions, ...weekRelevant, ...weekAvailabilities]
+                .filter(postDescriptionRegionCheck)
+                .slice(0, 5);
             console.log(`📊 Week-in-Review: ${weekInReview.length} top developments`);
         }
 

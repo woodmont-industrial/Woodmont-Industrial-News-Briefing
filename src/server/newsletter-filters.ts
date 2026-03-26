@@ -351,8 +351,22 @@ export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
     const text = `${article.title || ''} ${article.source || ''}`.toLowerCase();
     if (text.includes('woodmont')) return true;
 
-    // Don't region-filter "relevant" category — macro industry news is nationally significant
-    if (article.category === 'relevant') return true;
+    // "Relevant" category allows macro/national news, but still block if description
+    // reveals a specific excluded region (e.g., AI description says "in Houston, Texas")
+    if (article.category === 'relevant') {
+        if (INTERNATIONAL_EXCLUDE.some(t => desc.includes(t))) {
+            console.log(`🚫 Post-desc filter removed relevant: "${article.title?.substring(0, 50)}" (international in description)`);
+            return false;
+        }
+        const fullText = `${article.title || ''} ${desc}`.toUpperCase();
+        const [geoTargetCount, excludeCount] = countRegionMatches(fullText);
+        // Only block relevant articles if they clearly reference excluded regions with no target
+        if (excludeCount > 0 && geoTargetCount === 0) {
+            console.log(`🚫 Post-desc filter removed relevant: "${article.title?.substring(0, 50)}" (excluded region in description, no target)`);
+            return false;
+        }
+        return true;
+    }
 
     // International content — always reject
     if (INTERNATIONAL_EXCLUDE.some(t => desc.includes(t))) {
