@@ -15,7 +15,7 @@ import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
-import { isTargetRegion, isNotExcludedRegion } from '../server/newsletter-filters.js';
+import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
 // Directory for static output
@@ -383,6 +383,17 @@ export async function buildStaticRSS(): Promise<void> {
             }
         }
 
+        // === POST-DESCRIPTION REGIONAL RE-CHECK ===
+        // Now that AI descriptions are generated, re-check regions using full text
+        {
+            const beforePostDesc = aiFilteredItems.length;
+            aiFilteredItems = aiFilteredItems.filter(item => postDescriptionRegionCheck(item));
+            const removedByPostDesc = beforePostDesc - aiFilteredItems.length;
+            if (removedByPostDesc > 0) {
+                log('info', `Post-description region check removed ${removedByPostDesc} article(s) with wrong-region descriptions`);
+            }
+        }
+
         // === USER EXCLUDE LIST ===
         // Remove articles the user has explicitly excluded via docs/excluded-articles.json
         try {
@@ -648,7 +659,11 @@ export async function buildStaticRSS(): Promise<void> {
         );
 
         // Region filter: only keep NJ/PA/FL regional articles + national/macro (no excluded regions)
-        const regionFiltered = sortedItems.filter(a => isTargetRegion(a) || isNotExcludedRegion(a));
+        // Also re-apply postDescriptionRegionCheck on existing articles that now have descriptions
+        const regionFiltered = sortedItems.filter(a => {
+            if (!postDescriptionRegionCheck(a)) return false;
+            return isTargetRegion(a) || isNotExcludedRegion(a);
+        });
         log('info', `Region filter: ${sortedItems.length} → ${regionFiltered.length} (removed ${sortedItems.length - regionFiltered.length} non-target articles)`);
 
         // No cap — 31-day cleanup + region filter keeps the feed manageable

@@ -54,6 +54,12 @@ export const CRE_COMPANY_NAMES = [
 // States/cities to EXCLUDE (everything except NJ, PA, FL)
 export const MAJOR_EXCLUDE_REGIONS = [
     'HOUSTON', 'DALLAS', 'AUSTIN', 'SAN ANTONIO', 'FORT WORTH', 'TEXAS', ', TX',
+    // State abbreviations for non-target states (NJ, PA, FL are target — never add those here)
+    ', GA', ', AL', ', AZ', ', CA', ', IL', ', OH', ', TN', ', KY', ', IN', ', MI',
+    ', NC', ', SC', ', VA', ', MD', ', CO', ', MN', ', WI', ', MO', ', OR', ', WA',
+    ', NV', ', UT', ', CT', ', MA', ', LA', ', AR', ', MS', ', OK', ', KS', ', NE',
+    ', IA', ', ID', ', MT', ', WY', ', ND', ', SD', ', WV', ', HI', ', AK', ', ME',
+    ', NH', ', VT', ', RI', ', DC', ', DE',
     'ATLANTA', 'LOS ANGELES', 'SAN FRANCISCO', 'CHICAGO', 'BOSTON', 'SEATTLE', 'DENVER', 'PHOENIX',
     'CHARLOTTE', 'NASHVILLE', 'BALTIMORE', 'SAN DIEGO', 'PORTLAND', 'DETROIT', 'MINNEAPOLIS',
     'COLUMBUS', 'INDIANAPOLIS', 'MEMPHIS', 'RALEIGH', 'RICHMOND', 'MILWAUKEE', 'KANSAS CITY',
@@ -68,7 +74,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'COLORADO', 'MINNESOTA', 'WISCONSIN', 'MICHIGAN', 'OHIO', 'MISSOURI',
     'FORT PAYNE', 'DEKALB COUNTY, AL',
     'EL PASO', 'NORFOLK', 'VIRGINIA BEACH', 'ROANOKE',
-    'TEMPE', 'SCOTTSDALE', 'CHANDLER', 'GLENDALE, AZ', 'OTAY MESA',
+    'TEMPE', 'SCOTTSDALE', 'CHANDLER', 'GLENDALE, AZ', 'GLENDALE WAREHOUSE', 'GLENDALE LOGISTICS', 'OTAY MESA',
     'DENTON', 'PLANO', 'IRVING', 'ARLINGTON, TX', 'FRISCO', 'MCKINNEY',
     'DTLA', 'DOWNTOWN LOS ANGELES', 'SOCAL', 'CHINO', 'ONTARIO, CA', 'INLAND EMPIRE',
     'LAKE FOREST', 'IRVINE', 'ANAHEIM', 'LONG BEACH', 'RIVERSIDE', 'SAN BERNARDINO',
@@ -116,6 +122,14 @@ export const INTERNATIONAL_EXCLUDE = [
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
     'DONEGAL TOWN', 'COUNTY DONEGAL', 'IRELAND',
+    // Malaysia / Southeast Asia
+    'RINGGIT', 'RM800', 'BERNAMA', 'BURSA MALAYSIA', 'JOHOR', 'JS-SEZ', 'SUNWAY',
+    'KUALA LUMPUR', 'PENANG', 'SELANGOR', 'PUTRAJAYA', 'ISKANDAR',
+    // Africa
+    'BURKINA FASO', 'GHANA', 'NIGERIA', 'KENYA', 'SOUTH AFRICA', 'JOHANNESBURG',
+    'LAGOS', 'NAIROBI', 'ACCRA', 'SHARJAH',
+    // Middle East extras
+    'ABU DHABI', 'QATAR', 'DOHA', 'BAHRAIN', 'KUWAIT', 'OMAN', 'JAFZA', 'JEBEL ALI',
     // Non-CRE content that matches industrial keywords
     'IMDB', '- IMDB', 'IMDB.COM'
 ];
@@ -179,6 +193,9 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     // Non-CRE institutions
     'social work', 'university', 'crisis response', 'disaster relief', 'humanitarian',
     'aid network', 'nonprofit logistics', 'charity',
+    // Food distribution / community events (not CRE)
+    'food distribution', 'food bank', 'food pantry', 'food drive', 'community food',
+    'snap benefit', 'meal distribution', 'feeding program',
     // Banks / financial retail
     'bank debuts', 'bank opens', 'bank branch', 'credit union',
     // Residential home sales (catches "industrial heir sells Palm Beach home")
