@@ -164,9 +164,10 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'active adult', '55+', '55 and older', 'age-restricted',
     'senior living', 'assisted living', 'nursing home', 'memory care',
     'student housing', 'dormitory',
-    // Retail / Restaurant
+    // Retail / Restaurant / Bars
     'retail', 'restaurant', 'shopping center', 'mall', 'strip mall', 'outlet',
     'bookstore', 'grocery store', 'supermarket', 'convenience store',
+    'wine bar', 'cocktail bar', 'brewery', 'taproom', 'coffee shop', 'cafe opens',
     'bank branch',
     // Hospitality
     'hotel', 'hospitality', 'resort', 'motel', 'airbnb',
@@ -174,8 +175,11 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'self-storage', 'self storage', 'mini storage',
     // Auto / Car
     'car dealer', 'auto dealer', 'car dealership', 'auto dealership',
-    // Medical (non-industrial)
+    // Medical / Pharma / Biotech (non-industrial CRE)
     'medical office', 'medical center', 'hospital',
+    'cdmo', 'contract development and manufacturing', 'clinical-stage', 'commercial-stage',
+    'drug product', 'pharmaceutical powder', 'spray drying', 'inhaled therapy', 'nasal therapy',
+    'probiotic', 'clinical manufacturing',
     // Misc non-industrial
     'gym ', 'fitness center', 'boxing gym', 'yoga studio',
     'church', 'religious', 'museum', 'library',
@@ -188,10 +192,13 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     'mixed-use', 'mixed use',
     // Residential properties
     'mansion', 'estate sale', 'penthouse sale', 'townhouse sale',
+    'lists for $', 'compound built by', 'macy\'s heir', 'heir lists',
     // Residential brokerage
     'realtor',
     // Non-CRE institutions
-    'social work', 'university', 'crisis response', 'disaster relief', 'humanitarian',
+    'social work', 'university', 'institute of technology', 'college', 'curriculum',
+    'graduate-level', 'master of science', 'bioprocessing', 'cell therapy', 'gene therapy',
+    'crisis response', 'disaster relief', 'humanitarian',
     'aid network', 'nonprofit logistics', 'charity',
     // Food distribution / community events (not CRE)
     'food distribution', 'food bank', 'food pantry', 'food drive', 'community food',
@@ -205,6 +212,8 @@ export const EXCLUDE_NON_INDUSTRIAL = [
     // Boardwalk / entertainment / community (not CRE)
     'boardwalk', 'pavilion', 'community destination', 'amusement',
     'convention center', 'arena',
+    // District names that contain "warehouse" but aren't industrial
+    'warehouse arts district', 'warehouse district restaurant', 'warehouse district bar',
 ];
 
 // Industrial property keywords
