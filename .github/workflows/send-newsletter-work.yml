@@ -153,7 +153,10 @@ jobs:
           echo "❌ Work newsletter send failed!"
           echo "Check the logs above for error details"
 
-      # Auto-retry: if the job failed, trigger a retry run in 1 hour
+      # Auto-retry: wait, then trigger a retry run
+      # Retry 1: wait 30 min (give Cerebras rate limits time to clear)
+      # Retry 2: wait 60 min
+      # Retry 3: wait 60 min (last attempt ~2.5 hours after original 9 AM)
       # The dedup check will prevent double-sends if a previous retry already succeeded
       - name: Schedule retry on failure
         if: failure() && steps.dedup.outputs.skip != 'true'
@@ -189,7 +192,13 @@ jobs:
               return;
             }
 
-            console.log(`Retry ${todayRuns}/${maxRetries} — scheduling retry via workflow_dispatch...`);
+            // Staggered delay: 30 min for first retry, 60 min for subsequent
+            const retryNumber = todayRuns; // 1 = first retry, 2 = second, etc.
+            const delayMinutes = retryNumber === 1 ? 30 : 60;
+            console.log(`Retry ${retryNumber}/${maxRetries} — waiting ${delayMinutes} minutes before retrying...`);
+
+            // Sleep before dispatching (GitHub Actions allows up to 6 hours per job)
+            await new Promise(resolve => setTimeout(resolve, delayMinutes * 60 * 1000));
 
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -199,4 +208,4 @@ jobs:
               inputs: { force_send: 'true' }
             });
 
-            console.log('✅ Retry dispatched. Newsletter will be re-attempted shortly.');
+            console.log(`✅ Retry dispatched after ${delayMinutes}min wait. Newsletter will be re-attempted now.`);
