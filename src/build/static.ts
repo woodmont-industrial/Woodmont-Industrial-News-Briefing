@@ -337,7 +337,13 @@ export async function buildStaticRSS(): Promise<void> {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Running AI classification on articles using ${aiProvider}...`);
             try {
-                const aiResult = await filterArticlesWithAI(filteredNewItems, 40); // 40% minimum relevance - tighter filter for industrial focus
+                // Timeout AI classification after 5 minutes to prevent build hangs (e.g. Cerebras rate limits)
+                const AI_TIMEOUT_MS = 5 * 60 * 1000;
+                const aiPromise = filterArticlesWithAI(filteredNewItems, 40); // 40% minimum relevance - tighter filter for industrial focus
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error(`AI classification timed out after ${AI_TIMEOUT_MS / 1000}s`)), AI_TIMEOUT_MS)
+                );
+                const aiResult = await Promise.race([aiPromise, timeoutPromise]);
                 aiFilteredItems = aiResult.included;
 
                 // Log AI filtering stats
@@ -375,7 +381,13 @@ export async function buildStaticRSS(): Promise<void> {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Generating AI descriptions using ${aiProvider}...`);
             try {
-                await generateDescriptions(aiFilteredItems);
+                // Timeout description generation after 5 minutes to prevent build hangs
+                const DESC_TIMEOUT_MS = 5 * 60 * 1000;
+                const descPromise = generateDescriptions(aiFilteredItems);
+                const descTimeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error(`AI description generation timed out after ${DESC_TIMEOUT_MS / 1000}s`)), DESC_TIMEOUT_MS)
+                );
+                await Promise.race([descPromise, descTimeoutPromise]);
                 const withDesc = aiFilteredItems.filter(a => a.description && a.description.length >= 20).length;
                 log('info', `AI description generation complete`, { articlesWithDescriptions: withDesc, total: aiFilteredItems.length });
             } catch (error) {
