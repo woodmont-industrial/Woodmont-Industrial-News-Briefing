@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   send-newsletter:
@@ -151,3 +152,51 @@ jobs:
         run: |
           echo "❌ Work newsletter send failed!"
           echo "Check the logs above for error details"
+
+      # Auto-retry: if the job failed, trigger a retry run in 1 hour
+      # The dedup check will prevent double-sends if a previous retry already succeeded
+      - name: Schedule retry on failure
+        if: failure() && steps.dedup.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Check how many times we've already retried today
+            const now = new Date();
+            const todayStart = new Date(now);
+            todayStart.setUTCHours(0, 0, 0, 0);
+
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'send-newsletter-work.yml',
+              created: `>=${todayStart.toISOString().split('T')[0]}`,
+              per_page: 20
+            });
+
+            const todayRuns = runs.data.workflow_runs.length;
+            const maxRetries = 3;
+
+            if (todayRuns >= maxRetries + 1) {
+              console.log(`Already ${todayRuns} runs today (max ${maxRetries} retries). Giving up.`);
+              core.warning(`Newsletter failed after ${maxRetries} retries today. Manual intervention needed.`);
+              return;
+            }
+
+            // Check if any run today succeeded (no need to retry)
+            const successToday = runs.data.workflow_runs.some(r => r.conclusion === 'success');
+            if (successToday) {
+              console.log('A previous run today already succeeded — no retry needed.');
+              return;
+            }
+
+            console.log(`Retry ${todayRuns}/${maxRetries} — scheduling retry via workflow_dispatch...`);
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'send-newsletter-work.yml',
+              ref: 'main',
+              inputs: { force_send: 'true' }
+            });
+
+            console.log('✅ Retry dispatched. Newsletter will be re-attempted shortly.');
