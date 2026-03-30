@@ -48,11 +48,8 @@ export class CoStarScraper extends BaseScraper {
                     if (!link.includes('costar.com')) return;
                     if (link === window.location.href) return;
 
-                    // CoStar article patterns
-                    const isArticleLink = link.includes('/article/') ||
-                        link.includes('/news/') ||
-                        link.includes('/story/') ||
-                        link.match(/\/\d{4}\/\d{2}\//);
+                    // CoStar article pattern: /article/{numeric-id}/{slug}
+                    const isArticleLink = /\/article\/\d+\//.test(link);
 
                     if (!isArticleLink) return;
                     if (seen.has(link)) return;

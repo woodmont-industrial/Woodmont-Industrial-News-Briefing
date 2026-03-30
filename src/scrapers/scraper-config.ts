@@ -35,10 +35,22 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     // PRIMARY SCRAPERS (no working RSS)
     // ============================================
 
-    // CoStar disabled - fully paywalled, no public article content to extract
     // Reuters disabled - military-grade bot detection (Akamai), blocks all automated access
     // Traded.co disabled - Cloudflare Turnstile captcha, requires human interaction
 
+    {
+        domain: 'costar.com',
+        name: 'CoStar',
+        strategy: 'playwright',
+        type: 'primary',
+        targets: [
+            { url: 'https://www.costar.com/', label: 'CoStar Homepage' }
+        ],
+        maxRunsPerDay: 4,
+        cacheTTLMs: CRE_TTL,
+        access: 'paywalled',
+        feedType: 'news'
+    },
     {
         domain: 'apnews.com',
         name: 'AP News Business',
@@ -114,13 +126,13 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         domain: 'globest.com',
         name: 'GlobeSt',
         strategy: 'axios-pw-fallback',
-        type: 'supplementary',
+        type: 'primary',
         targets: [
             { url: 'https://www.globest.com/sectors/industrial/', label: 'GlobeSt Industrial' },
             { url: 'https://www.globest.com/', label: 'GlobeSt Home' }
         ],
-        maxRunsPerDay: 6,
-        cacheTTLMs: SUPPLEMENTARY_TTL,
+        maxRunsPerDay: 10,
+        cacheTTLMs: NEWS_TTL,
         access: 'paywalled',
         feedType: 'industrial-news'
     },
@@ -245,12 +257,53 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         feedType: 'listings'
     }
 
+    // ============================================
+    // NEW SCRAPERS — boss priority sources
+    // ============================================
+    {
+        domain: 'commercialsearch.com',
+        name: 'Commercial Search',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.commercialsearch.com/news/national/', label: 'CommercialSearch National' }
+        ],
+        maxRunsPerDay: 6,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        feedType: 'industrial-news'
+    },
+    {
+        domain: 'dailyrecord.com',
+        name: 'Daily Record',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.dailyrecord.com/news/business/', label: 'Daily Record Business' }
+        ],
+        maxRunsPerDay: 4,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        region: 'NJ',
+        feedType: 'news'
+    },
+    {
+        domain: 'bizjournals.com/southflorida',
+        name: 'South FL Business Journal',
+        strategy: 'playwright',
+        type: 'supplementary',
+        targets: [
+            { url: 'https://www.bizjournals.com/southflorida/news/commercial-real-estate', label: 'SFBJ CRE' }
+        ],
+        maxRunsPerDay: 4,
+        cacheTTLMs: SUPPLEMENTARY_TTL,
+        region: 'FL',
+        feedType: 'news',
+        access: 'paywalled'
+    }
+
     // NOTE: These domains remain covered by Google News RSS proxies:
-    // - CoStar (paywalled), Reuters (Akamai bot detection), Traded.co (Cloudflare Turnstile)
-    // - BizJournals (Cloudflare + paywall)
+    // - Reuters (Akamai bot detection), Traded.co (Cloudflare Turnstile)
     // - therealdeal.com, commercialobserver.com (paywalled CRE news)
-    // - roi-nj.com, re-nj.com (NJ regional coverage)
-    // - connectcre.com, commercialsearch.com (Cloudflare protected)
+    // - roi-nj.com, re-nj.com (NJ regional coverage via direct RSS)
 ];
 
 /**

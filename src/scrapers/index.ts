@@ -35,6 +35,9 @@ import { NJBIZScraper } from './domains/njbiz.js';
 import { LVBScraper } from './domains/lvb.js';
 import { REJournalsScraper } from './domains/rejournals.js';
 import { LoopNetScraper } from './domains/loopnet.js';
+import { CommercialSearchScraper } from './domains/commercialsearch.js';
+import { DailyRecordScraper } from './domains/dailyrecord.js';
+import { SFBJScraper } from './domains/sfbj.js';
 
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
@@ -68,6 +71,9 @@ function createScraper(config: ScraperDomainConfig): BaseScraper {
         case 'lvb.com': return new LVBScraper(config);
         case 'rejournals.com': return new REJournalsScraper(config);
         case 'loopnet.com': return new LoopNetScraper(config);
+        case 'commercialsearch.com': return new CommercialSearchScraper(config);
+        case 'dailyrecord.com': return new DailyRecordScraper(config);
+        case 'bizjournals.com/southflorida': return new SFBJScraper(config);
         default:
             throw new Error(`No scraper implementation for domain: ${config.domain}`);
     }
