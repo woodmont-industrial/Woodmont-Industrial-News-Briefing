@@ -494,6 +494,35 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         availabilities = dedupeByDealSignature(availabilities, dealSigs);
         relevant = dedupeByDealSignature(relevant, dealSigs);
 
+        // Title-based dedup: catch same article from different sources (e.g. GlobeSt direct + Google News)
+        const dedupeByTitle = (allSections: NormalizedItem[][]): void => {
+            const seenTitles: string[] = [];
+            const normalize = (t: string) => t.toLowerCase().replace(/\s*[-–—|]\s*(globest|costar|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|ad hoc news|law360|investing\.com|finimize|nareit|loopnet|tapinto).*$/i, '').replace(/^news\s*\|\s*/i, '').trim();
+
+            for (const section of allSections) {
+                for (let i = section.length - 1; i >= 0; i--) {
+                    const norm = normalize(section[i].title || '');
+                    const isDupe = seenTitles.some(prev => {
+                        if (norm === prev) return true;
+                        // Check if one title contains the other (catches partial matches)
+                        if (norm.length > 20 && prev.length > 20) {
+                            const shorter = norm.length < prev.length ? norm : prev;
+                            const longer = norm.length < prev.length ? prev : norm;
+                            if (longer.includes(shorter)) return true;
+                        }
+                        return false;
+                    });
+                    if (isDupe) {
+                        console.log(`🔁 Title dedup removed: "${section[i].title?.substring(0, 60)}" (duplicate title)`);
+                        section.splice(i, 1);
+                    } else {
+                        seenTitles.push(norm);
+                    }
+                }
+            }
+        };
+        dedupeByTitle([transactions, relevant, availabilities, people]);
+
         // Cap each section
         relevant = relevant.slice(0, MAX_PER_SECTION);
         transactions = transactions.slice(0, MAX_PER_SECTION);

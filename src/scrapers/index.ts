@@ -39,11 +39,11 @@ import { LoopNetScraper } from './domains/loopnet.js';
 // Minimum RSS article count before supplementary scraper kicks in
 const SUPPLEMENTARY_THRESHOLD = 3;
 
-// Total timeout for all scrapers combined (8 minutes — more scrapers re-enabled)
-const TOTAL_TIMEOUT_MS = 8 * 60 * 1000;
+// Total timeout for all scrapers combined (10 minutes — stealth plugin adds overhead)
+const TOTAL_TIMEOUT_MS = 10 * 60 * 1000;
 
-// Per-scraper timeout (45 seconds — SPA sites like JLL/CushWake need more time)
-const SCRAPER_TIMEOUT_MS = 45 * 1000;
+// Per-scraper timeout (75 seconds — stealth plugin + SPA rendering needs more time)
+const SCRAPER_TIMEOUT_MS = 75 * 1000;
 
 /**
  * Map domain to its scraper class
