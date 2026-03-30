@@ -255,7 +255,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: CRE_TTL,
         cloudflareProtected: true,
         feedType: 'listings'
-    }
+    },
 
     // ============================================
     // NEW SCRAPERS — boss priority sources
