@@ -65,11 +65,12 @@ export class CBREScraper extends BaseScraper {
                     if (!link.includes('cbre.com')) return;
                     if (link === window.location.href) return;
 
-                    const isArticleLink = (link.includes('/insights/') && link.split('/').length > 5) ||
+                    const isArticleLink =
+                        (link.includes('/insights/briefs/') && !link.endsWith('/briefs/')) ||
+                        (link.includes('/insights/articles/') && !link.endsWith('/articles/')) ||
+                        (link.includes('/insights/reports/') && !link.endsWith('/reports/')) ||
+                        (link.includes('/insights/figures/') && !link.endsWith('/figures/')) ||
                         link.includes('/press-releases/') ||
-                        link.includes('/newsroom/') ||
-                        (link.includes('/reports/') && link.split('/').length > 5) ||
-                        (link.includes('/articles/') && link.split('/').length > 5) ||
                         link.includes('/books/');
 
                     if (!isArticleLink) return;

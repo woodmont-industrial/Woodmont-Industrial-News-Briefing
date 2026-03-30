@@ -165,15 +165,14 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'cbre.com',
         name: 'CBRE',
-        strategy: 'axios-pw-fallback',
+        strategy: 'playwright',
         type: 'supplementary',
         targets: [
-            { url: 'https://www.cbre.com/insights/articles', label: 'CBRE Articles' },
-            { url: 'https://www.cbre.com/press-releases', label: 'CBRE Press Releases' }
+            { url: 'https://www.cbre.com/insights', label: 'CBRE Insights' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: CRE_TTL,
-        feedType: 'press-release'
+        feedType: 'industrial-news'
     },
 
     // BizJournals disabled - Cloudflare Turnstile + paywall, covered by Google News BizJournals RSS
