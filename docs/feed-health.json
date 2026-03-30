@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-30T18:54:48.073Z",
-  "totalFeeds": 14,
-  "successfulFeeds": 6,
+  "generatedAt": "2026-03-30T19:24:35.294Z",
+  "totalFeeds": 18,
+  "successfulFeeds": 10,
   "failedFeeds": 8,
-  "totalArticlesFetched": 37,
-  "totalArticlesKept": 37,
+  "totalArticlesFetched": 67,
+  "totalArticlesKept": 67,
   "feeds": [
     {
       "name": "Scraper: Bloomberg",
@@ -13,7 +13,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 18386,
+      "durationMs": 18176,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -24,7 +24,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 35710,
+      "durationMs": 36469,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -46,7 +46,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 58699,
+      "durationMs": 56737,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -68,7 +68,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 13745,
+      "durationMs": 13312,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -79,7 +79,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 17025,
+      "durationMs": 14817,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -90,7 +90,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 48994,
+      "durationMs": 48008,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -98,10 +98,10 @@
       "name": "Scraper: AP News Business",
       "url": "https://apnews.com/hub/real-estate, https://apnews.com/hub/business",
       "status": "ok",
-      "fetchedRaw": 18,
-      "keptAfterFiltering": 18,
+      "fetchedRaw": 19,
+      "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 15497,
+      "durationMs": 16979,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -109,10 +109,10 @@
       "name": "Scraper: Bisnow",
       "url": "https://www.bisnow.com/national/news, https://www.bisnow.com/new-york/news, https://www.bisnow.com/new-jersey/news",
       "status": "ok",
-      "fetchedRaw": 1,
-      "keptAfterFiltering": 1,
+      "fetchedRaw": 2,
+      "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 2687,
+      "durationMs": 1926,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -123,7 +123,29 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 16090,
+      "durationMs": 15802,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
+    },
+    {
+      "name": "Scraper: Commercial Search",
+      "url": "https://www.commercialsearch.com/news/national/",
+      "status": "ok",
+      "fetchedRaw": 9,
+      "keptAfterFiltering": 9,
+      "lastError": null,
+      "durationMs": 12005,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
+    },
+    {
+      "name": "Scraper: CoStar",
+      "url": "https://www.costar.com/",
+      "status": "ok",
+      "fetchedRaw": 16,
+      "keptAfterFiltering": 16,
+      "lastError": null,
+      "durationMs": 10529,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -134,18 +156,29 @@
       "fetchedRaw": 6,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 6630,
+      "durationMs": 7160,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
+    },
+    {
+      "name": "Scraper: Daily Record",
+      "url": "https://www.dailyrecord.com/news/business/",
+      "status": "ok",
+      "fetchedRaw": 1,
+      "keptAfterFiltering": 1,
+      "lastError": null,
+      "durationMs": 9842,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
     },
     {
       "name": "Scraper: GlobeSt",
       "url": "https://www.globest.com/sectors/industrial/, https://www.globest.com/",
       "status": "ok",
-      "fetchedRaw": 8,
-      "keptAfterFiltering": 8,
+      "fetchedRaw": 9,
+      "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 18360,
+      "durationMs": 20944,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -156,16 +189,27 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 13471,
+      "durationMs": 12892,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
+    },
+    {
+      "name": "Scraper: South FL Business Journal",
+      "url": "https://www.bizjournals.com/southflorida/news/commercial-real-estate",
+      "status": "ok",
+      "fetchedRaw": 1,
+      "keptAfterFiltering": 1,
+      "lastError": null,
+      "durationMs": 28287,
       "type": "scraper",
       "scraperStrategy": "playwright"
     }
   ],
   "scraperSummary": {
-    "total": 14,
-    "successful": 6,
+    "total": 18,
+    "successful": 10,
     "failed": 8,
-    "articlesFetched": 37,
-    "articlesKept": 37
+    "articlesFetched": 67,
+    "articlesKept": 67
   }
 }
