@@ -118,6 +118,7 @@ export const INTERNATIONAL_EXCLUDE = [
     'BRAESIDE', 'SEYMOUR, VIC', 'CHELMSFORD',
     // UK postcodes and locations
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
+    'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
@@ -125,6 +126,7 @@ export const INTERNATIONAL_EXCLUDE = [
     // Malaysia / Southeast Asia
     'RINGGIT', 'RM800', 'BERNAMA', 'BURSA MALAYSIA', 'JOHOR', 'JS-SEZ', 'SUNWAY',
     'KUALA LUMPUR', 'PENANG', 'SELANGOR', 'PUTRAJAYA', 'ISKANDAR',
+    'SARAWAK', 'ABANG JO', 'CHATTOGRAM',
     // Africa
     'BURKINA FASO', 'GHANA', 'NIGERIA', 'KENYA', 'SOUTH AFRICA', 'JOHANNESBURG',
     'LAGOS', 'NAIROBI', 'ACCRA', 'SHARJAH',
