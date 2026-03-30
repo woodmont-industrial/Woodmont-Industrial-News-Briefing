@@ -825,6 +825,11 @@ export async function fetchAllRSSArticles(): Promise<FetchResult[]> {
     const enabledFeeds = RSS_FEEDS.filter(f => f.enabled !== false);
     const results: FetchResult[] = [];
 
+    // Allow skipping RSS feeds (for scraper-only builds)
+    if (process.env.SKIP_RSS === 'true') {
+        console.log('[RSS] Skipping RSS feeds (SKIP_RSS=true) — scraper-only build');
+    } else {
+
     // Fetch in batches to avoid triggering rate limits
     for (let i = 0; i < enabledFeeds.length; i += BATCH_SIZE) {
         const batch = enabledFeeds.slice(i, i + BATCH_SIZE);
@@ -852,6 +857,8 @@ export async function fetchAllRSSArticles(): Promise<FetchResult[]> {
             meta: { feed: 'Manual Articles', fetchedRaw: manualArticles.length, kept: manualArticles.length, filteredOut: 0, durationMs: 0 }
         });
     }
+
+    } // end SKIP_RSS else block
 
     // ============================================
     // STEP: Run web scrapers for boss-priority sources

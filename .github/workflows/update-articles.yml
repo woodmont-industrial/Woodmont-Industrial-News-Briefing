@@ -30,21 +30,18 @@ jobs:
     - name: Install dependencies
       run: npm install --prefer-offline --no-audit
 
-    - name: Install Playwright browsers
-      run: npx playwright install chromium --with-deps
-
-    - name: Build RSS feeds with AI classification
+    - name: Build RSS feeds with AI classification (no scrapers)
       run: |
-        echo "📰 Starting RSS feed build with AI classification..."
+        echo "📰 Starting RSS-only feed build (scrapers run separately at 3 PM EST)..."
         npm run build-static
-        echo "✅ Build step completed"
+        echo "✅ RSS build completed"
       env:
         NODE_ENV: production
         CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
         CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        SKIP_SCRAPERS: ${{ vars.SKIP_SCRAPERS || 'false' }}
-      timeout-minutes: 20
+        SKIP_SCRAPERS: 'true'
+      timeout-minutes: 15
     
     - name: Verify build output
       run: |

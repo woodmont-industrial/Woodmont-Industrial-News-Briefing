@@ -1,0 +1,77 @@
+name: Update Articles (Scrapers Only)
+
+on:
+  schedule:
+    # Run Monday-Friday at 3 PM EST (19:00 UTC) — after newsletter, enriches feed for next day
+    - cron: '0 19 * * 1-5'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-scrapers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install --prefer-offline --no-audit
+
+    - name: Install Playwright browsers
+      run: npx playwright install chromium --with-deps
+
+    - name: Run scrapers only (skip RSS feeds)
+      run: |
+        echo "🕷️ Starting scraper-only build..."
+        npm run build-static
+        echo "✅ Scraper build completed"
+      env:
+        NODE_ENV: production
+        SKIP_RSS: 'true'
+        CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+        CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      timeout-minutes: 15
+
+    - name: Setup Git config
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+
+    - name: Commit and push if changed
+      run: |
+        git add docs/
+        if git diff --staged --quiet; then
+          echo "📋 No new scraper articles to commit"
+        else
+          ARTICLE_COUNT=$(node -e "const d=require('./docs/feed.json');console.log(d.items.length)")
+          git commit -m "🕷️ Scraper update - ${ARTICLE_COUNT} articles - $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Retry push with rebase to handle race conditions
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded on attempt $i"
+              break
+            fi
+            echo "Push failed (attempt $i), pulling with rebase..."
+            git fetch origin main
+            git rebase origin/main --strategy-option=ours || {
+              git rebase --abort
+              git pull --no-rebase -X ours || true
+            }
+          done
+        fi
+
+    - name: Report
+      if: success()
+      run: echo "✅ Scraper articles merged into feed"
