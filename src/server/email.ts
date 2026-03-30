@@ -523,7 +523,69 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         };
         dedupeByTitle([transactions, relevant, availabilities, people]);
 
-        // Cap each section
+        // Quality scoring: rank articles so the best survive the cap
+        const scoreArticle = (a: NormalizedItem): number => {
+            let score = 0;
+            const text = `${a.title || ''} ${a.description || ''}`.toLowerCase();
+            const url = (a.link || a.url || '').toLowerCase();
+
+            // Region bonus: NJ/PA/FL articles score higher (boss priority)
+            if (/new jersey|nj |newark|edison|rahway|carlstadt|piscataway|meadowlands|exit \d/i.test(text)) score += 30;
+            if (/pennsylvania|philadelphia|philly|allentown|lehigh/i.test(text)) score += 25;
+            if (/florida|miami|orlando|doral|jacksonville|tampa|broward/i.test(text)) score += 20;
+
+            // Deal size bonus
+            const sfMatch = text.match(/([\d,.]+)\s*(?:million\s*)?(?:sf|sq\.?\s*f|square\s*f)/i);
+            if (sfMatch) {
+                const sf = parseFloat(sfMatch[1].replace(/,/g, ''));
+                if (sf >= 500000) score += 25;
+                else if (sf >= 100000) score += 15;
+                else if (sf >= 50000) score += 5;
+            }
+            const dollarMatch = text.match(/\$([\d,.]+)\s*(million|m\b|billion|b\b)/i);
+            if (dollarMatch) {
+                const amt = parseFloat(dollarMatch[1].replace(/,/g, ''));
+                const mult = /billion|b\b/i.test(dollarMatch[2]) ? 1000 : 1;
+                const millions = amt * mult;
+                if (millions >= 100) score += 25;
+                else if (millions >= 25) score += 15;
+                else if (millions >= 10) score += 5;
+            }
+
+            // Key company bonus
+            if (/prologis|amazon|blackstone|ares|eqt|link logistics|bridge industrial|sagard|woodmont/i.test(text)) score += 15;
+
+            // Direct source bonus (not Google News redirect)
+            if (!url.includes('news.google.com')) score += 10;
+
+            // Has description bonus (richer content)
+            if ((a.description || '').length > 50) score += 5;
+
+            // Recency bonus (newer articles score slightly higher)
+            const pub = a.pubDate || a.date_published || '';
+            if (pub) {
+                const hoursAgo = (Date.now() - new Date(pub).getTime()) / (1000 * 60 * 60);
+                if (hoursAgo < 12) score += 10;
+                else if (hoursAgo < 24) score += 5;
+            }
+
+            return score;
+        };
+
+        // Sort each section by quality score (highest first)
+        const sortByScore = (articles: NormalizedItem[]) => {
+            return articles.sort((a, b) => scoreArticle(b) - scoreArticle(a));
+        };
+        relevant = sortByScore(relevant);
+        transactions = sortByScore(transactions);
+        availabilities = sortByScore(availabilities);
+        people = sortByScore(people);
+
+        // Log top scores for debugging
+        if (relevant.length > 0) console.log(`🏆 Top relevant: "${relevant[0].title?.substring(0, 50)}" (score: ${scoreArticle(relevant[0])})`);
+        if (transactions.length > 0) console.log(`🏆 Top transaction: "${transactions[0].title?.substring(0, 50)}" (score: ${scoreArticle(transactions[0])})`);
+
+        // Cap each section (best articles survive)
         relevant = relevant.slice(0, MAX_PER_SECTION);
         transactions = transactions.slice(0, MAX_PER_SECTION);
         availabilities = availabilities.slice(0, MAX_AVAILABILITIES);

@@ -4,6 +4,8 @@ on:
   schedule:
     # Run Monday-Friday at 3 PM EST (19:00 UTC) — after newsletter, enriches feed for next day
     - cron: '0 19 * * 1-5'
+    # Run Sunday at 6 PM EST (23:00 UTC) — catch weekend scraper articles for Monday newsletter
+    - cron: '0 23 * * 0'
   workflow_dispatch: # Allow manual trigger
 
 permissions:

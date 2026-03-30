@@ -149,6 +149,22 @@ jobs:
           echo "❌ Work newsletter send failed!"
           echo "Check the logs above for error details"
 
+      # Send failure alert email so someone knows to check
+      - name: Send failure alert
+        if: failure() && steps.dedup.outputs.skip != 'true'
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            curl -s -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"to\":\"$EMAIL_TO\",\"subject\":\"[ALERT] Newsletter failed - $(date -u +'%Y-%m-%d')\",\"body\":\"<p>The daily newsletter workflow failed. Auto-retry is in progress.</p><p><a href='$RUN_URL'>View workflow run</a></p>\",\"apiKey\":\"$WEBHOOK_SECRET\"}" \
+              && echo "Alert email sent" || echo "Alert send failed"
+          fi
+
       # Auto-retry: wait, then trigger a retry run
       # Retry 1: wait 30 min (give Cerebras rate limits time to clear)
       # Retry 2: wait 60 min

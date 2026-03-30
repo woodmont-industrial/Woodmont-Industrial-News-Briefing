@@ -23,7 +23,7 @@ export class CushWakeScraper extends BaseScraper {
         try {
             // Wait for any meaningful content
             await page.waitForSelector('[class*="card"], [class*="article"], [class*="news"], [class*="result"], a[href*="/news/"], a[href*="/insights/"]', {
-                timeout: 25000
+                timeout: 15000
             }).catch(() => {});
 
             // Handle cookie consent
@@ -35,14 +35,11 @@ export class CushWakeScraper extends BaseScraper {
                 }
             } catch { /* No consent dialog */ }
 
-            // Scroll progressively to trigger lazy loading
-            for (let i = 0; i < 4; i++) {
-                await page.evaluate(() => window.scrollBy(0, 800));
-                await randomDelay(800, 1500);
+            // Scroll to trigger lazy loading (2 scrolls is sufficient)
+            for (let i = 0; i < 2; i++) {
+                await page.evaluate(() => window.scrollBy(0, 1000));
+                await randomDelay(400, 700);
             }
-
-            // Extra wait for late-loading SPA content
-            await randomDelay(1000, 2000);
 
             const items = await page.evaluate(() => {
                 const results: { title: string; link: string; description: string; date: string }[] = [];

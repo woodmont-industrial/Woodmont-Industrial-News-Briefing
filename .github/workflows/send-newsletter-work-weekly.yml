@@ -29,16 +29,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
-
-      - name: Build fresh RSS data with AI filtering
+      - name: Build fresh RSS data (no scrapers)
         run: npm run build
         env:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          SKIP_PLAYWRIGHT: 'true'
+          SKIP_SCRAPERS: 'true'
         timeout-minutes: 10
 
       - name: Send Work Weekly Newsletter

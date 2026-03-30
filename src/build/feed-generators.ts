@@ -241,6 +241,9 @@ interface FeedHealthEntry {
     durationMs: number;
     type: 'rss' | 'scraper';
     scraperStrategy?: string;
+    // Reliability tracking (accumulated over builds)
+    successRate?: string;   // e.g. "85%" (last 20 runs)
+    recentHistory?: ('ok' | 'fail')[];  // last 20 run results
 }
 
 interface FeedHealthReport {
@@ -260,8 +263,16 @@ interface FeedHealthReport {
     };
 }
 
-export function generateFeedHealthReport(results: FetchResult[]): FeedHealthReport {
+export function generateFeedHealthReport(results: FetchResult[], previousReport?: FeedHealthReport): FeedHealthReport {
     const feeds: FeedHealthEntry[] = [];
+
+    // Load previous history for reliability tracking
+    const prevHistoryMap = new Map<string, ('ok' | 'fail')[]>();
+    if (previousReport?.feeds) {
+        for (const f of previousReport.feeds) {
+            if (f.recentHistory) prevHistoryMap.set(f.name, f.recentHistory);
+        }
+    }
 
     const feedUrlMap = new Map<string, string>();
     for (const feed of RSS_FEEDS) {
@@ -285,6 +296,13 @@ export function generateFeedHealthReport(results: FetchResult[]): FeedHealthRepo
             feedUrl = feedUrlMap.get(feedName) || 'unknown';
         }
 
+        // Build reliability history (last 20 runs)
+        const prevHistory = prevHistoryMap.get(feedName) || [];
+        const currentStatus: 'ok' | 'fail' = result.status === 'ok' ? 'ok' : 'fail';
+        const recentHistory = [...prevHistory, currentStatus].slice(-20);
+        const okCount = recentHistory.filter(s => s === 'ok').length;
+        const successRate = recentHistory.length > 0 ? Math.round((okCount / recentHistory.length) * 100) + '%' : 'N/A';
+
         feeds.push({
             name: feedName,
             url: feedUrl,
@@ -294,7 +312,9 @@ export function generateFeedHealthReport(results: FetchResult[]): FeedHealthRepo
             lastError: result.error?.message || null,
             durationMs: result.meta.durationMs,
             type: isScraper ? 'scraper' : 'rss',
-            scraperStrategy: scraperConfig?.strategy
+            scraperStrategy: scraperConfig?.strategy,
+            successRate,
+            recentHistory
         });
     }
 

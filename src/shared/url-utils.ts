@@ -13,6 +13,10 @@ export function normalizeTitle(title: string): string {
     if (!title) return '';
     return title
         .toLowerCase()
+        // Strip source suffixes: "- CoStar", "- GlobeSt", "| WSJ", etc.
+        .replace(/\s*[-–—|]\s*(costar|globest|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|ad hoc news|law360|investing\.com|finimize|nareit|loopnet|tapinto|freightwaves|wplg|cbs news|news channel|production engineering|thestar|daily record|njbiz|roi-nj|re-nj|commercial property executive|cpexecutive|lvb\.com|aol|miami herald|yahoo finance|tradingview|techbullion|pelican post|pennlive|yourvalley|capitol press|savannah now|wlaf|moit).*$/i, '')
+        // Strip "News | " prefix from CoStar articles
+        .replace(/^news\s*\|\s*/i, '')
         .replace(/[^\w\s]/g, '')
         .replace(/\s+/g, ' ')
         .trim();

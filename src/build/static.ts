@@ -5,6 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import axios from 'axios';
 import { log } from '../server/logging.js';
 import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySource } from '../feeds/fetcher.js';
 import { NormalizedItem, FetchResult } from '../types/index.js';
@@ -17,6 +18,99 @@ import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
+
+// =====================================================================
+// og:image extraction for articles missing real thumbnails
+// =====================================================================
+
+const OG_IMAGE_TIMEOUT_MS = 5000;
+const OG_IMAGE_BATCH_SIZE = 10;
+const OG_IMAGE_MAX_BYTES = 5000;
+
+/**
+ * Check if an article has a real image (not a picsum placeholder and not empty)
+ */
+function hasRealImage(item: NormalizedItem): boolean {
+    const img = item.image || item.thumbnailUrl || '';
+    return img.length > 0 && !img.includes('picsum.photos');
+}
+
+/**
+ * Fetch the first ~5000 bytes of a URL and extract og:image meta tag
+ */
+async function extractOgImage(url: string): Promise<string | null> {
+    try {
+        const resp = await axios.get(url, {
+            timeout: OG_IMAGE_TIMEOUT_MS,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html',
+            },
+            maxContentLength: OG_IMAGE_MAX_BYTES * 4, // allow some overhead
+            responseType: 'text',
+            maxRedirects: 3,
+            validateStatus: (s: number) => s >= 200 && s < 400,
+        });
+
+        // Only look at the first ~5000 chars (the <head> section)
+        const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_MAX_BYTES * 2) : '';
+
+        // Try og:image first, then twitter:image
+        const ogMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']og:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
+            || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']og:image["']/i);
+        if (ogMatch && ogMatch[1]) {
+            const imgUrl = ogMatch[1].trim();
+            if (imgUrl.startsWith('http')) return imgUrl;
+        }
+
+        const twMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']twitter:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
+            || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']twitter:image["']/i);
+        if (twMatch && twMatch[1]) {
+            const imgUrl = twMatch[1].trim();
+            if (imgUrl.startsWith('http')) return imgUrl;
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Batch-fetch og:image for articles that don't have real images.
+ * Processes in batches to avoid overwhelming servers.
+ */
+async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
+    const needsImage = items.filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'));
+
+    if (needsImage.length === 0) {
+        log('info', 'og:image enrichment: all articles already have real images');
+        return;
+    }
+
+    log('info', `og:image enrichment: ${needsImage.length} articles need images, fetching in batches of ${OG_IMAGE_BATCH_SIZE}`);
+
+    let found = 0;
+    let failed = 0;
+
+    for (let i = 0; i < needsImage.length; i += OG_IMAGE_BATCH_SIZE) {
+        const batch = needsImage.slice(i, i + OG_IMAGE_BATCH_SIZE);
+        const results = await Promise.allSettled(
+            batch.map(async (item) => {
+                const ogImage = await extractOgImage(item.link);
+                if (ogImage) {
+                    item.image = ogImage;
+                    item.thumbnailUrl = ogImage;
+                    found++;
+                } else {
+                    failed++;
+                }
+            })
+        );
+    }
+
+    log('info', `og:image enrichment complete: ${found} found, ${failed} failed (still placeholder), ${items.length - needsImage.length} already had images`);
+}
 
 // Directory for static output
 const DOCS_DIR = path.join(process.cwd(), 'docs');
@@ -682,6 +776,9 @@ export async function buildStaticRSS(): Promise<void> {
         const rssItems = regionFiltered;
         log('info', `Final feed: ${rssItems.length} articles`);
 
+        // === STEP 5: Enrich articles with og:image thumbnails ===
+        await enrichArticleImages(rssItems);
+
         // Ensure docs directory exists
         if (!fs.existsSync(DOCS_DIR)) {
             fs.mkdirSync(DOCS_DIR, { recursive: true });
@@ -703,7 +800,15 @@ export async function buildStaticRSS(): Promise<void> {
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });
 
         // Generate Feed Health Report
-        const feedHealthReport = generateFeedHealthReport(results);
+        // Load previous health report for reliability history
+        let previousHealthReport: any = undefined;
+        try {
+            const prevPath = path.join(DOCS_DIR, 'feed-health.json');
+            if (fs.existsSync(prevPath)) {
+                previousHealthReport = JSON.parse(fs.readFileSync(prevPath, 'utf-8'));
+            }
+        } catch { /* ignore */ }
+        const feedHealthReport = generateFeedHealthReport(results, previousHealthReport);
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
         log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
 
