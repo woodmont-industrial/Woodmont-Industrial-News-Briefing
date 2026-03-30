@@ -23,7 +23,6 @@ const BLOCKED_FEED_DOMAINS = [
     'prologis.com',
     'traded.co',
     'commercialsearch.com',
-    'rejournals.com',
     'roi-nj.com',
     'lvb.com',
     'credaily.com'

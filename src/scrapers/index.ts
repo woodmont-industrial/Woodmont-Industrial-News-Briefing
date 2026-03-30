@@ -5,10 +5,16 @@
  * and returns FetchResult[] compatible with the RSS pipeline.
  */
 
-import { chromium, Browser } from 'playwright';
+import { Browser } from 'playwright';
+import { chromium } from 'playwright-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { FetchResult } from '../types/index.js';
 import { SCRAPER_CONFIGS, getPrimaryScrapers, getSupplementaryScrapers, ScraperDomainConfig } from './scraper-config.js';
 import { BaseScraper } from './base-scraper.js';
+
+// Apply stealth plugin — handles dozens of bot detection vectors
+// (navigator.webdriver, chrome.csi, chrome.loadTimes, iframe contentWindow, etc.)
+chromium.use(StealthPlugin());
 
 // Domain scraper imports
 import { CoStarScraper } from './domains/costar.js';
