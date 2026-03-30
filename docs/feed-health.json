@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-30T19:24:35.294Z",
+  "generatedAt": "2026-03-30T19:55:21.859Z",
   "totalFeeds": 18,
-  "successfulFeeds": 10,
-  "failedFeeds": 8,
-  "totalArticlesFetched": 67,
-  "totalArticlesKept": 67,
+  "successfulFeeds": 9,
+  "failedFeeds": 9,
+  "totalArticlesFetched": 62,
+  "totalArticlesKept": 62,
   "feeds": [
     {
       "name": "Scraper: Bloomberg",
@@ -13,7 +13,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 18176,
+      "durationMs": 18899,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -24,7 +24,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 36469,
+      "durationMs": 36305,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -40,13 +40,24 @@
       "scraperStrategy": "playwright"
     },
     {
+      "name": "Scraper: Daily Record",
+      "url": "https://www.dailyrecord.com/news/business/",
+      "status": "failed",
+      "fetchedRaw": 0,
+      "keptAfterFiltering": 0,
+      "lastError": "Scraper timeout",
+      "durationMs": 0,
+      "type": "scraper",
+      "scraperStrategy": "playwright"
+    },
+    {
       "name": "Scraper: JLL",
       "url": "https://www.us.jll.com/en/newsroom, https://www.us.jll.com/en/trends-and-insights/research",
       "status": "failed",
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 56737,
+      "durationMs": 60656,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -68,7 +79,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 13312,
+      "durationMs": 12183,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -79,7 +90,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 14817,
+      "durationMs": 16150,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -90,7 +101,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 48008,
+      "durationMs": 46807,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -101,7 +112,7 @@
       "fetchedRaw": 19,
       "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 16979,
+      "durationMs": 12592,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -109,10 +120,10 @@
       "name": "Scraper: Bisnow",
       "url": "https://www.bisnow.com/national/news, https://www.bisnow.com/new-york/news, https://www.bisnow.com/new-jersey/news",
       "status": "ok",
-      "fetchedRaw": 2,
-      "keptAfterFiltering": 2,
+      "fetchedRaw": 1,
+      "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 1926,
+      "durationMs": 647,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -123,7 +134,7 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 15802,
+      "durationMs": 14003,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -134,7 +145,7 @@
       "fetchedRaw": 9,
       "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 12005,
+      "durationMs": 11724,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -142,10 +153,10 @@
       "name": "Scraper: CoStar",
       "url": "https://www.costar.com/",
       "status": "ok",
-      "fetchedRaw": 16,
-      "keptAfterFiltering": 16,
+      "fetchedRaw": 12,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 10529,
+      "durationMs": 9950,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -156,29 +167,18 @@
       "fetchedRaw": 6,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 7160,
+      "durationMs": 7943,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
-    },
-    {
-      "name": "Scraper: Daily Record",
-      "url": "https://www.dailyrecord.com/news/business/",
-      "status": "ok",
-      "fetchedRaw": 1,
-      "keptAfterFiltering": 1,
-      "lastError": null,
-      "durationMs": 9842,
-      "type": "scraper",
-      "scraperStrategy": "playwright"
     },
     {
       "name": "Scraper: GlobeSt",
       "url": "https://www.globest.com/sectors/industrial/, https://www.globest.com/",
       "status": "ok",
-      "fetchedRaw": 9,
-      "keptAfterFiltering": 9,
+      "fetchedRaw": 10,
+      "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 20944,
+      "durationMs": 22769,
       "type": "scraper",
       "scraperStrategy": "axios-pw-fallback"
     },
@@ -189,7 +189,7 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 12892,
+      "durationMs": 12138,
       "type": "scraper",
       "scraperStrategy": "playwright"
     },
@@ -200,16 +200,16 @@
       "fetchedRaw": 1,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 28287,
+      "durationMs": 28980,
       "type": "scraper",
       "scraperStrategy": "playwright"
     }
   ],
   "scraperSummary": {
     "total": 18,
-    "successful": 10,
-    "failed": 8,
-    "articlesFetched": 67,
-    "articlesKept": 67
+    "successful": 9,
+    "failed": 9,
+    "articlesFetched": 62,
+    "articlesKept": 62
   }
 }
