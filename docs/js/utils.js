@@ -521,43 +521,58 @@
     var token = getGitHubToken();
     if (!token) return { ok: false, reason: 'no_token' };
 
-    try {
-      var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + EXCLUDE_FILE_PATH;
-      var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+    // Retry up to 3 times on SHA mismatch (409 conflict)
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + EXCLUDE_FILE_PATH;
+        var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
 
-      // GET current file
-      var getResp = await fetch(apiBase, { headers: headers });
-      if (!getResp.ok) return { ok: false, reason: 'fetch_failed' };
-      var fileData = await getResp.json();
-      var content = JSON.parse(atob(fileData.content));
+        // GET current file (fresh SHA each attempt)
+        var getResp = await fetch(apiBase, { headers: headers });
+        if (!getResp.ok) return { ok: false, reason: 'fetch_failed (' + getResp.status + ')' };
+        var fileData = await getResp.json();
+        var content = JSON.parse(atob(fileData.content));
 
-      // Check if already excluded
-      var ids = content.excludedIds || [];
-      var urls = content.excludedUrls || [];
-      var alreadyExcluded = ids.indexOf(articleId) !== -1;
-      if (alreadyExcluded) return { ok: true, reason: 'already_excluded' };
+        // Check if already excluded
+        var ids = content.excludedIds || [];
+        var urls = content.excludedUrls || [];
+        var alreadyExcluded = ids.indexOf(articleId) !== -1;
+        if (alreadyExcluded) return { ok: true, reason: 'already_excluded' };
 
-      // Add article
-      ids.push(articleId);
-      if (articleUrl && urls.indexOf(articleUrl) === -1) urls.push(articleUrl);
-      content.excludedIds = ids;
-      content.excludedUrls = urls;
+        // Add article
+        ids.push(articleId);
+        if (articleUrl && urls.indexOf(articleUrl) === -1) urls.push(articleUrl);
+        content.excludedIds = ids;
+        content.excludedUrls = urls;
 
-      // PUT updated file
-      var putResp = await fetch(apiBase, {
-        method: 'PUT',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
-        body: JSON.stringify({
-          message: 'Exclude: ' + (articleTitle || '').substring(0, 60),
-          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
-          sha: fileData.sha
-        })
-      });
-      return { ok: putResp.ok, reason: putResp.ok ? 'synced' : 'put_failed' };
-    } catch (e) {
-      console.error('GitHub sync error:', e);
-      return { ok: false, reason: 'error' };
+        // PUT updated file
+        var putResp = await fetch(apiBase, {
+          method: 'PUT',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+          body: JSON.stringify({
+            message: 'Exclude: ' + (articleTitle || '').substring(0, 60),
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n'))),
+            sha: fileData.sha
+          })
+        });
+
+        if (putResp.ok) return { ok: true, reason: 'synced' };
+
+        // SHA mismatch (409) — retry with fresh SHA
+        if (putResp.status === 409 && attempt < 2) {
+          console.warn('SHA conflict on exclude, retrying (attempt ' + (attempt + 2) + '/3)...');
+          await new Promise(function(r) { setTimeout(r, 1000); });
+          continue;
+        }
+
+        var errBody = await putResp.text().catch(function() { return ''; });
+        return { ok: false, reason: 'put_failed (' + putResp.status + '): ' + errBody.substring(0, 100) };
+      } catch (e) {
+        console.error('GitHub sync error:', e);
+        return { ok: false, reason: 'error: ' + (e.message || '').substring(0, 80) };
+      }
     }
+    return { ok: false, reason: 'max_retries_exceeded' };
   }
 
   var INCLUDE_FILE_PATH = 'docs/included-articles.json';
