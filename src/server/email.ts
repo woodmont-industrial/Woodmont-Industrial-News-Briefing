@@ -637,15 +637,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     }
                 }
 
-                // Block Google News articles with no real description (just title repeated)
+                // Fix Google News articles with no real description (title repeated as desc)
+                // Instead of blocking, clean up the description so the article can still be sent
                 if (url.includes('news.google.com')) {
-                    const title = (a.title || '').trim().toLowerCase();
-                    const desc = (a.description || (a as any).content_text || '').trim().toLowerCase();
-                    const titleNorm = title.replace(/[^\w\s]/g, '').trim();
-                    const descNorm = desc.replace(/[^\w\s]/g, '').trim();
+                    const title = (a.title || '').trim();
+                    const desc = (a.description || (a as any).content_text || '').trim();
+                    const titleNorm = title.toLowerCase().replace(/[^\w\s]/g, '').trim();
+                    const descNorm = desc.toLowerCase().replace(/[^\w\s]/g, '').trim();
                     if (descNorm.startsWith(titleNorm.substring(0, 30)) && descNorm.length < titleNorm.length + 40) {
-                        console.log(`🚫 FINAL GATE blocked (no real description): "${a.title?.substring(0, 60)}" [${sectionName}]`);
-                        return false;
+                        // Clean up: strip source suffix from title to make a passable description
+                        const cleaned = title.replace(/\s*[-–—|]\s*(CoStar|GlobeSt|MSN|Yahoo|Bisnow|CommercialSearch|REBusinessOnline|Connect CRE|The Business Journals|Commercial Observer|Supply Chain Dive|FreightWaves|Real Estate NJ|WSJ|Law360|LoopNet|AD HOC NEWS).*$/i, '').trim();
+                        a.description = cleaned;
+                        (a as any).content_text = cleaned;
+                        console.log(`📝 FINAL GATE cleaned description: "${title.substring(0, 60)}" [${sectionName}]`);
                     }
                 }
 
