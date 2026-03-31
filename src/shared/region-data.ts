@@ -116,11 +116,16 @@ export const INTERNATIONAL_EXCLUDE = [
     'BOTANY, NSW', 'AUBURN, NSW', 'DONEGAL', 'PRAYAGRAJ',
     'NEW SOUTH WALES', 'QUEENSLAND', 'VICTORIA, AU',
     'BRAESIDE', 'SEYMOUR, VIC', 'CHELMSFORD', 'MULGRAVE',
+    'LAVERTON NORTH', 'WAGGA WAGGA', 'BURLEIGH HEADS', 'POINT COOK',
+    'WILLIAMSTOWN, VIC', 'MARIBYRNONG', 'CANNONVALE', 'ARTARMON', 'MELTON, VIC',
     // Australian postcodes that leak via LoopNet
     ', 2756 ', ', 2170 ', ', 2164 ', ', 2200 ', ', 2565 ',
+    ', 3026 ', ', 2650 ', ', 4220 ', ', 3030 ', ', 3016 ', ', 3032 ',
+    ', 4802 ', ', 2064 ', ', 3337 ',
     // UK postcodes and locations
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
     'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
+    'CHELTENHAM', 'GL51',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland

@@ -612,6 +612,31 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     return false;
                 }
 
+                // Block LoopNet international listings: any 4-digit postcode NOT in US zip format
+                // Australian postcodes are 4 digits (2000-9999), LoopNet titles contain them as ", NNNN CityName"
+                const titleText = (a.title || '');
+                if (/loopnet/i.test(titleText) && /,\s*\d{4}\s+[A-Z]/i.test(titleText)) {
+                    // Check it's not a US address (US zips are 5 digits, not 4)
+                    // Australian format: "8 Curtis Rd, 2756 Mulgrave" — 4-digit code before city name
+                    console.log(`🚫 FINAL GATE blocked (LoopNet international listing): "${titleText.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+
+                // Block UK postcodes in LoopNet titles (e.g. GL51 9NJ, OX26 4LD)
+                if (/loopnet/i.test(titleText) && /[A-Z]{1,2}\d{1,2}\s*\d[A-Z]{2}/i.test(titleText)) {
+                    console.log(`🚫 FINAL GATE blocked (LoopNet UK listing): "${titleText.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+
+                // Block non-target US states in LoopNet titles (Bohemia NY, Grand Rapids MI, etc.)
+                if (/loopnet/i.test(titleText)) {
+                    const nonTargetStates = /\b(NY|MI|OH|TX|CA|IL|GA|NC|AZ|NV|WA|OR|CO|MN|WI|TN|IN|MO|SC|AL|LA|KY|CT|UT|OK|AR|KS|MS|NE|WV|ID|HI|ME|NH|RI|MT|DE|SD|ND|AK|VT|WY|DC)\s+\d{5}\b/i;
+                    if (nonTargetStates.test(titleText)) {
+                        console.log(`🚫 FINAL GATE blocked (LoopNet non-target state): "${titleText.substring(0, 60)}" [${sectionName}]`);
+                        return false;
+                    }
+                }
+
                 // Block Google News articles with no real description (just title repeated)
                 if (url.includes('news.google.com')) {
                     const title = (a.title || '').trim().toLowerCase();

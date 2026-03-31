@@ -154,6 +154,7 @@ const EXCLUDE_CITIES_EXTRA = [
     'CEDAR PARK', 'LA PORTE', 'CONCORD, NC', 'CONCORD, CA',
     'PLATTE CITY', 'ROCK ISLAND', 'KOKOMO', 'HILLSBORO, OR',
     'CENLA', 'CENTRAL LOUISIANA', 'BEEVILLE',
+    'GRAND RAPIDS', 'KALAMAZOO', 'STOCKTON, CA', 'BOHEMIA, NY',
 ];
 
 export function isNotExcludedRegion(article: NormalizedItem): boolean {
