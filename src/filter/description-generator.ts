@@ -145,7 +145,20 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
     }
 
     const needsDesc = articles.filter(a => {
-        if (a.description && a.description.trim().length >= 20) return false;
+        const desc = (a.description || '').trim();
+        const title = (a.title || '').trim();
+        // Has a real description (not just the title repeated)
+        if (desc.length >= 20) {
+            // Check if the description is just the title + source name
+            // Google News RSS sets description = "Article Title SourceName"
+            const titleNorm = title.toLowerCase().replace(/[^\w\s]/g, '').trim();
+            const descNorm = desc.toLowerCase().replace(/[^\w\s]/g, '').trim();
+            if (descNorm.startsWith(titleNorm) && descNorm.length < titleNorm.length + 40) {
+                // Description is basically the title — needs a real one
+                return true;
+            }
+            return false;
+        }
         // Skip paywalled — AI will hallucinate without article content
         if (isPaywalled(a.source || '', (a as any).url || a.link || '')) return false;
         return true;

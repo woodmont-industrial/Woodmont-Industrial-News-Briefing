@@ -115,7 +115,9 @@ export const INTERNATIONAL_EXCLUDE = [
     'BROADMEADOWS', 'DRYSDALE', 'BYRON BAY', 'STAWELL', 'SOUTH NOWRA', 'COWES',
     'BOTANY, NSW', 'AUBURN, NSW', 'DONEGAL', 'PRAYAGRAJ',
     'NEW SOUTH WALES', 'QUEENSLAND', 'VICTORIA, AU',
-    'BRAESIDE', 'SEYMOUR, VIC', 'CHELMSFORD',
+    'BRAESIDE', 'SEYMOUR, VIC', 'CHELMSFORD', 'MULGRAVE',
+    // Australian postcodes that leak via LoopNet
+    ', 2756 ', ', 2170 ', ', 2164 ', ', 2200 ', ', 2565 ',
     // UK postcodes and locations
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
     'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
