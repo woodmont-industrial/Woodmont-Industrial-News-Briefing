@@ -3,7 +3,7 @@ import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
-import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
+import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
@@ -590,6 +590,48 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = transactions.slice(0, MAX_PER_SECTION);
         availabilities = availabilities.slice(0, MAX_AVAILABILITIES);
         people = people.slice(0, MAX_PER_SECTION);
+
+        // === FINAL GATE: Last-resort validation before sending to boss ===
+        // Catches anything that slipped past all other filters
+        // Uses isNotExcludedRegion (already imported) which checks INTERNATIONAL_EXCLUDE + region matching
+        // Uses isStrictlyIndustrial (already imported) which checks EXCLUDE_NON_INDUSTRIAL + industrial keywords
+        const finalGate = (articles: NormalizedItem[], sectionName: string): NormalizedItem[] => {
+            return articles.filter(a => {
+                const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
+                const url = (a.link || a.url || '').toLowerCase();
+
+                // Re-run the region exclusion check (catches international leaks)
+                if (!isNotExcludedRegion(a)) {
+                    console.log(`🚫 FINAL GATE blocked (excluded region): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+
+                // Re-run the industrial content check (catches pharma, residential, restaurants)
+                if (!isStrictlyIndustrial(text)) {
+                    console.log(`🚫 FINAL GATE blocked (not industrial): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+
+                // Block Google News articles with no real description (just title repeated)
+                if (url.includes('news.google.com')) {
+                    const title = (a.title || '').trim().toLowerCase();
+                    const desc = (a.description || (a as any).content_text || '').trim().toLowerCase();
+                    const titleNorm = title.replace(/[^\w\s]/g, '').trim();
+                    const descNorm = desc.replace(/[^\w\s]/g, '').trim();
+                    if (descNorm.startsWith(titleNorm.substring(0, 30)) && descNorm.length < titleNorm.length + 40) {
+                        console.log(`🚫 FINAL GATE blocked (no real description): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+        };
+
+        relevant = finalGate(relevant, 'Relevant');
+        transactions = finalGate(transactions, 'Transactions');
+        availabilities = finalGate(availabilities, 'Availabilities');
+        people = finalGate(people, 'People');
 
         console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
         console.log(`  - Relevant News: ${relevant.length} (min ${MIN_RELEVANT})`);
