@@ -337,8 +337,10 @@ export async function buildStaticRSS(): Promise<void> {
             const hasPropertyType = /\b(warehouse|industrial|distribution|logistics|building|facility|property|center|park|site|acres|square\s*feet|sf|sq\.?\s*ft|space|campus|complex|portfolio)\b/i.test(text);
 
             // People News indicators - must have CRE firm/role context
+            // Also catch interview/profile formats: "Person's Name on Topic", "Q&A with Name"
             const hasPeopleWords = /\b(promoted|hired|new\s*hire|joins|joined|named|appoints|appointed|taps|welcomes|recruits|elevated)\b/i.test(text);
-            const hasCREFirmContext = /\b(brokerage|broker|development|developer|real estate|industrial|cre|reit|logistics|warehouse|nai|cbre|jll|cushman|colliers|newmark|prologis|blackstone|bridge industrial)\b/i.test(text);
+            const hasProfileFormat = /(\w+['\u2019]s\s+\w+\s+on\s+\w|\w+\s+on\s+breaking\s+into|q\s*&\s*a\s+with|interview\s+with|in\s+conversation\s+with|women\s+of\s+influence|head\s+of\s+\w+.*answers|vice\s+president.*\b(answers|shares|discusses|explains))/i.test(text);
+            const hasCREFirmContext = /\b(brokerage|broker|development|developer|real estate|industrial|cre|reit|logistics|warehouse|nai|cbre|jll|cushman|colliers|newmark|prologis|blackstone|bridge industrial|locus\s*robotics|sagard|woodmont)\b/i.test(text);
 
             // Apply categorization rules in order of priority:
 
@@ -370,10 +372,15 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
-            // 1d. PEOPLE in TITLE — strong personnel signal in title takes priority over transactions
+            // 1d. PEOPLE in TITLE — strong personnel signal or profile/interview format
             const titleUpper = (item.title || '').toUpperCase();
             const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
             if (titleHasPeopleSignal && hasCREFirmContext) {
+                item.category = 'people';
+                return item;
+            }
+            // Profile/interview articles about named CRE people
+            if (hasProfileFormat && hasCREFirmContext) {
                 item.category = 'people';
                 return item;
             }
