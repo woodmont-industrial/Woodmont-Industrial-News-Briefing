@@ -330,7 +330,7 @@ export async function buildStaticRSS(): Promise<void> {
             const hasSquareFeet = /\d+[,\d]*\s*(sf|sq\.?\s*ft|square\s*feet)/i.test(text);
 
             // Transaction indicators (buyer/tenant actions) - must also have CRE context
-            const hasTransactionAction = /\b(purchased|purchases?|acquires?d?|bought|signs?\s*lease|leases?d?|closed|closes|sale\s*of|sells|sold\s*(to|for)?|acquisition|disposition|refinanc|takes?\s*\d)/i.test(text);
+            const hasTransactionAction = /\b(purchased|purchases?|acquires?d?|bought|buys?|signs?\s*lease|leases?d?|closed|closes|sale\s*of|sells|sold\s*(to|for)?|acquisition|disposition|refinanc|takes?\s*\d|snags?|nabs?|lands?|inks?|brokers?\s*sale|arranges?\s*sale|manages?\s*sale|secures?|scores?)/i.test(text);
 
             // Availability indicators - must have property type context
             const hasAvailabilityWords = /\b(available|listed|for\s*lease|for\s*sale|on\s*the\s*market|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered)\b/i.test(text);
@@ -394,6 +394,13 @@ export async function buildStaticRSS(): Promise<void> {
             // 3. PEOPLE NEWS - Personnel moves WITH CRE firm context
             if (hasPeopleWords && hasCREFirmContext) {
                 item.category = 'people';
+                return item;
+            }
+
+            // 3b. SF in title = transaction (deal involving specific square footage)
+            // "Sitex Group Buys 26,000 SF Warehouse" → transaction, not relevant
+            if (hasSquareFeet && hasPropertyType && !hasStrongAvailability) {
+                item.category = 'transactions';
                 return item;
             }
 
@@ -470,8 +477,9 @@ export async function buildStaticRSS(): Promise<void> {
             log('info', 'No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping AI classification');
         }
 
-        // === AI DESCRIPTION GENERATION (if CEREBRAS_API_KEY or GROQ_API_KEY is set) ===
-        if (process.env.CEREBRAS_API_KEY || process.env.GROQ_API_KEY) {
+        // === AI DESCRIPTION GENERATION — DISABLED (produces inaccurate descriptions e.g. "$163" instead of "$163M") ===
+        // TODO: Re-enable once description quality is fixed
+        if (false && (process.env.CEREBRAS_API_KEY || process.env.GROQ_API_KEY)) {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Generating AI descriptions using ${aiProvider}...`);
             try {
