@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { NormalizedItem } from '../types/index.js';
 import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
@@ -14,6 +16,54 @@ import {
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, saveSentArticles
 } from './newsletter-filters.js';
+
+// ---------------------------------------------------------------------------
+// Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
+// ---------------------------------------------------------------------------
+
+interface ScoringWeights {
+    updatedAt?: string;
+    regionWeights: Record<string, number>;
+    sourceWeights: Record<string, number>;
+    dealSizeThresholds: { highValue_SF: number; highValue_dollars: number };
+    companyBonus: Record<string, number>;
+    topicPreferences: Record<string, number>;
+    learnedExclusions: string[];
+}
+
+const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
+    regionWeights: { NJ: 30, PA: 25, FL: 20, National: 5 },
+    sourceWeights: { 'news.google.com': 0 },
+    dealSizeThresholds: { highValue_SF: 100000, highValue_dollars: 50000000 },
+    companyBonus: {
+        prologis: 15, amazon: 15, blackstone: 15, ares: 15, eqt: 15,
+        'link logistics': 15, 'bridge industrial': 15, sagard: 15, woodmont: 15,
+    },
+    topicPreferences: {},
+    learnedExclusions: [],
+};
+
+let _cachedWeights: ScoringWeights | null = null;
+
+function loadScoringWeights(): ScoringWeights {
+    if (_cachedWeights) return _cachedWeights;
+
+    const weightsPath = path.resolve(__dirname, '..', '..', 'docs', 'scoring-weights.json');
+    try {
+        if (fs.existsSync(weightsPath)) {
+            const raw = fs.readFileSync(weightsPath, 'utf-8');
+            const weights: ScoringWeights = JSON.parse(raw);
+            console.log(`📊 Loaded scoring weights (updated: ${weights.updatedAt || 'unknown'})`);
+            _cachedWeights = weights;
+            return weights;
+        }
+    } catch (err) {
+        console.warn('⚠️ Failed to load scoring-weights.json, using defaults:', (err as Error).message);
+    }
+
+    _cachedWeights = DEFAULT_SCORING_WEIGHTS;
+    return _cachedWeights;
+}
 
 // =============================================================================
 // EMAIL SENDING - Power Automate Webhook (Primary) or SMTP (Fallback)
@@ -524,39 +574,64 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         dedupeByTitle([transactions, relevant, availabilities, people]);
 
         // Quality scoring: rank articles so the best survive the cap
+        // Weights are loaded from docs/scoring-weights.json (updated by Groq learning loop)
+        const weights = loadScoringWeights();
+
         const scoreArticle = (a: NormalizedItem): number => {
             let score = 0;
             const text = `${a.title || ''} ${a.description || ''}`.toLowerCase();
             const url = (a.link || a.url || '').toLowerCase();
 
-            // Region bonus: NJ/PA/FL articles score higher (boss priority)
-            if (/new jersey|nj |newark|edison|rahway|carlstadt|piscataway|meadowlands|exit \d/i.test(text)) score += 30;
-            if (/pennsylvania|philadelphia|philly|allentown|lehigh/i.test(text)) score += 25;
-            if (/florida|miami|orlando|doral|jacksonville|tampa|broward/i.test(text)) score += 20;
+            // Region bonus (dynamic weights from scoring-weights.json)
+            const njWeight = weights.regionWeights['NJ'] ?? 30;
+            const paWeight = weights.regionWeights['PA'] ?? 25;
+            const flWeight = weights.regionWeights['FL'] ?? 20;
+            if (/new jersey|nj |newark|edison|rahway|carlstadt|piscataway|meadowlands|exit \d/i.test(text)) score += njWeight;
+            if (/pennsylvania|philadelphia|philly|allentown|lehigh/i.test(text)) score += paWeight;
+            if (/florida|miami|orlando|doral|jacksonville|tampa|broward/i.test(text)) score += flWeight;
 
-            // Deal size bonus
+            // Deal size bonus (dynamic thresholds)
+            const highSF = weights.dealSizeThresholds?.highValue_SF ?? 100000;
+            const highDollars = weights.dealSizeThresholds?.highValue_dollars ?? 50000000;
             const sfMatch = text.match(/([\d,.]+)\s*(?:million\s*)?(?:sf|sq\.?\s*f|square\s*f)/i);
             if (sfMatch) {
                 const sf = parseFloat(sfMatch[1].replace(/,/g, ''));
-                if (sf >= 500000) score += 25;
-                else if (sf >= 100000) score += 15;
-                else if (sf >= 50000) score += 5;
+                if (sf >= highSF * 5) score += 25;
+                else if (sf >= highSF) score += 15;
+                else if (sf >= highSF * 0.5) score += 5;
             }
             const dollarMatch = text.match(/\$([\d,.]+)\s*(million|m\b|billion|b\b)/i);
             if (dollarMatch) {
                 const amt = parseFloat(dollarMatch[1].replace(/,/g, ''));
                 const mult = /billion|b\b/i.test(dollarMatch[2]) ? 1000 : 1;
                 const millions = amt * mult;
-                if (millions >= 100) score += 25;
-                else if (millions >= 25) score += 15;
-                else if (millions >= 10) score += 5;
+                const highM = highDollars / 1000000;
+                if (millions >= highM * 2) score += 25;
+                else if (millions >= highM * 0.5) score += 15;
+                else if (millions >= highM * 0.2) score += 5;
             }
 
-            // Key company bonus
-            if (/prologis|amazon|blackstone|ares|eqt|link logistics|bridge industrial|sagard|woodmont/i.test(text)) score += 15;
+            // Key company bonus (dynamic from weights)
+            const companies = weights.companyBonus ?? {};
+            for (const [company, bonus] of Object.entries(companies)) {
+                if (text.includes(company.toLowerCase())) {
+                    score += bonus;
+                    break; // Only count best company match
+                }
+            }
 
-            // Direct source bonus (not Google News redirect)
-            if (!url.includes('news.google.com')) score += 10;
+            // Source bonus (dynamic from weights)
+            const sourceWeights = weights.sourceWeights ?? {};
+            let sourceMatched = false;
+            for (const [domain, bonus] of Object.entries(sourceWeights)) {
+                if (url.includes(domain)) {
+                    score += bonus;
+                    sourceMatched = true;
+                    break;
+                }
+            }
+            // Default: non-Google-News sources get a bonus
+            if (!sourceMatched && !url.includes('news.google.com')) score += 10;
 
             // Has description bonus (richer content)
             if ((a.description || '').length > 50) score += 5;
@@ -567,6 +642,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const hoursAgo = (Date.now() - new Date(pub).getTime()) / (1000 * 60 * 60);
                 if (hoursAgo < 12) score += 10;
                 else if (hoursAgo < 24) score += 5;
+            }
+
+            // Learned exclusions penalty
+            const exclusions = weights.learnedExclusions ?? [];
+            for (const exclusion of exclusions) {
+                if (text.includes(exclusion.toLowerCase())) {
+                    score -= 20;
+                    break;
+                }
             }
 
             return score;

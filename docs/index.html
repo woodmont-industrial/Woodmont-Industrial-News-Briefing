@@ -1178,6 +1178,10 @@
       const [showArticlePanel, setShowArticlePanel] = useState(false);
       const [articlePanelLoading, setArticlePanelLoading] = useState(false);
 
+      // Feedback state (Phase 2)
+      const [articleFeedback, setArticleFeedback] = useState({}); // {articleId: {action: 'approved'|'rejected', reason: null|string}}
+      const [showRejectMenu, setShowRejectMenu] = useState(null); // articleId of currently shown reject menu
+
       // Region detection from title/description text
       const detectRegion = useCallback((text) => {
         if (!text) return null;
@@ -1261,6 +1265,8 @@
           setPreviewArticles(recent);
           setShowArticlePanel(true);
           setRemovedIds(new Set());
+          setArticleFeedback({});
+          setShowRejectMenu(null);
         } catch (e) {
           console.error('Error loading preview articles:', e);
           alert('Failed to load articles for preview.');
@@ -1330,6 +1336,65 @@
           return next;
         });
       }, []);
+
+      // Phase 2: Feedback handlers
+      const rejectionReasons = [
+        { label: 'Not Relevant', value: 'not_relevant' },
+        { label: 'Wrong Region', value: 'wrong_region' },
+        { label: 'Duplicate', value: 'duplicate' },
+        { label: 'Old News', value: 'old_news' },
+        { label: 'Not CRE Related', value: 'not_cre' },
+        { label: 'Bad Description', value: 'bad_description' },
+        { label: 'Other', value: 'other' }
+      ];
+
+      const buildFeedbackEntry = useCallback((article, action, reason, section) => {
+        const normTitle = (article.title || '').toLowerCase()
+          .replace(/\s*[-\u2013\u2014|]\s*(costar|globest|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|supply chain dive|freightwaves|real estate nj|wsj|loopnet).*$/i, '')
+          .replace(/^news\s*\|\s*/i, '')
+          .replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+        return {
+          articleId: article.id,
+          title: article.title,
+          normalizedTitle: normTitle,
+          action: action,
+          reason: reason || null,
+          section: section || article.category || 'relevant',
+          source: article.source || '',
+          date: new Date().toISOString().split('T')[0],
+          user: WoodmontUtils.getUserId() || 'unknown'
+        };
+      }, []);
+
+      const handleApproveArticle = useCallback((article, section) => {
+        setArticleFeedback(prev => ({
+          ...prev,
+          [article.id]: { action: 'approved', reason: null }
+        }));
+        setShowRejectMenu(null);
+        // Sync feedback to GitHub
+        const entry = buildFeedbackEntry(article, 'approved', null, section);
+        WoodmontUtils.syncFeedbackToGitHub(entry).then(result => {
+          if (!result.ok) console.warn('Feedback sync failed:', result.reason);
+        });
+      }, [buildFeedbackEntry]);
+
+      const handleRejectArticle = useCallback((article, reason, section) => {
+        setArticleFeedback(prev => ({
+          ...prev,
+          [article.id]: { action: 'rejected', reason: reason }
+        }));
+        setShowRejectMenu(null);
+        // Sync feedback to GitHub
+        const entry = buildFeedbackEntry(article, 'rejected', reason, section);
+        WoodmontUtils.syncFeedbackToGitHub(entry).then(result => {
+          if (!result.ok) console.warn('Feedback sync failed:', result.reason);
+        });
+        // Also add to excluded-articles.json
+        WoodmontUtils.syncExcludeToGitHub(article.id, article.url, article.title).then(result => {
+          if (!result.ok && result.reason !== 'already_excluded') console.warn('Exclude sync failed:', result.reason);
+        });
+      }, [buildFeedbackEntry]);
 
       const downloadNewsletter = useCallback(async () => {
         if (!html) return;
@@ -1649,21 +1714,87 @@
                       </h4>
 
                       {/* Active articles */}
-                      {activeArticles.map(article => (
-                        <div key={article.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 group">
-                          <button
-                            onClick={() => handleRemoveArticle(article.id)}
-                            className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 flex items-center justify-center text-sm font-bold opacity-50 group-hover:opacity-100 transition-opacity"
-                            title="Remove from preview"
-                          >
-                            -
-                          </button>
+                      {activeArticles.map(article => {
+                        const fb = articleFeedback[article.id];
+                        const isApproved = fb && fb.action === 'approved';
+                        const isRejected = fb && fb.action === 'rejected';
+                        const borderClass = isApproved ? 'border-l-4 border-l-green-500' : isRejected ? 'border-l-4 border-l-red-500 opacity-50' : '';
+
+                        return (
+                        <div key={article.id} className={`flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 group ${borderClass}`}>
+                          {/* Feedback buttons */}
+                          <div className="mt-1 flex-shrink-0 flex flex-col gap-1">
+                            <button
+                              onClick={() => handleApproveArticle(article, cat)}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                isApproved
+                                  ? 'bg-green-500 text-white shadow-sm'
+                                  : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 opacity-50 group-hover:opacity-100'
+                              }`}
+                              title="Approve article"
+                            >
+                              {'\u2713'}
+                            </button>
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowRejectMenu(showRejectMenu === article.id ? null : article.id)}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                  isRejected
+                                    ? 'bg-red-500 text-white shadow-sm'
+                                    : 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 opacity-50 group-hover:opacity-100'
+                                }`}
+                                title="Reject article"
+                              >
+                                {'\u2717'}
+                              </button>
+                              {showRejectMenu === article.id && (
+                                <div className="absolute left-8 top-0 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 z-50 overflow-hidden">
+                                  <div className="py-1">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700">
+                                      Why reject this?
+                                    </div>
+                                    {rejectionReasons.map((reason) => (
+                                      <button
+                                        key={reason.value}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRejectArticle(article, reason.label, cat);
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                      >
+                                        {reason.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleRemoveArticle(article.id)}
+                              className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-sm font-bold opacity-50 group-hover:opacity-100 transition-opacity"
+                              title="Remove from preview"
+                            >
+                              -
+                            </button>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <a href={article.url} target="_blank" rel="noopener noreferrer"
-                                className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 truncate max-w-md">
+                                className={`text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate max-w-md ${
+                                  isRejected ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'
+                                }`}>
                                 {article.title}
                               </a>
+                              {isApproved && (
+                                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                                  {'\u2713'} Approved
+                                </span>
+                              )}
+                              {isRejected && (
+                                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
+                                  {'\u2717'} {fb.reason}
+                                </span>
+                              )}
                               {article.region && (
                                 <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                                   article.region === 'NJ' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
@@ -1688,13 +1819,14 @@
                               )}
                             </div>
                             {article.description && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                              <p className={`text-xs mt-1 line-clamp-2 ${isRejected ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
                                 {article.description}
                               </p>
                             )}
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
 
                       {/* Removed articles (greyed out) */}
                       {removedArticles.length > 0 && (

@@ -1,0 +1,40 @@
+{
+  "updatedAt": "2026-03-27",
+  "regionWeights": {
+    "NJ": 30,
+    "PA": 25,
+    "FL": 20,
+    "National": 5
+  },
+  "sourceWeights": {
+    "re-nj.com": 10,
+    "commercialobserver.com": 10,
+    "bisnow.com": 10,
+    "globest.com": 10,
+    "costar.com": 10,
+    "news.google.com": 0
+  },
+  "dealSizeThresholds": {
+    "highValue_SF": 100000,
+    "highValue_dollars": 50000000
+  },
+  "companyBonus": {
+    "prologis": 15,
+    "amazon": 15,
+    "blackstone": 15,
+    "ares": 15,
+    "eqt": 15,
+    "link logistics": 15,
+    "bridge industrial": 15,
+    "sagard": 15,
+    "woodmont": 15
+  },
+  "topicPreferences": {
+    "logistics": 10,
+    "cold_storage": 8,
+    "data_center": 5,
+    "last_mile": 8,
+    "industrial_outdoor_storage": 10
+  },
+  "learnedExclusions": []
+}

@@ -8,6 +8,7 @@
  *   npx tsx rssfeed.ts --no-browser       - Start without opening browser
  *   npx tsx rssfeed.ts --build-static     - Build static files for GitHub Pages
  *   npx tsx rssfeed.ts --send-newsletter  - Send newsletter manually
+ *   npx tsx rssfeed.ts --learn-preferences - Run Groq learning loop to update scoring weights
  */
 
 // Load environment variables from .env file
@@ -234,6 +235,17 @@ if (require.main === module) {
     } else if (args.includes('--send-weekly-newsletter-goth')) {
         // Send Goth weekly newsletter
         sendWeeklyNewsletterGothCmd();
+    } else if (args.includes('--learn-preferences')) {
+        // Run Groq learning loop to update scoring weights from feedback
+        console.log('🧠 Running Groq learning loop...');
+        import('./src/server/learn-preferences.js').then(({ learnPreferences }) => {
+            learnPreferences().then(success => {
+                process.exit(success ? 0 : 1);
+            });
+        }).catch(err => {
+            console.error('Error running learning loop:', err);
+            process.exit(1);
+        });
     } else {
         // Start the server
         startServer(!noBrowserFlag);

@@ -584,6 +584,76 @@
     return { ok: false, reason: 'max_retries_exceeded' };
   }
 
+  var FEEDBACK_FILE_PATH = 'docs/newsletter-feedback.json';
+
+  /**
+   * Sync article feedback (approve/reject) to GitHub.
+   * Creates or appends to docs/newsletter-feedback.json.
+   * feedbackEntry should be: { articleId, title, normalizedTitle, action, reason, section, source, date, user }
+   */
+  async function syncFeedbackToGitHub(feedbackEntry) {
+    var token = getGitHubToken();
+    if (!token) return { ok: false, reason: 'no_token' };
+
+    // Retry up to 3 times on SHA mismatch (409 conflict)
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        var apiBase = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + FEEDBACK_FILE_PATH;
+        var headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+        // GET current file
+        var sha = null;
+        var content = { feedback: [] };
+        var getResp = await fetch(apiBase, { headers: headers });
+        if (getResp.ok) {
+          var fileData = await getResp.json();
+          sha = fileData.sha;
+          try {
+            content = JSON.parse(atob(fileData.content));
+            if (!Array.isArray(content.feedback)) content.feedback = [];
+          } catch (parseErr) {
+            content = { feedback: [] };
+          }
+        } else if (getResp.status !== 404) {
+          return { ok: false, reason: 'fetch_failed (' + getResp.status + ')' };
+        }
+
+        // Append the feedback entry with timestamp
+        feedbackEntry.timestamp = new Date().toISOString();
+        content.feedback.push(feedbackEntry);
+
+        // PUT updated file
+        var body = {
+          message: 'Feedback: ' + feedbackEntry.action + ' - ' + (feedbackEntry.title || '').substring(0, 50),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2) + '\n')))
+        };
+        if (sha) body.sha = sha;
+
+        var putResp = await fetch(apiBase, {
+          method: 'PUT',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+          body: JSON.stringify(body)
+        });
+
+        if (putResp.ok) return { ok: true, reason: 'synced' };
+
+        // SHA mismatch (409) — retry with fresh SHA
+        if (putResp.status === 409 && attempt < 2) {
+          console.warn('SHA conflict on feedback, retrying (attempt ' + (attempt + 2) + '/3)...');
+          await new Promise(function(r) { setTimeout(r, 1000); });
+          continue;
+        }
+
+        var errBody = await putResp.text().catch(function() { return ''; });
+        return { ok: false, reason: 'put_failed (' + putResp.status + '): ' + errBody.substring(0, 100) };
+      } catch (e) {
+        console.error('Feedback sync error:', e);
+        return { ok: false, reason: 'error: ' + (e.message || '').substring(0, 80) };
+      }
+    }
+    return { ok: false, reason: 'max_retries_exceeded' };
+  }
+
   var INCLUDE_FILE_PATH = 'docs/included-articles.json';
 
   /**
@@ -809,6 +879,7 @@
     getGitHubToken: getGitHubToken,
     setGitHubToken: setGitHubToken,
     syncExcludeToGitHub: syncExcludeToGitHub,
+    syncFeedbackToGitHub: syncFeedbackToGitHub,
     removeExcludeFromGitHub: removeExcludeFromGitHub,
     syncIncludeToGitHub: syncIncludeToGitHub,
     removeIncludeFromGitHub: removeIncludeFromGitHub,
