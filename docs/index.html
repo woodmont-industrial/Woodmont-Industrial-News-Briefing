@@ -1170,7 +1170,167 @@
     const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
-      
+
+      // Article Preview Panel state (Phase 1)
+      const [previewArticles, setPreviewArticles] = useState(null);
+      const [removedIds, setRemovedIds] = useState(new Set());
+      const [filters, setFilters] = useState({ region: true, industrial: true, dedup: true });
+      const [showArticlePanel, setShowArticlePanel] = useState(false);
+      const [articlePanelLoading, setArticlePanelLoading] = useState(false);
+
+      // Region detection from title/description text
+      const detectRegion = useCallback((text) => {
+        if (!text) return null;
+        const t = text.toLowerCase();
+        // NJ indicators
+        if (/\b(new jersey|newark|jersey city|edison|elizabeth|secaucus|cranbury|east brunswick|carteret|linden|woodbridge|parsippany|meadowlands|bergen|passaic|middlesex|monmouth|somerset|morris county|i-95 corridor nj|exit \d+ turnpike|nj turnpike|route 1 corridor)\b/.test(t)) return 'NJ';
+        // PA indicators
+        if (/\b(pennsylvania|philadelphia|lehigh valley|allentown|bethlehem|easton|harrisburg|lancaster|bucks county|montgomery county|chester county|delaware county|king of prussia|i-78 corridor|pa turnpike|lehigh county)\b/.test(t)) return 'PA';
+        // FL indicators
+        if (/\b(florida|miami|fort lauderdale|hialeah|doral|pompano|palm beach|broward|miami-dade|orlando|tampa|jacksonville|south florida|central florida|i-4 corridor|homestead|medley|opa-locka|coral springs)\b/.test(t)) return 'FL';
+        // TX indicators
+        if (/\b(texas|houston|dallas|fort worth|san antonio|austin|dfw|i-35 corridor)\b/.test(t)) return 'TX';
+        return null;
+      }, []);
+
+      // Simple industrial relevance check
+      const isLikelyIndustrial = useCallback((text) => {
+        if (!text) return true; // assume relevant if no text
+        const t = text.toLowerCase();
+        const industrialTerms = /\b(warehouse|industrial|logistics|distribution|fulfillment|cold storage|last[ -]mile|manufacturing|flex space|truck terminal|cross[ -]dock|supply chain|freight|3pl|data center|speculative development|spec dev|bulk warehouse)\b/;
+        const nonIndustrialTerms = /\b(retail|restaurant|hotel|hospitality|multifamily|apartment|condo|residential|office lease|coworking|medical office|senior living|student housing|wine bar|brewery|spa|salon|gym|fitness|yoga|art gallery|museum|theater|concert|festival|parade)\b/;
+        if (nonIndustrialTerms.test(t) && !industrialTerms.test(t)) return false;
+        return true;
+      }, []);
+
+      // Normalize title for dedup
+      const normalizeForDedup = useCallback((title) => {
+        if (!title) return '';
+        return title.toLowerCase()
+          .replace(/\s*[-|:]\s*(commercial observer|bisnow|re-nj|globest|costar|connectcre|news\.google\.com).*$/i, '')
+          .replace(/[^a-z0-9\s]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }, []);
+
+      // Fetch and process articles for preview panel
+      const loadPreviewArticles = useCallback(async () => {
+        setArticlePanelLoading(true);
+        try {
+          const res = await fetch('feed.json');
+          if (!res.ok) throw new Error('Failed to fetch feed.json');
+          const data = await res.json();
+          const rawItems = data.items || [];
+
+          // Parse into a simple format
+          const articles = rawItems.map(item => {
+            let authorName = '';
+            if (item.author) {
+              authorName = typeof item.author === 'string' ? item.author : (item.author.name || '');
+            }
+            const sourceName = item._source?.name || item._source?.website || authorName || 'Unknown';
+            const title = item.title || 'Untitled';
+            const description = item.content_text || item.content_html || item.summary || '';
+            const combinedText = title + ' ' + description;
+            const region = detectRegion(combinedText);
+            const industrial = isLikelyIndustrial(combinedText);
+
+            return {
+              id: item.id,
+              title,
+              url: item.url || '',
+              description: description.substring(0, 200),
+              source: sourceName,
+              category: item.category || 'relevant',
+              pubDate: item.date_published || '',
+              region,
+              industrial,
+              feedName: item._source?.feedName || authorName || '',
+              tags: item.tags || []
+            };
+          });
+
+          // Apply timeframe filter
+          const days = parseInt(timeframe, 10) || 1;
+          const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+          const recent = articles.filter(a => {
+            if (!a.pubDate) return true;
+            return new Date(a.pubDate) >= cutoff;
+          });
+
+          setPreviewArticles(recent);
+          setShowArticlePanel(true);
+          setRemovedIds(new Set());
+        } catch (e) {
+          console.error('Error loading preview articles:', e);
+          alert('Failed to load articles for preview.');
+        } finally {
+          setArticlePanelLoading(false);
+        }
+      }, [timeframe, detectRegion, isLikelyIndustrial]);
+
+      // Apply filters and compute grouped/filtered articles
+      const filteredGrouped = useMemo(() => {
+        if (!previewArticles) return null;
+
+        let filtered = previewArticles;
+
+        // Region filter: only NJ, PA, FL
+        if (filters.region) {
+          filtered = filtered.filter(a => a.region === 'NJ' || a.region === 'PA' || a.region === 'FL' || a.region === null);
+        }
+
+        // Industrial filter
+        if (filters.industrial) {
+          filtered = filtered.filter(a => a.industrial);
+        }
+
+        // Dedup by normalized title
+        if (filters.dedup) {
+          const seen = new Set();
+          filtered = filtered.filter(a => {
+            const norm = normalizeForDedup(a.title);
+            if (seen.has(norm)) return false;
+            seen.add(norm);
+            return true;
+          });
+        }
+
+        // Group by category
+        const groups = { relevant: [], transactions: [], availabilities: [], people: [] };
+        for (const a of filtered) {
+          const cat = groups[a.category] ? a.category : 'relevant';
+          groups[cat].push(a);
+        }
+
+        return groups;
+      }, [previewArticles, filters, normalizeForDedup]);
+
+      // Count filtered-out articles
+      const filterStats = useMemo(() => {
+        if (!previewArticles || !filteredGrouped) return { total: 0, shown: 0, removed: 0 };
+        const allFiltered = Object.values(filteredGrouped).flat();
+        const shown = allFiltered.filter(a => !removedIds.has(a.id));
+        return {
+          total: previewArticles.length,
+          shown: shown.length,
+          filtered: previewArticles.length - allFiltered.length,
+          removed: removedIds.size
+        };
+      }, [previewArticles, filteredGrouped, removedIds]);
+
+      const handleRemoveArticle = useCallback((id) => {
+        setRemovedIds(prev => new Set([...prev, id]));
+      }, []);
+
+      const handleRestoreArticle = useCallback((id) => {
+        setRemovedIds(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }, []);
+
       const downloadNewsletter = useCallback(async () => {
         if (!html) return;
         
@@ -1330,6 +1490,21 @@
                 </button>
 
                 <button
+                  onClick={loadPreviewArticles}
+                  disabled={articlePanelLoading}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {articlePanelLoading ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Loading...
+                    </>
+                  ) : (
+                    <>Preview Articles</>
+                  )}
+                </button>
+
+                <button
                   onClick={onFetchFeedHealth}
                   disabled={feedHealthLoading}
                   className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
@@ -1379,6 +1554,179 @@
               </div>
             </div>
           </div>
+
+          {/* Article Preview Panel (Phase 1) */}
+          {showArticlePanel && filteredGrouped && (
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mb-6">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Article Preview</h3>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {filterStats.shown} shown / {filterStats.total} total
+                      {filterStats.filtered > 0 && (
+                        <span className="ml-1 text-amber-600 dark:text-amber-400">({filterStats.filtered} filtered out)</span>
+                      )}
+                      {filterStats.removed > 0 && (
+                        <span className="ml-1 text-red-500">({filterStats.removed} removed)</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={loadPreviewArticles}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                    >
+                      Refresh
+                    </button>
+                    <button
+                      onClick={() => setShowArticlePanel(false)}
+                      className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                {/* Section summary bar */}
+                <div className="flex flex-wrap gap-3 mb-4 text-sm">
+                  {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                    const items = (filteredGrouped[cat] || []).filter(a => !removedIds.has(a.id));
+                    const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    return (
+                      <span key={cat} className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">
+                        {label} ({items.length})
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {/* Filter toggles */}
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.region}
+                      onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.checked }))}
+                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">Region filter (NJ/PA/FL)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.industrial}
+                      onChange={(e) => setFilters(prev => ({ ...prev, industrial: e.target.checked }))}
+                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">Industrial only</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.dedup}
+                      onChange={(e) => setFilters(prev => ({ ...prev, dedup: e.target.checked }))}
+                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">Deduplicate</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Article sections */}
+              <div className="p-6 max-h-[600px] overflow-y-auto">
+                {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                  const allInCat = filteredGrouped[cat] || [];
+                  const activeArticles = allInCat.filter(a => !removedIds.has(a.id));
+                  const removedArticles = allInCat.filter(a => removedIds.has(a.id));
+                  if (allInCat.length === 0) return null;
+                  const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+
+                  return (
+                    <div key={cat} className="mb-6 last:mb-0">
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
+                        {label} ({activeArticles.length})
+                      </h4>
+
+                      {/* Active articles */}
+                      {activeArticles.map(article => (
+                        <div key={article.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 group">
+                          <button
+                            onClick={() => handleRemoveArticle(article.id)}
+                            className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 flex items-center justify-center text-sm font-bold opacity-50 group-hover:opacity-100 transition-opacity"
+                            title="Remove from preview"
+                          >
+                            -
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <a href={article.url} target="_blank" rel="noopener noreferrer"
+                                className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 truncate max-w-md">
+                                {article.title}
+                              </a>
+                              {article.region && (
+                                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  article.region === 'NJ' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+                                  article.region === 'PA' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
+                                  article.region === 'FL' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
+                                  'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                                }`}>
+                                  {article.region}
+                                </span>
+                              )}
+                              <span className="px-1.5 py-0.5 rounded text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300">
+                                {cat}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              <span>{article.source}</span>
+                              {article.pubDate && (
+                                <>
+                                  <span>|</span>
+                                  <span>{new Date(article.pubDate).toLocaleDateString()}</span>
+                                </>
+                              )}
+                            </div>
+                            {article.description && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                {article.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Removed articles (greyed out) */}
+                      {removedArticles.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-dashed border-slate-200 dark:border-slate-700">
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Removed ({removedArticles.length})</p>
+                          {removedArticles.map(article => (
+                            <div key={article.id} className="flex items-center gap-3 py-1.5 px-3 opacity-40 hover:opacity-70 transition-opacity">
+                              <button
+                                onClick={() => handleRestoreArticle(article.id)}
+                                className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 flex items-center justify-center text-sm font-bold"
+                                title="Restore article"
+                              >
+                                +
+                              </button>
+                              <span className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                {article.title}
+                              </span>
+                              {article.region && (
+                                <span className="px-1.5 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
+                                  {article.region}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {html && (
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
