@@ -517,17 +517,32 @@ export async function buildStaticRSS(): Promise<void> {
 
         // === USER EXCLUDE LIST ===
         // Remove articles the user has explicitly excluded via docs/excluded-articles.json
+        // Matches by ID, URL, AND normalized title (catches same article from different sources)
         try {
             const excludePath = path.join(DOCS_DIR, 'excluded-articles.json');
             if (fs.existsSync(excludePath)) {
                 const excludeData = JSON.parse(fs.readFileSync(excludePath, 'utf-8'));
                 const excludedIds = new Set(excludeData.excludedIds || []);
                 const excludedUrls = new Set((excludeData.excludedUrls || []).map((u: string) => u.toLowerCase()));
+                const excludedTitles = new Set((excludeData.excludedTitles || []).map((t: string) => normalizeTitle(t)));
                 const beforeExclude = aiFilteredItems.length;
                 aiFilteredItems = aiFilteredItems.filter(a => {
                     if (a.id && excludedIds.has(a.id)) return false;
                     const url = (a.link || '').toLowerCase();
                     if (url && excludedUrls.has(url)) return false;
+                    // Title match — catches same article from Google News vs direct source
+                    const normTitle = normalizeTitle(a.title || '');
+                    if (normTitle && excludedTitles.has(normTitle)) {
+                        log('info', `Excluded by title match: "${(a.title || '').substring(0, 60)}"`);
+                        return false;
+                    }
+                    // Partial title match — catches "Title - SourceName" variants
+                    for (const excludedTitle of excludedTitles) {
+                        if (excludedTitle.length > 15 && normTitle.includes(excludedTitle)) {
+                            log('info', `Excluded by partial title match: "${(a.title || '').substring(0, 60)}"`);
+                            return false;
+                        }
+                    }
                     return true;
                 });
                 const removed = beforeExclude - aiFilteredItems.length;
@@ -681,9 +696,35 @@ export async function buildStaticRSS(): Promise<void> {
         if (dedupedExisting.length < existingArticles.length) {
             log('info', `Removed ${existingArticles.length - dedupedExisting.length} duplicates from existing articles`);
         }
-        
+
+        // Also apply exclude list to existing articles (catches articles that were excluded after being added to feed)
+        let cleanedExisting = dedupedExisting;
+        try {
+            const excludePath2 = path.join(DOCS_DIR, 'excluded-articles.json');
+            if (fs.existsSync(excludePath2)) {
+                const exData = JSON.parse(fs.readFileSync(excludePath2, 'utf-8'));
+                const exIds = new Set(exData.excludedIds || []);
+                const exUrls = new Set((exData.excludedUrls || []).map((u: string) => u.toLowerCase()));
+                const exTitles = new Set((exData.excludedTitles || []).map((t: string) => normalizeTitle(t)));
+                const beforeClean = cleanedExisting.length;
+                cleanedExisting = cleanedExisting.filter(a => {
+                    if (a.id && exIds.has(a.id)) return false;
+                    const url = (a.link || a.url || '').toLowerCase();
+                    if (url && exUrls.has(url)) return false;
+                    const nt = normalizeTitle(a.title || '');
+                    if (nt && exTitles.has(nt)) return false;
+                    for (const et of exTitles) {
+                        if (et.length > 15 && nt.includes(et)) return false;
+                    }
+                    return true;
+                });
+                const removedEx = beforeClean - cleanedExisting.length;
+                if (removedEx > 0) log('info', `Exclude list cleaned ${removedEx} existing article(s)`);
+            }
+        } catch { /* ignore */ }
+
         // Apply recategorization to ALL articles (including existing ones)
-        const recategorizedExisting = dedupedExisting.map(recategorizeArticle);
+        const recategorizedExisting = cleanedExisting.map(recategorizeArticle);
         const mergedArticles = [...newItems, ...recategorizedExisting];
         log('info', `Merged: ${newItems.length} new + ${recategorizedExisting.length} existing = ${mergedArticles.length} total`);
 

@@ -539,11 +539,20 @@
         var alreadyExcluded = ids.indexOf(articleId) !== -1;
         if (alreadyExcluded) return { ok: true, reason: 'already_excluded' };
 
-        // Add article
+        // Add article (ID, URL, and normalized title for cross-source matching)
         ids.push(articleId);
         if (articleUrl && urls.indexOf(articleUrl) === -1) urls.push(articleUrl);
+        var titles = content.excludedTitles || [];
+        if (articleTitle) {
+          var normTitle = articleTitle.toLowerCase()
+            .replace(/\s*[-\u2013\u2014|]\s*(costar|globest|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|supply chain dive|freightwaves|real estate nj|wsj|loopnet).*$/i, '')
+            .replace(/^news\s*\|\s*/i, '')
+            .replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+          if (normTitle && titles.indexOf(normTitle) === -1) titles.push(normTitle);
+        }
         content.excludedIds = ids;
         content.excludedUrls = urls;
+        content.excludedTitles = titles;
 
         // PUT updated file
         var putResp = await fetch(apiBase, {
