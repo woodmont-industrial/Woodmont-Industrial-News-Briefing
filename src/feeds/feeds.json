@@ -1237,7 +1237,8 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=%22marketing+for+lease%22+OR+%22now+leasing%22+OR+%22seeking+tenants%22+industrial+OR+warehouse+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
@@ -1285,7 +1286,8 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:re-nj.com+%22for+lease%22+OR+%22available%22+OR+%22now+leasing%22+OR+%22marketing%22+OR+%22delivered%22+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
@@ -1293,7 +1295,8 @@
     "region": "NJ",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=Prologis+OR+%22Link+Logistics%22+OR+%22Stag+Industrial%22+OR+%22Duke+Realty%22+OR+%22Exeter%22+%22now+leasing%22+OR+%22available%22+OR+%22delivered%22+warehouse+OR+industrial+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
@@ -1337,7 +1340,8 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000,
-    "_note": "Proxy for njbiz.com (403 blocked direct feed)"
+    "_note": "Proxy for njbiz.com (403 blocked direct feed)",
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:lvb.com+industrial+OR+warehouse+OR+logistics+OR+%22Lehigh+Valley%22+development&hl=en-US&gl=US&ceid=US:en",
@@ -1346,7 +1350,8 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000,
-    "_note": "Proxy for lvb.com (403 blocked direct feed)"
+    "_note": "Proxy for lvb.com (403 blocked direct feed)",
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:costar.com+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
@@ -1355,7 +1360,8 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000,
-    "_note": "Proxy for costar.com (403 Akamai blocked)"
+    "_note": "Proxy for costar.com (403 Akamai blocked)",
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:mhlnews.com+warehouse+OR+logistics+OR+%22material+handling%22+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
@@ -1589,9 +1595,9 @@
     "source": "Google News",
     "type": "availabilities",
     "timeout": 30000,
-    "_note": "CommercialSearch availability listings (Cloudflare backup)"
+    "_note": "CommercialSearch availability listings (Cloudflare backup)",
+    "enabled": false
   },
-
   {
     "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22real+estate%22&hl=en-US&gl=US&ceid=US:en",
     "name": "Google News CRE People Moves",
@@ -1622,7 +1628,8 @@
     "region": "NJ",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:rebusinessonline.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
@@ -1657,7 +1664,8 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:globest.com+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
@@ -1665,7 +1673,8 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:commercialobserver.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
@@ -1786,7 +1795,8 @@
     "region": "US",
     "source": "Google News",
     "type": "industrial-news",
-    "timeout": 30000
+    "timeout": 30000,
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22New+Jersey%22+OR+%22NJ%22+transaction+OR+lease+OR+sale+OR+development&hl=en-US&gl=US&ceid=US:en",
@@ -1860,7 +1870,8 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000,
-    "_note": "Proxy for commercialsearch.com industrial (Cloudflare blocked)"
+    "_note": "Proxy for commercialsearch.com industrial (Cloudflare blocked)",
+    "enabled": false
   },
   {
     "url": "https://news.google.com/rss/search?q=site:connect.media+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
