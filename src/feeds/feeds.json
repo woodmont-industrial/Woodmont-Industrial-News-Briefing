@@ -264,7 +264,7 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000,
-    "enabled": false,
+    "enabled": true,
     "_note": "Disabled — too broad, pulls multifamily/retail noise"
   },
   {
@@ -1341,7 +1341,7 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for njbiz.com (403 blocked direct feed)",
-    "enabled": false
+    "enabled": true
   },
   {
     "url": "https://news.google.com/rss/search?q=site:lvb.com+industrial+OR+warehouse+OR+logistics+OR+%22Lehigh+Valley%22+development&hl=en-US&gl=US&ceid=US:en",
@@ -1930,5 +1930,11 @@
     "source": "Google News",
     "type": "industrial-news",
     "timeout": 30000
+  },
+  {
+    "name": "Google News Bloomberg CRE",
+    "url": "https://news.google.com/rss/search?q=site:bloomberg.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
+    "enabled": true,
+    "source": "Google News Bloomberg CRE"
   }
 ]
