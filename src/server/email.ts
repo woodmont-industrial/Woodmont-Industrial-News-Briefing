@@ -762,10 +762,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return true;
         }
 
-        // Friday Week-in-Review: pull top 5 from the past 5 days
+        // Friday Week-in-Review: TOP 5 highest-scoring articles from the entire M-F week
         let weekInReview: NormalizedItem[] | undefined;
         if (isFriday) {
-            console.log('📅 Friday detected — building Week-in-Review (top 5 from last 5 days)');
+            console.log('📅 Friday detected — building Week-in-Review (top 5 highest-scoring from Mon-Fri)');
             const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
             const weekRegional = fiveDayArticles.filter(isTargetRegion).filter(a => !isPolitical(getText(a)));
             // Apply industrial + section filters to week-in-review candidates
@@ -775,10 +775,24 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 RELEVANT_KEYWORDS, 'Week-in-Review Relevant'
             );
             const weekAvailabilities = applyAvailabilityFilter(weekRegional.filter(a => a.category === 'availabilities'));
-            weekInReview = [...weekTransactions, ...weekRelevant, ...weekAvailabilities]
-                .filter(postDescriptionRegionCheck)
-                .slice(0, 5);
-            console.log(`📊 Week-in-Review: ${weekInReview.length} top developments`);
+            const weekPeople = applyPeopleFilter(weekRegional.filter(a => a.category === 'people'));
+
+            // Combine all categories, run through allowlist final gate, then rank by quality score
+            let weekCandidates = [...weekTransactions, ...weekRelevant, ...weekAvailabilities, ...weekPeople]
+                .filter(postDescriptionRegionCheck);
+
+            // Apply allowlist gate to week-in-review too
+            weekCandidates = finalGate(weekCandidates, 'Week-in-Review');
+
+            // Sort by quality score (highest first) and take top 5
+            weekCandidates.sort((a, b) => scoreArticle(b) - scoreArticle(a));
+            weekInReview = weekCandidates.slice(0, 5);
+
+            // Log the top picks with scores
+            weekInReview.forEach((a, i) => {
+                console.log(`📊 Week #${i + 1}: score=${scoreArticle(a)} | "${(a.title || '').substring(0, 55)}"`);
+            });
+            console.log(`📊 Week-in-Review: ${weekInReview.length} top developments (from ${weekCandidates.length + weekInReview.length} candidates)`);
         }
 
         const dateRange = formatDate(today);
