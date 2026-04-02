@@ -155,6 +155,7 @@ const EXCLUDE_CITIES_EXTRA = [
     'PLATTE CITY', 'ROCK ISLAND', 'KOKOMO', 'HILLSBORO, OR',
     'CENLA', 'CENTRAL LOUISIANA', 'BEEVILLE',
     'GRAND RAPIDS', 'KALAMAZOO', 'STOCKTON, CA', 'BOHEMIA, NY',
+    'WATERVILLE', 'MAINE', 'BANGOR',
 ];
 
 export function isNotExcludedRegion(article: NormalizedItem): boolean {
