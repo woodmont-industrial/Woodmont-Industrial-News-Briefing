@@ -1,13 +1,8 @@
 name: Send Newsletter (Work)
 
+  # DEPRECATED — replaced by newsletter-pipeline.yml (unified pipeline)
+  # Kept for manual fallback only. No scheduled triggers.
 on:
-  schedule:
-    # Backup cron — Run Monday-Friday at 10 AM EST (14:00 UTC)
-    # NOTE: GitHub cron is unreliable (delays up to 45 min). Primary trigger is EasyCron.
-    - cron: '0 14 * * 1-5'
-  repository_dispatch:
-    # Primary trigger — EasyCron hits this at exactly 10:00 AM EST via GitHub API
-    types: [send-newsletter]
   workflow_dispatch:
     inputs:
       force_send:

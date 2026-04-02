@@ -1,0 +1,245 @@
+name: Newsletter Pipeline (Unified)
+
+# Single workflow that runs the full pipeline:
+# Step 1: Scraper build → Step 2: Assess gaps → Step 3: RSS build → Step 4: Filters → Step 5: Send
+
+on:
+  schedule:
+    # Run Monday-Friday at 9 AM EST (13:00 UTC) — gives ~1 hour for the full pipeline before 10 AM send
+    - cron: '0 13 * * 1-5'
+  repository_dispatch:
+    types: [send-newsletter]
+  workflow_dispatch:
+    inputs:
+      force_send:
+        description: 'Bypass 2-hour dedup guard'
+        required: false
+        type: boolean
+        default: false
+      skip_scrapers:
+        description: 'Skip scraper step (faster, RSS only)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  newsletter-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # === DEDUP CHECK ===
+      - name: Check for duplicate run
+        id: dedup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const forceSend = '${{ inputs.force_send }}' === 'true';
+            if (forceSend) {
+              core.setOutput('skip', 'false');
+              console.log('Force send enabled — bypassing dedup check');
+              return;
+            }
+            // Check both old and new workflow for successful runs
+            for (const wf of ['send-newsletter-work.yml', 'newsletter-pipeline.yml']) {
+              try {
+                const runs = await github.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: wf,
+                  status: 'success',
+                  per_page: 1
+                });
+                if (runs.data.workflow_runs.length > 0) {
+                  const lastRun = new Date(runs.data.workflow_runs[0].created_at);
+                  const hoursAgo = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
+                  if (hoursAgo < 2 && runs.data.workflow_runs[0].id !== context.runId) {
+                    core.setOutput('skip', 'true');
+                    console.log(`Skipping — ${wf} last success was ${hoursAgo.toFixed(1)} hours ago`);
+                    return;
+                  }
+                }
+              } catch { /* workflow might not exist yet */ }
+            }
+            core.setOutput('skip', 'false');
+
+      - name: Skip notice
+        if: steps.dedup.outputs.skip == 'true'
+        run: echo "⏭️ Newsletter already sent in the last 2 hours — skipping."
+
+      # === SETUP ===
+      - name: Checkout repository
+        if: steps.dedup.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        if: steps.dedup.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        if: steps.dedup.outputs.skip != 'true'
+        run: npm install --prefer-offline --no-audit
+
+      - name: Install Playwright browsers
+        if: steps.dedup.outputs.skip != 'true' && inputs.skip_scrapers != 'true'
+        run: npx playwright install chromium --with-deps
+
+      # === STEP 1: SCRAPER BUILD ===
+      - name: "Step 1: Run scrapers"
+        id: scrapers
+        if: steps.dedup.outputs.skip != 'true' && inputs.skip_scrapers != 'true'
+        run: |
+          echo "🕷️ Step 1: Running scrapers..."
+          SKIP_RSS=true npm run build-static
+          echo "✅ Scraper build complete"
+        env:
+          NODE_ENV: production
+          SKIP_RSS: 'true'
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        timeout-minutes: 12
+
+      # === STEP 2: ASSESS GAPS — auto-toggle GN backups ===
+      - name: "Step 2: Assess scraper gaps and toggle GN backups"
+        if: steps.dedup.outputs.skip != 'true'
+        run: |
+          echo "🔍 Step 2: Assessing scraper gaps..."
+          npx tsx src/build/assess-gaps.ts
+          echo "✅ Gap assessment complete"
+
+      # === STEP 3: RSS BUILD (with GN backups now correctly set) ===
+      - name: "Step 3: RSS build with correct GN backup state"
+        if: steps.dedup.outputs.skip != 'true'
+        run: |
+          echo "📰 Step 3: Running RSS build..."
+          SKIP_SCRAPERS=true npm run build-static
+          echo "✅ RSS build complete"
+        env:
+          NODE_ENV: production
+          SKIP_SCRAPERS: 'true'
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        timeout-minutes: 10
+
+      # === STEP 4 + 5: FILTER + SEND (filters are built into the newsletter assembly) ===
+      - name: "Step 4+5: Filter and send newsletter"
+        if: steps.dedup.outputs.skip != 'true'
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY_2 }}
+        run: |
+          echo "📧 Step 4+5: Filtering and sending newsletter..."
+          npx tsx rssfeed.ts --send-newsletter-work
+          echo "✅ Newsletter sent!"
+
+      # === COMMIT ===
+      - name: Commit updated data
+        if: steps.dedup.outputs.skip != 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/ src/feeds/feeds.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📧 Newsletter pipeline - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            for i in 1 2 3; do
+              if git push; then
+                echo "Push succeeded on attempt $i"
+                break
+              fi
+              echo "Push failed (attempt $i), pulling with rebase..."
+              git fetch origin main
+              git rebase origin/main --strategy-option=ours || {
+                git rebase --abort
+                git pull --no-rebase -X ours || true
+              }
+            done
+          fi
+
+      - name: Report Success
+        if: success() && steps.dedup.outputs.skip != 'true'
+        run: |
+          echo "✅ Full newsletter pipeline completed!"
+          echo "📊 Check email inbox for delivery"
+
+      - name: Report Failure
+        if: failure() && steps.dedup.outputs.skip != 'true'
+        run: |
+          echo "❌ Newsletter pipeline failed!"
+          echo "Check the logs above for error details"
+
+      # Failure alert
+      - name: Send failure alert
+        if: failure() && steps.dedup.outputs.skip != 'true'
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            curl -s -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"to\":\"$EMAIL_TO\",\"subject\":\"[ALERT] Newsletter pipeline failed - $(date -u +'%Y-%m-%d')\",\"body\":\"<p>The newsletter pipeline failed. Check the logs.</p><p><a href='$RUN_URL'>View workflow run</a></p>\",\"apiKey\":\"$WEBHOOK_SECRET\"}" \
+              && echo "Alert sent" || echo "Alert failed"
+          fi
+
+      # Auto-retry
+      - name: Schedule retry on failure
+        if: failure() && steps.dedup.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now = new Date();
+            const todayStart = new Date(now);
+            todayStart.setUTCHours(0, 0, 0, 0);
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'newsletter-pipeline.yml',
+              created: `>=${todayStart.toISOString().split('T')[0]}`,
+              per_page: 20
+            });
+            const todayRuns = runs.data.workflow_runs.length;
+            if (todayRuns >= 4) {
+              console.log('Max retries reached. Giving up.');
+              core.warning('Newsletter pipeline failed after 3 retries.');
+              return;
+            }
+            const successToday = runs.data.workflow_runs.some(r => r.conclusion === 'success');
+            if (successToday) {
+              console.log('Already succeeded today. No retry needed.');
+              return;
+            }
+            const delayMin = todayRuns === 1 ? 30 : 60;
+            console.log(`Retry ${todayRuns}/3 — waiting ${delayMin} min...`);
+            await new Promise(r => setTimeout(r, delayMin * 60 * 1000));
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'newsletter-pipeline.yml',
+              ref: 'main',
+              inputs: { force_send: 'true' }
+            });
+            console.log('Retry dispatched.');

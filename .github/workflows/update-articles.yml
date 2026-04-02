@@ -1,10 +1,9 @@
 name: Update Articles and Deploy
 
 on:
+  # Weekday RSS now handled by newsletter-pipeline.yml
+  # This only runs on weekends + manual trigger
   schedule:
-    # Run Monday-Friday at 5:30 AM EST (10:30 UTC) — RSS first, then scrapers at 6:30 AM
-    - cron: '30 10 * * 1-5'
-    # Run weekends at 10 AM EST (15:00 UTC) - Catch weekend articles
     - cron: '0 15 * * 0,6'
   workflow_dispatch: # Allow manual trigger
 
