@@ -2,8 +2,8 @@ name: Update Articles (Scrapers Only)
 
 on:
   schedule:
-    # Run Monday-Friday at 3 PM EST (19:00 UTC) — after newsletter, enriches feed for next day
-    - cron: '0 19 * * 1-5'
+    # Run Monday-Friday at 6:30 AM EST (11:30 UTC) — after RSS build, before newsletter
+    - cron: '30 11 * * 1-5'
     # Run Sunday at 6 PM EST (23:00 UTC) — catch weekend scraper articles for Monday newsletter
     - cron: '0 23 * * 0'
   workflow_dispatch: # Allow manual trigger

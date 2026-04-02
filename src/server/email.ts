@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
@@ -48,7 +49,9 @@ let _cachedWeights: ScoringWeights | null = null;
 function loadScoringWeights(): ScoringWeights {
     if (_cachedWeights) return _cachedWeights;
 
-    const weightsPath = path.resolve(__dirname, '..', '..', 'docs', 'scoring-weights.json');
+    const __filename_email = fileURLToPath(import.meta.url);
+    const __dirname_email = path.dirname(__filename_email);
+    const weightsPath = path.resolve(__dirname_email, '..', '..', 'docs', 'scoring-weights.json');
     try {
         if (fs.existsSync(weightsPath)) {
             const raw = fs.readFileSync(weightsPath, 'utf-8');
@@ -675,20 +678,26 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         availabilities = availabilities.slice(0, MAX_AVAILABILITIES);
         people = people.slice(0, MAX_PER_SECTION);
 
-        // === FINAL GATE: Last-resort validation before sending to boss ===
-        // Catches anything that slipped past all other filters
-        // Uses isNotExcludedRegion (already imported) which checks INTERNATIONAL_EXCLUDE + region matching
-        // Uses isStrictlyIndustrial (already imported) which checks EXCLUDE_NON_INDUSTRIAL + industrial keywords
+        // === FINAL GATE: ALLOWLIST approach — articles must PROVE they belong ===
+        // Instead of trying to block every bad region (whack-a-mole), we require articles to match
+        // at least one of: target region, trusted source, or national macro topic.
+        const TRUSTED_DIRECT_SOURCES = new Set([
+            're-nj.com', 'roi-nj.com', 'bisnow.com', 'globest.com', 'commercialsearch.com',
+            'commercialobserver.com', 'connectcre.com', 'credaily.com', 'supplychaindive.com',
+            'supplychainbrain.com', 'freightwaves.com', 'blog.naiop.org', 'commercialcafe.com',
+            'areadevelopment.com', 'rejournals.com', 'ir.prologis.com', 'lvb.com', 'njbiz.com',
+            'dcvelocity.com', 'logisticsmgmt.com', 'cpexecutive.com',
+        ]);
+
+        const TARGET_REGION_PATTERN = /\b(new jersey|nj|newark|edison|carlstadt|rahway|piscataway|parsippany|robbinsville|hamilton|monmouth|somerset|harrison|wall twp|north bergen|garwood|linden|moonachie|cranbury|green brook|clark|freehold|exit \d|meadowlands|turnpike|route 1|i-95|i-78|i-287|pennsylvania|philadelphia|philly|allentown|lehigh|morrisville|bucks county|montgomery county|chester county|delaware county|pittsburgh|florida|miami|orlando|doral|jacksonville|tampa|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|duval|hillsborough|orange county, fl)\b/i;
+
+        const NATIONAL_MACRO_PATTERN = /\b(interest rates?|cap rates?|vacancy rates?|absorption|industrial market|warehouse market|warehouse demand|logistics market|reit|industrial reit|supply chain|freight market|e-commerce|automation|robotics|build-to-suit|spec development|industrial outlook|market report|quarterly report|national industrial|us industrial|u\.s\. industrial|industrial sector|logistics sector|warehouse sector|industrial fund|industrial portfolio|industrial real estate|warehouse real estate|big.?box|shallow.?bay|last.?mile|cold storage market)\b/i;
+
         const finalGate = (articles: NormalizedItem[], sectionName: string): NormalizedItem[] => {
             return articles.filter(a => {
                 const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
                 const url = (a.link || a.url || '').toLowerCase();
-
-                // Re-run the region exclusion check (catches international leaks)
-                if (!isNotExcludedRegion(a)) {
-                    console.log(`🚫 FINAL GATE blocked (excluded region): "${a.title?.substring(0, 60)}" [${sectionName}]`);
-                    return false;
-                }
+                const source = (a.source || (a as any)._source?.website || '').toLowerCase();
 
                 // Re-run the industrial content check (catches pharma, residential, restaurants)
                 if (!isStrictlyIndustrial(text)) {
@@ -696,27 +705,22 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     return false;
                 }
 
-                // Block LoopNet international listings: any 4-digit postcode NOT in US zip format
-                // Australian postcodes are 4 digits (2000-9999), LoopNet titles contain them as ", NNNN CityName"
+                // ALLOWLIST CHECK: article must prove it belongs via one of 3 paths
+                const hasTargetRegion = TARGET_REGION_PATTERN.test(text);
+                const isTrustedSource = TRUSTED_DIRECT_SOURCES.has(source) ||
+                    [...TRUSTED_DIRECT_SOURCES].some(d => url.includes(d));
+                const isNationalMacro = NATIONAL_MACRO_PATTERN.test(text);
+
+                if (!hasTargetRegion && !isTrustedSource && !isNationalMacro) {
+                    console.log(`🚫 FINAL GATE blocked (no target region, not trusted source, not macro): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+
+                // LoopNet listings: must be NJ/PA/FL explicitly (not just passing the general allowlist)
                 const titleText = (a.title || '');
-                if (/loopnet/i.test(titleText) && /,\s*\d{4}\s+[A-Z]/i.test(titleText)) {
-                    // Check it's not a US address (US zips are 5 digits, not 4)
-                    // Australian format: "8 Curtis Rd, 2756 Mulgrave" — 4-digit code before city name
-                    console.log(`🚫 FINAL GATE blocked (LoopNet international listing): "${titleText.substring(0, 60)}" [${sectionName}]`);
-                    return false;
-                }
-
-                // Block UK postcodes in LoopNet titles (e.g. GL51 9NJ, OX26 4LD)
-                if (/loopnet/i.test(titleText) && /[A-Z]{1,2}\d{1,2}\s*\d[A-Z]{2}/i.test(titleText)) {
-                    console.log(`🚫 FINAL GATE blocked (LoopNet UK listing): "${titleText.substring(0, 60)}" [${sectionName}]`);
-                    return false;
-                }
-
-                // Block non-target US states in LoopNet titles (Bohemia NY, Grand Rapids MI, etc.)
                 if (/loopnet/i.test(titleText)) {
-                    const nonTargetStates = /\b(NY|MI|OH|TX|CA|IL|GA|NC|AZ|NV|WA|OR|CO|MN|WI|TN|IN|MO|SC|AL|LA|KY|CT|UT|OK|AR|KS|MS|NE|WV|ID|HI|ME|NH|RI|MT|DE|SD|ND|AK|VT|WY|DC)\s+\d{5}\b/i;
-                    if (nonTargetStates.test(titleText)) {
-                        console.log(`🚫 FINAL GATE blocked (LoopNet non-target state): "${titleText.substring(0, 60)}" [${sectionName}]`);
+                    if (!hasTargetRegion) {
+                        console.log(`🚫 FINAL GATE blocked (LoopNet non-target): "${titleText.substring(0, 60)}" [${sectionName}]`);
                         return false;
                     }
                 }

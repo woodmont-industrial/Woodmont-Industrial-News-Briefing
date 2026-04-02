@@ -2,8 +2,8 @@ name: Update Articles and Deploy
 
 on:
   schedule:
-    # Run Monday-Friday at 6 AM EST (11:00 UTC) - Pre-fetch before 8am newsletter
-    - cron: '0 11 * * 1-5'
+    # Run Monday-Friday at 5:30 AM EST (10:30 UTC) — RSS first, then scrapers at 6:30 AM
+    - cron: '30 10 * * 1-5'
     # Run weekends at 10 AM EST (15:00 UTC) - Catch weekend articles
     - cron: '0 15 * * 0,6'
   workflow_dispatch: # Allow manual trigger
