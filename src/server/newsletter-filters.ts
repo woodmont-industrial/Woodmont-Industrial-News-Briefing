@@ -275,6 +275,7 @@ const PERSON_ROLE_KEYWORDS = [
     'vice president', 'vp ', 'svp ', 'evp ', 'managing director',
     'director', 'principal', 'partner', 'executive', 'officer',
     'broker', 'head of', 'chief', 'senior advisor',
+    'board of directors', 'board member', 'to board', 'advisory board',
 ];
 
 export function reCategorizeRelevantAsPeople(
