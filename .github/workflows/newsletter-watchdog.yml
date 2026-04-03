@@ -28,30 +28,40 @@ jobs:
             const todayStart = new Date(now);
             todayStart.setUTCHours(0, 0, 0, 0);
 
-            // Check all newsletter runs today
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'newsletter-pipeline.yml',
-              created: `>=${todayStart.toISOString().split('T')[0]}`,
-              per_page: 10
-            });
-
-            const todayRuns = runs.data.workflow_runs;
-            const successToday = todayRuns.some(r => r.conclusion === 'success');
-            const inProgress = todayRuns.some(r => r.status === 'in_progress' || r.status === 'queued');
-
-            if (successToday) {
-              console.log('✅ Newsletter already sent successfully today. No action needed.');
-              return;
+            // Check sent-articles.json — the source of truth
+            try {
+              const file = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'docs/sent-articles.json'
+              });
+              const content = JSON.parse(Buffer.from(file.data.content, 'base64').toString());
+              const today = new Date().toISOString().split('T')[0];
+              const sentToday = (content.sent || []).some(s => s.sentAt === today);
+              if (sentToday) {
+                console.log('✅ Newsletter already sent today (confirmed in sent-articles.json).');
+                return;
+              }
+            } catch (e) {
+              console.log('Could not check sent-articles.json: ' + e.message);
             }
 
-            if (inProgress) {
-              console.log('⏳ Newsletter is currently running. No action needed.');
-              return;
-            }
+            // Also check if send-only workflow is in progress
+            try {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'send-only.yml',
+                created: `>=${todayStart.toISOString().split('T')[0]}`,
+                per_page: 5
+              });
+              const inProgress = runs.data.workflow_runs.some(r => r.status === 'in_progress');
+              if (inProgress) {
+                console.log('⏳ Send workflow is currently running. No action needed.');
+                return;
+              }
+            } catch { /* workflow might not exist */ }
 
-            // Newsletter didn't run today — ALERT ONLY, do NOT auto-trigger
-            // Auto-triggering caused double-sends. Manual intervention is safer.
-            console.log(`🚨 Newsletter did not run today! (${todayRuns.length} runs, none successful)`);
-            core.warning('Newsletter did NOT send today. Please trigger manually via workflow_dispatch.');
+            // Newsletter didn't send today — ALERT ONLY
+            console.log('🚨 Newsletter did NOT send today!');
+            core.warning('Newsletter did NOT send today. Please trigger send-only.yml manually.');

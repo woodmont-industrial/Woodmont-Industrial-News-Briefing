@@ -1,0 +1,96 @@
+name: "Build: Scrape + Assess + RSS"
+
+# BUILD ONLY — no email sending. Safe to fail/retry.
+# Runs the full article pipeline: scrapers → assess gaps → RSS build
+# Output: updated feed.json committed to repo
+
+on:
+  schedule:
+    # Shotgun crons 7:00-7:45 AM EST (11:00-11:45 UTC) Mon-Fri
+    # First one that finishes wins. Rest see no changes and skip commit.
+    - cron: '0 11 * * 1-5'
+    - cron: '15 11 * * 1-5'
+    - cron: '30 11 * * 1-5'
+    - cron: '45 11 * * 1-5'
+    # Weekend RSS-only (no scrapers)
+    - cron: '0 15 * * 0,6'
+    # Sunday evening scraper run for Monday
+    - cron: '0 23 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: build-articles
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Install Playwright (weekdays only)
+        if: contains('1,2,3,4,5', github.event.schedule && '0') || github.event_name == 'workflow_dispatch'
+        run: npx playwright install chromium --with-deps
+
+      # Step 1: Scrapers (weekdays only)
+      - name: "Step 1: Run scrapers"
+        if: contains('1,2,3,4,5', github.event.schedule && '0') || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "🕷️ Running scrapers..."
+          SKIP_RSS=true npm run build-static || echo "Scraper build had errors, continuing..."
+        env:
+          SKIP_RSS: 'true'
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        timeout-minutes: 12
+
+      # Step 2: Assess gaps
+      - name: "Step 2: Assess scraper gaps → toggle GN backups"
+        run: |
+          echo "🔍 Assessing gaps..."
+          npx tsx src/build/assess-gaps.ts || echo "Gap assessment skipped"
+
+      # Step 3: RSS build
+      - name: "Step 3: RSS build"
+        run: |
+          echo "📰 Running RSS build..."
+          SKIP_SCRAPERS=true npm run build-static
+          echo "✅ Build complete"
+        env:
+          SKIP_SCRAPERS: 'true'
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        timeout-minutes: 10
+
+      # Commit
+      - name: Commit updated feed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/ src/feeds/feeds.json
+          if git diff --staged --quiet; then
+            echo "📋 No changes"
+          else
+            git commit -m "🔄 Build articles - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            for i in 1 2 3; do
+              if git push; then echo "Push OK"; break; fi
+              git fetch origin main && git rebase origin/main --strategy-option=ours || { git rebase --abort; git pull --no-rebase -X ours || true; }
+            done
+          fi
