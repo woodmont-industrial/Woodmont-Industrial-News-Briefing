@@ -762,37 +762,54 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return true;
         }
 
-        // Friday Week-in-Review: TOP 5 highest-scoring articles from the entire M-F week
+        // Friday Week-in-Review: TOP articles from each day this week (Mon-Fri)
+        // Reads from docs/weekly-top-articles.json which stores each day's sent articles
         let weekInReview: NormalizedItem[] | undefined;
         if (isFriday) {
-            console.log('📅 Friday detected — building Week-in-Review (top 5 highest-scoring from Mon-Fri)');
-            const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
-            const weekRegional = fiveDayArticles.filter(isTargetRegion).filter(a => !isPolitical(getText(a)));
-            // Apply industrial + section filters to week-in-review candidates
-            const weekTransactions = applyTransactionFilter(weekRegional.filter(a => a.category === 'transactions'));
-            const weekRelevant = applyStrictFilter(
-                fiveDayArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion).filter(a => !isPolitical(getText(a))),
-                RELEVANT_KEYWORDS, 'Week-in-Review Relevant'
-            );
-            const weekAvailabilities = applyAvailabilityFilter(weekRegional.filter(a => a.category === 'availabilities'));
-            const weekPeople = applyPeopleFilter(weekRegional.filter(a => a.category === 'people'));
+            console.log('📅 Friday detected — building Week-in-Review from daily top articles');
+            try {
+                const weeklyPath = path.resolve(__dirname, '..', '..', 'docs', 'weekly-top-articles.json');
+                const weeklyData = JSON.parse(fs.readFileSync(weeklyPath, 'utf-8'));
+                const allWeekArticles: NormalizedItem[] = [];
 
-            // Combine all categories, run through allowlist final gate, then rank by quality score
-            let weekCandidates = [...weekTransactions, ...weekRelevant, ...weekAvailabilities, ...weekPeople]
-                .filter(postDescriptionRegionCheck);
+                // Collect articles from each day this week
+                const days = Object.keys(weeklyData.week || {}).sort();
+                for (const day of days) {
+                    const dayArticles = weeklyData.week[day] || [];
+                    console.log(`📊 ${day}: ${dayArticles.length} articles`);
+                    for (const a of dayArticles) {
+                        allWeekArticles.push({
+                            id: a.id,
+                            title: a.title,
+                            link: a.url,
+                            url: a.url,
+                            category: a.category,
+                            description: a.description || '',
+                            source: a.source,
+                            tags: a.region ? [a.region] : [],
+                        } as NormalizedItem);
+                    }
+                }
 
-            // Apply allowlist gate to week-in-review too
-            weekCandidates = finalGate(weekCandidates, 'Week-in-Review');
+                // Score all week's articles and pick top 5
+                allWeekArticles.sort((a, b) => scoreArticle(b) - scoreArticle(a));
+                weekInReview = allWeekArticles.slice(0, 5);
 
-            // Sort by quality score (highest first) and take top 5
-            weekCandidates.sort((a, b) => scoreArticle(b) - scoreArticle(a));
-            weekInReview = weekCandidates.slice(0, 5);
-
-            // Log the top picks with scores
-            weekInReview.forEach((a, i) => {
-                console.log(`📊 Week #${i + 1}: score=${scoreArticle(a)} | "${(a.title || '').substring(0, 55)}"`);
-            });
-            console.log(`📊 Week-in-Review: ${weekInReview.length} top developments (from ${weekCandidates.length + weekInReview.length} candidates)`);
+                weekInReview.forEach((a, i) => {
+                    console.log(`📊 Week #${i + 1}: score=${scoreArticle(a)} | "${(a.title || '').substring(0, 55)}"`);
+                });
+                console.log(`📊 Week-in-Review: ${weekInReview.length} top from ${allWeekArticles.length} total across ${days.length} days`);
+            } catch (e) {
+                console.warn('⚠️ Could not load weekly-top-articles.json, falling back to feed scan');
+                // Fallback: scan feed for last 5 days
+                const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
+                weekInReview = fiveDayArticles
+                    .filter(isNotExcludedRegion)
+                    .filter(a => !isPolitical(getText(a)))
+                    .sort((a, b) => scoreArticle(b) - scoreArticle(a))
+                    .slice(0, 5);
+                console.log(`📊 Week-in-Review (fallback): ${weekInReview.length} articles from feed`);
+            }
         }
 
         const dateRange = formatDate(today);

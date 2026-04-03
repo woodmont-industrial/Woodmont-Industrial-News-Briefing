@@ -118,6 +118,56 @@ jobs:
             done
           fi
 
+      # Also save today's top articles for Friday Week-in-Review
+      - name: Save daily top articles
+        if: steps.dedup.outputs.skip != 'true'
+        run: |
+          node -e "
+          const fs = require('fs');
+          const feed = JSON.parse(fs.readFileSync('docs/feed.json', 'utf-8'));
+          const sent = JSON.parse(fs.readFileSync('docs/sent-articles.json', 'utf-8'));
+          const today = new Date().toISOString().split('T')[0];
+          const todayIds = new Set((sent.sent || []).filter(s => s.sentAt === today).map(s => s.id));
+          const todaySent = feed.items.filter(i => todayIds.has(i.id));
+          // Load or create weekly file
+          let weekly = { week: {}, updatedAt: '' };
+          try { weekly = JSON.parse(fs.readFileSync('docs/weekly-top-articles.json', 'utf-8')); } catch {}
+          weekly.week[today] = todaySent.map(a => ({
+            id: a.id, title: a.title, url: a.url, category: a.category,
+            source: (a._source || {}).website || '',
+            description: (a.content_text || a.summary || '').substring(0, 150),
+            region: (a.tags || []).find(t => t.length <= 5) || ''
+          }));
+          // Keep only this week (last 5 weekdays)
+          const keys = Object.keys(weekly.week).sort().reverse().slice(0, 5);
+          const trimmed = {};
+          keys.forEach(k => trimmed[k] = weekly.week[k]);
+          weekly.week = trimmed;
+          weekly.updatedAt = new Date().toISOString();
+          fs.writeFileSync('docs/weekly-top-articles.json', JSON.stringify(weekly, null, 2));
+          console.log('Saved ' + todaySent.length + ' articles for ' + today);
+          "
+          git add docs/weekly-top-articles.json
+          git diff --staged --quiet || git commit -m "📊 Daily top articles - $(date -u +'%Y-%m-%d')" && git push || true
+
+      # Notify admin (you) — not the distribution list
+      - name: Notify admin
+        if: steps.dedup.outputs.skip != 'true'
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        run: |
+          if [ -n "$ADMIN_EMAIL" ] && [ -n "$WEBHOOK_URL" ]; then
+            ARTICLE_COUNT=$(node -e "const s=JSON.parse(require('fs').readFileSync('docs/sent-articles.json','utf-8'));const t=s.sent.filter(x=>x.sentAt===new Date().toISOString().split('T')[0]).length;console.log(t)")
+            curl -s -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"to\":\"$ADMIN_EMAIL\",\"subject\":\"✅ Newsletter sent - $ARTICLE_COUNT articles - $(date -u +'%Y-%m-%d')\",\"body\":\"<p>Newsletter sent successfully with $ARTICLE_COUNT articles.</p>\",\"apiKey\":\"$WEBHOOK_SECRET\"}" \
+              > /dev/null 2>&1 && echo "Admin notified" || echo "Admin notify failed (non-critical)"
+          else
+            echo "ℹ️ Set ADMIN_EMAIL secret to receive send confirmations"
+          fi
+
       - name: Report
         if: success() && steps.dedup.outputs.skip != 'true'
         run: echo "✅ Newsletter sent!"
