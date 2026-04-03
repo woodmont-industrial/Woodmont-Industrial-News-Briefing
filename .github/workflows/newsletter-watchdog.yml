@@ -51,33 +51,7 @@ jobs:
               return;
             }
 
-            // Check if the workflow is even enabled
-            const workflow = await github.rest.actions.getWorkflow({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'send-newsletter-work.yml'
-            });
-
-            if (workflow.data.state !== 'active') {
-              console.log('⚠️ Newsletter workflow is disabled. Enabling and triggering...');
-              await github.rest.actions.enableWorkflow({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: 'send-newsletter-work.yml'
-              });
-            }
-
-            // Newsletter didn't run today — trigger it
+            // Newsletter didn't run today — ALERT ONLY, do NOT auto-trigger
+            // Auto-triggering caused double-sends. Manual intervention is safer.
             console.log(`🚨 Newsletter did not run today! (${todayRuns.length} runs, none successful)`);
-            console.log('Triggering newsletter send...');
-
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'newsletter-pipeline.yml',
-              ref: 'main',
-              inputs: { force_send: 'true' }
-            });
-
-            console.log('✅ Newsletter triggered by watchdog.');
-            core.warning('Newsletter missed its scheduled run. Watchdog triggered it.');
+            core.warning('Newsletter did NOT send today. Please trigger manually via workflow_dispatch.');
