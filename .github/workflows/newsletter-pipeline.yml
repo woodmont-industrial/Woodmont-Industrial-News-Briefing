@@ -50,8 +50,29 @@ jobs:
               console.log('Force send enabled — bypassing dedup check');
               return;
             }
-            // Check both old and new workflow for successful runs
-            for (const wf of ['send-newsletter-work.yml', 'newsletter-pipeline.yml']) {
+
+            // PRIMARY CHECK: Did we already send articles today?
+            // This catches the case where the email was sent but the workflow "failed" on a later step.
+            try {
+              const sentFile = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'docs/sent-articles.json'
+              });
+              const content = JSON.parse(Buffer.from(sentFile.data.content, 'base64').toString());
+              const today = new Date().toISOString().split('T')[0];
+              const sentToday = (content.sent || []).some(s => s.sentAt === today);
+              if (sentToday) {
+                core.setOutput('skip', 'true');
+                console.log(`Skipping — sent-articles.json shows articles already sent today (${today})`);
+                return;
+              }
+            } catch (e) {
+              console.log('Could not check sent-articles.json, continuing: ' + e.message);
+            }
+
+            // SECONDARY CHECK: successful workflow runs in last 2 hours
+            for (const wf of ['newsletter-pipeline.yml', 'send-newsletter-work.yml']) {
               try {
                 const runs = await github.rest.actions.listWorkflowRuns({
                   owner: context.repo.owner,
@@ -65,12 +86,13 @@ jobs:
                   const hoursAgo = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
                   if (hoursAgo < 2 && runs.data.workflow_runs[0].id !== context.runId) {
                     core.setOutput('skip', 'true');
-                    console.log(`Skipping — ${wf} last success was ${hoursAgo.toFixed(1)} hours ago`);
+                    console.log(`Skipping — ${wf} succeeded ${hoursAgo.toFixed(1)} hours ago`);
                     return;
                   }
                 }
-              } catch { /* workflow might not exist yet */ }
+              } catch { /* workflow might not exist */ }
             }
+
             core.setOutput('skip', 'false');
 
       - name: Skip notice
@@ -211,12 +233,30 @@ jobs:
               && echo "Alert sent" || echo "Alert failed"
           fi
 
-      # Auto-retry
+      # Auto-retry — but ONLY if email wasn't already sent
       - name: Schedule retry on failure
         if: failure() && steps.dedup.outputs.skip != 'true'
         uses: actions/github-script@v7
         with:
           script: |
+            // First check: did the email actually go out despite the "failure"?
+            try {
+              const sentFile = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'docs/sent-articles.json'
+              });
+              const content = JSON.parse(Buffer.from(sentFile.data.content, 'base64').toString());
+              const today = new Date().toISOString().split('T')[0];
+              const sentToday = (content.sent || []).some(s => s.sentAt === today);
+              if (sentToday) {
+                console.log('Email was already sent today (found in sent-articles.json). NOT retrying.');
+                return;
+              }
+            } catch (e) {
+              console.log('Could not check sent-articles.json: ' + e.message);
+            }
+
             const now = new Date();
             const todayStart = new Date(now);
             todayStart.setUTCHours(0, 0, 0, 0);
