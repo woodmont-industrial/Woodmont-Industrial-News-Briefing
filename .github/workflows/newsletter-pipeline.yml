@@ -5,8 +5,10 @@ name: Newsletter Pipeline (Unified)
 
 on:
   schedule:
-    # Run Monday-Friday at 9 AM EST (13:00 UTC) — gives ~1 hour for the full pipeline before 10 AM send
+    # Primary: Monday-Friday at 9 AM EST (13:00 UTC)
     - cron: '0 13 * * 1-5'
+    # Backup: 5 min later in case the first cron gets skipped by GitHub
+    - cron: '5 13 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:
