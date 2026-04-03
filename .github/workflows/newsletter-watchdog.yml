@@ -2,12 +2,12 @@ name: Newsletter Watchdog
 
 on:
   schedule:
-    # Check at 9:30 AM EST (13:30 UTC) — 30 min after pipeline should start
+    # Check at 8:30 AM EST (12:30 UTC) — pipeline should be done by now
+    - cron: '30 12 * * 1-5'
+    # Check again at 9:00 AM EST (13:00 UTC)
+    - cron: '0 13 * * 1-5'
+    # Final check at 9:30 AM EST (13:30 UTC) — last resort before boss arrives
     - cron: '30 13 * * 1-5'
-    # Check again at 10:15 AM EST (14:15 UTC) — pipeline should be done by now
-    - cron: '15 14 * * 1-5'
-    # Final check at 11 AM EST (15:00 UTC) — last resort
-    - cron: '0 15 * * 1-5'
   workflow_dispatch: # Allow manual trigger
 
 permissions:

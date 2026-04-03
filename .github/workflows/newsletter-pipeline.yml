@@ -5,14 +5,14 @@ name: Newsletter Pipeline (Unified)
 
 on:
   schedule:
-    # Shotgun approach: fire every 15 min from 9-10 AM EST (13:00-14:00 UTC)
-    # Dedup guard ensures only the FIRST successful run actually sends.
-    # GitHub may delay or skip any single cron, but skipping ALL 5 is near-impossible.
-    - cron: '0 13 * * 1-5'
-    - cron: '15 13 * * 1-5'
-    - cron: '30 13 * * 1-5'
-    - cron: '45 13 * * 1-5'
-    - cron: '0 14 * * 1-5'
+    # Shotgun approach: fire every 15 min from 7-8 AM EST (11:00-12:00 UTC)
+    # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM — well before boss reads email.
+    # Dedup guard ensures only the FIRST successful run sends. Rest skip instantly.
+    - cron: '0 11 * * 1-5'
+    - cron: '15 11 * * 1-5'
+    - cron: '30 11 * * 1-5'
+    - cron: '45 11 * * 1-5'
+    - cron: '0 12 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:
