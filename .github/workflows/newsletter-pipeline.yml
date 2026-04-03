@@ -217,21 +217,9 @@ jobs:
           echo "❌ Newsletter pipeline failed!"
           echo "Check the logs above for error details"
 
-      # Failure alert
-      - name: Send failure alert
-        if: failure() && steps.dedup.outputs.skip != 'true'
-        env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: |
-          if [ -n "$WEBHOOK_URL" ]; then
-            RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            curl -s -X POST "$WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "{\"to\":\"$EMAIL_TO\",\"subject\":\"[ALERT] Newsletter pipeline failed - $(date -u +'%Y-%m-%d')\",\"body\":\"<p>The newsletter pipeline failed. Check the logs.</p><p><a href='$RUN_URL'>View workflow run</a></p>\",\"apiKey\":\"$WEBHOOK_SECRET\"}" \
-              && echo "Alert sent" || echo "Alert failed"
-          fi
+      # Failure alert — REMOVED. Was sending to boss's email on pipeline failures.
+      # GitHub Actions already sends email notifications to repo admins on failure.
+      # Check Settings → Notifications → Actions to configure who gets notified.
 
       # NO AUTO-RETRY — removed to prevent double-sends.
       # The watchdog workflow handles missed days instead.
