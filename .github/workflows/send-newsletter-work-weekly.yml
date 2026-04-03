@@ -1,10 +1,10 @@
 name: Send Newsletter (Work - Weekly)
 
 on:
-  schedule:
-    # Run Friday at 12 PM NOON EST (17:00 UTC)
-    # Sends the weekly recap with Week-in-Review top 5 developments
-    - cron: '0 17 * * 5'
+  # schedule:
+  #   # Run Friday at 12 PM NOON EST (17:00 UTC)
+  #   # Sends the weekly recap with Week-in-Review top 5 developments
+  #   - cron: '0 17 * * 5'
   workflow_dispatch: # Allow manual trigger for re-sends
 
 permissions:
