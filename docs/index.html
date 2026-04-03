@@ -2104,6 +2104,15 @@
       const [showFeedHealth, setShowFeedHealth] = useState(false);
       const [feedHealthLoading, setFeedHealthLoading] = useState(false);
       const [currentUser, setCurrentUser] = useState(() => getUserId());
+      const [pipelineStatus, setPipelineStatus] = useState(null);
+
+      // Load pipeline status on mount
+      useEffect(() => {
+        fetch('pipeline-status.json?' + Date.now())
+          .then(r => r.json())
+          .then(data => setPipelineStatus(data))
+          .catch(() => {});
+      }, []);
 
       // Tracking state
       const [trackedTopics, setTrackedTopics] = useState(() => getTrackedTopics());

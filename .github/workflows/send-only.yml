@@ -150,23 +150,25 @@ jobs:
           git add docs/weekly-top-articles.json
           git diff --staged --quiet || git commit -m "📊 Daily top articles - $(date -u +'%Y-%m-%d')" && git push || true
 
-      # Notify admin (you) — not the distribution list
-      - name: Notify admin
+      # Update pipeline status on the website (no email, no webhook)
+      - name: Update pipeline status
         if: steps.dedup.outputs.skip != 'true'
-        env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
         run: |
-          if [ -n "$ADMIN_EMAIL" ] && [ -n "$WEBHOOK_URL" ]; then
-            ARTICLE_COUNT=$(node -e "const s=JSON.parse(require('fs').readFileSync('docs/sent-articles.json','utf-8'));const t=s.sent.filter(x=>x.sentAt===new Date().toISOString().split('T')[0]).length;console.log(t)")
-            curl -s -X POST "$WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "{\"to\":\"$ADMIN_EMAIL\",\"subject\":\"✅ Newsletter sent - $ARTICLE_COUNT articles - $(date -u +'%Y-%m-%d')\",\"body\":\"<p>Newsletter sent successfully with $ARTICLE_COUNT articles.</p>\",\"apiKey\":\"$WEBHOOK_SECRET\"}" \
-              > /dev/null 2>&1 && echo "Admin notified" || echo "Admin notify failed (non-critical)"
-          else
-            echo "ℹ️ Set ADMIN_EMAIL secret to receive send confirmations"
-          fi
+          ARTICLE_COUNT=$(node -e "const s=JSON.parse(require('fs').readFileSync('docs/sent-articles.json','utf-8'));const t=s.sent.filter(x=>x.sentAt===new Date().toISOString().split('T')[0]).length;console.log(t)")
+          node -e "
+          const fs = require('fs');
+          const status = {
+            lastSent: new Date().toISOString(),
+            date: new Date().toISOString().split('T')[0],
+            articleCount: ${ARTICLE_COUNT},
+            status: 'success',
+            runId: '${{ github.run_id }}',
+            runUrl: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          };
+          fs.writeFileSync('docs/pipeline-status.json', JSON.stringify(status, null, 2));
+          "
+          git add docs/pipeline-status.json
+          git diff --staged --quiet || git commit --amend --no-edit && git push --force-with-lease || true
 
       - name: Report
         if: success() && steps.dedup.outputs.skip != 'true'
