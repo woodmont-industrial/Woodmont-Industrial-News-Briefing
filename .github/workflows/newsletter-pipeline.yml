@@ -1,27 +1,23 @@
-name: Newsletter Pipeline (Unified)
+name: Newsletter Pipeline (Build Only)
 
-# Single workflow that runs the full pipeline:
-# Step 1: Scraper build → Step 2: Assess gaps → Step 3: RSS build → Step 4: Filters → Step 5: Send
+# Build-only pipeline — does NOT send email.
+# Step 1: Scraper build → Step 2: Assess gaps → Step 3: RSS build → Commit
+# Sending is handled separately by send-only.yml (scheduled after this completes).
 
 on:
   schedule:
-    # Shotgun approach: fire every 15 min from 7-8 AM EST (11:00-12:00 UTC)
-    # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM — well before boss reads email.
-    # Dedup guard ensures only the FIRST successful run sends. Rest skip instantly.
+    # Fire every 15 min from 7-8 AM EST (11:00-12:00 UTC) Mon-Fri
+    # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM.
+    # send-only.yml starts at 8:00 AM EST — 1 hour gap ensures build is done first.
     - cron: '0 11 * * 1-5'
     - cron: '15 11 * * 1-5'
     - cron: '30 11 * * 1-5'
     - cron: '45 11 * * 1-5'
     - cron: '0 12 * * 1-5'
   repository_dispatch:
-    types: [send-newsletter]
+    types: [build-feed]
   workflow_dispatch:
     inputs:
-      force_send:
-        description: 'Bypass 2-hour dedup guard'
-        required: false
-        type: boolean
-        default: false
       skip_scrapers:
         description: 'Skip scraper step (faster, RSS only)'
         required: false
@@ -36,68 +32,41 @@ jobs:
   newsletter-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: newsletter-build
+      cancel-in-progress: true
 
     steps:
-      # === DEDUP CHECK ===
-      - name: Check for duplicate run
+      # === DEDUP CHECK — skip if build already succeeded today ===
+      - name: Check for duplicate build
         id: dedup
         uses: actions/github-script@v7
         with:
           script: |
-            const forceSend = '${{ inputs.force_send }}' === 'true';
-            if (forceSend) {
-              core.setOutput('skip', 'false');
-              console.log('Force send enabled — bypassing dedup check');
-              return;
-            }
-
-            // PRIMARY CHECK: Did we already send articles today?
-            // This catches the case where the email was sent but the workflow "failed" on a later step.
+            // Skip if this pipeline already succeeded today (avoid redundant builds)
             try {
-              const sentFile = await github.rest.repos.getContent({
+              const runs = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: 'docs/sent-articles.json'
+                workflow_id: 'newsletter-pipeline.yml',
+                status: 'success',
+                per_page: 1
               });
-              const content = JSON.parse(Buffer.from(sentFile.data.content, 'base64').toString());
-              const today = new Date().toISOString().split('T')[0];
-              const sentToday = (content.sent || []).some(s => s.sentAt === today);
-              if (sentToday) {
-                core.setOutput('skip', 'true');
-                console.log(`Skipping — sent-articles.json shows articles already sent today (${today})`);
-                return;
-              }
-            } catch (e) {
-              console.log('Could not check sent-articles.json, continuing: ' + e.message);
-            }
-
-            // SECONDARY CHECK: successful workflow runs in last 2 hours
-            for (const wf of ['newsletter-pipeline.yml', 'send-newsletter-work.yml']) {
-              try {
-                const runs = await github.rest.actions.listWorkflowRuns({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  workflow_id: wf,
-                  status: 'success',
-                  per_page: 1
-                });
-                if (runs.data.workflow_runs.length > 0) {
-                  const lastRun = new Date(runs.data.workflow_runs[0].created_at);
-                  const hoursAgo = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
-                  if (hoursAgo < 2 && runs.data.workflow_runs[0].id !== context.runId) {
-                    core.setOutput('skip', 'true');
-                    console.log(`Skipping — ${wf} succeeded ${hoursAgo.toFixed(1)} hours ago`);
-                    return;
-                  }
+              if (runs.data.workflow_runs.length > 0) {
+                const lastRun = new Date(runs.data.workflow_runs[0].created_at);
+                const hoursAgo = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
+                if (hoursAgo < 2 && runs.data.workflow_runs[0].id !== context.runId) {
+                  core.setOutput('skip', 'true');
+                  console.log(`Skipping — build already succeeded ${hoursAgo.toFixed(1)} hours ago`);
+                  return;
                 }
-              } catch { /* workflow might not exist */ }
-            }
-
+              }
+            } catch { /* continue */ }
             core.setOutput('skip', 'false');
 
       - name: Skip notice
         if: steps.dedup.outputs.skip == 'true'
-        run: echo "⏭️ Newsletter already sent in the last 2 hours — skipping."
+        run: echo "⏭️ Build already completed recently — skipping."
 
       # === SETUP ===
       - name: Checkout repository
@@ -159,27 +128,6 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         timeout-minutes: 10
 
-      # === STEP 4 + 5: FILTER + SEND (filters are built into the newsletter assembly) ===
-      - name: "Step 4+5: Filter and send newsletter"
-        if: steps.dedup.outputs.skip != 'true'
-        env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
-          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
-          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY_2 }}
-        run: |
-          echo "📧 Step 4+5: Filtering and sending newsletter..."
-          npx tsx rssfeed.ts --send-newsletter-work
-          echo "✅ Newsletter sent!"
-
       # === COMMIT ===
       - name: Commit updated data
         if: steps.dedup.outputs.skip != 'true'
@@ -190,7 +138,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "📧 Newsletter pipeline - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git commit -m "📰 Feed build - $(date -u +'%Y-%m-%d %H:%M UTC')"
             for i in 1 2 3; do
               if git push; then
                 echo "Push succeeded on attempt $i"
@@ -208,18 +156,11 @@ jobs:
       - name: Report Success
         if: success() && steps.dedup.outputs.skip != 'true'
         run: |
-          echo "✅ Full newsletter pipeline completed!"
-          echo "📊 Check email inbox for delivery"
+          echo "✅ Feed build complete!"
+          echo "📰 send-only.yml will handle sending at 8:00 AM EST"
 
       - name: Report Failure
         if: failure() && steps.dedup.outputs.skip != 'true'
         run: |
-          echo "❌ Newsletter pipeline failed!"
+          echo "❌ Feed build failed!"
           echo "Check the logs above for error details"
-
-      # Failure alert — REMOVED. Was sending to boss's email on pipeline failures.
-      # GitHub Actions already sends email notifications to repo admins on failure.
-      # Check Settings → Notifications → Actions to configure who gets notified.
-
-      # NO AUTO-RETRY — removed to prevent double-sends.
-      # The watchdog workflow handles missed days instead.

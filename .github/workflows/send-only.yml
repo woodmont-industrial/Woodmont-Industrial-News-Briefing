@@ -5,14 +5,14 @@ name: "Send: Newsletter Only"
 # Completely separate from the build workflow. Safe, fast, no double-sends.
 
 on:
-  # schedule:
-  #   # DISABLED — newsletter-pipeline.yml handles the full build+send.
-  #   # Having both scheduled caused double-sends when pipeline's commit
-  #   # hadn't pushed to GitHub before send-only read sent-articles.json.
-  #   - cron: '0 12 * * 1-5'
-  #   - cron: '15 12 * * 1-5'
-  #   - cron: '30 12 * * 1-5'
-  #   - cron: '45 12 * * 1-5'
+  schedule:
+    # Shotgun crons 8:00-8:45 AM EST (12:00-12:45 UTC) Mon-Fri
+    # Build pipeline finishes by ~7:30 AM. Send starts at 8:00 AM.
+    # 1 hour gap ensures build is done before send starts.
+    - cron: '0 12 * * 1-5'
+    - cron: '15 12 * * 1-5'
+    - cron: '30 12 * * 1-5'
+    - cron: '45 12 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:
