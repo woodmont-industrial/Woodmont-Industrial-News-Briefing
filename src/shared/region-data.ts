@@ -88,7 +88,7 @@ export const MAJOR_EXCLUDE_REGIONS = [
     // Abbreviations and neighborhoods that slip past state-level checks
     'DFW', 'DALLAS-FORT WORTH', 'EL SEGUNDO', 'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA',
     'PERRIS', 'HESPERIA', 'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
-    'CADDO PARISH', 'SHREVEPORT', 'NILES', 'LOUISIANA',
+    'CADDO PARISH', 'SHREVEPORT', 'NILES', 'LOUISIANA', 'ASCENSION PARISH',
     'TEMPLE, TX', 'TEMPLE BATTERY', 'COSTA MESA', 'PINELLAS PARK',
     'SOHO', 'MIDTOWN', 'TRIBECA', 'CHELSEA', 'FLATIRON',
     'HERMISTON', 'SEVIERVILLE', 'DONEGAL',
@@ -126,7 +126,7 @@ export const INTERNATIONAL_EXCLUDE = [
     // UK postcodes and locations
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
     'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
-    'CHELTENHAM', 'GL51',
+    'CHELTENHAM', 'GL51', 'DURHAM, UK', 'CITRUS DURHAM',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
@@ -142,11 +142,13 @@ export const INTERNATIONAL_EXCLUDE = [
     'MYANMAR', 'CAMBODIA', 'LAOS',
     // Africa
     'BURKINA FASO', 'GHANA', 'NIGERIA', 'KENYA', 'SOUTH AFRICA', 'JOHANNESBURG',
-    'LAGOS', 'NAIROBI', 'ACCRA', 'SHARJAH',
+    'LAGOS', 'NAIROBI', 'ACCRA', 'SHARJAH', 'ZIMBABWE', 'HARARE', 'HERALDONLINE',
     // Middle East extras
     'ABU DHABI', 'QATAR', 'DOHA', 'BAHRAIN', 'KUWAIT', 'OMAN', 'JAFZA', 'JEBEL ALI',
     // Non-CRE content that matches industrial keywords
-    'IMDB', '- IMDB', 'IMDB.COM'
+    'IMDB', '- IMDB', 'IMDB.COM',
+    // Non-CRE market research reports (chemicals, hygiene, etc.)
+    'INDEXBOX', 'HAND HYGIENE', 'CHEMICALS MARKET', 'CLEANING CHEMICALS'
 ];
 
 // Political / public figure exclusion
