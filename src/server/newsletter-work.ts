@@ -130,7 +130,10 @@ export function buildWorkBriefing(
         let description = '';
         const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
         if (rawDesc && rawDesc.length > 10) {
-            const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
+            // Split on sentence boundaries, but protect decimal points in numbers ($1.6B, 23.5M, etc.)
+            // Replace decimal points in numbers with placeholder, split, then restore
+            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2');
+            const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.replace(/\u0000/g, '.'));
             if (sentences && sentences.length > 0) {
                 description = sentences.slice(0, 2).join('').trim();
             } else {
