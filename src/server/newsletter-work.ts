@@ -144,10 +144,20 @@ export function buildWorkBriefing(
             }
         }
 
-        // Use description as the display text if available, otherwise fall back to title
-        let displayText = description || title;
-        if (displayText.length > 350) {
-            displayText = displayText.substring(0, 347).replace(/\s+\S*$/, '') + '...';
+        // Always show the title — never replace it with the description
+        let displayText = title;
+        // Append description only if it's meaningfully different from the title
+        if (description && description.length > 20) {
+            const titleWords = new Set(title.toLowerCase().split(/\s+/));
+            const descWords = description.toLowerCase().split(/\s+/);
+            const overlap = descWords.filter(w => titleWords.has(w)).length / descWords.length;
+            // Only append if description adds new info (less than 60% word overlap with title)
+            if (overlap < 0.6) {
+                displayText = `${title} — <span style="color: #555;">${description}</span>`;
+            }
+        }
+        if (displayText.length > 500) {
+            displayText = displayText.substring(0, 497).replace(/\s+\S*$/, '') + '...';
         }
 
         // Structured deal fields prefix (Location · Size · $Amount)
