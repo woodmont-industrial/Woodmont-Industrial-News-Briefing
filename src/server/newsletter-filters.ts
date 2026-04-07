@@ -156,6 +156,7 @@ const EXCLUDE_CITIES_EXTRA = [
     'CENLA', 'CENTRAL LOUISIANA', 'BEEVILLE',
     'GRAND RAPIDS', 'KALAMAZOO', 'STOCKTON, CA', 'BOHEMIA, NY',
     'WATERVILLE', 'MAINE', 'BANGOR',
+    'BUCKEYE', 'GAINESVILLE TIMES', 'ORANGE COUNTY',
 ];
 
 export function isNotExcludedRegion(article: NormalizedItem): boolean {

@@ -128,7 +128,7 @@ export const INTERNATIONAL_EXCLUDE = [
     // UK postcodes and locations
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
     'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
-    'CHELTENHAM', 'GL51', 'DURHAM, UK', 'CITRUS DURHAM',
+    'CHELTENHAM', 'GL51', 'DURHAM, UK', 'CITRUS DURHAM', 'NOTTINGHAM',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
