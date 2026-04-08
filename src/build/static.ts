@@ -743,11 +743,8 @@ export async function buildStaticRSS(): Promise<void> {
             'skip to content', 'skip to main', 'privacy policy', 'terms of service',
             'subscribe now', 'sign up for', 'newsletter signup'
         ];
-        const cleanWrongCities = [
-            'dallas', 'houston', 'austin', 'los angeles', 'chicago', 'atlanta', 'phoenix',
-            'denver', 'seattle', 'las vegas', 'nashville', 'charlotte', 'indianapolis',
-            'birmingham', 'memphis', 'st. louis', 'san antonio', 'san francisco'
-        ];
+        // Use the canonical exclude lists from region-data.ts instead of a hardcoded subset
+        const cleanWrongCities = MAJOR_EXCLUDE_REGIONS.map(r => r.toLowerCase().trim().replace(/^,\s*/, ''));
 
         const cleanMerged = mergedArticles.filter(item => {
             const title = (item.title || '').trim();
@@ -823,6 +820,22 @@ export async function buildStaticRSS(): Promise<void> {
         // Region filter: only keep NJ/PA/FL regional articles + national/macro (no excluded regions)
         // Also re-apply postDescriptionRegionCheck on existing articles that now have descriptions
         const regionFiltered = sortedItems.filter(a => {
+            const text = ((a.title || '') + ' ' + (a.description || '') + ' ' + ((a as any).content_text || '')).toUpperCase();
+
+            // Hard block: international content never gets in
+            if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) {
+                log('info', `REGION FILTER (international): ${(a.title || '').substring(0, 60)}`);
+                return false;
+            }
+
+            // Hard block: explicit excluded regions with no target region mention
+            const hasExcluded = MAJOR_EXCLUDE_REGIONS.some(r => text.includes(r));
+            const hasTarget = TARGET_REGIONS.some(r => text.includes(r));
+            if (hasExcluded && !hasTarget) {
+                log('info', `REGION FILTER (excluded region): ${(a.title || '').substring(0, 60)}`);
+                return false;
+            }
+
             if (!postDescriptionRegionCheck(a)) return false;
             return isTargetRegion(a) || isNotExcludedRegion(a);
         });
