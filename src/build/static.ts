@@ -743,8 +743,11 @@ export async function buildStaticRSS(): Promise<void> {
             'skip to content', 'skip to main', 'privacy policy', 'terms of service',
             'subscribe now', 'sign up for', 'newsletter signup'
         ];
-        // Use the canonical exclude lists from region-data.ts instead of a hardcoded subset
-        const cleanWrongCities = MAJOR_EXCLUDE_REGIONS.map(r => r.toLowerCase().trim().replace(/^,\s*/, ''));
+        // Use city/state names from MAJOR_EXCLUDE_REGIONS, but skip short state abbreviations
+        // (e.g. ", GA" → "ga" would match inside "logistics", "industrial", etc.)
+        const cleanWrongCities = MAJOR_EXCLUDE_REGIONS
+            .filter(r => r.replace(/^,\s*/, '').trim().length > 4)
+            .map(r => r.toLowerCase().trim());
 
         const cleanMerged = mergedArticles.filter(item => {
             const title = (item.title || '').trim();
