@@ -157,6 +157,7 @@ const EXCLUDE_CITIES_EXTRA = [
     'GRAND RAPIDS', 'KALAMAZOO', 'STOCKTON, CA', 'BOHEMIA, NY',
     'WATERVILLE', 'MAINE', 'BANGOR',
     'BUCKEYE', 'GAINESVILLE TIMES', 'ORANGE COUNTY',
+    'LONG ISLAND CITY', 'LIC ', ', LIC',
 ];
 
 export function isNotExcludedRegion(article: NormalizedItem): boolean {

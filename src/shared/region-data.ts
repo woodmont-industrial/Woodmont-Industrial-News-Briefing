@@ -129,6 +129,7 @@ export const INTERNATIONAL_EXCLUDE = [
     'UNITED KINGDOM', ' UK,', ', UK ', 'ENGLAND', 'SCOTLAND', 'WALES',
     'SHEFFIELD', 'SALISBURY', 'FORGEMASTERS', 'BICESTER', 'STOCKTON-ON-TEES',
     'CHELTENHAM', 'GL51', 'DURHAM, UK', 'CITRUS DURHAM', 'NOTTINGHAM',
+    'TRUGANINA',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
@@ -151,8 +152,9 @@ export const INTERNATIONAL_EXCLUDE = [
     'IMDB', '- IMDB', 'IMDB.COM',
     // Non-CRE market research reports (chemicals, hygiene, etc.)
     'INDEXBOX', 'HAND HYGIENE', 'CHEMICALS MARKET', 'CLEANING CHEMICALS',
-    // Stock fund / mutual fund disclosures (not CRE news)
-    'GURUFOCUS', 'HOLDING HISTORY', 'SECURITIES FUND'
+    // Stock fund / mutual fund disclosures / investor activism (not CRE deals)
+    'GURUFOCUS', 'HOLDING HISTORY', 'SECURITIES FUND',
+    'SENDS LETTER TO', 'MARKETSCREENER', 'AI JOURNAL'
 ];
 
 // Political / public figure exclusion
