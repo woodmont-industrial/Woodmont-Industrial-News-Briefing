@@ -20,7 +20,7 @@
   <script type="text/babel" data-type="module">
     const { useState, useEffect, useMemo, useCallback } = React;
 
-    const regions = ["All", "NJ", "PA", "FL", "TX"];
+    const regions = ["All", "NJ", "PA", "FL"];
     const IS_STATIC = window.location.hostname !== 'localhost';
     const API_BASE = '';
 
@@ -1192,8 +1192,6 @@
         if (/\b(pennsylvania|philadelphia|lehigh valley|allentown|bethlehem|easton|harrisburg|lancaster|bucks county|montgomery county|chester county|delaware county|king of prussia|i-78 corridor|pa turnpike|lehigh county)\b/.test(t)) return 'PA';
         // FL indicators
         if (/\b(florida|miami|fort lauderdale|hialeah|doral|pompano|palm beach|broward|miami-dade|orlando|tampa|jacksonville|south florida|central florida|i-4 corridor|homestead|medley|opa-locka|coral springs)\b/.test(t)) return 'FL';
-        // TX indicators
-        if (/\b(texas|houston|dallas|fort worth|san antonio|austin|dfw|i-35 corridor)\b/.test(t)) return 'TX';
         return null;
       }, []);
 
@@ -2477,7 +2475,7 @@
             <h1>🏭 Woodmont Industrial Partners</h1>
             <div class="subtitle">Daily Industrial News Briefing</div>
             <div class="date-range">Coverage Period: ${dateRange}</div>
-            <div class="date-range">Focus Markets: NJ, PA, FL, TX</div>
+            <div class="date-range">Focus Markets: NJ, PA, FL</div>
           </div>
           <div class="content">
             ${renderSection('RELEVANT ARTICLES — Macro Trends & Industrial Real Estate News', '📰', relevant, 'relevant')}
@@ -2539,7 +2537,7 @@
             <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; padding: 30px; text-align: center;">
               <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">🏭 Woodmont Industrial Partners</h1>
               <p style="margin: 0 0 4px 0; font-size: 14px; opacity: 0.9;">Daily Industrial News Briefing — Executive Summary</p>
-              <p style="margin: 0; font-size: 12px; opacity: 0.7;">${dateRange} | Focus: NJ, PA, FL, TX</p>
+              <p style="margin: 0; font-size: 12px; opacity: 0.7;">${dateRange} | Focus: NJ, PA, FL</p>
             </div>
             <div style="padding: 24px;">
               ${renderSection('📰 MARKET INTELLIGENCE', relevant)}

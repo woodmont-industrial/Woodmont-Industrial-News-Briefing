@@ -1,6 +1,6 @@
 # Woodmont Industrial News Feed
 
-Enterprise RSS feed aggregator for industrial and commercial real estate news across key regions (NJ, PA, TX, FL). Automated newsletter generation with Copilot Studio integration.
+Enterprise RSS feed aggregator for industrial and commercial real estate news across key regions (NJ, PA, FL). Automated newsletter generation with Copilot Studio integration.
 
 ## 🔐 Security Notice
 
@@ -21,7 +21,7 @@ Industrial News Sources → RSS Ingestion → AI Filtering → Storage → RSS 2
 **Enterprise RSS feed aggregator** for industrial and commercial real estate news across key regions (NJ, PA, TX, FL). Automated newsletter generation with Copilot Studio integration.
 
 ### Core Capabilities:
-- **Aggregates** 24 industrial/CRE news sources (NJBIZ, Philadelphia Business Journal, Houston Business Journal, etc.)
+- **Aggregates** 24 industrial/CRE news sources (NJBIZ, Philadelphia Business Journal, South Florida Business Journal, etc.)
 - **Filters** for relevant content (NJ primary focus, approved domains, business days only)
 - **Generates** RSS 2.0 feed with 96 fresh articles daily
 - **Integrates** with Microsoft Copilot Studio for automated newsletter generation
@@ -119,12 +119,12 @@ This is useful for local testing but not recommended for production.
 ## 📰 Sources + Filtering
 
 ### Active Sources (24/24 working)
-- **Regional**: NJBIZ, Philadelphia Business Journal, Houston Business Journal, South Florida Business Journal
+- **Regional**: NJBIZ, Philadelphia Business Journal, South Florida Business Journal, ROI-NJ
 - **Industrial**: Commercial Property Executive, NAIOP, Industrial Property News
 - **National**: Real Estate Weekly, GlobeSt (temporarily disabled), Commercial Search
 
 ### Filtering Logic
-- **Geographic**: NJ primary focus, PA/TX/FL secondary
+- **Geographic**: NJ, PA, FL focus (target markets)
 - **Content**: Industrial/CRE news, transactions, availabilities, people moves
 - **Quality**: Approved domains only, deduplicated, business days
 - **Time**: Last 5 business days for RSS, customizable for newsletters

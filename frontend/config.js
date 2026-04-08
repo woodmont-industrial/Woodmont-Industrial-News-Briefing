@@ -1,7 +1,7 @@
 // Configuration constants for the Woodmont Industrial News app
 
 // Regions for filtering
-export const REGIONS = ["All", "NJ", "PA", "FL", "TX"];
+export const REGIONS = ["All", "NJ", "PA", "FL"];
 
 // Environment detection
 export const IS_STATIC = window.location.hostname !== 'localhost';

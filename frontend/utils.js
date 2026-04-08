@@ -175,7 +175,7 @@ export function buildNewsletterHTML(articles, days) {
                                                                                                       <h1>🏭 Woodmont Industrial Partners</h1>
                                                                                                             <div class="subtitle">Daily Industrial News Briefing</div>
                                                                                                                   <div class="date-range">Coverage Period: ${dateRange}</div>
-                                                                                                                        <div class="date-range">Focus Markets: NJ, PA, FL, TX</div>
+                                                                                                                        <div class="date-range">Focus Markets: NJ, PA, FL</div>
                                                                                                                             </div>
                                                                                                                                 <div class="content">
                                                                                                                                       ${renderSection('RELEVANT ARTICLES — Macro Trends & Industrial Real Estate News', '📰', relevant)}
