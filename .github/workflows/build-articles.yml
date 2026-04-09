@@ -6,12 +6,11 @@ name: "Build: Scrape + Assess + RSS"
 
 on:
   schedule:
-    # Shotgun crons 7:00-7:45 AM EST (11:00-11:45 UTC) Mon-Fri
-    # First one that finishes wins. Rest see no changes and skip commit.
-    - cron: '0 11 * * 1-5'
-    - cron: '15 11 * * 1-5'
-    - cron: '30 11 * * 1-5'
-    - cron: '45 11 * * 1-5'
+    # Weekday builds handled by newsletter-pipeline.yml — disabled here to prevent git push conflicts
+    # - cron: '0 11 * * 1-5'
+    # - cron: '15 11 * * 1-5'
+    # - cron: '30 11 * * 1-5'
+    # - cron: '45 11 * * 1-5'
     # Weekend RSS-only (no scrapers)
     - cron: '0 15 * * 0,6'
     # Sunday evening scraper run for Monday

@@ -18,7 +18,7 @@ Industrial News Sources → RSS Ingestion → AI Filtering → Storage → RSS 2
                                                                  Categories       Generation
 ```
 
-**Enterprise RSS feed aggregator** for industrial and commercial real estate news across key regions (NJ, PA, TX, FL). Automated newsletter generation with Copilot Studio integration.
+**Enterprise RSS feed aggregator** for industrial and commercial real estate news across key regions (NJ, PA, FL). Automated newsletter generation with Copilot Studio integration.
 
 ### Core Capabilities:
 - **Aggregates** 24 industrial/CRE news sources (NJBIZ, Philadelphia Business Journal, South Florida Business Journal, etc.)
