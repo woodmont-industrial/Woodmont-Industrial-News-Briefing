@@ -145,11 +145,14 @@ jobs:
                 break
               fi
               echo "Push failed (attempt $i), pulling with rebase..."
+              # Stash any unstaged changes before rebase (build artifacts, cache files)
+              git stash --include-untracked || true
               git fetch origin main
               git rebase origin/main --strategy-option=ours || {
                 git rebase --abort
                 git pull --no-rebase -X ours || true
               }
+              git stash pop || true
             done
           fi
 
