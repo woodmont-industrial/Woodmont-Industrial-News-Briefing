@@ -129,6 +129,31 @@ This is useful for local testing but not recommended for production.
 - **Quality**: Approved domains only, deduplicated, business days
 - **Time**: Last 5 business days for RSS, customizable for newsletters
 
+## 📋 Recent Changes (April 2026)
+
+### Workflow Architecture
+- **Separated build and send** — `newsletter-pipeline.yml` builds feed only (no email), `send-only.yml` handles sending. Prevents double-sends and allows safe build testing.
+- **Disabled weekday crons in `build-articles.yml`** — was conflicting with pipeline on same schedule, causing git push failures. Weekend crons (Sat RSS, Sun scrapers) still active.
+- **Fixed pipeline push failures** — added git stash before rebase to handle unstaged build artifacts.
+
+### Region Filtering
+- **Build-time region gate** — `MAJOR_EXCLUDE_REGIONS` and `INTERNATIONAL_EXCLUDE` now applied during feed build, not just at newsletter send time. Out-of-market articles (Atlanta, Houston, UK, Australia, etc.) are blocked before entering `feed.json`.
+- **Removed TX from all UI and docs** — region selector, newsletter templates, README, frontend config all updated to NJ/PA/FL only.
+- **Expanded exclusion lists** — added 30+ terms to `INTERNATIONAL_EXCLUDE` and `MAJOR_EXCLUDE_REGIONS` based on observed leaks (Nottingham UK, Traralgon Australia, Ascension Parish LA, Grand Prairie TX, Orange County CA, Poland, Malaysia, Kyrgyzstan, etc.).
+- **Permanent exclusion list** — `docs/excluded-articles.json` now has 30+ normalized titles so manually removed articles don't reappear after rebuild.
+
+### Newsletter Quality
+- **Fixed description truncation** — sentence splitter was treating `$1.6B` as sentence boundary at the decimal. Now protects digit.digit patterns.
+- **Fixed title replacement bug** — descriptions were replacing article titles in the email. Now always shows real title, appends description only if it adds new info.
+- **Fixed Week-in-Review scoring** — dollar regex missed `$1.6B` format, weekly file didn't store URLs or dates (source bonus and recency bonus were always 0). Now stores richer data for accurate scoring.
+
+### Known Issues / Next Steps
+- **Feed tiering needed** — 27 feeds fetch articles but keep 0 after filtering. Some are regional (GlobeSt NJ, NJ Spotlight) that may be over-filtered; others are pure noise (WSJ RE, CBRE Press, Reuters CRE). Need investigation before disabling.
+- **PA resilience** — PA coverage is more Google News dependent than NJ. Direct PA sources (Bisnow Philly, PBJ) should be verified as healthy.
+- **Region-health reporting** — no per-region article counts in build reports. Would help diagnose when NJ/PA/FL coverage drops.
+- **endpoints.ts still has NY** — `targetRegions` array includes NY at lines 286/604. Deferred for now.
+- **Weekly newsletter** — `send-newsletter-work-weekly.yml` is disabled. Re-enable when ready for Friday recaps.
+
 ## 🏥 Feed Health
 
 The system handles various feed issues automatically:
