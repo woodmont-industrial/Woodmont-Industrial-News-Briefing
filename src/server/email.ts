@@ -603,10 +603,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 else if (sf >= highSF) score += 15;
                 else if (sf >= highSF * 0.5) score += 5;
             }
-            const dollarMatch = text.match(/\$([\d,.]+)\s*(million|m\b|billion|b\b)/i);
+            const dollarMatch = text.match(/\$([\d,.]+)\s*(?:million|m(?:il|ln)?|billion|b(?:il|ln)?)\b/i);
             if (dollarMatch) {
                 const amt = parseFloat(dollarMatch[1].replace(/,/g, ''));
-                const mult = /billion|b\b/i.test(dollarMatch[2]) ? 1000 : 1;
+                const mult = /billion|b(?:il|ln)?\b/i.test(dollarMatch[2]) ? 1000 : 1;
                 const millions = amt * mult;
                 const highM = highDollars / 1000000;
                 if (millions >= highM * 2) score += 25;
@@ -781,12 +781,14 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         allWeekArticles.push({
                             id: a.id,
                             title: a.title,
-                            link: a.url,
-                            url: a.url,
+                            link: a.link || a.url,
+                            url: a.link || a.url,
                             category: a.category,
                             description: a.description || '',
                             source: a.source,
                             tags: a.region ? [a.region] : [],
+                            date_published: a.date_published || day,
+                            pubDate: a.date_published || day,
                         } as NormalizedItem);
                     }
                 }

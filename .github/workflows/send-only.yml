@@ -135,7 +135,9 @@ jobs:
           weekly.week[today] = todaySent.map(a => ({
             id: a.id, title: a.title, url: a.url, category: a.category,
             source: (a._source || {}).website || '',
-            description: (a.content_text || a.summary || '').substring(0, 150),
+            link: a.url || a.link || '',
+            description: (a.content_text || a.description || a.summary || '').substring(0, 350),
+            date_published: a.date_published || a.pubDate || today,
             region: (a.tags || []).find(t => t.length <= 5) || ''
           }));
           // Keep only this week (last 5 weekdays)
