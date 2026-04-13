@@ -1,6 +1,6 @@
 # Woodmont Industrial News Briefing - System Overview
 
-> **Last Updated**: February 2026
+> **Last Updated**: April 2026
 > **Status**: Production - Using Power Automate Webhook
 
 ---
@@ -82,12 +82,50 @@ If webhook is not configured or fails, the system falls back to SMTP.
 
 ---
 
-## GitHub Actions Schedule
+## GitHub Actions Schedule (Updated April 2026)
 
 | Workflow | Schedule | Purpose |
 |----------|----------|---------|
-| `update-articles.yml` | 6 AM EST (Mon-Fri) | Fetch RSS feeds, update docs/ |
-| `send-newsletter-work.yml` | 7 AM EST (Mon-Fri) | Send email newsletter |
+| `newsletter-pipeline.yml` | 7:00-7:40 AM EST (Mon-Fri) | Build feed (scrapers + RSS) |
+| `send-only.yml` | 8:00-8:45 AM EST (Mon-Fri) | Send newsletter from feed.json |
+| `build-articles.yml` | Weekends only | Sat RSS + Sun scrapers |
+| `newsletter-watchdog.yml` | 8:30-9:30 AM EST (Mon-Fri) | Alert if newsletter didn't send |
+| `update-scoring.yml` | Fri 1 PM EST | Groq learning loop |
+
+**Deprecated/Disabled:** `send-newsletter-work.yml`, `update-articles.yml`, `update-rss.yml`, `newsletter-pipeline.yml` (send step removed — build only)
+
+---
+
+## Next Steps — April 13, 2026
+
+### Priority 1: Fix Philadelphia Business Journal CRE Feed
+**Why:** PA's best direct source is failing (0 fetched). PA is 73% Google News dependent — if GN has a bad day, PA coverage drops significantly.
+**Task:** Investigate why PBJ CRE returns 0. Likely a URL change, paywall, or Cloudflare block. Fix the URL or add a Google News fallback for PBJ specifically.
+**Files:** `src/feeds/feeds.json`, `src/feeds/fetcher.ts`
+
+### Priority 2: LoopNet International Pattern Match
+**Why:** UK and Australian LoopNet listings keep leaking in (PE29, PE7, Traralgon, Truganina). We're adding them one by one but new postcodes keep appearing.
+**Task:** Add a regex-based filter for non-US LoopNet listings — detect UK postcodes (letter+digit patterns like PE29 7EJ), Australian 4-digit postcodes (3029, 3844), and addresses without US state abbreviations.
+**Files:** `src/shared/region-data.ts`, `src/build/static.ts`
+
+### Priority 3: Stricter Default for No-Region Articles
+**Why:** Articles like "Pooler GA warehouse", "Benton County industrial", "Florence SC distribution" get through because they mention "warehouse"/"industrial" but no excluded region keyword. The build-time gate only blocks articles that explicitly mention an excluded region — no-region articles pass by default.
+**Task:** For articles from Google News (not trusted direct sources), require at least one NJ/PA/FL keyword OR be a recognized national/macro topic. No region = no entry unless from Tier A source.
+**Files:** `src/build/static.ts`
+
+### Priority 4: Validate Week-in-Review Scoring
+**Why:** We fixed the data storage (descriptions, URLs, dates) but haven't verified a real Friday send uses the correct top 5 by score.
+**Task:** On next Friday, check the Week-in-Review section against the scoreArticle rankings. Confirm the top 5 by score are the ones that appear.
+**Files:** `src/server/email.ts` (scoreArticle function)
+
+### Priority 5: Feed Health Dashboard Visibility
+**Why:** regionSummary and keptRate are now in feed-health.json but not visible in the frontend.
+**Task:** Add a simple feed health section to docs/index.html showing NJ/PA/FL article counts and flagging low-value feeds.
+**Files:** `docs/index.html`
+
+---
+
+**Last major change:** April 2026 - Build-time region gate, feed tiering (P1-P5), workflow separation, TX removal
 
 ---
 
@@ -175,4 +213,4 @@ git revert 77a947f  # Reverts "Where it All Changed" commit
 
 ---
 
-**Last major change:** Feb 2026 - Power Automate webhook integration (`77a947f`)
+**Last major change:** April 2026 - Newsletter system overhaul (region gate, feed tiering, workflow separation)
