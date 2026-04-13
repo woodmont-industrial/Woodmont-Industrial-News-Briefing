@@ -337,6 +337,34 @@ export function generateFeedHealthReport(results: FetchResult[], previousReport?
         articlesKept: scraperFeeds.reduce((sum, f) => sum + f.keptAfterFiltering, 0)
     };
 
+    // P3: Region-health reporting
+    const feedConfigs = new Map<string, any>();
+    for (const feed of RSS_FEEDS) { feedConfigs.set(feed.name, feed); }
+
+    const regionSummary: Record<string, { articlesKept: number; feedCount: number; zeroKeptFeeds: number; directFeeds: number; gnFeeds: number }> = {};
+    for (const region of ['NJ', 'PA', 'FL', 'US']) {
+        regionSummary[region] = { articlesKept: 0, feedCount: 0, zeroKeptFeeds: 0, directFeeds: 0, gnFeeds: 0 };
+    }
+
+    for (const f of feeds) {
+        const config = feedConfigs.get(f.name);
+        const region = config?.region || 'US';
+        const bucket = regionSummary[region] || regionSummary['US'];
+        bucket.feedCount++;
+        bucket.articlesKept += f.keptAfterFiltering;
+        if (f.keptAfterFiltering === 0 && f.fetchedRaw > 0) bucket.zeroKeptFeeds++;
+        if (f.name.includes('Google News')) bucket.gnFeeds++;
+        else bucket.directFeeds++;
+    }
+
+    // P4: Per-feed keptRate and low-value flag
+    for (const f of feeds) {
+        const config = feedConfigs.get(f.name);
+        (f as any).keptRate = f.fetchedRaw > 0 ? Math.round((f.keptAfterFiltering / f.fetchedRaw) * 100) + '%' : 'N/A';
+        (f as any).tier = config?.tier || 'C';
+        (f as any).lowValue = f.fetchedRaw > 20 && f.keptAfterFiltering === 0;
+    }
+
     return {
         generatedAt: new Date().toISOString(),
         totalFeeds: feeds.length,
@@ -345,6 +373,7 @@ export function generateFeedHealthReport(results: FetchResult[], previousReport?
         totalArticlesFetched,
         totalArticlesKept,
         feeds,
-        scraperSummary
+        scraperSummary,
+        regionSummary
     };
 }

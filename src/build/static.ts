@@ -848,6 +848,17 @@ export async function buildStaticRSS(): Promise<void> {
         const rssItems = regionFiltered;
         log('info', `Final feed: ${rssItems.length} articles`);
 
+        // Region count summary
+        const regionCounts = { NJ: 0, PA: 0, FL: 0, National: 0 };
+        for (const item of rssItems) {
+            const text = ((item.title || '') + ' ' + (item.description || '')).toUpperCase();
+            if (TARGET_REGIONS.some(r => text.includes(r) && (r.includes('NJ') || r.includes('NEW JERSEY') || r.includes('NEWARK') || r.includes('JERSEY CITY') || r.includes('LINDEN') || r.includes('SECAUCUS')))) regionCounts.NJ++;
+            else if (TARGET_REGIONS.some(r => text.includes(r) && (r.includes('PA') || r.includes('PENNSYLVANIA') || r.includes('PHILADELPHIA') || r.includes('LEHIGH') || r.includes('ALLENTOWN')))) regionCounts.PA++;
+            else if (TARGET_REGIONS.some(r => text.includes(r) && (r.includes('FL') || r.includes('FLORIDA') || r.includes('MIAMI') || r.includes('ORLANDO') || r.includes('TAMPA') || r.includes('JACKSONVILLE') || r.includes('BROWARD')))) regionCounts.FL++;
+            else regionCounts.National++;
+        }
+        log('info', `Region breakdown: NJ=${regionCounts.NJ} PA=${regionCounts.PA} FL=${regionCounts.FL} National=${regionCounts.National}`);
+
         // === STEP 5: Enrich articles with og:image thumbnails ===
         await enrichArticleImages(rssItems);
 

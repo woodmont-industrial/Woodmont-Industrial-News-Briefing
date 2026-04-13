@@ -119,11 +119,52 @@ jobs:
           fi
         continue-on-error: true
 
+  # Geography drift check
+  geography-check:
+    runs-on: ubuntu-latest
+    name: Geography Drift Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for TX/NY in target region lists
+        run: |
+          echo "Checking for geography drift..."
+          FAIL=0
+          # TARGET_REGIONS should only have NJ/PA/FL entries
+          if grep -n "TARGET_REGIONS" src/shared/region-data.ts | grep -iE "'TX'|'NY'|TEXAS|NEW YORK" | grep -v EXCLUDE | grep -v "//"; then
+            echo "❌ Found TX or NY in TARGET_REGIONS"
+            FAIL=1
+          fi
+          # Check frontend region selector
+          if grep -n "regions.*=" docs/index.html frontend/config.js 2>/dev/null | grep -iE '"TX"|"NY"'; then
+            echo "❌ Found TX or NY in frontend region selector"
+            FAIL=1
+          fi
+          # Check for duplicate feed URLs
+          node -e "
+          const feeds = require('./src/feeds/feeds.json');
+          const urls = {};
+          let dupes = 0;
+          feeds.filter(f => f.enabled !== false).forEach(f => {
+            if (urls[f.url]) { console.log('❌ Duplicate feed URL: ' + f.name + ' and ' + urls[f.url]); dupes++; }
+            else urls[f.url] = f.name;
+          });
+          if (dupes > 0) process.exit(1);
+          console.log('✅ No duplicate feed URLs');
+          " || FAIL=1
+          if [ "$FAIL" -eq 0 ]; then
+            echo "✅ No geography drift detected"
+          else
+            echo "⚠️ Geography drift issues found (non-blocking)"
+          fi
+        continue-on-error: true
+
   # Summary job - always runs
   ci-summary:
     runs-on: ubuntu-latest
     name: CI Summary
-    needs: [typecheck, build, python-tests, security-scan]
+    needs: [typecheck, build, python-tests, security-scan, geography-check]
     if: always()
     steps:
       - name: Check results
@@ -136,5 +177,6 @@ jobs:
           echo "| Build | ${{ needs.build.result }} |"
           echo "| Python Tests | ${{ needs.python-tests.result }} |"
           echo "| Security Scan | ${{ needs.security-scan.result }} |"
+          echo "| Geography Check | ${{ needs.geography-check.result }} |"
           echo ""
           echo "Note: Jobs with 'continue-on-error' may show as successful even with warnings."
