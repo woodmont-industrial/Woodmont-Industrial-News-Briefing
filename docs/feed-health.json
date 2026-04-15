@@ -1,11 +1,28 @@
 {
-  "generatedAt": "2026-04-14T11:58:35.201Z",
+  "generatedAt": "2026-04-15T11:55:15.599Z",
   "totalFeeds": 183,
-  "successfulFeeds": 182,
-  "failedFeeds": 1,
-  "totalArticlesFetched": 12845,
-  "totalArticlesKept": 2785,
+  "successfulFeeds": 181,
+  "failedFeeds": 2,
+  "totalArticlesFetched": 12766,
+  "totalArticlesKept": 2838,
   "feeds": [
+    {
+      "name": "GlobeNewswire RE",
+      "url": "https://www.globenewswire.com/RssFeed/subjectcode/13-Real%20Estate/feedTitle/GlobeNewswire%20-%20Real%20Estate",
+      "status": "failed",
+      "fetchedRaw": 0,
+      "keptAfterFiltering": 0,
+      "lastError": "Request timed out after 30000ms",
+      "durationMs": 30022,
+      "type": "rss",
+      "successRate": "0%",
+      "recentHistory": [
+        "fail"
+      ],
+      "keptRate": "N/A",
+      "tier": "B",
+      "lowValue": false
+    },
     {
       "name": "Transport Topics",
       "url": "https://www.ttnews.com/rss.xml",
@@ -13,7 +30,7 @@
       "fetchedRaw": 0,
       "keptAfterFiltering": 0,
       "lastError": "HTML response instead of RSS",
-      "durationMs": 210,
+      "durationMs": 203,
       "type": "rss",
       "successRate": "0%",
       "recentHistory": [
@@ -28,15 +45,15 @@
       "url": "https://www.areadevelopment.com/rss/rss.xml?t=5",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 31,
+      "keptAfterFiltering": 30,
       "lastError": null,
-      "durationMs": 188,
+      "durationMs": 227,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "31%",
+      "keptRate": "30%",
       "tier": "A",
       "lowValue": false
     },
@@ -45,15 +62,15 @@
       "url": "https://www.areadevelopment.com/rss/NewsItems.xml?t=2",
       "status": "ok",
       "fetchedRaw": 50,
-      "keptAfterFiltering": 19,
+      "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 75,
+      "durationMs": 70,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "38%",
+      "keptRate": "34%",
       "tier": "A",
       "lowValue": false
     },
@@ -62,15 +79,15 @@
       "url": "https://www.bisnow.com/rss-feed/national",
       "status": "ok",
       "fetchedRaw": 30,
-      "keptAfterFiltering": 3,
+      "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 395,
+      "durationMs": 429,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "7%",
       "tier": "B",
       "lowValue": false
     },
@@ -81,7 +98,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 565,
+      "durationMs": 499,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -98,7 +115,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 430,
+      "durationMs": 453,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -113,15 +130,15 @@
       "url": "https://www.bisnow.com/rss-feed/south-florida",
       "status": "ok",
       "fetchedRaw": 30,
-      "keptAfterFiltering": 5,
+      "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 592,
+      "durationMs": 499,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "17%",
+      "keptRate": "13%",
       "tier": "A",
       "lowValue": false
     },
@@ -130,15 +147,15 @@
       "url": "https://www.commercialcafe.com/blog/feed/",
       "status": "ok",
       "fetchedRaw": 10,
-      "keptAfterFiltering": 1,
+      "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 165,
+      "durationMs": 398,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "20%",
       "tier": "B",
       "lowValue": false
     },
@@ -147,15 +164,15 @@
       "url": "https://commercialobserver.com/feed/",
       "status": "ok",
       "fetchedRaw": 17,
-      "keptAfterFiltering": 4,
+      "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 34,
+      "durationMs": 46,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "24%",
+      "keptRate": "35%",
       "tier": "B",
       "lowValue": false
     },
@@ -164,15 +181,15 @@
       "url": "https://news.google.com/rss/search?q=Doral+OR+Medley+OR+Hialeah+warehouse+OR+industrial+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 30,
+      "keptAfterFiltering": 32,
       "lastError": null,
-      "durationMs": 562,
+      "durationMs": 535,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "30%",
+      "keptRate": "32%",
       "tier": "A",
       "lowValue": false
     },
@@ -180,34 +197,17 @@
       "name": "FL Zoning Approvals",
       "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+Florida+OR+Miami+OR+Tampa+OR+Orlando+OR+Jacksonville&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 57,
+      "fetchedRaw": 44,
       "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 409,
+      "durationMs": 388,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "18%",
+      "keptRate": "23%",
       "tier": "A",
-      "lowValue": false
-    },
-    {
-      "name": "GlobeNewswire RE",
-      "url": "https://www.globenewswire.com/RssFeed/subjectcode/13-Real%20Estate/feedTitle/GlobeNewswire%20-%20Real%20Estate",
-      "status": "ok",
-      "fetchedRaw": 20,
-      "keptAfterFiltering": 0,
-      "lastError": null,
-      "durationMs": 179,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "0%",
-      "tier": "B",
       "lowValue": false
     },
     {
@@ -217,7 +217,7 @@
       "fetchedRaw": 2,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 103,
+      "durationMs": 126,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -231,10 +231,10 @@
       "name": "GlobeSt New Jersey",
       "url": "http://feeds.feedblitz.com/globest/new-jersey",
       "status": "ok",
-      "fetchedRaw": 54,
+      "fetchedRaw": 55,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 346,
+      "durationMs": 269,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -251,7 +251,7 @@
       "fetchedRaw": 12,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 293,
+      "durationMs": 118,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -265,16 +265,16 @@
       "name": "Google News 3PL",
       "url": "https://news.google.com/rss/search?q=%223PL%22+OR+%22third+party+logistics%22+warehouse+expansion+OR+lease&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 58,
+      "fetchedRaw": 57,
       "keptAfterFiltering": 18,
       "lastError": null,
-      "durationMs": 391,
+      "durationMs": 411,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "31%",
+      "keptRate": "32%",
       "tier": "C",
       "lowValue": false
     },
@@ -283,15 +283,15 @@
       "url": "https://news.google.com/rss/search?q=Amazon+warehouse+OR+fulfillment+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 9,
+      "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 619,
+      "durationMs": 606,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "9%",
+      "keptRate": "10%",
       "tier": "C",
       "lowValue": false
     },
@@ -300,15 +300,15 @@
       "url": "https://news.google.com/rss/search?q=%22Bergen+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 52,
-      "keptAfterFiltering": 8,
+      "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 365,
+      "durationMs": 384,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "15%",
+      "keptRate": "17%",
       "tier": "B",
       "lowValue": false
     },
@@ -317,15 +317,15 @@
       "url": "https://news.google.com/rss/search?q=site:bloomberg.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 4,
+      "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 576,
+      "durationMs": 577,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "4%",
+      "keptRate": "10%",
       "tier": "C",
       "lowValue": false
     },
@@ -334,15 +334,15 @@
       "url": "https://news.google.com/rss/search?q=%22Newmark%22+OR+%22Cushman+Wakefield%22+OR+%22CBRE%22+OR+%22JLL%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 27,
+      "keptAfterFiltering": 25,
       "lastError": null,
-      "durationMs": 543,
+      "durationMs": 600,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "27%",
+      "keptRate": "25%",
       "tier": "C",
       "lowValue": false
     },
@@ -353,7 +353,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 38,
       "lastError": null,
-      "durationMs": 538,
+      "durationMs": 640,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -368,15 +368,15 @@
       "url": "https://news.google.com/rss/search?q=%22Broward+County%22+warehouse+OR+industrial+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 33,
+      "keptAfterFiltering": 34,
       "lastError": null,
-      "durationMs": 507,
+      "durationMs": 627,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "33%",
+      "keptRate": "34%",
       "tier": "B",
       "lowValue": false
     },
@@ -384,16 +384,16 @@
       "name": "Google News BTS Industrial",
       "url": "https://news.google.com/rss/search?q=%22build+to+suit%22+OR+%22BTS%22+industrial+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
-      "keptAfterFiltering": 12,
+      "fetchedRaw": 49,
+      "keptAfterFiltering": 11,
       "lastError": null,
-      "durationMs": 460,
+      "durationMs": 423,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "24%",
+      "keptRate": "22%",
       "tier": "C",
       "lowValue": false
     },
@@ -404,7 +404,7 @@
       "fetchedRaw": 77,
       "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 453,
+      "durationMs": 481,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -421,7 +421,7 @@
       "fetchedRaw": 82,
       "keptAfterFiltering": 36,
       "lastError": null,
-      "durationMs": 605,
+      "durationMs": 446,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -438,7 +438,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 577,
+      "durationMs": 690,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -453,15 +453,15 @@
       "url": "https://news.google.com/rss/search?q=%22Central+Jersey%22+OR+%22Central+New+Jersey%22+industrial+OR+warehouse+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 51,
-      "keptAfterFiltering": 8,
+      "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 439,
+      "durationMs": 387,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "16%",
+      "keptRate": "18%",
       "tier": "B",
       "lowValue": false
     },
@@ -469,16 +469,16 @@
       "name": "Google News Chester County PA",
       "url": "https://news.google.com/rss/search?q=%22Chester+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 76,
-      "keptAfterFiltering": 1,
+      "fetchedRaw": 74,
+      "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 464,
+      "durationMs": 482,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "1%",
+      "keptRate": "4%",
       "tier": "B",
       "lowValue": false
     },
@@ -487,15 +487,15 @@
       "url": "https://news.google.com/rss/search?q=%22cold+storage%22+OR+%22refrigerated+warehouse%22+OR+%22food+distribution%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 7,
+      "keptAfterFiltering": 13,
       "lastError": null,
-      "durationMs": 686,
+      "durationMs": 552,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "7%",
+      "keptRate": "13%",
       "tier": "C",
       "lowValue": false
     },
@@ -504,15 +504,15 @@
       "url": "https://news.google.com/rss/search?q=Colliers+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 54,
-      "keptAfterFiltering": 16,
+      "keptAfterFiltering": 15,
       "lastError": null,
-      "durationMs": 369,
+      "durationMs": 415,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "30%",
+      "keptRate": "28%",
       "tier": "C",
       "lowValue": false
     },
@@ -521,15 +521,15 @@
       "url": "https://news.google.com/rss/search?q=site:commercialobserver.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 69,
+      "keptAfterFiltering": 68,
       "lastError": null,
-      "durationMs": 515,
+      "durationMs": 562,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "69%",
+      "keptRate": "68%",
       "tier": "C",
       "lowValue": false
     },
@@ -537,10 +537,10 @@
       "name": "Google News Connect Media",
       "url": "https://news.google.com/rss/search?q=site:connect.media+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 42,
+      "fetchedRaw": 43,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 433,
+      "durationMs": 412,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -555,15 +555,15 @@
       "url": "https://news.google.com/rss/search?q=site:connectcre.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 73,
+      "keptAfterFiltering": 72,
       "lastError": null,
-      "durationMs": 109,
+      "durationMs": 111,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "73%",
+      "keptRate": "72%",
       "tier": "C",
       "lowValue": false
     },
@@ -572,15 +572,15 @@
       "url": "https://news.google.com/rss/search?q=site:connectcre.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 73,
+      "keptAfterFiltering": 72,
       "lastError": null,
-      "durationMs": 533,
+      "durationMs": 572,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "73%",
+      "keptRate": "72%",
       "tier": "C",
       "lowValue": false
     },
@@ -589,15 +589,15 @@
       "url": "https://news.google.com/rss/search?q=site:connectcre.com+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 18,
+      "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 562,
+      "durationMs": 547,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "18%",
+      "keptRate": "19%",
       "tier": "B",
       "lowValue": false
     },
@@ -606,15 +606,15 @@
       "url": "https://news.google.com/rss/search?q=site:connectcre.com+Pennsylvania+OR+Philadelphia+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 16,
+      "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 561,
+      "durationMs": 518,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "16%",
+      "keptRate": "17%",
       "tier": "B",
       "lowValue": false
     },
@@ -623,15 +623,15 @@
       "url": "https://news.google.com/rss/search?q=site:constructiondive.com+OR+site:supplychaindive.com+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 8,
+      "keptAfterFiltering": 7,
       "lastError": null,
-      "durationMs": 504,
+      "durationMs": 652,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "8%",
+      "keptRate": "7%",
       "tier": "C",
       "lowValue": false
     },
@@ -640,15 +640,15 @@
       "url": "https://news.google.com/rss/search?q=%22senior+vice+president%22+OR+%22managing+director%22+OR+%22executive+vice+president%22+industrial+real+estate+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 51,
+      "keptAfterFiltering": 53,
       "lastError": null,
-      "durationMs": 596,
+      "durationMs": 580,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "51%",
+      "keptRate": "53%",
       "tier": "C",
       "lowValue": false
     },
@@ -656,10 +656,10 @@
       "name": "Google News CRE People Moves",
       "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 75,
-      "keptAfterFiltering": 38,
+      "fetchedRaw": 78,
+      "keptAfterFiltering": 40,
       "lastError": null,
-      "durationMs": 558,
+      "durationMs": 578,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -676,7 +676,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 560,
+      "durationMs": 593,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -690,16 +690,16 @@
       "name": "Google News Crexi",
       "url": "https://news.google.com/rss/search?q=Crexi+industrial+OR+warehouse+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 32,
+      "fetchedRaw": 46,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 370,
+      "durationMs": 402,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "6%",
+      "keptRate": "4%",
       "tier": "C",
       "lowValue": false
     },
@@ -707,16 +707,16 @@
       "name": "Google News Cross-Dock",
       "url": "https://news.google.com/rss/search?q=%22cross+dock%22+OR+%22cross-dock%22+facility+OR+warehouse+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 46,
-      "keptAfterFiltering": 4,
+      "fetchedRaw": 47,
+      "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 351,
+      "durationMs": 337,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "9%",
+      "keptRate": "11%",
       "tier": "C",
       "lowValue": false
     },
@@ -727,7 +727,7 @@
       "fetchedRaw": 52,
       "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 424,
+      "durationMs": 387,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -744,7 +744,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 664,
+      "durationMs": 617,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -758,16 +758,16 @@
       "name": "Google News Delaware County PA",
       "url": "https://news.google.com/rss/search?q=%22Delaware+County%22+Pennsylvania+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 61,
-      "keptAfterFiltering": 3,
+      "fetchedRaw": 63,
+      "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 421,
+      "durationMs": 441,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "5%",
+      "keptRate": "6%",
       "tier": "B",
       "lowValue": false
     },
@@ -775,16 +775,16 @@
       "name": "Google News Developer Deliveries",
       "url": "https://news.google.com/rss/search?q=%22Crow+Holdings%22+OR+%22Brookfield%22+OR+%22Clarion%22+OR+%22Dermody%22+OR+%22Sitex%22+%22for+lease%22+OR+%22delivered%22+OR+%22completed%22+industrial+OR+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 60,
-      "keptAfterFiltering": 13,
+      "fetchedRaw": 59,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 437,
+      "durationMs": 406,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "22%",
+      "keptRate": "20%",
       "tier": "C",
       "lowValue": false
     },
@@ -792,16 +792,16 @@
       "name": "Google News Distribution",
       "url": "https://news.google.com/rss/search?q=distribution+center+lease+sale+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 66,
-      "keptAfterFiltering": 23,
+      "fetchedRaw": 70,
+      "keptAfterFiltering": 27,
       "lastError": null,
-      "durationMs": 474,
+      "durationMs": 482,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "35%",
+      "keptRate": "39%",
       "tier": "C",
       "lowValue": false
     },
@@ -809,16 +809,16 @@
       "name": "Google News Duke Realty",
       "url": "https://news.google.com/rss/search?q=%22Duke+Realty%22+OR+%22Duke+Industrial%22+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 31,
-      "keptAfterFiltering": 2,
+      "fetchedRaw": 49,
+      "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 364,
+      "durationMs": 500,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "6%",
+      "keptRate": "8%",
       "tier": "C",
       "lowValue": false
     },
@@ -826,10 +826,10 @@
       "name": "Google News Duval (Jacksonville) FL",
       "url": "https://news.google.com/rss/search?q=%22Duval+County%22+Florida+warehouse+OR+industrial+OR+port&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 53,
+      "fetchedRaw": 56,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 398,
+      "durationMs": 418,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -846,7 +846,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 601,
+      "durationMs": 633,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -860,16 +860,16 @@
       "name": "Google News Exit 8A Corridor",
       "url": "https://news.google.com/rss/search?q=%22Exit+8A%22+OR+%22NJ+Turnpike%22+OR+%22Turnpike+corridor%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 48,
-      "keptAfterFiltering": 19,
+      "fetchedRaw": 37,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 392,
+      "durationMs": 311,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "40%",
+      "keptRate": "32%",
       "tier": "B",
       "lowValue": false
     },
@@ -877,16 +877,16 @@
       "name": "Google News FL Availabilities",
       "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22Florida%22+OR+%22Miami%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 67,
-      "keptAfterFiltering": 20,
+      "fetchedRaw": 74,
+      "keptAfterFiltering": 18,
       "lastError": null,
-      "durationMs": 506,
+      "durationMs": 562,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "30%",
+      "keptRate": "24%",
       "tier": "B",
       "lowValue": false
     },
@@ -894,16 +894,16 @@
       "name": "Google News FL CRE People",
       "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22Florida%22+OR+%22South+Florida%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 63,
+      "fetchedRaw": 64,
       "keptAfterFiltering": 18,
       "lastError": null,
-      "durationMs": 463,
+      "durationMs": 458,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "29%",
+      "keptRate": "28%",
       "tier": "B",
       "lowValue": false
     },
@@ -912,15 +912,15 @@
       "url": "https://news.google.com/rss/search?q=industrial+warehouse+%22South+Florida%22+OR+%22Miami%22+OR+%22Fort+Lauderdale%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 52,
+      "keptAfterFiltering": 51,
       "lastError": null,
-      "durationMs": 625,
+      "durationMs": 674,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "52%",
+      "keptRate": "51%",
       "tier": "B",
       "lowValue": false
     },
@@ -931,7 +931,7 @@
       "fetchedRaw": 4,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 274,
+      "durationMs": 294,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -945,16 +945,16 @@
       "name": "Google News FL Industrial Transactions",
       "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22South+Florida%22+OR+%22Miami%22+OR+%22Florida%22+transaction+OR+lease+OR+sale&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 69,
-      "keptAfterFiltering": 29,
+      "fetchedRaw": 72,
+      "keptAfterFiltering": 31,
       "lastError": null,
-      "durationMs": 451,
+      "durationMs": 449,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "42%",
+      "keptRate": "43%",
       "tier": "B",
       "lowValue": false
     },
@@ -962,16 +962,16 @@
       "name": "Google News FL Ports",
       "url": "https://news.google.com/rss/search?q=%22PortMiami%22+OR+%22Port+of+Miami%22+OR+%22Port+Everglades%22+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 61,
-      "keptAfterFiltering": 2,
+      "fetchedRaw": 57,
+      "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 454,
+      "durationMs": 489,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "3%",
+      "keptRate": "2%",
       "tier": "D",
       "lowValue": false
     },
@@ -979,16 +979,16 @@
       "name": "Google News Flex Industrial",
       "url": "https://news.google.com/rss/search?q=%22flex+industrial%22+OR+%22flex+space%22+OR+%22light+industrial%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
+      "fetchedRaw": 52,
       "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 366,
+      "durationMs": 396,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "34%",
+      "keptRate": "33%",
       "tier": "C",
       "lowValue": false
     },
@@ -996,16 +996,16 @@
       "name": "Google News Hillsborough (Tampa) FL",
       "url": "https://news.google.com/rss/search?q=%22Hillsborough+County%22+Florida+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 60,
+      "fetchedRaw": 64,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 414,
+      "durationMs": 489,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "7%",
+      "keptRate": "6%",
       "tier": "B",
       "lowValue": false
     },
@@ -1013,16 +1013,16 @@
       "name": "Google News Hudson County NJ",
       "url": "https://news.google.com/rss/search?q=%22Hudson+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
+      "fetchedRaw": 53,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 409,
+      "durationMs": 374,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "9%",
       "tier": "B",
       "lowValue": false
     },
@@ -1031,15 +1031,15 @@
       "url": "https://news.google.com/rss/search?q=%22I-78+corridor%22+OR+%22Interstate+78%22+Pennsylvania+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 49,
-      "keptAfterFiltering": 5,
+      "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 424,
+      "durationMs": 422,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "12%",
       "tier": "B",
       "lowValue": false
     },
@@ -1047,7 +1047,7 @@
       "name": "Google News I-95 Corridor",
       "url": "https://news.google.com/rss/search?q=%22I-95+corridor%22+industrial+OR+warehouse+OR+logistics+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 49,
+      "fetchedRaw": 39,
       "keptAfterFiltering": 7,
       "lastError": null,
       "durationMs": 380,
@@ -1056,7 +1056,7 @@
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "14%",
+      "keptRate": "18%",
       "tier": "C",
       "lowValue": false
     },
@@ -1065,15 +1065,15 @@
       "url": "https://news.google.com/rss/search?q=%22acquired%22+OR+%22acquisition%22+industrial+property+OR+warehouse+OR+portfolio&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 50,
+      "keptAfterFiltering": 51,
       "lastError": null,
-      "durationMs": 546,
+      "durationMs": 578,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "50%",
+      "keptRate": "51%",
       "tier": "C",
       "lowValue": false
     },
@@ -1081,16 +1081,16 @@
       "name": "Google News Industrial Brokers",
       "url": "https://news.google.com/rss/search?q=industrial+broker+%22joins%22+OR+%22hired%22+OR+%22promoted%22+OR+%22appointed%22+real+estate&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 74,
-      "keptAfterFiltering": 25,
+      "fetchedRaw": 72,
+      "keptAfterFiltering": 22,
       "lastError": null,
-      "durationMs": 670,
+      "durationMs": 586,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "34%",
+      "keptRate": "31%",
       "tier": "C",
       "lowValue": false
     },
@@ -1101,7 +1101,7 @@
       "fetchedRaw": 76,
       "keptAfterFiltering": 14,
       "lastError": null,
-      "durationMs": 505,
+      "durationMs": 502,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1115,16 +1115,16 @@
       "name": "Google News Industrial Deliveries NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=%22delivers%22+OR+%22completed%22+OR+%22opens%22+industrial+OR+warehouse+OR+%22distribution+center%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 79,
-      "keptAfterFiltering": 14,
+      "fetchedRaw": 54,
+      "keptAfterFiltering": 7,
       "lastError": null,
-      "durationMs": 537,
+      "durationMs": 460,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "18%",
+      "keptRate": "13%",
       "tier": "C",
       "lowValue": false
     },
@@ -1133,15 +1133,15 @@
       "url": "https://news.google.com/rss/search?q=%22industrial+development%22+OR+%22warehouse+development%22+OR+%22spec+industrial%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 63,
+      "keptAfterFiltering": 60,
       "lastError": null,
-      "durationMs": 547,
+      "durationMs": 589,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "63%",
+      "keptRate": "60%",
       "tier": "C",
       "lowValue": false
     },
@@ -1150,9 +1150,26 @@
       "url": "https://news.google.com/rss/search?q=%22Dermody+Properties%22+OR+%22Clarion+Partners%22+OR+%22Bridge+Industrial%22+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 50,
-      "keptAfterFiltering": 16,
+      "keptAfterFiltering": 15,
       "lastError": null,
-      "durationMs": 403,
+      "durationMs": 390,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "30%",
+      "tier": "C",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Industrial Land",
+      "url": "https://news.google.com/rss/search?q=industrial+land+sale+OR+%22land+acquisition%22+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 72,
+      "keptAfterFiltering": 23,
+      "lastError": null,
+      "durationMs": 492,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1163,30 +1180,13 @@
       "lowValue": false
     },
     {
-      "name": "Google News Industrial Land",
-      "url": "https://news.google.com/rss/search?q=industrial+land+sale+OR+%22land+acquisition%22+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 75,
-      "keptAfterFiltering": 22,
-      "lastError": null,
-      "durationMs": 525,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "29%",
-      "tier": "C",
-      "lowValue": false
-    },
-    {
       "name": "Google News Industrial Lease Deals",
       "url": "https://news.google.com/rss/search?q=%22industrial+lease%22+OR+%22warehouse+lease%22+%22square+feet%22+OR+%22sf%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 42,
       "keptAfterFiltering": 33,
       "lastError": null,
-      "durationMs": 361,
+      "durationMs": 407,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1201,15 +1201,15 @@
       "url": "https://news.google.com/rss/search?q=industrial+%22signed+lease%22+OR+%22leased%22+OR+%22lease+signed%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 58,
-      "keptAfterFiltering": 29,
+      "keptAfterFiltering": 27,
       "lastError": null,
-      "durationMs": 434,
+      "durationMs": 414,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "50%",
+      "keptRate": "47%",
       "tier": "C",
       "lowValue": false
     },
@@ -1218,15 +1218,15 @@
       "url": "https://news.google.com/rss/search?q=industrial+real+estate+New+Jersey+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 20,
+      "keptAfterFiltering": 23,
       "lastError": null,
-      "durationMs": 611,
+      "durationMs": 672,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "20%",
+      "keptRate": "23%",
       "tier": "C",
       "lowValue": false
     },
@@ -1235,15 +1235,15 @@
       "url": "https://news.google.com/rss/search?q=industrial+REIT+Prologis+OR+Duke+OR+Rexford&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 15,
+      "keptAfterFiltering": 16,
       "lastError": null,
-      "durationMs": 491,
+      "durationMs": 611,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "15%",
+      "keptRate": "16%",
       "tier": "C",
       "lowValue": false
     },
@@ -1252,15 +1252,15 @@
       "url": "https://news.google.com/rss/search?q=%22Rexford+Industrial%22+OR+%22First+Industrial%22+OR+%22EastGroup%22+OR+%22STAG+Industrial%22+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 18,
+      "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 501,
+      "durationMs": 509,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "18%",
+      "keptRate": "17%",
       "tier": "C",
       "lowValue": false
     },
@@ -1271,7 +1271,7 @@
       "fetchedRaw": 55,
       "keptAfterFiltering": 11,
       "lastError": null,
-      "durationMs": 416,
+      "durationMs": 381,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1288,7 +1288,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 508,
+      "durationMs": 516,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1305,7 +1305,7 @@
       "fetchedRaw": 37,
       "keptAfterFiltering": 15,
       "lastError": null,
-      "durationMs": 368,
+      "durationMs": 349,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1320,15 +1320,15 @@
       "url": "https://news.google.com/rss/search?q=industrial+property+%22sold%22+OR+%22acquired%22+OR+%22purchased%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 42,
+      "keptAfterFiltering": 43,
       "lastError": null,
-      "durationMs": 653,
+      "durationMs": 624,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "42%",
+      "keptRate": "43%",
       "tier": "C",
       "lowValue": false
     },
@@ -1336,16 +1336,16 @@
       "name": "Google News Industrial Space NJ PA FL",
       "url": "https://news.google.com/rss/search?q=%22industrial+space%22+OR+%22warehouse+space%22+%22for+lease%22+OR+%22for+sale%22+OR+%22now+available%22+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 36,
-      "keptAfterFiltering": 6,
+      "fetchedRaw": 35,
+      "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 388,
+      "durationMs": 386,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "17%",
+      "keptRate": "14%",
       "tier": "C",
       "lowValue": false
     },
@@ -1356,7 +1356,7 @@
       "fetchedRaw": 55,
       "keptAfterFiltering": 15,
       "lastError": null,
-      "durationMs": 434,
+      "durationMs": 487,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1370,8 +1370,8 @@
       "name": "Google News IOS",
       "url": "https://news.google.com/rss/search?q=%22industrial+outdoor+storage%22+OR+%22IOS%22+real+estate+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 98,
-      "keptAfterFiltering": 19,
+      "fetchedRaw": 100,
+      "keptAfterFiltering": 20,
       "lastError": null,
       "durationMs": 556,
       "type": "rss",
@@ -1379,7 +1379,7 @@
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "19%",
+      "keptRate": "20%",
       "tier": "C",
       "lowValue": false
     },
@@ -1388,15 +1388,15 @@
       "url": "https://news.google.com/rss/search?q=Jacksonville+Florida+business+real+estate+site:jacksonville.com+OR+site:jaxdailyrecord.com&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 9,
+      "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 638,
+      "durationMs": 713,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "9%",
+      "keptRate": "10%",
       "tier": "B",
       "lowValue": false
     },
@@ -1405,15 +1405,15 @@
       "url": "https://news.google.com/rss/search?q=%22Jacksonville%22+Florida+industrial+OR+warehouse+OR+logistics+OR+port&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 22,
+      "keptAfterFiltering": 20,
       "lastError": null,
-      "durationMs": 595,
+      "durationMs": 553,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "22%",
+      "keptRate": "20%",
       "tier": "B",
       "lowValue": false
     },
@@ -1421,16 +1421,16 @@
       "name": "Google News JAXPORT Logistics",
       "url": "https://news.google.com/rss/search?q=%22Jacksonville+port%22+OR+%22JAXPORT%22+OR+%22JaxPort%22+cargo+OR+logistics+OR+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 80,
-      "keptAfterFiltering": 4,
+      "fetchedRaw": 83,
+      "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 503,
+      "durationMs": 457,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "5%",
+      "keptRate": "6%",
       "tier": "B",
       "lowValue": false
     },
@@ -1438,16 +1438,16 @@
       "name": "Google News JLL NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=JLL+industrial+%22New+Jersey%22+OR+Philadelphia+OR+Florida+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 54,
-      "keptAfterFiltering": 23,
+      "fetchedRaw": 53,
+      "keptAfterFiltering": 22,
       "lastError": null,
-      "durationMs": 468,
+      "durationMs": 396,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "43%",
+      "keptRate": "42%",
       "tier": "C",
       "lowValue": false
     },
@@ -1455,16 +1455,16 @@
       "name": "Google News Last Mile NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=%22last+mile%22+delivery+OR+fulfillment+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 62,
-      "keptAfterFiltering": 5,
+      "fetchedRaw": 56,
+      "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 441,
+      "durationMs": 440,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "8%",
+      "keptRate": "11%",
       "tier": "C",
       "lowValue": false
     },
@@ -1473,15 +1473,15 @@
       "url": "https://news.google.com/rss/search?q=%22Lehigh+Valley%22+industrial+OR+warehouse+OR+logistics+OR+distribution+center&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 13,
+      "keptAfterFiltering": 11,
       "lastError": null,
-      "durationMs": 565,
+      "durationMs": 584,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "13%",
+      "keptRate": "11%",
       "tier": "B",
       "lowValue": false
     },
@@ -1492,7 +1492,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 559,
+      "durationMs": 604,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1506,16 +1506,16 @@
       "name": "Google News Logistics",
       "url": "https://news.google.com/rss/search?q=logistics+facility+%22supply+chain%22+%22last+mile%22+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 73,
-      "keptAfterFiltering": 7,
+      "fetchedRaw": 74,
+      "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 500,
+      "durationMs": 464,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "8%",
       "tier": "C",
       "lowValue": false
     },
@@ -1524,15 +1524,15 @@
       "url": "https://news.google.com/rss/search?q=site:loopnet.com+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+%22for+lease%22+OR+%22for+sale%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 20,
+      "keptAfterFiltering": 69,
       "lastError": null,
-      "durationMs": 600,
+      "durationMs": 658,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "20%",
+      "keptRate": "69%",
       "tier": "C",
       "lowValue": false
     },
@@ -1541,15 +1541,15 @@
       "url": "https://news.google.com/rss/search?q=site:lvb.com+industrial+OR+warehouse+OR+logistics+OR+%22Lehigh+Valley%22+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 1,
+      "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 512,
+      "durationMs": 552,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "1%",
+      "keptRate": "3%",
       "tier": "B",
       "lowValue": false
     },
@@ -1558,15 +1558,15 @@
       "url": "https://news.google.com/rss/search?q=%22Panattoni%22+OR+%22Hillwood%22+OR+%22Scannell%22+OR+%22NorthPoint%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 17,
+      "keptAfterFiltering": 18,
       "lastError": null,
-      "durationMs": 531,
+      "durationMs": 493,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "17%",
+      "keptRate": "18%",
       "tier": "C",
       "lowValue": false
     },
@@ -1577,7 +1577,7 @@
       "fetchedRaw": 40,
       "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 386,
+      "durationMs": 410,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1594,7 +1594,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 562,
+      "durationMs": 568,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1609,15 +1609,15 @@
       "url": "https://news.google.com/rss/search?q=%22material+handling%22+OR+%22warehouse+automation%22+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 11,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 521,
+      "durationMs": 585,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "11%",
+      "keptRate": "12%",
       "tier": "C",
       "lowValue": false
     },
@@ -1625,16 +1625,16 @@
       "name": "Google News Meadowlands NJ",
       "url": "https://news.google.com/rss/search?q=%22Meadowlands%22+%22New+Jersey%22+industrial+OR+warehouse+OR+logistics+OR+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 80,
-      "keptAfterFiltering": 16,
+      "fetchedRaw": 74,
+      "keptAfterFiltering": 14,
       "lastError": null,
-      "durationMs": 478,
+      "durationMs": 439,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "20%",
+      "keptRate": "19%",
       "tier": "B",
       "lowValue": false
     },
@@ -1645,7 +1645,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 424,
+      "durationMs": 465,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1662,7 +1662,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 596,
+      "durationMs": 558,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1679,7 +1679,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 11,
       "lastError": null,
-      "durationMs": 593,
+      "durationMs": 528,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1693,16 +1693,16 @@
       "name": "Google News Middlesex County NJ",
       "url": "https://news.google.com/rss/search?q=%22Middlesex+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 68,
+      "fetchedRaw": 71,
       "keptAfterFiltering": 13,
       "lastError": null,
-      "durationMs": 482,
+      "durationMs": 454,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "19%",
+      "keptRate": "18%",
       "tier": "B",
       "lowValue": false
     },
@@ -1713,7 +1713,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 545,
+      "durationMs": 607,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1730,7 +1730,7 @@
       "fetchedRaw": 52,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 398,
+      "durationMs": 396,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1747,7 +1747,7 @@
       "fetchedRaw": 78,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 540,
+      "durationMs": 520,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1761,16 +1761,16 @@
       "name": "Google News NAIOP NJ",
       "url": "https://news.google.com/rss/search?q=%22NAIOP+New+Jersey%22+OR+%22NAIOP+NJ%22+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 43,
-      "keptAfterFiltering": 8,
+      "fetchedRaw": 49,
+      "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 333,
+      "durationMs": 401,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "19%",
+      "keptRate": "18%",
       "tier": "B",
       "lowValue": false
     },
@@ -1778,10 +1778,10 @@
       "name": "Google News NAIOP NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=NAIOP+New+Jersey+OR+Pennsylvania+OR+Florida+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 67,
+      "fetchedRaw": 66,
       "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 450,
+      "durationMs": 499,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1795,16 +1795,16 @@
       "name": "Google News Newmark NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=Newmark+industrial+OR+warehouse+%22New+Jersey%22+OR+Pennsylvania+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 50,
+      "fetchedRaw": 56,
       "keptAfterFiltering": 13,
       "lastError": null,
-      "durationMs": 398,
+      "durationMs": 418,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "26%",
+      "keptRate": "23%",
       "tier": "C",
       "lowValue": false
     },
@@ -1812,16 +1812,16 @@
       "name": "Google News NJ Availabilities",
       "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22New+Jersey%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 62,
-      "keptAfterFiltering": 21,
+      "fetchedRaw": 69,
+      "keptAfterFiltering": 24,
       "lastError": null,
-      "durationMs": 550,
+      "durationMs": 526,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "34%",
+      "keptRate": "35%",
       "tier": "B",
       "lowValue": false
     },
@@ -1830,15 +1830,15 @@
       "url": "https://news.google.com/rss/search?q=%22New+Jersey%22+business+real+estate+development+site:nj.com+OR+site:njbiz.com&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 6,
+      "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 650,
+      "durationMs": 629,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "6%",
+      "keptRate": "5%",
       "tier": "B",
       "lowValue": false
     },
@@ -1849,7 +1849,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 32,
       "lastError": null,
-      "durationMs": 550,
+      "durationMs": 563,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1863,16 +1863,16 @@
       "name": "Google News NJ Industrial",
       "url": "https://news.google.com/rss/search?q=industrial+warehouse+%22New+Jersey%22+OR+%22Newark%22+OR+%22Jersey+City%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 78,
-      "keptAfterFiltering": 15,
+      "fetchedRaw": 76,
+      "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 520,
+      "durationMs": 503,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "19%",
+      "keptRate": "22%",
       "tier": "B",
       "lowValue": false
     },
@@ -1880,16 +1880,16 @@
       "name": "Google News NJ Industrial Developers",
       "url": "https://news.google.com/rss/search?q=%22Matrix+Development%22+OR+%22Heller+Industrial%22+OR+%22Sitex+Group%22+New+Jersey&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 38,
-      "keptAfterFiltering": 10,
+      "fetchedRaw": 30,
+      "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 346,
+      "durationMs": 443,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "26%",
+      "keptRate": "27%",
       "tier": "B",
       "lowValue": false
     },
@@ -1900,7 +1900,7 @@
       "fetchedRaw": 16,
       "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 270,
+      "durationMs": 293,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1915,15 +1915,15 @@
       "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22New+Jersey%22+OR+%22NJ%22+transaction+OR+lease+OR+sale+OR+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 45,
+      "keptAfterFiltering": 47,
       "lastError": null,
-      "durationMs": 660,
+      "durationMs": 474,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "45%",
+      "keptRate": "47%",
       "tier": "B",
       "lowValue": false
     },
@@ -1932,15 +1932,15 @@
       "url": "https://news.google.com/rss/search?q=%22CenterPoint+Properties%22+OR+%22Realterm%22+OR+%22Seagis%22+OR+%22Endurance%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 67,
-      "keptAfterFiltering": 21,
+      "keptAfterFiltering": 20,
       "lastError": null,
-      "durationMs": 939,
+      "durationMs": 456,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "31%",
+      "keptRate": "30%",
       "tier": "C",
       "lowValue": false
     },
@@ -1949,9 +1949,77 @@
       "url": "https://news.google.com/rss/search?q=site:njbiz.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
+      "keptAfterFiltering": 31,
+      "lastError": null,
+      "durationMs": 599,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "31%",
+      "tier": "B",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Orlando Industrial",
+      "url": "https://news.google.com/rss/search?q=%22Orlando%22+OR+%22Central+Florida%22+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
+      "keptAfterFiltering": 20,
+      "lastError": null,
+      "durationMs": 563,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "20%",
+      "tier": "B",
+      "lowValue": false
+    },
+    {
+      "name": "Google News PA Availabilities",
+      "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22Pennsylvania%22+OR+%22Philadelphia%22&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 63,
+      "keptAfterFiltering": 4,
+      "lastError": null,
+      "durationMs": 492,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "6%",
+      "tier": "B",
+      "lowValue": false
+    },
+    {
+      "name": "Google News PA CRE People",
+      "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22Pennsylvania%22+OR+%22Philadelphia%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 53,
+      "keptAfterFiltering": 9,
+      "lastError": null,
+      "durationMs": 419,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "17%",
+      "tier": "B",
+      "lowValue": false
+    },
+    {
+      "name": "Google News PA Industrial",
+      "url": "https://news.google.com/rss/search?q=industrial+warehouse+%22Pennsylvania%22+OR+%22Philadelphia%22+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
       "keptAfterFiltering": 27,
       "lastError": null,
-      "durationMs": 549,
+      "durationMs": 573,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -1962,81 +2030,13 @@
       "lowValue": false
     },
     {
-      "name": "Google News Orlando Industrial",
-      "url": "https://news.google.com/rss/search?q=%22Orlando%22+OR+%22Central+Florida%22+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 100,
-      "keptAfterFiltering": 30,
-      "lastError": null,
-      "durationMs": 673,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "30%",
-      "tier": "B",
-      "lowValue": false
-    },
-    {
-      "name": "Google News PA Availabilities",
-      "url": "https://news.google.com/rss/search?q=industrial+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+%22Pennsylvania%22+OR+%22Philadelphia%22&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 61,
-      "keptAfterFiltering": 5,
-      "lastError": null,
-      "durationMs": 533,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "8%",
-      "tier": "B",
-      "lowValue": false
-    },
-    {
-      "name": "Google News PA CRE People",
-      "url": "https://news.google.com/rss/search?q=%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+%22Pennsylvania%22+OR+%22Philadelphia%22+%22real+estate%22+OR+%22industrial%22+OR+%22logistics%22&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 74,
-      "keptAfterFiltering": 11,
-      "lastError": null,
-      "durationMs": 515,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "15%",
-      "tier": "B",
-      "lowValue": false
-    },
-    {
-      "name": "Google News PA Industrial",
-      "url": "https://news.google.com/rss/search?q=industrial+warehouse+%22Pennsylvania%22+OR+%22Philadelphia%22+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 100,
-      "keptAfterFiltering": 29,
-      "lastError": null,
-      "durationMs": 610,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "29%",
-      "tier": "B",
-      "lowValue": false
-    },
-    {
       "name": "Google News PA Industrial Leasing",
       "url": "https://news.google.com/rss/search?q=%22marketing+for+lease%22+OR+%22now+leasing%22+OR+%22seeking+tenants%22+industrial+OR+warehouse+Pennsylvania+OR+Philadelphia+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 3,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 268,
+      "durationMs": 280,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2050,16 +2050,16 @@
       "name": "Google News PA Industrial Transactions",
       "url": "https://news.google.com/rss/search?q=%22industrial+real+estate%22+%22Philadelphia%22+OR+%22Pennsylvania%22+transaction+OR+lease+OR+sale&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 51,
-      "keptAfterFiltering": 14,
+      "fetchedRaw": 52,
+      "keptAfterFiltering": 16,
       "lastError": null,
-      "durationMs": 514,
+      "durationMs": 414,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "27%",
+      "keptRate": "31%",
       "tier": "B",
       "lowValue": false
     },
@@ -2070,7 +2070,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 664,
+      "durationMs": 641,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2085,15 +2085,15 @@
       "url": "https://news.google.com/rss/search?q=%22Palm+Beach+County%22+warehouse+OR+industrial+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 16,
+      "keptAfterFiltering": 15,
       "lastError": null,
-      "durationMs": 547,
+      "durationMs": 553,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "16%",
+      "keptRate": "15%",
       "tier": "B",
       "lowValue": false
     },
@@ -2102,9 +2102,26 @@
       "url": "https://news.google.com/rss/search?q=Philadelphia+real+estate+commercial+site:inquirer.com+OR+site:phillymag.com&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
+      "keptAfterFiltering": 4,
+      "lastError": null,
+      "durationMs": 546,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "4%",
+      "tier": "B",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Pittsburgh CRE",
+      "url": "https://news.google.com/rss/search?q=%22Pittsburgh%22+%22commercial+real+estate%22+OR+development+OR+warehouse+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
       "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 604,
+      "durationMs": 567,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2115,30 +2132,13 @@
       "lowValue": false
     },
     {
-      "name": "Google News Pittsburgh CRE",
-      "url": "https://news.google.com/rss/search?q=%22Pittsburgh%22+%22commercial+real+estate%22+OR+development+OR+warehouse+OR+%22distribution+center%22&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 100,
-      "keptAfterFiltering": 8,
-      "lastError": null,
-      "durationMs": 604,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "8%",
-      "tier": "B",
-      "lowValue": false
-    },
-    {
       "name": "Google News Pittsburgh Industrial",
       "url": "https://news.google.com/rss/search?q=%22Pittsburgh%22+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
       "keptAfterFiltering": 7,
       "lastError": null,
-      "durationMs": 548,
+      "durationMs": 648,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2152,16 +2152,16 @@
       "name": "Google News Port Newark",
       "url": "https://news.google.com/rss/search?q=%22Port+Newark%22+OR+%22Port+Elizabeth%22+OR+%22Newark+port%22+logistics+OR+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 58,
-      "keptAfterFiltering": 13,
+      "fetchedRaw": 57,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 392,
+      "durationMs": 422,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "22%",
+      "keptRate": "21%",
       "tier": "B",
       "lowValue": false
     },
@@ -2170,15 +2170,15 @@
       "url": "https://news.google.com/rss/search?q=%22Port+of+New+York%22+OR+%22Port+Authority%22+cargo+OR+logistics+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 6,
+      "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 553,
+      "durationMs": 606,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "6%",
+      "keptRate": "5%",
       "tier": "B",
       "lowValue": false
     },
@@ -2186,10 +2186,10 @@
       "name": "Google News Ports",
       "url": "https://news.google.com/rss/search?q=port+logistics+%22intermodal%22+OR+%22Port+Newark%22+OR+%22Port+Miami%22+OR+%22Port+Everglades%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 79,
+      "fetchedRaw": 82,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 475,
+      "durationMs": 517,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2203,16 +2203,16 @@
       "name": "Google News Prologis NJ/PA/FL",
       "url": "https://news.google.com/rss/search?q=Prologis+%22New+Jersey%22+OR+Pennsylvania+OR+Florida+OR+%22South+Florida%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 59,
-      "keptAfterFiltering": 18,
+      "fetchedRaw": 55,
+      "keptAfterFiltering": 16,
       "lastError": null,
-      "durationMs": 466,
+      "durationMs": 421,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "31%",
+      "keptRate": "29%",
       "tier": "C",
       "lowValue": false
     },
@@ -2221,17 +2221,17 @@
       "url": "https://news.google.com/rss/search?q=site:propertyshark.com+industrial+OR+warehouse+OR+logistics+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 0,
+      "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 625,
+      "durationMs": 565,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "0%",
+      "keptRate": "1%",
       "tier": "C",
-      "lowValue": true
+      "lowValue": false
     },
     {
       "name": "Google News RE-NJ Availabilities",
@@ -2240,7 +2240,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 31,
       "lastError": null,
-      "durationMs": 533,
+      "durationMs": 505,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2255,15 +2255,15 @@
       "url": "https://news.google.com/rss/search?q=site:re-nj.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 32,
+      "keptAfterFiltering": 28,
       "lastError": null,
-      "durationMs": 547,
+      "durationMs": 617,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "32%",
+      "keptRate": "28%",
       "tier": "B",
       "lowValue": false
     },
@@ -2272,15 +2272,15 @@
       "url": "https://news.google.com/rss/search?q=site:therealdeal.com+industrial+OR+warehouse+OR+logistics+Florida+OR+Miami&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 57,
+      "keptAfterFiltering": 60,
       "lastError": null,
-      "durationMs": 554,
+      "durationMs": 563,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "57%",
+      "keptRate": "60%",
       "tier": "D",
       "lowValue": false
     },
@@ -2289,15 +2289,15 @@
       "url": "https://news.google.com/rss/search?q=site:rebusinessonline.com+industrial+OR+warehouse+OR+logistics&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 43,
+      "keptAfterFiltering": 49,
       "lastError": null,
-      "durationMs": 518,
+      "durationMs": 561,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "43%",
+      "keptRate": "49%",
       "tier": "C",
       "lowValue": false
     },
@@ -2308,7 +2308,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 49,
       "lastError": null,
-      "durationMs": 515,
+      "durationMs": 555,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2322,16 +2322,16 @@
       "name": "Google News Regional CRE Hires",
       "url": "https://news.google.com/rss/search?q=%22joins%22+OR+%22welcomes%22+OR+%22taps%22+%22vice+president%22+OR+%22director%22+OR+%22broker%22+%22industrial%22+OR+%22warehouse%22+OR+%22logistics%22+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 64,
-      "keptAfterFiltering": 25,
+      "fetchedRaw": 79,
+      "keptAfterFiltering": 34,
       "lastError": null,
-      "durationMs": 557,
+      "durationMs": 575,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "39%",
+      "keptRate": "43%",
       "tier": "C",
       "lowValue": false
     },
@@ -2339,10 +2339,10 @@
       "name": "Google News Regional Vacancy Reports",
       "url": "https://news.google.com/rss/search?q=%22industrial+vacancy%22+OR+%22warehouse+vacancy%22+OR+%22available+space%22+%22New+Jersey%22+OR+%22South+Florida%22+OR+%22Lehigh+Valley%22+OR+Philadelphia&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 53,
+      "fetchedRaw": 54,
       "keptAfterFiltering": 14,
       "lastError": null,
-      "durationMs": 397,
+      "durationMs": 400,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2359,7 +2359,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 564,
+      "durationMs": 559,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2376,7 +2376,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 615,
+      "durationMs": 572,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2393,7 +2393,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 567,
+      "durationMs": 509,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2410,7 +2410,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 554,
+      "durationMs": 653,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2424,10 +2424,10 @@
       "name": "Google News Somerset County NJ",
       "url": "https://news.google.com/rss/search?q=%22Somerset+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 51,
+      "fetchedRaw": 50,
       "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 396,
+      "durationMs": 379,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2444,7 +2444,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 643,
+      "durationMs": 639,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2458,16 +2458,16 @@
       "name": "Google News Spec Buildings",
       "url": "https://news.google.com/rss/search?q=%22spec+building%22+OR+%22speculative+development%22+OR+%22new+listing%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 49,
-      "keptAfterFiltering": 11,
+      "fetchedRaw": 32,
+      "keptAfterFiltering": 6,
       "lastError": null,
-      "durationMs": 353,
+      "durationMs": 313,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "22%",
+      "keptRate": "19%",
       "tier": "C",
       "lowValue": false
     },
@@ -2475,16 +2475,16 @@
       "name": "Google News Spec Deliveries Available",
       "url": "https://news.google.com/rss/search?q=%22spec+building%22+OR+%22speculative+development%22+OR+%22delivered%22+OR+%22completed%22+%22available+for+lease%22+industrial+OR+warehouse+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 27,
+      "fetchedRaw": 26,
       "keptAfterFiltering": 10,
       "lastError": null,
-      "durationMs": 330,
+      "durationMs": 341,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "37%",
+      "keptRate": "38%",
       "tier": "C",
       "lowValue": false
     },
@@ -2493,15 +2493,15 @@
       "url": "https://news.google.com/rss/search?q=%22Terreno+Realty%22+OR+%22Americold%22+OR+%22Plymouth+Industrial%22+REIT&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 31,
+      "keptAfterFiltering": 30,
       "lastError": null,
-      "durationMs": 476,
+      "durationMs": 546,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "31%",
+      "keptRate": "30%",
       "tier": "C",
       "lowValue": false
     },
@@ -2512,7 +2512,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 620,
+      "durationMs": 586,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2527,15 +2527,15 @@
       "url": "https://news.google.com/rss/search?q=%22Tampa+Bay%22+OR+%22Tampa%22+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 19,
+      "keptAfterFiltering": 20,
       "lastError": null,
-      "durationMs": 565,
+      "durationMs": 579,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "19%",
+      "keptRate": "20%",
       "tier": "B",
       "lowValue": false
     },
@@ -2544,26 +2544,9 @@
       "url": "https://news.google.com/rss/search?q=site:traded.co+industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+sale+OR+acquisition&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 62,
-      "lastError": null,
-      "durationMs": 575,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "62%",
-      "tier": "C",
-      "lowValue": false
-    },
-    {
-      "name": "Google News Traded.co Availabilities",
-      "url": "https://news.google.com/rss/search?q=site:traded.co+industrial+OR+warehouse+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+OR+%22delivered%22&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 100,
       "keptAfterFiltering": 73,
       "lastError": null,
-      "durationMs": 531,
+      "durationMs": 560,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2574,19 +2557,36 @@
       "lowValue": false
     },
     {
-      "name": "Google News Traded.co NJ/PA/FL",
-      "url": "https://news.google.com/rss/search?q=site:traded.co+%22New+Jersey%22+OR+NJ+OR+Pennsylvania+OR+PA+OR+Florida+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      "name": "Google News Traded.co Availabilities",
+      "url": "https://news.google.com/rss/search?q=site:traded.co+industrial+OR+warehouse+%22for+lease%22+OR+%22for+sale%22+OR+%22available%22+OR+%22delivered%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 14,
+      "keptAfterFiltering": 71,
       "lastError": null,
-      "durationMs": 553,
+      "durationMs": 524,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "14%",
+      "keptRate": "71%",
+      "tier": "C",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Traded.co NJ/PA/FL",
+      "url": "https://news.google.com/rss/search?q=site:traded.co+%22New+Jersey%22+OR+NJ+OR+Pennsylvania+OR+PA+OR+Florida+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
+      "keptAfterFiltering": 10,
+      "lastError": null,
+      "durationMs": 514,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "10%",
       "tier": "C",
       "lowValue": false
     },
@@ -2594,16 +2594,16 @@
       "name": "Google News Truck Terminals",
       "url": "https://news.google.com/rss/search?q=%22truck+terminal%22+OR+%22logistics+hub%22+OR+%22freight+terminal%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 57,
-      "keptAfterFiltering": 15,
+      "fetchedRaw": 48,
+      "keptAfterFiltering": 13,
       "lastError": null,
-      "durationMs": 476,
+      "durationMs": 423,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "26%",
+      "keptRate": "27%",
       "tier": "C",
       "lowValue": false
     },
@@ -2611,10 +2611,10 @@
       "name": "Google News Union County NJ",
       "url": "https://news.google.com/rss/search?q=%22Union+County%22+%22New+Jersey%22+warehouse+OR+industrial&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 55,
+      "fetchedRaw": 52,
       "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 432,
+      "durationMs": 379,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2628,44 +2628,10 @@
       "name": "Google News Vacancy Rates",
       "url": "https://news.google.com/rss/search?q=%22vacancy+rate%22+industrial+OR+warehouse+NJ+OR+PA+OR+Florida&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 52,
-      "keptAfterFiltering": 11,
+      "fetchedRaw": 50,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 379,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "21%",
-      "tier": "C",
-      "lowValue": false
-    },
-    {
-      "name": "Google News Warehouse",
-      "url": "https://news.google.com/rss/search?q=warehouse+logistics+development+construction&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 79,
-      "keptAfterFiltering": 21,
-      "lastError": null,
-      "durationMs": 534,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "27%",
-      "tier": "C",
-      "lowValue": false
-    },
-    {
-      "name": "Google News Warehouse Listings",
-      "url": "https://news.google.com/rss/search?q=warehouse+%22now+available%22+OR+%22now+leasing%22+OR+%22for+lease%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 72,
-      "keptAfterFiltering": 17,
-      "lastError": null,
-      "durationMs": 477,
+      "durationMs": 470,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2676,19 +2642,53 @@
       "lowValue": false
     },
     {
-      "name": "Google News Woodmont/Link/Blackstone",
-      "url": "https://news.google.com/rss/search?q=%22Woodmont+Industrial%22+OR+%22Link+Logistics%22+OR+%22Blackstone%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+      "name": "Google News Warehouse",
+      "url": "https://news.google.com/rss/search?q=warehouse+logistics+development+construction&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 100,
-      "keptAfterFiltering": 36,
+      "fetchedRaw": 77,
+      "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 494,
+      "durationMs": 560,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "36%",
+      "keptRate": "25%",
+      "tier": "C",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Warehouse Listings",
+      "url": "https://news.google.com/rss/search?q=warehouse+%22now+available%22+OR+%22now+leasing%22+OR+%22for+lease%22+NJ+OR+PA+OR+FL&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 72,
+      "keptAfterFiltering": 18,
+      "lastError": null,
+      "durationMs": 481,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "25%",
+      "tier": "C",
+      "lowValue": false
+    },
+    {
+      "name": "Google News Woodmont/Link/Blackstone",
+      "url": "https://news.google.com/rss/search?q=%22Woodmont+Industrial%22+OR+%22Link+Logistics%22+OR+%22Blackstone%22+industrial+warehouse&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 100,
+      "keptAfterFiltering": 40,
+      "lastError": null,
+      "durationMs": 529,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "40%",
       "tier": "C",
       "lowValue": false
     },
@@ -2697,15 +2697,15 @@
       "url": "https://news.google.com/rss/search?q=site:wsj.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 2,
+      "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 608,
+      "durationMs": 751,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "2%",
+      "keptRate": "3%",
       "tier": "D",
       "lowValue": false
     },
@@ -2714,15 +2714,15 @@
       "url": "https://news.google.com/rss/search?q=%22Greater+Philadelphia%22+OR+%22Delaware+Valley%22+OR+%22Lehigh+Valley%22+industrial+OR+warehouse+OR+logistics+OR+distribution&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 13,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 541,
+      "durationMs": 628,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "13%",
+      "keptRate": "12%",
       "tier": "A",
       "lowValue": false
     },
@@ -2733,7 +2733,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 21,
       "lastError": null,
-      "durationMs": 559,
+      "durationMs": 601,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2750,7 +2750,7 @@
       "fetchedRaw": 40,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 213,
+      "durationMs": 276,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2767,7 +2767,7 @@
       "fetchedRaw": 40,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 135,
+      "durationMs": 533,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2784,7 +2784,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 5,
       "lastError": null,
-      "durationMs": 889,
+      "durationMs": 443,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2801,7 +2801,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 633,
+      "durationMs": 515,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2816,15 +2816,15 @@
       "url": "https://blog.naiop.org/feed/",
       "status": "ok",
       "fetchedRaw": 8,
-      "keptAfterFiltering": 3,
+      "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 615,
+      "durationMs": 1590,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "38%",
+      "keptRate": "25%",
       "tier": "B",
       "lowValue": false
     },
@@ -2832,27 +2832,10 @@
       "name": "NJ Construction Industrial",
       "url": "https://news.google.com/rss/search?q=groundbreaking+OR+%22under+construction%22+OR+%22breaks+ground%22+warehouse+OR+industrial+OR+logistics+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 77,
-      "keptAfterFiltering": 14,
+      "fetchedRaw": 58,
+      "keptAfterFiltering": 8,
       "lastError": null,
-      "durationMs": 493,
-      "type": "rss",
-      "successRate": "100%",
-      "recentHistory": [
-        "ok"
-      ],
-      "keptRate": "18%",
-      "tier": "A",
-      "lowValue": false
-    },
-    {
-      "name": "NJ Economic Dev Industrial",
-      "url": "https://news.google.com/rss/search?q=EDA+OR+%22economic+development%22+OR+incentive+OR+%22tax+credit%22+industrial+OR+warehouse+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
-      "status": "ok",
-      "fetchedRaw": 79,
-      "keptAfterFiltering": 11,
-      "lastError": null,
-      "durationMs": 557,
+      "durationMs": 443,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2863,13 +2846,30 @@
       "lowValue": false
     },
     {
+      "name": "NJ Economic Dev Industrial",
+      "url": "https://news.google.com/rss/search?q=EDA+OR+%22economic+development%22+OR+incentive+OR+%22tax+credit%22+industrial+OR+warehouse+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
+      "status": "ok",
+      "fetchedRaw": 78,
+      "keptAfterFiltering": 14,
+      "lastError": null,
+      "durationMs": 527,
+      "type": "rss",
+      "successRate": "100%",
+      "recentHistory": [
+        "ok"
+      ],
+      "keptRate": "18%",
+      "tier": "A",
+      "lowValue": false
+    },
+    {
       "name": "NJ Spotlight News",
       "url": "https://www.njspotlightnews.org/feed/",
       "status": "ok",
       "fetchedRaw": 10,
       "keptAfterFiltering": 0,
       "lastError": null,
-      "durationMs": 906,
+      "durationMs": 449,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2884,15 +2884,15 @@
       "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+%22New+Jersey%22+OR+NJ&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 54,
-      "keptAfterFiltering": 18,
+      "keptAfterFiltering": 17,
       "lastError": null,
-      "durationMs": 384,
+      "durationMs": 420,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "33%",
+      "keptRate": "31%",
       "tier": "A",
       "lowValue": false
     },
@@ -2900,16 +2900,16 @@
       "name": "PA Zoning Approvals",
       "url": "https://news.google.com/rss/search?q=%22planning+board%22+OR+%22zoning+board%22+OR+%22zoning+approval%22+warehouse+OR+industrial+OR+logistics+Pennsylvania+OR+Philadelphia+OR+%22Lehigh+Valley%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 55,
-      "keptAfterFiltering": 14,
+      "fetchedRaw": 52,
+      "keptAfterFiltering": 12,
       "lastError": null,
-      "durationMs": 398,
+      "durationMs": 371,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "25%",
+      "keptRate": "23%",
       "tier": "A",
       "lowValue": false
     },
@@ -2918,15 +2918,15 @@
       "url": "https://news.google.com/rss/search?q=site:bizjournals.com/pittsburgh+%22commercial+real+estate%22+OR+industrial+OR+warehouse+OR+development&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 12,
+      "keptAfterFiltering": 9,
       "lastError": null,
-      "durationMs": 613,
+      "durationMs": 508,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "12%",
+      "keptRate": "9%",
       "tier": "A",
       "lowValue": false
     },
@@ -2935,15 +2935,15 @@
       "url": "https://www.prnewswire.com/rss/news-releases-list.rss",
       "status": "ok",
       "fetchedRaw": 20,
-      "keptAfterFiltering": 1,
+      "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 106,
+      "durationMs": 185,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "5%",
+      "keptRate": "10%",
       "tier": "B",
       "lowValue": false
     },
@@ -2954,7 +2954,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 214,
+      "durationMs": 120,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -2969,15 +2969,15 @@
       "url": "https://re-nj.com/feed/",
       "status": "ok",
       "fetchedRaw": 10,
-      "keptAfterFiltering": 4,
+      "keptAfterFiltering": 3,
       "lastError": null,
-      "durationMs": 130,
+      "durationMs": 121,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "40%",
+      "keptRate": "30%",
       "tier": "A",
       "lowValue": false
     },
@@ -2988,7 +2988,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 80,
+      "durationMs": 139,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -3003,15 +3003,15 @@
       "url": "https://www.roi-nj.com/feed/",
       "status": "ok",
       "fetchedRaw": 10,
-      "keptAfterFiltering": 1,
+      "keptAfterFiltering": 4,
       "lastError": null,
-      "durationMs": 181,
+      "durationMs": 219,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "10%",
+      "keptRate": "40%",
       "tier": "A",
       "lowValue": false
     },
@@ -3020,15 +3020,15 @@
       "url": "https://news.google.com/rss/search?q=site:bizjournals.com/southflorida+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 23,
+      "keptAfterFiltering": 22,
       "lastError": null,
-      "durationMs": 561,
+      "durationMs": 601,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "23%",
+      "keptRate": "22%",
       "tier": "A",
       "lowValue": false
     },
@@ -3039,7 +3039,7 @@
       "fetchedRaw": 100,
       "keptAfterFiltering": 18,
       "lastError": null,
-      "durationMs": 534,
+      "durationMs": 549,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -3056,7 +3056,7 @@
       "fetchedRaw": 10,
       "keptAfterFiltering": 1,
       "lastError": null,
-      "durationMs": 47,
+      "durationMs": 80,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -3073,7 +3073,7 @@
       "fetchedRaw": 30,
       "keptAfterFiltering": 2,
       "lastError": null,
-      "durationMs": 121,
+      "durationMs": 143,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
@@ -3088,15 +3088,15 @@
       "url": "https://news.google.com/rss/search?q=site:bizjournals.com/tampabay+%22commercial+real+estate%22+OR+industrial+OR+warehouse&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
       "fetchedRaw": 100,
-      "keptAfterFiltering": 18,
+      "keptAfterFiltering": 19,
       "lastError": null,
-      "durationMs": 563,
+      "durationMs": 590,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "18%",
+      "keptRate": "19%",
       "tier": "A",
       "lowValue": false
     },
@@ -3104,16 +3104,16 @@
       "name": "Tenant Moves NJ PA FL",
       "url": "https://news.google.com/rss/search?q=%22signs+lease%22+OR+%22new+tenant%22+OR+%22signed+lease%22+warehouse+OR+industrial+%22New+Jersey%22+OR+%22Pennsylvania%22+OR+%22Florida%22&hl=en-US&gl=US&ceid=US:en",
       "status": "ok",
-      "fetchedRaw": 45,
-      "keptAfterFiltering": 18,
+      "fetchedRaw": 51,
+      "keptAfterFiltering": 22,
       "lastError": null,
-      "durationMs": 415,
+      "durationMs": 399,
       "type": "rss",
       "successRate": "100%",
       "recentHistory": [
         "ok"
       ],
-      "keptRate": "40%",
+      "keptRate": "43%",
       "tier": "A",
       "lowValue": false
     }
@@ -3127,30 +3127,30 @@
   },
   "regionSummary": {
     "NJ": {
-      "articlesKept": 423,
+      "articlesKept": 418,
       "feedCount": 32,
       "zeroKeptFeeds": 2,
       "directFeeds": 9,
       "gnFeeds": 23
     },
     "PA": {
-      "articlesKept": 187,
+      "articlesKept": 179,
       "feedCount": 24,
       "zeroKeptFeeds": 3,
       "directFeeds": 6,
       "gnFeeds": 18
     },
     "FL": {
-      "articlesKept": 440,
+      "articlesKept": 433,
       "feedCount": 28,
       "zeroKeptFeeds": 3,
       "directFeeds": 7,
       "gnFeeds": 21
     },
     "US": {
-      "articlesKept": 1735,
+      "articlesKept": 1808,
       "feedCount": 99,
-      "zeroKeptFeeds": 4,
+      "zeroKeptFeeds": 2,
       "directFeeds": 17,
       "gnFeeds": 82
     }
