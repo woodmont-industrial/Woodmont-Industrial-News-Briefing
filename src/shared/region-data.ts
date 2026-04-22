@@ -132,6 +132,7 @@ export const INTERNATIONAL_EXCLUDE = [
     'TRUGANINA', 'TRARALGON',
     'TANJUNG MANIS', 'STIDC', 'KYRGYZSTAN', 'MEXEDIA', 'POLAND', 'BOGDANKA',
     'KELOWNA', 'XUNTA', 'GALICIA', 'HUNTINGDON, PE', 'YAXLEY, PE',
+    'MORISSET', ', 2264 ',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
