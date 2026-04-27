@@ -98,7 +98,13 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'BRONX', 'STATEN ISLAND',
     'SUFFERN', 'WESTCHESTER', 'WESTCHESTER COUNTY', 'ROCKLAND COUNTY',
     'PORT WASHINGTON', 'BROOKSHIRE', 'EAST BAY',
-    'WEST 37TH STREET', 'WEST 37TH ST'
+    'WEST 37TH STREET', 'WEST 37TH ST',
+    // Bare WA (no comma) — slipped past ', WA' on 2026-04-24 ('Brokers WA Industrial')
+    ' WA ',
+    // City/source names from prior region leaks (TN, AL, IL)
+    'MILAN, TN', 'MILAN ACQUIRES', 'WBBJ',
+    'BIBB COUNTY', 'CAHABA', 'MANTHEI WOOD', 'CAHABA VENEER',
+    'ORLAND PARK'
 ];
 
 // International terms — ALWAYS exclude
@@ -133,6 +139,11 @@ export const INTERNATIONAL_EXCLUDE = [
     'TANJUNG MANIS', 'STIDC', 'KYRGYZSTAN', 'MEXEDIA', 'POLAND', 'BOGDANKA',
     'KELOWNA', 'XUNTA', 'GALICIA', 'HUNTINGDON, PE', 'YAXLEY, PE',
     'MORISSET', ', 2264 ',
+    // France (Toulouse area LoopNet leaks)
+    'TOULOUSE', 'PORTET-SUR-GARONNE', 'GARONNE', ', 31100 ', ', 31120 ',
+    // India extras (NITI Aayog / state names not caught by 'INDIA')
+    'NITI AAYOG', 'WEST BENGAL', 'TAMIL NADU', 'MAHARASHTRA', 'KARNATAKA', 'GUJARAT',
+    'KERALA', 'PUNJAB', 'HARYANA', 'RAJASTHAN', 'UTTAR PRADESH', 'ANDHRA PRADESH',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
