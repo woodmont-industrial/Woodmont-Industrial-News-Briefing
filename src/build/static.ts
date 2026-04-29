@@ -344,6 +344,23 @@ export async function buildStaticRSS(): Promise<void> {
 
             // Apply categorization rules in order of priority:
 
+            // 0. LOOPNET LISTINGS — always availabilities. LoopNet is a listing site, so any
+            // article from LoopNet (or with the "- LoopNet" trailing source pattern) is a
+            // marketed property. Without this rule, titles like "823 Newark Ave, Elizabeth, NJ
+            // 07208 - 8000 SF Warehouse - LoopNet" trigger rule 3b (SF + property = transaction)
+            // because the title contains no explicit "for lease/sale" wording.
+            const sourceName = ((item as any)._source?.name || (item as any).source || '').toLowerCase();
+            const sourceFeed = ((item as any)._source?.feedName || '').toLowerCase();
+            const titleLowerForLoopNet = (item.title || '').toLowerCase();
+            const isLoopNetListing = sourceName.includes('loopnet')
+                || sourceFeed.includes('loopnet')
+                || /\bloopnet\b/.test(titleLowerForLoopNet)
+                || (item.link || (item as any).url || '').toLowerCase().includes('loopnet.com');
+            if (isLoopNetListing && hasPropertyType) {
+                item.category = 'availabilities';
+                return item;
+            }
+
             // Strong availability signals (property being marketed, not a completed deal)
             const hasStrongAvailability = /\b(for\s*lease|for\s*sale|now\s*leasing|now\s*available|seeking\s*tenants|available\s*for\s*lease|available\s*for\s*sale|for\s*sublease|on\s*the\s*market|space\s*available|build-?to-?suit|vacant)\b/i.test(text);
             const isCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(text);

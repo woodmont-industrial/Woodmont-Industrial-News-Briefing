@@ -438,14 +438,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = reCat.transactions;
         people = reCat.people;
 
-        // Fill empty sections from ALL regional articles
+        // Fill empty sections from ALL regional articles, restricted to the section's own
+        // category so a transactions article doesn't get pushed into availabilities (or vice
+        // versa) just because it matches the keyword filter.
         const usedIds = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
         const addFromAllSources = (
             section: NormalizedItem[], min: number,
-            filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string
+            filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
+            requireCategory: string
         ) => {
             if (section.length >= min) return;
-            const candidates = filterFn(regionalArticles.filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude'));
+            const candidates = filterFn(regionalArticles.filter(a => !usedIds.has(a.id || a.link) && a.category === requireCategory));
             console.log(`⚠️ Only ${section.length} ${label} — found ${candidates.length} from all sources`);
             for (const a of candidates) {
                 if (section.length >= min) break;
@@ -454,10 +457,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         };
 
-        // Relevant backfill from recent articles (macro/national OK, but no excluded regions)
+        // Relevant backfill from recent articles (macro/national OK, but no excluded regions).
+        // Must restrict to a.category === 'relevant' so transactions/availabilities articles
+        // don't get force-pushed into Relevant just because they match RELEVANT_KEYWORDS.
         if (relevant.length < MIN_RELEVANT) {
             const relevantCandidates = applyStrictFilter(
-                recentArticles.filter(a => !usedIds.has(a.id || a.link) && a.category !== 'exclude').filter(isNotExcludedRegion),
+                recentArticles.filter(a => !usedIds.has(a.id || a.link) && a.category === 'relevant').filter(isNotExcludedRegion),
                 RELEVANT_KEYWORDS, 'Relevant (backfill)'
             );
             console.log(`⚠️ Only ${relevant.length} relevant — found ${relevantCandidates.length} from all sources`);
@@ -467,9 +472,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 usedIds.add(a.id || a.link);
             }
         }
-        addFromAllSources(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions');
-        addFromAllSources(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities');
-        addFromAllSources(people, MIN_PEOPLE, applyPeopleFilter, 'people');
+        addFromAllSources(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', 'transactions');
+        addFromAllSources(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', 'availabilities');
+        addFromAllSources(people, MIN_PEOPLE, applyPeopleFilter, 'people', 'people');
 
         // Deep backfill: if any section is still below minimum, expand to 30-day window
         const needsDeepBackfill = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
@@ -493,11 +498,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 }
             };
 
+            // Each deep backfill must restrict to its own category — otherwise an article
+            // tagged as 'transactions' could be pulled into 'relevant' (or vice versa) just
+            // because it matches the section's keyword filter.
             deepFill(relevant, MIN_RELEVANT,
-                (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepNotExcluded);
-            deepFill(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', deepRegional);
-            deepFill(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', deepRegional);
-            deepFill(people, MIN_PEOPLE, applyPeopleFilter, 'people', deepRegional);
+                (items) => applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep)'), 'relevant', deepNotExcluded);
+            deepFill(transactions, MIN_TRANSACTIONS,
+                (items) => applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'transactions', deepRegional);
+            deepFill(availabilities, MIN_AVAILABILITIES,
+                (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', deepRegional);
+            deepFill(people, MIN_PEOPLE,
+                (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepRegional);
         }
 
         // Merge manually included articles from raw picks — but validate region/industrial first
