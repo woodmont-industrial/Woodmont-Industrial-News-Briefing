@@ -144,6 +144,18 @@ export const INTERNATIONAL_EXCLUDE = [
     // India extras (NITI Aayog / state names not caught by 'INDIA')
     'NITI AAYOG', 'WEST BENGAL', 'TAMIL NADU', 'MAHARASHTRA', 'KARNATAKA', 'GUJARAT',
     'KERALA', 'PUNJAB', 'HARYANA', 'RAJASTHAN', 'UTTAR PRADESH', 'ANDHRA PRADESH',
+    // Australia (Brisbane QLD - Archerfield postcode 4108)
+    'ARCHERFIELD', ', 4108 ',
+    // Spain (Toledo / Numancia de la Sagra)
+    'NUMANCIA DE LA SAGRA', 'NUMANCIA', 'AVENIDA DE LA INDUSTRIA', ', 45230 ', 'SPAIN',
+    // UK (Lincoln, Lincolnshire - LN postcodes)
+    'LN6 7UA', ', LN6 ', 'LINCOLNSHIRE',
+    // Korea (IPARK Hyundai / Maeil Business Newspaper)
+    'IPARK HYUNDAI', 'HYUNDAI INDUSTRIAL DEVELOPMENT', '매일경제',
+    // Canada Quebec (Gatineau / Aylmer / Bulletin d'Aylmer)
+    'GATINEAU', 'AYLMER', 'BULLETIN D',
+    // Portugal (Seixal)
+    'SEIXAL', 'PORTUGAL', 'PORTUGUESE',
     // Non-US postcode patterns in LoopNet titles (Australian 4-digit, UK alphanumeric)
     ', 2019 ', ', 2144 ', ', 2481 ', ', 2541 ', ', 3047 ', ', 3195 ', ', 3222 ', ', 3380 ', ', 3660 ', ', 3922 ',
     // Ireland
