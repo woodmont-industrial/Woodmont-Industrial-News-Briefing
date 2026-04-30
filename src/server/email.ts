@@ -856,6 +856,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         let weekInReview: NormalizedItem[] | undefined;
         if (isFriday) {
             console.log('📅 Friday detected — building Week-in-Review from daily top articles');
+            // Load excluded-articles.json so leaks that shipped earlier in the week (and
+            // were retroactively cleaned up) don't resurface in the Week-in-Review pick.
+            // Without this filter, an article we removed from feed.json + feed UI but
+            // already recorded in weekly-top-articles.json would still be a candidate.
+            const excludedIds = new Set<string>();
+            try {
+                const excludedPath = path.resolve(__dirname, '..', '..', 'docs', 'excluded-articles.json');
+                const excluded = JSON.parse(fs.readFileSync(excludedPath, 'utf-8'));
+                (excluded.excludedIds || []).forEach((id: string) => excludedIds.add(id));
+            } catch { /* file optional */ }
             try {
                 const weeklyPath = path.resolve(__dirname, '..', '..', 'docs', 'weekly-top-articles.json');
                 const weeklyData = JSON.parse(fs.readFileSync(weeklyPath, 'utf-8'));
@@ -864,8 +874,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // Collect articles from each day this week
                 const days = Object.keys(weeklyData.week || {}).sort();
                 for (const day of days) {
-                    const dayArticles = weeklyData.week[day] || [];
-                    console.log(`📊 ${day}: ${dayArticles.length} articles`);
+                    const dayArticles = (weeklyData.week[day] || [])
+                        .filter((a: any) => !excludedIds.has(a.id));
+                    console.log(`📊 ${day}: ${dayArticles.length} articles${excludedIds.size > 0 ? ` (after excluded-IDs filter)` : ''}`);
                     for (const a of dayArticles) {
                         allWeekArticles.push({
                             id: a.id,
