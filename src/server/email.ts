@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -15,7 +15,7 @@ import {
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
     loadIncludedArticles, clearIncludedArticles,
-    loadSentArticles, saveSentArticles
+    loadSentArticles, loadSentSignatures, saveSentArticles
 } from './newsletter-filters.js';
 
 // ---------------------------------------------------------------------------
@@ -379,11 +379,23 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
         console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
 
-        // Filter out previously sent articles to prevent day-to-day repeats
+        // Filter out previously sent articles to prevent day-to-day repeats.
+        // ID match catches exact duplicates; signature match catches the same deal
+        // reported by a different source on a later day (the Metuchen / Middlesex County /
+        // N.J. area $3.5M case from 2026-04-27 and 2026-04-30).
         const sentArticleIds = loadSentArticles(docsDir);
+        const sentSigSet = loadSentSignatures(docsDir);
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
-            return !sentArticleIds.has(id);
+            if (sentArticleIds.has(id)) return false;
+            if (sentSigSet.size > 0) {
+                const sigs = extractDealSignatures(a.title || '', (a as any).description || (a as any).summary || '');
+                if (sigs.some(s => sentSigSet.has(s))) {
+                    console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
+                    return false;
+                }
+            }
+            return true;
         });
         const dedupRemoved = allLoadedArticles.length - articles.length;
         if (dedupRemoved > 0) console.log(`🔁 Dedup: removed ${dedupRemoved} previously sent article(s)`);
@@ -511,6 +523,67 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepRegional);
         }
 
+        // ============================================================================
+        // TIER 4: RESERVE POOL FALLBACK
+        // ============================================================================
+        // If a section is STILL below minimum after the 30-day deep backfill, pull from
+        // docs/preferences/reserve-pool.json — a nightly-curated stockpile of vetted
+        // candidates. Items there are pre-filtered (region/industrial/category/dedup)
+        // and pre-scored, so we just push them in as-is. This guarantees no section
+        // ships empty even when 30 days of fresh content is exhausted (rare, but happens
+        // around holidays / slow news weeks).
+        const stillNeedsBackfill =
+            relevant.length < MIN_RELEVANT ||
+            transactions.length < MIN_TRANSACTIONS ||
+            availabilities.length < MIN_AVAILABILITIES ||
+            people.length < MIN_PEOPLE;
+        if (stillNeedsBackfill) {
+            try {
+                const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
+                if (fs.existsSync(reservePath)) {
+                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    console.log(`🏪 Tier 4 reserve pool fallback (generated ${reserve.generatedAt})`);
+                    const reserveFill = (
+                        section: NormalizedItem[],
+                        min: number,
+                        pool: any[],
+                        label: string,
+                    ) => {
+                        if (section.length >= min || !Array.isArray(pool)) return;
+                        const before = section.length;
+                        for (const r of pool) {
+                            if (section.length >= min) break;
+                            const key = r.id || r.url;
+                            if (usedIds.has(key)) continue;
+                            // Reserve items are NormalizedItem-compatible after this mapping
+                            const item: NormalizedItem = {
+                                id: r.id,
+                                title: r.title,
+                                link: r.url,
+                                description: '',
+                                category: r.category,
+                                source: r.source,
+                                pubDate: r.date_published,
+                                ...(r as any),
+                            } as NormalizedItem;
+                            section.push(item);
+                            usedIds.add(key);
+                        }
+                        const added = section.length - before;
+                        if (added > 0) console.log(`  🏪 Reserve filled ${label}: +${added} (now ${section.length}/${min})`);
+                    };
+                    reserveFill(relevant, MIN_RELEVANT, reserve.sections?.relevant || [], 'relevant');
+                    reserveFill(transactions, MIN_TRANSACTIONS, reserve.sections?.transactions || [], 'transactions');
+                    reserveFill(availabilities, MIN_AVAILABILITIES, reserve.sections?.availabilities || [], 'availabilities');
+                    reserveFill(people, MIN_PEOPLE, reserve.sections?.people || [], 'people');
+                } else {
+                    console.log('🏪 Reserve pool not found at', reservePath, '— skipping tier 4');
+                }
+            } catch (e) {
+                console.warn('⚠️ Reserve pool fallback failed:', (e as Error).message);
+            }
+        }
+
         // Merge manually included articles from raw picks — but validate region/industrial first
         const includedArticles = loadIncludedArticles(docsDir);
         let includedCount = 0;
@@ -539,16 +612,21 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             console.log(`📌 Merged ${includedCount}/${includedArticles.length} manually included article(s) (${includedArticles.length - includedCount} filtered out)`);
         }
 
-        // Fuzzy dedup: remove articles about the same deal (same SF + location from different sources)
+        // Fuzzy dedup: remove articles about the same deal. Uses MULTI-SIGNATURE matching
+        // (granular city/county + state-level) so cross-source variants for the same deal
+        // collapse — e.g., "Middlesex County" + "Metuchen" + "N.J." all dedup on shared
+        // state-nj signature even when their granular codes differ. Without this, the same
+        // deal can ship multiple times across days (2026-04-27 and 2026-04-30 incidents).
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
-                const sig = extractDealSignature(a.title || '', a.description || '');
-                if (!sig) return true; // no deal signature, keep
-                if (seenSigs.has(sig)) {
-                    console.log(`🔁 Fuzzy dedup removed: "${a.title?.substring(0, 60)}" (same deal: ${sig})`);
+                const sigs = extractDealSignatures(a.title || '', a.description || '');
+                if (sigs.length === 0) return true; // no deal signature, keep
+                const matched = sigs.find(s => seenSigs.has(s));
+                if (matched) {
+                    console.log(`🔁 Fuzzy dedup removed: "${a.title?.substring(0, 60)}" (same deal: ${matched})`);
                     return false;
                 }
-                seenSigs.add(sig);
+                sigs.forEach(s => seenSigs.add(s));
                 return true;
             });
         };
@@ -923,10 +1001,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         console.log(`📤 Sending Work newsletter to ${recipients.length} recipient(s)...`);
         const success = await sendEmail(recipients, subject, html);
         if (success) {
-            // Save sent article IDs to prevent repeats in future newsletters
+            // Save sent article IDs + their deal signatures to prevent repeats in future
+            // newsletters. The signatures enable cross-day fuzzy dedup so the same deal
+            // reported by a different source on a later day won't slip through.
             const allSentArticles = [...relevant, ...transactions, ...availabilities, ...people];
-            const sentIds = allSentArticles.map(a => a.id || a.link || '').filter(id => id);
-            saveSentArticles(docsDir, sentIds);
+            const sentItems = allSentArticles
+                .map(a => ({
+                    id: a.id || a.link || '',
+                    sigs: extractDealSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
+                }))
+                .filter(item => item.id);
+            saveSentArticles(docsDir, sentItems);
 
             if (includedArticles.length > 0) {
                 clearIncludedArticles(docsDir);

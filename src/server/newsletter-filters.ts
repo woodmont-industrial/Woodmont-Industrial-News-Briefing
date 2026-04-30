@@ -199,13 +199,20 @@ export function applyTransactionFilter(items: NormalizedItem[]): NormalizedItem[
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) return false;
-        // Accept if it has transaction action words
-        if (containsAny(text, TRANSACTION_ACTION_WORDS)) return true;
         if (!isIndustrialProperty(text)) return false;
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;
+        // Transaction must clear the deal-size floor stated in the newsletter footer
+        // (≥100K SF or ≥$25M). Previously a TRANSACTION_ACTION_WORDS match alone bypassed
+        // this — that's how a $3.5M Metuchen sale slipped through on 2026-04-30.
+        const hasAction = containsAny(text, TRANSACTION_ACTION_WORDS);
         const threshold = meetsDealThreshold(text);
-        return threshold.meetsSF || threshold.meetsDollar || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+        const meetsThreshold = threshold.meetsSF || threshold.meetsDollar;
+        if (meetsThreshold) return true;
+        // Below threshold but action-worded: only allow if SF is at least half the floor
+        // (so a clearly real but smaller deal can still come through, not random mentions)
+        if (hasAction && threshold.sizeSF !== null && threshold.sizeSF >= 50000) return true;
+        return false;
     });
     console.log(`🔍 Transactions: ${items.length} → ${filtered.length} (threshold filter)`);
     return filtered;
@@ -515,12 +522,12 @@ export function clearIncludedArticles(docsDir: string): void {
 // SENT-ARTICLE DEDUP TRACKING
 // =====================================================================
 
-interface SentEntry { id: string; sentAt: string }
+interface SentEntry { id: string; sentAt: string; sigs?: string[] }
 interface SentArticlesData { sent: SentEntry[] }
 
 /**
  * Load previously sent article IDs from docs/sent-articles.json.
- * Returns a Set of article IDs that were sent in the last 7 days.
+ * Returns a Set of article IDs that were sent in the last 30 days.
  */
 export function loadSentArticles(docsDir: string): Set<string> {
     const sentPath = path.join(docsDir, 'sent-articles.json');
@@ -541,10 +548,36 @@ export function loadSentArticles(docsDir: string): Set<string> {
 }
 
 /**
- * Save current article IDs to docs/sent-articles.json.
- * Appends new IDs and prunes entries older than 7 days.
+ * Load deal signatures from previously sent articles (last 14 days only — older deals
+ * may legitimately resurface). Used for cross-day dedup so the same deal reported by a
+ * different source on a later day doesn't ship a second time.
  */
-export function saveSentArticles(docsDir: string, articleIds: string[]): void {
+export function loadSentSignatures(docsDir: string): Set<string> {
+    const sentPath = path.join(docsDir, 'sent-articles.json');
+    try {
+        if (!fs.existsSync(sentPath)) return new Set();
+        const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const sigs = new Set<string>();
+        for (const e of data.sent || []) {
+            if (new Date(e.sentAt) < fourteenDaysAgo) continue;
+            for (const s of e.sigs || []) sigs.add(s);
+        }
+        console.log(`📋 Loaded ${sigs.size} sent deal-signatures (last 14 days)`);
+        return sigs;
+    } catch (e) {
+        console.warn('Could not load sent signatures:', e);
+        return new Set();
+    }
+}
+
+/**
+ * Save current article IDs (and their deal signatures) to docs/sent-articles.json.
+ * Storing signatures alongside IDs enables cross-day fuzzy dedup so the same deal
+ * reported by a different source on a later day won't ship twice.
+ */
+export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string; sigs?: string[] }>): void {
     const sentPath = path.join(docsDir, 'sent-articles.json');
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const thirtyDaysAgo = new Date();
@@ -565,13 +598,17 @@ export function saveSentArticles(docsDir: string, articleIds: string[]): void {
 
     // Append new IDs
     const existingIds = new Set(pruned.map(e => e.id));
-    const newEntries = articleIds
-        .filter(id => !existingIds.has(id))
-        .map(id => ({ id, sentAt: today }));
+    const newEntries: SentEntry[] = sentItems
+        .filter(item => !existingIds.has(item.id))
+        .map(item => ({
+            id: item.id,
+            sentAt: today,
+            ...(item.sigs && item.sigs.length > 0 ? { sigs: item.sigs } : {}),
+        }));
 
     const updated: SentArticlesData = { sent: [...pruned, ...newEntries] };
     fs.writeFileSync(sentPath, JSON.stringify(updated, null, 2) + '\n', 'utf-8');
-    console.log(`💾 Saved ${newEntries.length} new article IDs to sent-articles.json (total: ${updated.sent.length})`);
+    console.log(`💾 Saved ${newEntries.length} new sent-article entries (total: ${updated.sent.length})`);
 }
 
 export function sortByDealThenDate(a: NormalizedItem, b: NormalizedItem): number {

@@ -1,0 +1,81 @@
+# =============================================================================
+# Reserve Pool Builder
+# =============================================================================
+# Runs nightly at 11 PM EDT (3 AM UTC) to pre-compute top-N candidates per
+# section. Output: docs/preferences/reserve-pool.json — used by the morning
+# send as Tier 4 backfill so no section ships empty even when fresh content
+# is thin.
+#
+# CRITICAL SAFETY GUARDS — DO NOT REMOVE:
+#   - This workflow MUST NEVER trigger a newsletter send
+#   - It only writes to docs/preferences/reserve-pool.json (path-restricted commit)
+#   - It does NOT call repository_dispatch
+#   - It does NOT call any send-* script
+#   - The push will trigger ci.yml (which only runs CI — no sends), nothing else
+#
+# Note on timezone: cron is UTC. 0 3 * * * = 11 PM EDT. During EST it shifts to
+# 10 PM ET (1 hour drift twice a year). Acceptable.
+# =============================================================================
+
+name: Build Reserve Pool
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 11 PM EDT / 10 PM EST
+  workflow_dispatch:       # manual run only — never repository_dispatch
+
+# Concurrency guard: cancel any in-flight reserve build if a newer one starts
+concurrency:
+  group: build-reserve-pool
+  cancel-in-progress: true
+
+permissions:
+  contents: write          # only to push the reserve file
+
+jobs:
+  build-reserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Build reserve pool
+        run: npm run build-reserve-pool
+
+      - name: Commit reserve pool (path-restricted)
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # SAFETY: only stage the reserve file. Never feed.json, sent-articles.json,
+          # or anything else that could influence the morning send.
+          git add docs/preferences/reserve-pool.json
+
+          if git diff --staged --quiet; then
+            echo "Reserve pool unchanged — nothing to commit (idempotent)."
+            exit 0
+          fi
+
+          git commit -m "🏪 Reserve pool refresh - $(date -u +'%Y-%m-%d %H:%M UTC')"
+
+          # Pull-rebase + push (no auto-merge commits, no force push)
+          for i in 1 2 3; do
+            git pull --rebase origin main || true
+            if git push origin main; then
+              echo "Push succeeded on attempt $i"
+              break
+            fi
+            sleep 5
+          done
