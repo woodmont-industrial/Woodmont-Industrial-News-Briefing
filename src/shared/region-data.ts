@@ -164,6 +164,14 @@ export const INTERNATIONAL_EXCLUDE = [
     'RINGGIT', 'RM800', 'BERNAMA', 'BURSA MALAYSIA', 'JOHOR', 'JS-SEZ', 'SUNWAY',
     'KUALA LUMPUR', 'PENANG', 'SELANGOR', 'PUTRAJAYA', 'ISKANDAR',
     'SARAWAK', 'ABANG JO', 'CHATTOGRAM',
+    // Malaysia abbreviated Ringgit pattern (RM6mil, RM5mil etc — title shorthand)
+    'SCANWOLF', 'WINS RM', ' RM2MIL', ' RM3MIL', ' RM4MIL', ' RM5MIL', ' RM6MIL', ' RM7MIL', ' RM8MIL', ' RM9MIL', ' RM10MIL', ' RM1MIL',
+    'BURSA SAHAM', 'BERHAD',
+    // UK Northumberland (Northumberland County PA exists as target — must NOT block bare 'NORTHUMBERLAND')
+    'NORTHUMBERLAND GAZETTE', 'NORTHUMBERLAND, ENGLAND', 'NORTHUMBERLAND, UK',
+    // UN bodies + Africa extras (Madagascar, ZAWYA wire)
+    'UNIDO', 'UNITED NATIONS INDUSTRIAL DEVELOPMENT', 'PROGRAMME FOR COUNTRY PARTNERSHIP',
+    'MADAGASCAR', 'ZAWYA', 'ANTANANARIVO',
     // South Asia
     'PAKISTAN', 'ISLAMABAD', 'KARACHI', 'LAHORE', 'FAISALABAD', 'RAWALPINDI',
     'SIALKOT', 'PESHAWAR', 'PUNJAB, PAKISTAN', 'SINDH', 'KHYBER',
