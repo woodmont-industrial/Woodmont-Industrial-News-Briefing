@@ -19,6 +19,31 @@ import {
 
 // Geographic-only target regions (no CRE company names)
 const TARGET_REGIONS_GEO = TARGET_REGIONS.filter(r => !CRE_COMPANY_NAMES.includes(r));
+export const FLORIDA_SCOPE: 'ALL_FLORIDA' | 'SOUTH_FLORIDA_ONLY' = 'ALL_FLORIDA';
+export const RESERVE_DISCOVERY_MAX_DAYS = 30;
+export const RESERVE_NEWSLETTER_MAX_AGE_DAYS = 14;
+export const WEEK_IN_REVIEW_MAX_AGE_DAYS = 7;
+export const TARGET_REGION_TERM_MAP: Record<'NJ'|'PA'|'FL', string[]> = {
+    NJ: ['NEW JERSEY',' NJ ',' N.J.','NEWARK','JERSEY CITY','ELIZABETH','EDISON','CARTERET','TRENTON','BAYONNE','LINDEN','SECAUCUS','PISCATAWAY','WOODBRIDGE','MIDDLESEX COUNTY','BERGEN COUNTY','UNION COUNTY','SOMERSET COUNTY','MONMOUTH COUNTY','BURLINGTON COUNTY','CAMDEN COUNTY','GLOUCESTER COUNTY','MORRIS COUNTY','MERCER COUNTY','SOUTH JERSEY','CENTRAL JERSEY','NORTH JERSEY','MEADOWLANDS','EXIT 8A','PORT NEWARK','PORT ELIZABETH'],
+    PA: ['PENNSYLVANIA',' PA ',' PA.','PHILADELPHIA','LEHIGH VALLEY','ALLENTOWN','BETHLEHEM','EASTON','BUCKS COUNTY','CHESTER COUNTY','MONTGOMERY COUNTY','DELAWARE COUNTY','PITTSBURGH','GREATER PHILADELPHIA','DELAWARE VALLEY','I-78 CORRIDOR','I-81 CORRIDOR'],
+    FL: ['FLORIDA',' FL ',' FLA.','MIAMI','MIAMI-DADE','BROWARD','PALM BEACH','FORT LAUDERDALE','HIALEAH','MEDLEY','DORAL','POMPANO','SOUTH FLORIDA','TAMPA','ORLANDO','JACKSONVILLE','CENTRAL FLORIDA']
+};
+export const TRUSTED_REGIONAL_SOURCE_REGION_MAP: Record<string, Array<'NJ'|'PA'|'FL'>> = {
+    're-nj.com': ['NJ'], 'roi-nj.com': ['NJ'], 'njbiz.com': ['NJ'],
+    'bisnow.com/rss-feed/new-jersey': ['NJ'], 'bisnow.com/rss-feed/philadelphia': ['PA'],
+    'bizjournals.com/philadelphia': ['PA'], 'bizjournals.com/southflorida': ['FL']
+};
+
+const STRONG_INDUSTRIAL_TERMS = [
+    'warehouse', 'industrial', 'logistics', 'distribution center', 'fulfillment',
+    'manufacturing facility', 'cold storage', 'flex industrial', 'industrial outdoor storage',
+    ' ios ', 'truck terminal', 'port logistics', 'last-mile facility', 'light industrial', 'supply chain facility'
+];
+const WRONG_ASSET_CLASS_TERMS: Record<string, string[]> = {
+    OFFICE: ['office', 'headquarters', ' hq ', 'lab office', 'life sciences office', 'coworking'],
+    MULTIFAMILY: ['multifamily', 'apartment', 'residential'],
+    RETAIL: ['retail', 'shopping center', 'hotel', 'mixed-use', 'mixed use', 'hospital', 'school'],
+};
 
 // Substring collisions: target terms that are substrings of exclude terms.
 // E.g., target "CHESTER" matches inside exclude "WESTCHESTER", inflating target count.
@@ -91,39 +116,90 @@ export function getValidDate(article: NormalizedItem): Date | null {
 // =====================================================================
 
 export function isTargetRegion(article: NormalizedItem): boolean {
+    return hasPositiveTargetRegionEvidence(article).pass;
+}
+
+export function hasPositiveTargetRegionEvidence(article: NormalizedItem): { pass: boolean; regions: Array<'NJ'|'PA'|'FL'>; reason: string } {
     const text = `${article.title || ''} ${article.description || ''} ${(article as any).summary || ''}`.toUpperCase();
+    const sourceText = `${(article as any).source || ''} ${(article as any)._source?.name || ''}`.toUpperCase();
     const url = ((article as any).url || article.link || '').toLowerCase();
 
     // BLOCK: international content — always reject
-    if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return false;
+    if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return { pass: false, regions: [], reason: 'EXCLUDED_NON_TARGET_REGION' };
 
     // BLOCK: unapproved source domains
     try {
         const hostname = new URL(url).hostname.replace('www.', '');
-        if (!APPROVED_DOMAINS.some(d => hostname.includes(d))) return false;
+        if (!APPROVED_DOMAINS.some(d => hostname.includes(d))) return { pass: false, regions: [], reason: 'SOURCE_NOT_APPROVED' };
     } catch { /* keep going if URL parse fails */ }
 
     // INCLUDE if from a NJ/PA/FL regional source
-    const isFromRegionalSource = REGIONAL_SOURCES.some(s => url.includes(s));
+    const isFromRegionalSource = REGIONAL_SOURCES.some(s => url.includes(s) || sourceText.includes(s.toUpperCase()));
 
     // Use geographic-only terms (not CRE company names) for region matching.
     // "CBRE arranges financing in Arizona" should NOT pass because of "CBRE".
     const [geoTargetCount, excludeCount] = countRegionMatches(text);
 
-    if (isFromRegionalSource) {
-        if (excludeCount > geoTargetCount && excludeCount >= 1) return false;
-        return true;
+    const regions: Array<'NJ'|'PA'|'FL'> = [];
+    const full = ` ${text} ${url.toUpperCase()} ${(article as any).source?.toUpperCase() || ''} ${(article as any)._source?.website?.toUpperCase() || ''} `;
+    for (const region of ['NJ', 'PA', 'FL'] as const) {
+        const terms = TARGET_REGION_TERM_MAP[region].filter(t => FLORIDA_SCOPE === 'ALL_FLORIDA' || !['TAMPA','ORLANDO','JACKSONVILLE','CENTRAL FLORIDA'].includes(t));
+        if (terms.some(t => full.includes(t))) regions.push(region);
     }
+    const sourceMapped = Object.entries(TRUSTED_REGIONAL_SOURCE_REGION_MAP)
+        .filter(([k]) => full.toLowerCase().includes(k))
+        .flatMap(([, v]) => v);
+    sourceMapped.forEach(r => { if (!regions.includes(r)) regions.push(r); });
+    if (sourceMapped.length > 0 && regions.length === 0) return { pass: false, regions: [], reason: 'SOURCE_REGION_ONLY_NOT_ENOUGH' };
 
     if (article.regions && article.regions.length > 0) {
         const hasTarget = article.regions.some(r => TARGET_REGIONS_GEO.some(tr => r.toUpperCase().includes(tr)));
-        if (hasTarget) return true;
+        if (hasTarget) return { pass: true, regions: [...new Set(regions)], reason: 'TARGET_REGION_EVIDENCE' };
     }
 
     const hasGeoTarget = TARGET_REGIONS_GEO.some(r => text.includes(r));
-    if (hasGeoTarget && geoTargetCount >= excludeCount) return true;
+    if (!hasGeoTarget || regions.length === 0) return { pass: false, regions: [], reason: 'NO_TARGET_REGION_EVIDENCE' };
+    if (excludeCount > geoTargetCount) return { pass: false, regions: [...new Set(regions)], reason: 'REGION_CONFLICT_WEAK_TARGET' };
+    return { pass: true, regions: [...new Set(regions)], reason: 'TARGET_REGION_EVIDENCE' };
+}
 
-    return hasGeoTarget && excludeCount === 0;
+export function finalNewsletterGate(article: NormalizedItem, section: 'relevant'|'transactions'|'availabilities'|'people', options?: { sourceType?: string; forceInclude?: boolean; minScoreOverride?: number }) {
+    const reasons: string[] = [];
+    const region = hasPositiveTargetRegionEvidence(article);
+    if (!region.pass) reasons.push(region.reason);
+    const industrial = hasStrongIndustrialAssetEvidence(article);
+    if (!industrial.pass) reasons.push(industrial.reason);
+    const text = getText(article);
+    const sectionEvidence: string[] = [];
+    const availabilityWords = ['available','for lease','for sale','vacant','sublease','delivered','build-to-suit','spec industrial','warehouse listing','seeking tenant','now leasing'];
+    const isLoopNetSource = /loopnet/i.test((article as any).source || '') || /loopnet/i.test((article as any)._source?.name || '') || /loopnet/i.test((article as any)._source?.website || '') || /loopnet/i.test(article.title || '') || /loopnet/i.test((article as any).url || article.link || '');
+    if (section === 'availabilities' && !isLoopNetSource && !containsAny(text, availabilityWords)) reasons.push('SECTION_RULE_FAILED');
+    if (section === 'people') {
+        const hasPeopleAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
+        const hasCreContext = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS) || /\b(cbre|jll|cushman|colliers|newmark|nai|lee & associates|broker)\b/i.test(text);
+        if (!hasPeopleAction || !hasCreContext) reasons.push('SECTION_RULE_FAILED');
+    }
+    if (containsAny(text, ['office','headquarters','multifamily','apartment','retail','shopping center','hotel']) && industrial.evidence.length === 0) reasons.push('SECTION_RULE_FAILED');
+    let score = 0;
+    if (region.pass) score += 40;
+    if (industrial.pass) score += 35;
+    if (section === 'transactions' && meetsDealThreshold(text).meetsSF) score += 10;
+    const floors = { relevant: 55, transactions: 60, availabilities: 65, people: 55 };
+    const min = options?.minScoreOverride ?? floors[section];
+    if (score < min) reasons.push('BELOW_SECTION_SCORE_FLOOR');
+    return { pass: reasons.length === 0 || options?.forceInclude === true, score, regions: region.regions, reasons, evidence: { regionEvidence: region.regions, industrialEvidence: industrial.evidence, sectionEvidence, sourceEvidence: [] } };
+}
+
+export function hasStrongIndustrialAssetEvidence(article: NormalizedItem): { pass: boolean; evidence: string[]; rejectedAssetClass?: string; reason: string } {
+    const text = ` ${(getText(article) || '').toLowerCase()} `;
+    const evidence = STRONG_INDUSTRIAL_TERMS.filter(t => text.includes(t));
+    for (const [cls, terms] of Object.entries(WRONG_ASSET_CLASS_TERMS)) {
+        if (terms.some(t => text.includes(t)) && evidence.length === 0) {
+            return { pass: false, evidence, rejectedAssetClass: cls, reason: `WRONG_ASSET_CLASS_${cls}` };
+        }
+    }
+    if (evidence.length === 0) return { pass: false, evidence, reason: 'NO_STRONG_INDUSTRIAL_EVIDENCE' };
+    return { pass: true, evidence, reason: 'STRONG_INDUSTRIAL_EVIDENCE' };
 }
 
 /**
@@ -187,8 +263,7 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) return false;
-        // Industrial gate — reject apartments, retail, office, etc.
-        if (!isStrictlyIndustrial(text)) return false;
+        if (!hasStrongIndustrialAssetEvidence(article).pass) return false;
         return containsAny(text, keywords);
     });
     console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict filter)`);
@@ -199,7 +274,7 @@ export function applyTransactionFilter(items: NormalizedItem[]): NormalizedItem[
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) return false;
-        if (!isIndustrialProperty(text)) return false;
+        if (!hasStrongIndustrialAssetEvidence(article).pass) return false;
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;
         // Transaction must clear the deal-size floor stated in the newsletter footer
@@ -230,8 +305,8 @@ export function applyAvailabilityFilter(items: NormalizedItem[]): NormalizedItem
             'build-to-suit', 'vacant', 'vacancy', 'delivered', 'spec',
             'under construction', 'breaks ground', 'groundbreaking', 'coming to market',
         ];
+        if (!hasStrongIndustrialAssetEvidence(article).pass) return false;
         if (containsAny(text, availabilityWords)) return true;
-        if (!isIndustrialProperty(text)) return false;
         const threshold = meetsDealThreshold(text);
         return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
     });
@@ -246,7 +321,7 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
         if (isPolitical(text)) return false;
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
         const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
-        const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
+        const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS) || hasStrongIndustrialAssetEvidence(article).pass;
         // If title OR body has strong people signal, allow even if body mentions transactions
         const titleUpper = (article.title || '').toUpperCase();
         const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
@@ -254,7 +329,9 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
         const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped']);
         // If it's primarily a transaction (and neither title nor body indicate people), skip
         if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
-        return hasAction && hasIndustrial;
+        if (!isTargetRegion(article)) return false;
+        const gate = finalNewsletterGate(article, 'people');
+        return gate.pass && hasAction && hasIndustrial;
     });
     console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);
     return filtered;

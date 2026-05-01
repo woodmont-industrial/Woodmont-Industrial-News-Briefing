@@ -18,7 +18,8 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import {
-    isTargetRegion, isNotExcludedRegion,
+    isTargetRegion, isNotExcludedRegion, hasPositiveTargetRegionEvidence, hasStrongIndustrialAssetEvidence,
+    RESERVE_DISCOVERY_MAX_DAYS,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     loadSentArticles, loadSentSignatures,
 } from '../server/newsletter-filters.js';
@@ -31,7 +32,7 @@ const DOCS_DIR = path.resolve(__dirname, '..', '..', 'docs');
 const RESERVE_PATH = path.join(DOCS_DIR, 'preferences', 'reserve-pool.json');
 const FEED_PATH = path.join(DOCS_DIR, 'feed.json');
 
-const WINDOW_DAYS = 90;
+const WINDOW_DAYS = RESERVE_DISCOVERY_MAX_DAYS;
 const TOP_N_PER_SECTION = 25;
 
 interface ReserveItem {
@@ -216,8 +217,8 @@ async function main() {
         sectionFilter: (items: NormalizedItem[]) => NormalizedItem[],
     ): ReserveItem[] => {
         const inCategory = candidates.filter(a => (a as any).category === category);
-        const regional = inCategory.filter(regionFilter);
-        const sectionFiltered = sectionFilter(regional);
+        const regional = inCategory.filter(regionFilter).filter(a => hasPositiveTargetRegionEvidence(a).pass);
+        const sectionFiltered = sectionFilter(regional).filter(a => hasStrongIndustrialAssetEvidence(a).pass);
         // Dedup within the section by primary signature (don't include duplicate deals)
         const seen = new Set<string>();
         const unique: NormalizedItem[] = [];
