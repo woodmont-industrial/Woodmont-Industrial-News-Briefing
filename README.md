@@ -247,3 +247,14 @@ For comprehensive troubleshooting, see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING
 ---
 
 **Enterprise-grade production system** • **Copilot Studio compatible** • **Automated delivery**
+
+## Newsletter Inclusion Guardrails (May 2026)
+
+- **Default reject**: candidates must pass positive NJ/PA/FL evidence (`hasPositiveTargetRegionEvidence`) and strong industrial evidence (`hasStrongIndustrialAssetEvidence`) before inclusion.
+- **Region requirement**: national sources and Google News do not get automatic region trust; explicit article-level NJ/PA/FL evidence is required unless source is trusted regional.
+- **Industrial requirement**: generic CRE language alone is insufficient; office/multifamily/retail-first stories are rejected unless strong industrial signals are present.
+- **Reserve/backfill freshness**:
+  - `RESERVE_DISCOVERY_MAX_DAYS = 30`
+  - `RESERVE_NEWSLETTER_MAX_AGE_DAYS = 14`
+  - `WEEK_IN_REVIEW_MAX_AGE_DAYS = 7`
+- **Debugging**: inspect newsletter logs for reason-style rejection outputs such as `NO_TARGET_REGION_EVIDENCE`, `REGION_CONFLICT_WEAK_TARGET`, `NO_STRONG_INDUSTRIAL_EVIDENCE`, and `STALE_RESERVE_ITEM`.
