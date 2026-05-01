@@ -8,6 +8,7 @@ import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures } from '../shared/url-utils.js';
+import { writeNewsletterDiagnostics, emptySectionDiag, makeNearMiss } from './newsletter-diagnostics.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -15,7 +16,9 @@ import {
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
     loadIncludedArticles, clearIncludedArticles,
-    loadSentArticles, loadSentSignatures, saveSentArticles
+    loadSentArticles, loadSentSignatures, saveSentArticles,
+    hasPositiveTargetRegionEvidence, hasStrongIndustrialAssetEvidence, finalNewsletterGate,
+    RESERVE_NEWSLETTER_MAX_AGE_DAYS, WEEK_IN_REVIEW_MAX_AGE_DAYS
 } from './newsletter-filters.js';
 
 // ---------------------------------------------------------------------------
@@ -566,6 +569,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 pubDate: r.date_published,
                                 ...(r as any),
                             } as NormalizedItem;
+                            const ageDays = (Date.now() - new Date(item.pubDate || 0).getTime()) / 86400000;
+                            if (ageDays > RESERVE_NEWSLETTER_MAX_AGE_DAYS) { console.log(`🚫 STALE_RESERVE_ITEM: ${item.title?.substring(0,60)}`); continue; }
+                            const rg = finalNewsletterGate(item, label as any, { sourceType: "reserve" }); if (!rg.pass) { console.log(`🚫 ${rg.reasons.join(",")}: ${item.title?.substring(0,60)}`); continue; }
                             section.push(item);
                             usedIds.add(key);
                         }
@@ -592,9 +598,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             if (usedIds.has(articleKey)) continue;
             // Validate: must be target region or not-excluded, and must be industrial
             const articleText = getText(article);
-            if (!isTargetRegion(article) && !isNotExcludedRegion(article)) {
-                console.log(`🚫 Included article skipped (wrong region): "${article.title?.substring(0, 60)}"`);
-                continue;
+            if (!(article as any).forceInclude) {
+                const incGate = finalNewsletterGate(article, (article.category || "relevant") as any, { sourceType: "manual" });
+                if (!incGate.pass) { console.log(`🚫 MANUAL_INCLUDE_REJECTED ${incGate.reasons.join(",")}: "${article.title?.substring(0, 60)}"`); continue; }
+            } else {
+                console.log(`🚨 FORCE_INCLUDED_MANUAL_OVERRIDE: "${article.title?.substring(0, 60)}"`);
             }
             if (isPolitical(articleText)) {
                 console.log(`🚫 Included article skipped (political): "${article.title?.substring(0, 60)}"`);
@@ -788,11 +796,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const url = (a.link || a.url || '').toLowerCase();
                 const source = (a.source || (a as any)._source?.website || '').toLowerCase();
 
-                // Re-run the industrial content check (catches pharma, residential, restaurants)
-                if (!isStrictlyIndustrial(text)) {
-                    console.log(`🚫 FINAL GATE blocked (not industrial): "${a.title?.substring(0, 60)}" [${sectionName}]`);
-                    return false;
-                }
+                const gate = finalNewsletterGate(a, sectionName.toLowerCase() as any, { sourceType: "direct" });
+                if (!gate.pass) { console.log(`🚫 ${gate.reasons.join(",")}: "${a.title?.substring(0, 60)}" [${sectionName}]`); return false; }
+                if (sectionName === "Availabilities" && !hasStrongIndustrialAssetEvidence(a).pass) return false;
 
                 // ALLOWLIST CHECK: article must prove it belongs via one of 3 paths
                 const hasTargetRegion = TARGET_REGION_PATTERN.test(text);
@@ -894,8 +900,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 }
 
                 // Score all week's articles and pick top 5
-                allWeekArticles.sort((a, b) => scoreArticle(b) - scoreArticle(a));
-                weekInReview = allWeekArticles.slice(0, 5);
+                const weekCutoff = Date.now() - WEEK_IN_REVIEW_MAX_AGE_DAYS * 86400000;
+                const dedupSig = new Set<string>();
+                const dedupUrl = new Set<string>();
+                const weekScoped = allWeekArticles.filter(a => new Date(a.pubDate || 0).getTime() >= weekCutoff);
+                const uniq = weekScoped.filter(a => {
+                    const u = (a.link || a.url || '').toLowerCase(); if (u && dedupUrl.has(u)) return false; if (u) dedupUrl.add(u);
+                    const sig = extractDealSignature(a.title || '', a.description || ''); if (sig && dedupSig.has(sig)) return false; if (sig) dedupSig.add(sig);
+                    return true;
+                });
+                uniq.sort((a, b) => scoreArticle(b) - scoreArticle(a));
+                weekInReview = uniq.slice(0, 5);
 
                 weekInReview.forEach((a, i) => {
                     console.log(`📊 Week #${i + 1}: score=${scoreArticle(a)} | "${(a.title || '').substring(0, 55)}"`);
@@ -1002,6 +1017,37 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         relevant.sort(sortByDealThenDate);
         transactions.sort(sortByDealThenDate);
         availabilities.sort(sortByDealThenDate);
+
+
+        const makeSectionDiag = (name: string, selected: NormalizedItem[], targetMin: number) => ({
+            ...emptySectionDiag(),
+            loaded: recentArticles.filter(a => a.category === name).length,
+            inWindow: recentArticles.filter(a => a.category === name).length,
+            selected: selected.length,
+            underfilled: selected.length < targetMin,
+            underfillReason: selected.length < targetMin ? 'SECTION_UNDERFILLED_QUALITY_PROTECTED' : null,
+        });
+
+        const diagnosticsPayload = {
+            generatedAt: new Date().toISOString(),
+            runId: new Date().toISOString().slice(0,16).replace('T','-').replace(':',''),
+            isFriday,
+            sections: {
+                relevant: makeSectionDiag('relevant', relevant, MIN_RELEVANT),
+                transactions: makeSectionDiag('transactions', transactions, MIN_TRANSACTIONS),
+                availabilities: makeSectionDiag('availabilities', availabilities, MIN_AVAILABILITIES),
+                people: makeSectionDiag('people', people, MIN_PEOPLE),
+            },
+            perFeedBySection: {},
+            weekInReview: {
+                totalCandidates: isFriday ? (weekInReview?.length || 0) : 0,
+                afterAgeFilter: isFriday ? (weekInReview?.length || 0) : 0,
+                afterDedup: isFriday ? (weekInReview?.length || 0) : 0,
+                selected: isFriday ? (weekInReview?.length || 0) : 0,
+                windowDays: 7,
+            },
+        };
+        writeNewsletterDiagnostics(docsDir, diagnosticsPayload);
 
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
         const recipients = getRecipients();
