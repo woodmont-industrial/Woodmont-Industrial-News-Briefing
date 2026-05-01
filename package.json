@@ -8,7 +8,8 @@
     "build": "npx tsx rssfeed.ts --build-static",
     "build-static": "npx tsx rssfeed.ts --build-static",
     "build-reserve-pool": "npx tsx src/build/build-reserve-pool.ts",
-    "dev": "npx tsx rssfeed.ts"
+    "dev": "npx tsx rssfeed.ts",
+    "test:newsletter-filters": "npx tsx src/server/newsletter-filters.test.ts"
   },
   "dependencies": {
     "axios": "^1.13.2",
