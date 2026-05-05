@@ -1,9 +1,9 @@
 name: Update Scoring Weights (Groq Learning)
 
 on:
-  schedule:
-    # Run weekly on Friday at 1 PM EST (18:00 UTC) — after the weekly newsletter
-    - cron: '0 18 * * 5'
+  # SCHEDULE DISABLED 2026-05-04 — sends are paused, no learning loop needed.
+  # schedule:
+  #   - cron: '0 18 * * 5'
   workflow_dispatch:
 
 permissions:
