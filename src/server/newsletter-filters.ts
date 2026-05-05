@@ -90,9 +90,85 @@ export function getValidDate(article: NormalizedItem): Date | null {
 // REGION FILTER
 // =====================================================================
 
+// Non-target US state full names + comma-prefixed codes. These are explicitly
+// non-target and should win over any target term if mentioned earlier in the title.
+const NON_TARGET_US_STATE_RE = /\b(?:Alabama|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|"New Hampshire"|"New Mexico"|"New York"|"North Carolina"|"North Dakota"|Ohio|Oklahoma|Oregon|"Rhode Island"|"South Carolina"|"South Dakota"|Tennessee|Texas|Utah|Vermont|Virginia|"West Virginia"|Wisconsin|Wyoming)\b/i;
+
+// Non-US country names. Anything matching these in the title means the article
+// is about a foreign deal and should fail Rule (c) regardless of mentions of NJ/PA/FL.
+const NON_TARGET_COUNTRY_RE = /\b(?:Norway|Sweden|Finland|Denmark|Iceland|Germany|France|Spain|Italy|U\.K\.|"United Kingdom"|Britain|England|Scotland|Wales|Ireland|Netherlands|Belgium|Switzerland|Austria|Poland|Greece|Portugal|Russia|Ukraine|Turkey|Israel|UAE|"Saudi Arabia"|Qatar|Egypt|"South Africa"|Nigeria|Kenya|Madagascar|Morocco|Australia|"New Zealand"|China|Japan|Korea|India|Pakistan|Bangladesh|Vietnam|Thailand|Malaysia|Singapore|Indonesia|Philippines|Mexico|Brazil|Argentina|Chile|Colombia|Canada)\b/i;
+
+// Earliest target-region phrase finder. Used to compare positional dominance
+// against non-target mentions (Rule c).
+const TARGET_REGION_PHRASE_RE = /\b(?:"New Jersey"|N\.J\.|NJ|Pennsylvania|PA|Florida|Fla\.|FL|Newark|"Jersey City"|Edison|Elizabeth|Carteret|Trenton|Bayonne|Linden|Secaucus|Piscataway|Woodbridge|Metuchen|"Lehigh Valley"|Allentown|Bethlehem|Easton|Philadelphia|Pittsburgh|Miami|Tampa|Orlando|Jacksonville|Hialeah|Doral|Pompano|"Fort Lauderdale"|"West Palm"|"Boca Raton"|Meadowlands|"Greater Philadelphia"|"Delaware Valley"|"South Florida"|"Central Florida"|"North Jersey"|"South Jersey"|"Central Jersey"|"Bergen County"|"Hudson County"|"Middlesex County"|"Monmouth County"|"Ocean County"|"Burlington County"|"Camden County"|"Somerset County"|"Mercer County"|"Union County"|"Essex County"|"Morris County"|"Bucks County"|"Chester County"|"Montgomery County"|"Delaware County"|"Lehigh County"|"Northampton County"|"Miami-Dade"|"Broward"|"Palm Beach"|"Hillsborough"|"Duval")\b/i;
+
+// Government-body pattern. "Industrial Development Agency / Authority / Commission /
+// Board / Corporation / District" — these are public-sector bodies that legitimately
+// have "industrial" in their name but rarely concern actual NJ/PA/FL property deals.
+const GOV_INDUSTRIAL_BODY_RE = /\b(?:industrial|economic)\s+development\s+(?:agency|authority|commission|council|board|corporation|district)\b/i;
+
+/**
+ * AUTOMATIC GEOGRAPHY FAILURES — three structural rules that reject articles
+ * before the positive-evidence check runs. Implements the rules from the
+ * Woodmont News Briefing spec (May 2026):
+ *
+ *   (a) NJ/PA/FL company doing a deal in another state or country.
+ *       Detected indirectly: when a non-target country/state appears in the title
+ *       AND no target token appears earlier, the article is about a non-target
+ *       deal even if a target term also appears (Rule c handles this).
+ *
+ *   (b) Government agency with "industrial" in its name unless tied to a specific
+ *       NJ/PA/FL property. Pattern: "X Industrial Development Agency/Authority/etc"
+ *       without an explicit NJ/PA/FL city/county nearby.
+ *
+ *   (c) Primary location is outside NJ/PA/FL even if NJ/PA/FL is mentioned in
+ *       passing. Detected by FIRST geographic phrase position in the title.
+ *
+ * Returns { fails: boolean, reason: string } so callers can log the specific rule.
+ */
+export function hasGeographicFailure(article: NormalizedItem): { fails: boolean; reason: string } {
+    const title = (article.title || '').trim();
+    const description = (article as any).description || (article as any).summary || '';
+    const fullText = `${title} ${description}`;
+
+    // Rule (b): government industrial-development body without target-region property
+    if (GOV_INDUSTRIAL_BODY_RE.test(fullText)) {
+        if (!TARGET_REGION_PHRASE_RE.test(fullText)) {
+            return { fails: true, reason: 'GOV_AGENCY_NO_TARGET_PROPERTY' };
+        }
+    }
+
+    // Rule (c): primary location is non-target. Find earliest non-target country
+    // or non-target US state and earliest target phrase. If non-target appears
+    // before target (or no target at all), reject.
+    const targetMatch = title.match(TARGET_REGION_PHRASE_RE);
+    const excludeStateMatch = title.match(NON_TARGET_US_STATE_RE);
+    const excludeCountryMatch = title.match(NON_TARGET_COUNTRY_RE);
+
+    const targetIdx = targetMatch ? title.indexOf(targetMatch[0]) : Infinity;
+    const excludeStateIdx = excludeStateMatch ? title.indexOf(excludeStateMatch[0]) : Infinity;
+    const excludeCountryIdx = excludeCountryMatch ? title.indexOf(excludeCountryMatch[0]) : Infinity;
+    const earliestExclude = Math.min(excludeStateIdx, excludeCountryIdx);
+
+    if (earliestExclude !== Infinity && earliestExclude < targetIdx) {
+        return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
+    }
+
+    // Rule (a) is largely handled by INTERNATIONAL_EXCLUDE + MAJOR_EXCLUDE_REGIONS
+    // already (in isTargetRegion below). It's mostly a special case of (c) when
+    // the deal location is named in the title. Cases where the company is named
+    // but the deal location is buried in the body cannot be reliably detected
+    // text-only and are accepted; downstream filters handle those.
+
+    return { fails: false, reason: '' };
+}
+
 export function isTargetRegion(article: NormalizedItem): boolean {
     const text = `${article.title || ''} ${article.description || ''} ${(article as any).summary || ''}`.toUpperCase();
     const url = ((article as any).url || article.link || '').toLowerCase();
+
+    // GUARD: AUTOMATIC GEOGRAPHY FAILURES (Woodmont News Briefing spec rules b + c)
+    if (hasGeographicFailure(article).fails) return false;
 
     // BLOCK: international content — always reject
     if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return false;
