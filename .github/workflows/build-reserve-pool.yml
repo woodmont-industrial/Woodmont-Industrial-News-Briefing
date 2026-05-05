@@ -20,10 +20,8 @@
 name: Build Reserve Pool
 
 on:
-  # SCHEDULE DISABLED 2026-05-04 — sends are paused; reserve pool refresh paused too
-  # so it doesn't churn while filter hardening lands.
-  # schedule:
-  #   - cron: '0 3 * * *'   # 11 PM EDT / 10 PM EST
+  schedule:
+    - cron: '0 3 * * *'   # 11 PM EDT / 10 PM EST
   workflow_dispatch:       # manual run only — never repository_dispatch
 
 # Concurrency guard: cancel any in-flight reserve build if a newer one starts

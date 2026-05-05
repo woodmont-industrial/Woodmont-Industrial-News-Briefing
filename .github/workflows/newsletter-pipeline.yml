@@ -5,19 +5,17 @@ name: Newsletter Pipeline (Build Only)
 # Sending is handled separately by send-only.yml (scheduled after this completes).
 
 on:
-  # SCHEDULE DISABLED 2026-05-04 — pending PR #2/#3 merge to fix daily leaks.
-  # Re-enable explicitly when filter hardening is in place.
-  # schedule:
-  #   # Fire every 15 min from 7-8 AM EST (11:00-12:00 UTC) Mon-Fri
-  #   # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM.
-  #   # send-only.yml starts at 8:00 AM EST — 1 hour gap ensures build is done first.
-  #   - cron: '0 11 * * 1-5'
-  #   - cron: '15 11 * * 1-5'
-  #   - cron: '30 11 * * 1-5'
-  #   - cron: '45 11 * * 1-5'
-  #   - cron: '0 12 * * 1-5'
-  # repository_dispatch:
-  #   types: [build-feed]
+  schedule:
+    # Fire every 15 min from 7-8 AM EST (11:00-12:00 UTC) Mon-Fri
+    # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM.
+    # send-only.yml starts at 8:00 AM EST — 1 hour gap ensures build is done first.
+    - cron: '0 11 * * 1-5'
+    - cron: '15 11 * * 1-5'
+    - cron: '30 11 * * 1-5'
+    - cron: '45 11 * * 1-5'
+    - cron: '0 12 * * 1-5'
+  repository_dispatch:
+    types: [build-feed]
   workflow_dispatch:
     inputs:
       skip_scrapers:

@@ -5,19 +5,16 @@ name: "Send: Newsletter Only"
 # Completely separate from the build workflow. Safe, fast, no double-sends.
 
 on:
-  # SCHEDULE DISABLED 2026-05-04 — pending PR #2/#3 merge to fix daily leaks.
-  # Re-enable explicitly when filter hardening is in place.
-  # schedule:
-  #   # Shotgun crons 8:00-8:45 AM EST (12:00-12:45 UTC) Mon-Fri
-  #   # Build pipeline finishes by ~7:30 AM. Send starts at 8:00 AM.
-  #   # 1 hour gap ensures build is done before send starts.
-  #   - cron: '0 12 * * 1-5'
-  #   - cron: '15 12 * * 1-5'
-  #   - cron: '30 12 * * 1-5'
-  #   - cron: '45 12 * * 1-5'
-  # repository_dispatch type also disabled to prevent any chained sends.
-  # repository_dispatch:
-  #   types: [send-newsletter]
+  schedule:
+    # Shotgun crons 8:00-8:45 AM EST (12:00-12:45 UTC) Mon-Fri
+    # Build pipeline finishes by ~7:30 AM. Send starts at 8:00 AM.
+    # 1 hour gap ensures build is done before send starts.
+    - cron: '0 12 * * 1-5'
+    - cron: '15 12 * * 1-5'
+    - cron: '30 12 * * 1-5'
+    - cron: '45 12 * * 1-5'
+  repository_dispatch:
+    types: [send-newsletter]
   workflow_dispatch:
     inputs:
       force_send:
