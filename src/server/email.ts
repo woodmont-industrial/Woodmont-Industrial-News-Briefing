@@ -17,6 +17,7 @@ import {
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles
 } from './newsletter-filters.js';
+import { DiagnosticContext, writeNewsletterDiagnostics, Section } from './newsletter-diagnostics.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -376,8 +377,13 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 export async function sendDailyNewsletterWork(): Promise<boolean> {
     try {
         console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
+        const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
         console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
+        // Record the load count uniformly across sections (each section sees the same input pool)
+        for (const sec of ['relevant', 'transactions', 'availabilities', 'people'] as Section[]) {
+            diag.recordStage(sec, 'loaded', allLoadedArticles.length);
+        }
 
         // Filter out previously sent articles to prevent day-to-day repeats.
         // ID match catches exact duplicates; signature match catches the same deal
@@ -436,13 +442,37 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         }
         console.log(`🎯 Regional filter (NJ, PA, FL): ${recentArticles.length} → ${regionalArticles.length}`);
 
+        // Diagnostics: capture funnel counters for each section
+        for (const sec of ['relevant', 'transactions', 'availabilities', 'people'] as Section[]) {
+            diag.recordStage(sec, 'inWindow', recentArticles.filter(a => a.category === sec).length);
+            const passedRegion = (sec === 'relevant')
+                ? recentArticles.filter(a => a.category === sec).filter(isNotExcludedRegion).length
+                : regionalArticles.filter(a => a.category === sec).length;
+            diag.recordStage(sec, 'regionPass', passedRegion);
+            // Region-rejects = inWindow - passedRegion
+            const rejected = recentArticles.filter(a => a.category === sec).length - passedRegion;
+            for (let i = 0; i < rejected; i++) diag.recordReject(sec, 'NO_TARGET_REGION_EVIDENCE');
+        }
+
         // "Relevant" = macro/national trends (interest rates, freight, supply chain) —
         // these don't need NJ/PA/FL geography, but MUST NOT be about excluded regions.
         // Transactions/Availabilities/People must be regionally focused.
-        let relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion), RELEVANT_KEYWORDS, 'Relevant');
-        let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'));
-        let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'));
-        let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'));
+        let relevant = applyStrictFilter(recentArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion), RELEVANT_KEYWORDS, 'Relevant', diag, 'relevant');
+        let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'), diag);
+        let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'), diag);
+        let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'), diag);
+        // Capture sectionPass counts after the section filter
+        diag.recordStage('relevant', 'sectionPass', relevant.length);
+        diag.recordStage('transactions', 'sectionPass', transactions.length);
+        diag.recordStage('availabilities', 'sectionPass', availabilities.length);
+        diag.recordStage('people', 'sectionPass', people.length);
+
+        // Tier 1: 24h or 48-72h initial picks count as tier1/tier2
+        const initialTier: 'tier1_24h' | 'tier2_48h_72h' = (timeRange === 24) ? 'tier1_24h' : 'tier2_48h_72h';
+        diag.recordTier('relevant', initialTier, relevant.length);
+        diag.recordTier('transactions', initialTier, transactions.length);
+        diag.recordTier('availabilities', initialTier, availabilities.length);
+        diag.recordTier('people', initialTier, people.length);
 
         // Re-categorize: move people articles out of "relevant"/"transactions" into "people"
         const reCat = reCategorizeRelevantAsPeople(relevant, people, transactions);
@@ -501,6 +531,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
                 pool: NormalizedItem[]) => {
                 if (section.length >= min) return;
+                const before = section.length;
                 const candidates = filterFn(pool.filter(a => !usedIds.has(a.id || a.link)));
                 console.log(`🔎 Deep backfill ${label}: ${section.length} < ${min}, found ${candidates.length} in 30-day pool`);
                 for (const a of candidates) {
@@ -508,6 +539,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     section.push(a);
                     usedIds.add(a.id || a.link);
                 }
+                const filledByThisTier = section.length - before;
+                if (filledByThisTier > 0) diag.recordTier(label as Section, 'tier3_30d_deep', filledByThisTier);
             };
 
             // Each deep backfill must restrict to its own category — otherwise an article
@@ -570,7 +603,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             usedIds.add(key);
                         }
                         const added = section.length - before;
-                        if (added > 0) console.log(`  🏪 Reserve filled ${label}: +${added} (now ${section.length}/${min})`);
+                        if (added > 0) {
+                            console.log(`  🏪 Reserve filled ${label}: +${added} (now ${section.length}/${min})`);
+                            diag.recordTier(label as Section, 'tier4_reserve', added);
+                        }
                     };
                     reserveFill(relevant, MIN_RELEVANT, reserve.sections?.relevant || [], 'relevant');
                     reserveFill(transactions, MIN_TRANSACTIONS, reserve.sections?.transactions || [], 'transactions');
@@ -606,6 +642,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             else if (cat === 'availabilities') availabilities.push(article);
             else if (cat === 'people') people.push(article);
             else relevant.push(article);
+            diag.recordTier(cat as Section, 'tier5_manual_include', 1);
             includedCount++;
         }
         if (includedArticles.length > 0) {
@@ -1002,6 +1039,28 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         relevant.sort(sortByDealThenDate);
         transactions.sort(sortByDealThenDate);
         availabilities.sort(sortByDealThenDate);
+
+        // Finalize diagnostics: record final selected counts + write JSON.
+        // The funnel + rejection counts have been accumulating throughout the pipeline.
+        diag.finalizeSection('relevant', relevant.length, MIN_RELEVANT);
+        diag.finalizeSection('transactions', transactions.length, MIN_TRANSACTIONS);
+        diag.finalizeSection('availabilities', availabilities.length, MIN_AVAILABILITIES);
+        diag.finalizeSection('people', people.length, MIN_PEOPLE);
+        if (isFriday && weekInReview) {
+            diag.recordWeekInReview({
+                totalCandidates: weekInReview.length,
+                afterAgeFilter: weekInReview.length,
+                afterDedup: weekInReview.length,
+                selected: weekInReview.length,
+                windowDays: 7,
+            });
+        }
+        try {
+            writeNewsletterDiagnostics(docsDir, diag.toJSON());
+            console.log(`📊 Diagnostics written: docs/diagnostics/latest.json`);
+        } catch (e) {
+            console.warn('⚠️ Failed to write diagnostics:', (e as Error).message);
+        }
 
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
         const recipients = getRecipients();

@@ -8,6 +8,8 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
+import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
+import { getPublisherName } from '../shared/publisher-name.js';
 import {
     TARGET_REGIONS, CRE_COMPANY_NAMES, MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
     EXCLUDE_POLITICAL, EXCLUDE_NON_INDUSTRIAL, INDUSTRIAL_PROPERTY_KEYWORDS,
@@ -259,23 +261,33 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
 // SECTION FILTERS
 // =====================================================================
 
-export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string): NormalizedItem[] {
+export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string, diag?: DiagnosticContext, diagSection?: Section): NormalizedItem[] {
     const filtered = items.filter(article => {
         const text = getText(article);
-        if (isPolitical(text)) return false;
+        if (isPolitical(text)) {
+            if (diag && diagSection) diag.recordReject(diagSection, 'POLITICAL_CONTENT');
+            return false;
+        }
         // Industrial gate — reject apartments, retail, office, etc.
-        if (!isStrictlyIndustrial(text)) return false;
-        return containsAny(text, keywords);
+        if (!isStrictlyIndustrial(text)) {
+            if (diag && diagSection) diag.recordReject(diagSection, 'NOT_INDUSTRIAL');
+            return false;
+        }
+        if (!containsAny(text, keywords)) {
+            if (diag && diagSection) diag.recordReject(diagSection, 'NO_RELEVANT_KEYWORDS');
+            return false;
+        }
+        return true;
     });
     console.log(`🔍 ${sectionName}: ${items.length} → ${filtered.length} (strict filter)`);
     return filtered;
 }
 
-export function applyTransactionFilter(items: NormalizedItem[]): NormalizedItem[] {
+export function applyTransactionFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
         const text = getText(article);
-        if (isPolitical(text)) return false;
-        if (!isIndustrialProperty(text)) return false;
+        if (isPolitical(text)) { if (diag) diag.recordReject('transactions', 'POLITICAL_CONTENT'); return false; }
+        if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('transactions', 'NOT_INDUSTRIAL'); return false; }
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;
         // Transaction must clear the deal-size floor stated in the newsletter footer
@@ -288,16 +300,17 @@ export function applyTransactionFilter(items: NormalizedItem[]): NormalizedItem[
         // Below threshold but action-worded: only allow if SF is at least half the floor
         // (so a clearly real but smaller deal can still come through, not random mentions)
         if (hasAction && threshold.sizeSF !== null && threshold.sizeSF >= 50000) return true;
+        if (diag) diag.recordReject('transactions', 'BELOW_DEAL_THRESHOLD');
         return false;
     });
     console.log(`🔍 Transactions: ${items.length} → ${filtered.length} (threshold filter)`);
     return filtered;
 }
 
-export function applyAvailabilityFilter(items: NormalizedItem[]): NormalizedItem[] {
+export function applyAvailabilityFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
         const text = getText(article);
-        if (isPolitical(text)) return false;
+        if (isPolitical(text)) { if (diag) diag.recordReject('availabilities', 'POLITICAL_CONTENT'); return false; }
         // Accept availability-specific language
         const availabilityWords = [
             'available', 'for sale', 'for lease', 'listing', 'on the market',
@@ -307,20 +320,22 @@ export function applyAvailabilityFilter(items: NormalizedItem[]): NormalizedItem
             'under construction', 'breaks ground', 'groundbreaking', 'coming to market',
         ];
         if (containsAny(text, availabilityWords)) return true;
-        if (!isIndustrialProperty(text)) return false;
+        if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('availabilities', 'NOT_INDUSTRIAL'); return false; }
         const threshold = meetsDealThreshold(text);
-        return threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0);
+        if (threshold.meetsSF || (threshold.sizeSF !== null && threshold.sizeSF > 0)) return true;
+        if (diag) diag.recordReject('availabilities', 'SECTION_RULE_FAILED');
+        return false;
     });
     console.log(`🔍 Availabilities: ${items.length} → ${filtered.length} (threshold filter)`);
     return filtered;
 }
 
-export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
+export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
         const text = getText(article);
         const url = ((article as any).url || article.link || '').toLowerCase();
-        if (isPolitical(text)) return false;
-        if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
+        if (isPolitical(text)) { if (diag) diag.recordReject('people', 'POLITICAL_CONTENT'); return false; }
+        if (containsAny(text, EXCLUDE_FROM_PEOPLE)) { if (diag) diag.recordReject('people', 'EXCLUDED_BY_LIST'); return false; }
         const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
         const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
         // If title OR body has strong people signal, allow even if body mentions transactions
@@ -329,8 +344,13 @@ export function applyPeopleFilter(items: NormalizedItem[]): NormalizedItem[] {
             || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
         const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped']);
         // If it's primarily a transaction (and neither title nor body indicate people), skip
-        if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) return false;
-        return hasAction && hasIndustrial;
+        if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) {
+            if (diag) diag.recordReject('people', 'CATEGORY_MISMATCH');
+            return false;
+        }
+        if (!hasAction) { if (diag) diag.recordReject('people', 'NO_PEOPLE_ACTION'); return false; }
+        if (!hasIndustrial) { if (diag) diag.recordReject('people', 'NOT_INDUSTRIAL'); return false; }
+        return true;
     });
     console.log(`🔍 People News: ${items.length} → ${filtered.length} (people filter)`);
     return filtered;
