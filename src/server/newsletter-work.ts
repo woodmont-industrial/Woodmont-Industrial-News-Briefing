@@ -4,6 +4,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
+import { getPublisherName } from '../shared/publisher-name.js';
 
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
@@ -173,8 +174,13 @@ export function buildWorkBriefing(
         const shareBody = encodeURIComponent(`Thought you'd find this relevant:\n\n${title}\n${url}`);
         const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
+        // Publisher in parens before the Source link — e.g., "(WSVN) Source"
+        // Uses shared getPublisherName so server + SPA agree on display value.
+        const publisher = getPublisherName(item);
+        const publisherTag = publisher ? `<span style="color: #777; font-size: 12px;">(${publisher})</span> ` : '';
+
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
+            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 

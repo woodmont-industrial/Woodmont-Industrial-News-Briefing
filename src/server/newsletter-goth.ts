@@ -1,4 +1,5 @@
 import { NormalizedItem } from '../types/index.js';
+import { getPublisherName } from '../shared/publisher-name.js';
 
 /**
  * Build stripped-down "Goth" briefing - clean, scannable, boss-approved format
@@ -55,9 +56,9 @@ export function buildGothBriefing(
         const title = item.title || 'Untitled';
         const url = (item as any).url || item.link || '#';
 
-        // Get source
-        const sourceData = (item as any)._source || {};
-        const source = sourceData.website || sourceData.name || '';
+        // Use the shared publisher-name resolver so display agrees with the work
+        // newsletter and the SPA. Falls back to raw _source.website for source domain.
+        const source = getPublisherName(item);
 
         // Get description - full context for executive summary
         const rawDescription = (item.description && item.description.trim()) ||

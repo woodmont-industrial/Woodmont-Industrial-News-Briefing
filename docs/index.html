@@ -1182,6 +1182,47 @@
       const [articleFeedback, setArticleFeedback] = useState({}); // {articleId: {action: 'approved'|'rejected', reason: null|string}}
       const [showRejectMenu, setShowRejectMenu] = useState(null); // articleId of currently shown reject menu
 
+      // Publisher / journal name extraction. Mirrors src/shared/publisher-name.ts
+      // so SPA labels match what the newsletter shows. Three strategies:
+      //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
+      //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
+      //   3. Strip "Google News " prefix from feed names
+      const PUBLISHER_DOMAIN_MAP = {
+        're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
+        'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
+        'lvb.com': 'Lehigh Valley Business', 'philly.com': 'Philly.com',
+        'sun-sentinel.com': 'Sun Sentinel', 'miamiherald.com': 'Miami Herald',
+        'tampabay.com': 'Tampa Bay Times', 'jacksonville.com': 'The Florida Times-Union',
+        'globest.com': 'GlobeSt', 'bisnow.com': 'Bisnow', 'commercialobserver.com': 'Commercial Observer',
+        'costar.com': 'CoStar', 'connectcre.com': 'Connect CRE', 'rebusinessonline.com': 'REBusiness Online',
+        'commercialsearch.com': 'CommercialSearch', 'commercialcafe.com': 'CommercialCafe', 'credaily.com': 'CRE Daily',
+        'cpexecutive.com': 'CPE', 'therealdeal.com': 'The Real Deal',
+        'naiop.org': 'NAIOP', 'supplychaindive.com': 'Supply Chain Dive', 'supplychainbrain.com': 'SupplyChainBrain',
+        'mhlnews.com': 'MHL News', 'areadevelopment.com': 'Area Development', 'bizjournals.com': 'The Business Journals',
+        'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
+        'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
+      };
+      const getPublisherName = (article) => {
+        if (!article) return 'Source';
+        const title = article.title || article.t || '';
+        const segs = title.split(/\s+[-–—|]\s+/);
+        if (segs.length >= 2) {
+          const last = segs[segs.length - 1].trim();
+          if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
+        }
+        const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
+        const url = (article.url || article.link || article.u || '').toLowerCase();
+        const hay = sf + ' ' + url;
+        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
+        if (/^google news\b/i.test(sf)) {
+          const stripped = sf.replace(/^google news\s+/i, '').trim();
+          return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
+        }
+        if (article._source && article._source.name) return article._source.name;
+        if (sf === 'news.google.com') return 'Google News';
+        return article.source || article.s || 'Source';
+      };
+
       // Region detection from title/description text
       const detectRegion = useCallback((text) => {
         if (!text) return null;
@@ -1230,7 +1271,8 @@
             if (item.author) {
               authorName = typeof item.author === 'string' ? item.author : (item.author.name || '');
             }
-            const sourceName = item._source?.name || item._source?.website || authorName || 'Unknown';
+            // Use shared publisher resolver so badge shows "CoStar" not "Google News CoStar Industrial".
+            const sourceName = getPublisherName(item) || authorName || 'Unknown';
             const title = item.title || 'Untitled';
             const description = item.content_text || item.content_html || item.summary || '';
             const combinedText = title + ' ' + description;

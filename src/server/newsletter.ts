@@ -1,4 +1,5 @@
 import { NormalizedItem } from '../types/index.js';
+import { getPublisherName } from '../shared/publisher-name.js';
 
 // Build HTML briefing in required format. Expects sections with arrays of items: { title, link, publisher, author, pubDate, description }
 export function buildBriefing({ relevant = [], transactions = [], availabilities = [], people = [] }: { relevant?: NormalizedItem[]; transactions?: NormalizedItem[]; availabilities?: NormalizedItem[]; people?: NormalizedItem[] }, period: string = "Current Period") {
@@ -48,8 +49,14 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                 extractedDomain = '';
             }
 
-            // Priority: website domain > feedName > sourceName > extracted domain
-            const publisher = sourceWebsite || sourceFeedName || sourceName || it.publisher || it.source || extractedDomain || 'Industry News';
+            // Use the shared publisher-name resolver — extracts trailing-dash
+            // publisher from titles ("- WSVN", "- CoStar"), maps direct domains
+            // (re-nj.com → "Real Estate NJ"), strips "Google News " prefix.
+            // Falls back to legacy priority chain for cases the resolver can't
+            // identify (custom feeds without _source).
+            const publisher = getPublisherName(it as any) ||
+                              sourceWebsite || sourceFeedName || sourceName ||
+                              it.publisher || it.source || extractedDomain || 'Industry News';
 
             const link = articleUrl || '#';
 
