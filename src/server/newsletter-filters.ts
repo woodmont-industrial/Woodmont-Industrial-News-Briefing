@@ -109,6 +109,19 @@ const TARGET_REGION_PHRASE_RE = /\b(?:"New Jersey"|N\.J\.|NJ|Pennsylvania|PA|Flo
 // have "industrial" in their name but rarely concern actual NJ/PA/FL property deals.
 const GOV_INDUSTRIAL_BODY_RE = /\b(?:industrial|economic)\s+development\s+(?:agency|authority|commission|council|board|corporation|district)\b/i;
 
+// Listing-aggregator title patterns. CommercialSearch, LoopNet, PropertyShark titles
+// are property listings sourced from a national catalog — most are NOT NJ/PA/FL. The
+// articles slip through generic Google News queries despite the dedicated feeds being
+// deactivated. Title patterns are distinctive:
+//   - "Title - CommercialSearch" / "Title - LoopNet" / "Title - PropertyShark"
+//   - "FOR LEASE | X SF | ..." (generic CommercialSearch format)
+//   - "City Industrial Center: X SF Industrial For Lease - CommercialSearch"
+// If the title matches a listing-aggregator pattern AND no target NJ/PA/FL token is
+// present, reject as SOURCE_LISTING_AGGREGATOR_NO_TARGET. Preserves the rare case
+// where a listing IS in target region (Huntingdon Valley PA, etc.).
+const LISTING_AGGREGATOR_SUFFIX_RE = /\s+[-–—|]\s+(?:CommercialSearch|LoopNet|PropertyShark|Traded\.co|Crexi)\s*$/i;
+const GENERIC_LISTING_TITLE_RE = /^(?:For\s+Lease|For\s+Sale|FOR\s+LEASE|FOR\s+SALE)\s*\|/i;
+
 /**
  * AUTOMATIC GEOGRAPHY FAILURES — three structural rules that reject articles
  * before the positive-evidence check runs. Implements the rules from the
@@ -137,6 +150,16 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
     if (GOV_INDUSTRIAL_BODY_RE.test(fullText)) {
         if (!TARGET_REGION_PHRASE_RE.test(fullText)) {
             return { fails: true, reason: 'GOV_AGENCY_NO_TARGET_PROPERTY' };
+        }
+    }
+
+    // Rule (d): listing-aggregator titles (CommercialSearch / LoopNet / PropertyShark
+    // / Traded.co / Crexi) — reject if no target NJ/PA/FL token in title or summary.
+    // Preserves Huntingdon Valley PA, Jersey City NJ, Doral FL, etc.; kills Valencia
+    // CA, Torrance CA, Santa Clarita CA, Morisset NSW, Numancia Spain, etc.
+    if (LISTING_AGGREGATOR_SUFFIX_RE.test(title) || GENERIC_LISTING_TITLE_RE.test(title)) {
+        if (!TARGET_REGION_PHRASE_RE.test(fullText)) {
+            return { fails: true, reason: 'SOURCE_LISTING_AGGREGATOR_NO_TARGET' };
         }
     }
 

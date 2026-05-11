@@ -177,31 +177,98 @@ export function extractDealSignatures(title: string, description?: string): stri
     else if (dollarMatchM) dollars = Math.round(parseFloat(dollarMatchM[1]));
     else if (dollarMatchFull) dollars = Math.round(parseInt(dollarMatchFull[1].replace(/,/g, '')) / 1000000);
 
-    if (sqft === null && dollars === null) return sigs;
+    // Acres — covers "39-ha", "97 acres", "19-acre", etc. 1 hectare = 2.471 acres.
+    // Bucket to nearest 5 acres so "39 ha (≈ 96.4 ac)" and "97 acres" collapse to the
+    // same bucket. Catches today's Mapletree cross-source duplicate + every
+    // Constellation East Tampa 19-acre repeat that has plagued us.
+    let acres: number | null = null;
+    const acreMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:-)?acres?\b/i);
+    const hectareMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:-)?(?:ha|hectares?)\b/i);
+    if (acreMatch) acres = parseFloat(acreMatch[1]);
+    else if (hectareMatch) acres = parseFloat(hectareMatch[1]) * 2.471;
+
+    if (sqft === null && dollars === null && acres === null) return sigs;
 
     const sqftBucket = sqft ? Math.round(sqft / 10000) : 0;
     const dollarBucket = dollars || 0;
+    // Acres bucket: round to nearest 5 acres so 39-ha (≈96 ac) and 97-acres collapse,
+    // and so 19-acre / 19 acres / 18.5 acres all share a signature.
+    const acresBucket = acres ? Math.round(acres / 5) * 5 : 0;
+
+    // Emit one COMBINED signature with all metrics + state, AND one signature per
+    // metric that's present + state. This way cross-source articles where one says
+    // "953K SF (97 acres)" and the other says only "39-ha" still share the
+    // acres-only sig (95ac_state-nj). Risk of false-collapse is bounded because:
+    //   - Single-metric sigs only emit when that metric is present
+    //   - State qualifier keeps it scoped to NJ/PA/FL
+    //   - Two distinct same-acreage same-state deals in a 14-day window is rare
+    const stateSigs = (state: string): string[] => {
+        const out: string[] = [];
+        out.push(`${sqftBucket}sf_${dollarBucket}m_${acresBucket}ac_state-${state}`); // combined
+        if (sqft !== null) out.push(`${sqftBucket}sf_state-${state}`);
+        if (dollars !== null) out.push(`${dollarBucket}m_state-${state}`);
+        if (acres !== null) out.push(`${acresBucket}ac_state-${state}`);
+        return out;
+    };
 
     // Detect each state independently (an article can mention multiple states)
-    const njCities = /\b(metuchen|edison|piscataway|woodbridge|carteret|elizabeth|newark|bayonne|secaucus|kearny|jersey city|hackensack|paterson|clifton|passaic|hoboken|union city|fort lee|east brunswick|south brunswick|new brunswick|perth amboy|sayreville|plainfield|trenton|princeton|cranbury|monroe township|monroe twp|lakewood|toms river|red bank|asbury park|long branch|freehold|camden|cherry hill|mount laurel|vineland|atlantic city|pennsauken|linden)\b/i;
+    const njCities = /\b(metuchen|edison|piscataway|woodbridge|carteret|elizabeth|newark|bayonne|secaucus|kearny|jersey city|hackensack|paterson|clifton|passaic|hoboken|union city|fort lee|east brunswick|south brunswick|new brunswick|perth amboy|sayreville|plainfield|trenton|princeton|cranbury|monroe township|monroe twp|manalapan|lakewood|toms river|red bank|asbury park|long branch|freehold|camden|cherry hill|mount laurel|vineland|atlantic city|pennsauken|linden|logan township|garwood|wall township)\b/i;
     const njCounties = /\b(bergen county|hudson county|essex county|union county|morris county|passaic county|middlesex county|mercer county|somerset county|monmouth county|ocean county|burlington county|camden county|gloucester county|atlantic county|cumberland county)\b/i;
     const njState = /\b(n\.?j\.?|new jersey|nj area|nj market|garden state|central jersey|central new jersey|north jersey|south jersey|meadowlands)\b/i;
     if (njCities.test(text) || njCounties.test(text) || njState.test(text)) {
-        sigs.push(`${sqftBucket}sf_${dollarBucket}m_state-nj`);
+        sigs.push(...stateSigs('nj'));
     }
 
     const paCities = /\b(philadelphia|philly|allentown|bethlehem|easton|harrisburg|lancaster|reading|york|pittsburgh|scranton|wilkes-barre|king of prussia|conshohocken|plymouth meeting|malvern|morrisville)\b/i;
     const paCounties = /\b(bucks county|montgomery county|chester county|delaware county|lehigh county|northampton county|lancaster county|york county|dauphin county|berks county)\b/i;
-    const paState = /\b(p\.?a\.?|pennsylvania|pa area|pa market|keystone state|lehigh valley|delaware valley|greater philadelphia|south penn)\b/i;
+    const paState = /\b(p\.?a\.?|pennsylvania|pa area|pa market|keystone state|lehigh valley|delaware valley|greater philadelphia|south penn|huntingdon valley)\b/i;
     if (paCities.test(text) || paCounties.test(text) || paState.test(text)) {
-        sigs.push(`${sqftBucket}sf_${dollarBucket}m_state-pa`);
+        sigs.push(...stateSigs('pa'));
     }
 
-    const flCities = /\b(miami|doral|hialeah|medley|fort lauderdale|pompano|west palm|boca raton|orlando|tampa|jacksonville|ocala)\b/i;
-    const flCounties = /\b(miami-dade|broward|palm beach|hillsborough|orange county|duval|pinellas|lee county|polk county|brevard)\b/i;
+    const flCities = /\b(miami|doral|hialeah|medley|fort lauderdale|pompano|west palm|boca raton|orlando|tampa|jacksonville|ocala|groveland|winter park)\b/i;
+    const flCounties = /\b(miami-dade|broward|palm beach|hillsborough|orange county|duval|pinellas|lee county|polk county|brevard|osceola county)\b/i;
     const flState = /\b(fla?\.?|florida|fl area|fl market|sunshine state|south florida|central florida)\b/i;
     if (flCities.test(text) || flCounties.test(text) || flState.test(text)) {
-        sigs.push(`${sqftBucket}sf_${dollarBucket}m_state-fl`);
+        sigs.push(...stateSigs('fl'));
+    }
+
+    // Company-pair signature for national M&A — kills the recurring same-deal
+    // triplets/quartets (Modiv x3 on 5/5, Americold/EQT x4 across 5/8 and 5/11).
+    // These deals never have NJ/PA/FL location, so the state sigs above don't fire.
+    // Instead we form a signature from the two corporate parties + the rounded
+    // dollar amount. Same deal in 3 articles → same sig → only first ships.
+    const COMPANY_PAIRS = [
+        // [companyA-regex, companyB-regex, label]
+        ['global net lease', 'modiv', 'gnl-modiv'],
+        ['americold', 'eqt', 'americold-eqt'],
+        ['blackstone', 'industrial', 'blackstone-industrial'],
+        ['prologis', 'duke', 'prologis-duke'],
+        ['kkr', 'industrial', 'kkr-industrial'],
+        ['cabot', 'industrial', 'cabot-industrial'],
+        ['link logistics', '', 'link-logistics'],
+        ['bridge industrial', '', 'bridge-industrial'],
+        ['rexford', '', 'rexford'],
+        ['stag industrial', '', 'stag-industrial'],
+        ['first industrial', '', 'first-industrial'],
+        ['eastgroup', '', 'eastgroup'],
+        ['terreno', '', 'terreno'],
+    ] as const;
+    if (dollars !== null && dollars >= 50) {
+        // M&A dollar bucket: round to nearest $250M so cross-source variants where
+        // one outlet rounds "$1.1B" and another says "$1.3B" still collapse to the
+        // same M&A signature. Two distinct deals at $1B+ with the SAME company-pair
+        // in the same week is essentially impossible.
+        const mnaDollarBucket = Math.round(dollars / 250) * 250;
+        for (const [a, b, label] of COMPANY_PAIRS) {
+            if (text.includes(a) && (b === '' || text.includes(b))) {
+                sigs.push(`mna_${label}_${mnaDollarBucket}m`);
+                // Also emit company-only sig (no dollars) so a deal that's $500M in
+                // one outlet and $750M in another (different rounding) still collapses
+                sigs.push(`mna_${label}_company-only`);
+                break;
+            }
+        }
     }
 
     return [...new Set(sigs)]; // dedup the sig array itself
