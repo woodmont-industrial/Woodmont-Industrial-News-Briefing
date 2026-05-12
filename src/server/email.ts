@@ -676,7 +676,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Title-based dedup: catch same article from different sources (e.g. GlobeSt direct + Google News)
         const dedupeByTitle = (allSections: NormalizedItem[][]): void => {
             const seenTitles: string[] = [];
-            const normalize = (t: string) => t.toLowerCase().replace(/\s*[-–—|]\s*(globest|costar|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|ad hoc news|law360|investing\.com|finimize|nareit|loopnet|tapinto).*$/i, '').replace(/^news\s*\|\s*/i, '').trim();
+            const normalize = (t: string) => t.toLowerCase().replace(/\s*[-–—|]\s*(globest|costar|msn|yahoo|bisnow|commercialsearch|rebusinessonline|connect cre|the business journals|commercial observer|ad hoc news|law360|investing\.com|finimize|nareit|loopnet|tapinto|real estate nj|roi[ -]?nj|njbiz|re[ -]?nj|cre daily|cpe|cpexecutive|the real deal|supplychainbrain|supply chain dive|mhl news|area development|tipranks|hoodline|spectrum news|the business times|stourbridge news|business recorder|sun[- ]sentinel|miami herald|tampa bay times|jacksonville\.com|colliers).*$/i, '').replace(/^news\s*\|\s*/i, '').trim();
 
             for (const section of allSections) {
                 for (let i = section.length - 1; i >= 0; i--) {
@@ -993,11 +993,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         };
 
+        // Each post-desc refill must restrict to its own category. Without this gate,
+        // a transactions-tagged article (e.g., CenterPoint 4.3-acre sale below threshold)
+        // could be pulled into the relevant array because it matches RELEVANT_KEYWORDS.
+        // This was the bug that put 3 transactions articles into relevant on 2026-05-12.
         refillSection(relevant, MIN_RELEVANT,
-            (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant', allPostDescPool);
-        refillSection(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', regionalPostDescPool);
-        refillSection(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', regionalPostDescPool);
-        refillSection(people, MIN_PEOPLE, applyPeopleFilter, 'people', regionalPostDescPool);
+            (items) => applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant', allPostDescPool);
+        refillSection(transactions, MIN_TRANSACTIONS,
+            (items) => applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'transactions', regionalPostDescPool);
+        refillSection(availabilities, MIN_AVAILABILITIES,
+            (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', regionalPostDescPool);
+        refillSection(people, MIN_PEOPLE,
+            (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', regionalPostDescPool);
 
         // Deep post-desc refill: if sections still below minimum, try 30-day pool with descriptions
         const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
@@ -1020,14 +1027,29 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     const deepPostDescPool = deepCandidates.filter(postDescriptionRegionCheck);
                     const deepPostDescRegional = deepPostDescPool.filter(isTargetRegion);
 
+                    // Same category restriction as the shallow post-desc refill above.
                     refillSection(relevant, MIN_RELEVANT,
-                        (items) => applyStrictFilter(items, RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'relevant', deepPostDescPool);
-                    refillSection(transactions, MIN_TRANSACTIONS, applyTransactionFilter, 'transactions', deepPostDescRegional);
-                    refillSection(availabilities, MIN_AVAILABILITIES, applyAvailabilityFilter, 'availabilities', deepPostDescRegional);
-                    refillSection(people, MIN_PEOPLE, applyPeopleFilter, 'people', deepPostDescRegional);
+                        (items) => applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'relevant', deepPostDescPool);
+                    refillSection(transactions, MIN_TRANSACTIONS,
+                        (items) => applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'transactions', deepPostDescRegional);
+                    refillSection(availabilities, MIN_AVAILABILITIES,
+                        (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', deepPostDescRegional);
+                    refillSection(people, MIN_PEOPLE,
+                        (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepPostDescRegional);
                 }
             }
         }
+
+        // Re-run dedup after post-desc refill. The shallow + deep post-desc refills
+        // can pull new articles into sections AFTER the initial dedup pass. Without
+        // this second dedup, a same-deal pair refilled into the same section ships
+        // twice (the CenterPoint Avenel 2026-05-12 incident).
+        const postDescDealSigs = new Set<string>();
+        relevant = dedupeByDealSignature(relevant, postDescDealSigs);
+        transactions = dedupeByDealSignature(transactions, postDescDealSigs);
+        availabilities = dedupeByDealSignature(availabilities, postDescDealSigs);
+        // Re-run title dedup too — catches CenterPoint A vs CenterPoint A " - Real Estate NJ" suffix
+        dedupeByTitle([transactions, relevant, availabilities, people]);
 
         const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
         if (postFilterTotal === 0) {
