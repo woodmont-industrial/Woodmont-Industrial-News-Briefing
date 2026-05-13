@@ -466,7 +466,13 @@ export const EXCLUDE_FROM_PEOPLE = [
     'hotel broker', 'hospitality'
 ];
 
-// Approved source domains for newsletter
+// Approved source domains for newsletter.
+// news.google.com is included because ~80% of our feed flows through Google News
+// RSS (used as a proxy for sources that block direct scraping). Excluding it
+// caused isTargetRegion to reject the entire Google News stream at the source
+// gate, which broke reserve pool transactions/availabilities/people fill on
+// 2026-05-13. The remaining quality filters (hasGeographicFailure,
+// INTERNATIONAL_EXCLUDE, countRegionMatches) still run against the article text.
 export const APPROVED_DOMAINS = [
     'bisnow.com', 'globest.com', 'costar.com', 'reuters.com', 'apnews.com',
     'bloomberg.com', 'wsj.com', 'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com',
@@ -480,7 +486,8 @@ export const APPROVED_DOMAINS = [
     'njspotlightnews.org', 'connect.media', 'constructiondive.com',
     'naikeystone.com', 'naiplatform.com', 'prologis.com', 'retaildive.com',
     'prnewswire.com', 'globenewswire.com', 'businesswire.com',
-    'joc.com', 'loopnet.com', 'propertyshark.com', 'commercialsearch.com'
+    'joc.com', 'loopnet.com', 'propertyshark.com', 'commercialsearch.com',
+    'news.google.com'
 ];
 
 // Regional sources — always include articles from these

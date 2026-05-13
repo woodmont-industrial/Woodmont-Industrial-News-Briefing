@@ -274,6 +274,150 @@ export function extractDealSignatures(title: string, description?: string): stri
     return [...new Set(sigs)]; // dedup the sig array itself
 }
 
+/**
+ * Cross-day dedup signatures. Narrower than extractDealSignatures (plural):
+ * emits only high-confidence sigs that won't false-collapse different deals
+ * across days. State-only single-metric sigs are intentionally omitted.
+ *
+ * Within-newsletter dedup uses the plural extractDealSignatures (catches more
+ * cross-source variants in a single send, where false-collapse risk is bounded
+ * to one day's pool). Cross-day uses this — same-day risk is fine, but two
+ * weeks of cumulative state-level sigs over-block legit different deals.
+ *
+ * Today's failure: yesterday's CenterPoint Avenel (4.3 acres) saved
+ * `5ac_state-nj`. Today any new 1-7 acre NJ deal would collide on that bucket
+ * and silently disappear from the candidate pool.
+ *
+ * Emits:
+ *   - Granular city/county + full-metric combo (e.g., `0sf_360m_0ac_nj-north`)
+ *   - M&A company-pair sigs (corporate identity is specific enough)
+ *
+ * Skips:
+ *   - State-only fallback (no granular city/county match)
+ *   - State-level single-metric sigs (`5ac_state-nj`, `95sf_state-nj`)
+ *   - Granular per-metric sigs (`5ac_nj-north`)
+ */
+export function extractCrossDayDedupSignatures(title: string, description?: string): string[] {
+    const text = `${title} ${description || ''}`.toLowerCase();
+    const sigs: string[] = [];
+
+    // Metric extraction (mirrors extractDealSignatures)
+    let sqft: number | null = null;
+    const sfMatchK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
+    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)\s*(?:sf|sq\.?\s*f|square\s*feet|square\s*foot)/i);
+    const sfMatchM = text.match(/(\d+(?:\.\d+)?)\s*(?:million|m)\s*(?:sf|sq\.?\s*f|square\s*feet)/i);
+    if (sfMatchK) sqft = Math.round(parseFloat(sfMatchK[1]) * 1000);
+    else if (sfMatchFull) sqft = parseInt(sfMatchFull[1].replace(/,/g, ''));
+    else if (sfMatchM) sqft = Math.round(parseFloat(sfMatchM[1]) * 1000000);
+
+    let dollars: number | null = null;
+    const dollarMatchM = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/i);
+    const dollarMatchB = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:b|billion)\b/i);
+    const dollarMatchFull = text.match(/\$\s*(\d{1,3}(?:,\d{3}){2,})/);
+    if (dollarMatchB) dollars = Math.round(parseFloat(dollarMatchB[1]) * 1000);
+    else if (dollarMatchM) dollars = Math.round(parseFloat(dollarMatchM[1]));
+    else if (dollarMatchFull) dollars = Math.round(parseInt(dollarMatchFull[1].replace(/,/g, '')) / 1000000);
+
+    let acres: number | null = null;
+    const acreMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:-)?acres?\b/i);
+    const hectareMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:-)?(?:ha|hectares?)\b/i);
+    if (acreMatch) acres = parseFloat(acreMatch[1]);
+    else if (hectareMatch) acres = parseFloat(hectareMatch[1]) * 2.471;
+
+    // Granular city/county match (same pattern list as extractDealSignature primary)
+    const LOCATION_NORMALIZATIONS: Record<string, string> = {
+        'bayonne': 'nj-north', 'secaucus': 'nj-north', 'kearny': 'nj-north', 'elizabeth': 'nj-north',
+        'newark': 'nj-north', 'jersey city': 'nj-north', 'hackensack': 'nj-north',
+        'paterson': 'nj-north', 'clifton': 'nj-north', 'passaic': 'nj-north', 'hoboken': 'nj-north',
+        'union city': 'nj-north', 'fort lee': 'nj-north', 'meadowlands': 'nj-north',
+        'bergen county': 'nj-north', 'hudson county': 'nj-north', 'essex county': 'nj-north',
+        'union county': 'nj-north', 'morris county': 'nj-north', 'passaic county': 'nj-north',
+        'linden': 'nj-central', 'edison': 'nj-central', 'woodbridge': 'nj-central',
+        'carteret': 'nj-central', 'east brunswick': 'nj-central', 'south brunswick': 'nj-central',
+        'piscataway': 'nj-central', 'metuchen': 'nj-central', 'new brunswick': 'nj-central',
+        'perth amboy': 'nj-central', 'sayreville': 'nj-central', 'plainfield': 'nj-central',
+        'trenton': 'nj-central', 'princeton': 'nj-central', 'cranbury': 'nj-central',
+        'monroe township': 'nj-central', 'monroe twp': 'nj-central',
+        'middlesex county': 'nj-central', 'mercer county': 'nj-central', 'somerset county': 'nj-central',
+        'lakewood': 'nj-coast', 'toms river': 'nj-coast', 'red bank': 'nj-coast',
+        'asbury park': 'nj-coast', 'long branch': 'nj-coast', 'freehold': 'nj-coast',
+        'manalapan': 'nj-coast',
+        'monmouth county': 'nj-coast', 'ocean county': 'nj-coast',
+        'camden': 'nj-south', 'cherry hill': 'nj-south', 'mount laurel': 'nj-south',
+        'vineland': 'nj-south', 'atlantic city': 'nj-south', 'pennsauken': 'nj-south',
+        'burlington county': 'nj-south', 'camden county': 'nj-south',
+        'gloucester county': 'nj-south', 'atlantic county': 'nj-south', 'cumberland county': 'nj-south',
+        'philadelphia': 'philly', 'philly': 'philly', 'morrisville': 'philly',
+        'bucks county': 'philly', 'montgomery county': 'philly', 'king of prussia': 'philly',
+        'conshohocken': 'philly', 'chester county': 'philly', 'delaware county': 'philly',
+        'plymouth meeting': 'philly', 'malvern': 'philly', 'huntingdon valley': 'philly',
+        'lehigh valley': 'lehigh', 'allentown': 'lehigh', 'bethlehem': 'lehigh',
+        'easton': 'lehigh', 'lehigh county': 'lehigh', 'northampton county': 'lehigh',
+        'harrisburg': 'pa-central', 'lancaster': 'pa-central', 'reading': 'pa-central',
+        'york': 'pa-central', 'lancaster county': 'pa-central', 'york county': 'pa-central',
+        'pittsburgh': 'pa-west', 'scranton': 'pa-northeast', 'wilkes-barre': 'pa-northeast',
+        'miami': 'miami', 'doral': 'miami', 'hialeah': 'miami', 'medley': 'miami', 'miami-dade': 'miami',
+        'fort lauderdale': 'ft-laud', 'pompano': 'ft-laud', 'broward': 'ft-laud',
+        'west palm': 'palm-beach', 'boca raton': 'palm-beach', 'palm beach': 'palm-beach',
+        'orlando': 'orlando', 'tampa': 'tampa', 'jacksonville': 'jax', 'ocala': 'ocala',
+    };
+    const locationPatterns = [
+        /\b(bayonne|secaucus|kearny|elizabeth|newark|jersey city|hackensack|paterson|clifton|passaic|hoboken|union city|fort lee|meadowlands)\b/i,
+        /\b(bergen county|hudson county|essex county|union county|morris county|passaic county|middlesex county|mercer county|somerset county|monmouth county|ocean county|burlington county|camden county|gloucester county|atlantic county|cumberland county)\b/i,
+        /\b(linden|edison|woodbridge|carteret|east brunswick|south brunswick|piscataway|metuchen|new brunswick|perth amboy|sayreville|plainfield|trenton|princeton|cranbury|monroe township|monroe twp)\b/i,
+        /\b(lakewood|toms river|red bank|asbury park|long branch|freehold|manalapan)\b/i,
+        /\b(camden|cherry hill|mount laurel|vineland|atlantic city|pennsauken)\b/i,
+        /\b(philadelphia|philly|morrisville|bucks county|montgomery county|king of prussia|conshohocken|chester county|delaware county|plymouth meeting|malvern|huntingdon valley)\b/i,
+        /\b(lehigh valley|allentown|bethlehem|easton|lehigh county|northampton county)\b/i,
+        /\b(harrisburg|lancaster|reading|york|lancaster county|york county|pittsburgh|scranton|wilkes-barre)\b/i,
+        /\b(miami|doral|hialeah|medley|miami-dade|fort lauderdale|pompano|broward|west palm|boca raton|palm beach)\b/i,
+        /\b(orlando|tampa|jacksonville|ocala)\b/i,
+    ];
+    const locations: string[] = [];
+    for (const pat of locationPatterns) {
+        const match = text.match(pat);
+        if (match) {
+            const raw = match[1].toLowerCase();
+            const normalized = LOCATION_NORMALIZATIONS[raw] || raw;
+            if (!locations.includes(normalized)) locations.push(normalized);
+        }
+    }
+
+    // Granular sig: city/county + ALL metric buckets together. Requires both
+    // a granular location AND at least one metric. Two distinct deals in the
+    // same metro area with identical SF + dollar + acre buckets is rare enough
+    // that we accept the collapse.
+    if (locations.length > 0 && (sqft !== null || dollars !== null || acres !== null)) {
+        const sqftBucket = sqft ? Math.round(sqft / 10000) : 0;
+        const dollarBucket = dollars || 0;
+        const acresBucket = acres ? Math.round(acres / 5) * 5 : 0;
+        sigs.push(`${sqftBucket}sf_${dollarBucket}m_${acresBucket}ac_${locations.sort().join('|')}`);
+    }
+
+    // M&A company-pair sigs — corporate identity is specific enough to be safe
+    // for cross-day matching. Catches Modiv/GNL, Americold/EQT recurring triplets.
+    const COMPANY_PAIRS: Array<readonly [string, string, string]> = [
+        ['global net lease', 'modiv', 'gnl-modiv'],
+        ['americold', 'eqt', 'americold-eqt'],
+        ['blackstone', 'industrial', 'blackstone-industrial'],
+        ['prologis', 'duke', 'prologis-duke'],
+        ['kkr', 'industrial', 'kkr-industrial'],
+        ['cabot', 'industrial', 'cabot-industrial'],
+    ];
+    if (dollars !== null && dollars >= 50) {
+        const mnaDollarBucket = Math.round(dollars / 250) * 250;
+        for (const [a, b, label] of COMPANY_PAIRS) {
+            if (text.includes(a) && text.includes(b)) {
+                sigs.push(`mna_${label}_${mnaDollarBucket}m`);
+                sigs.push(`mna_${label}_company-only`);
+                break;
+            }
+        }
+    }
+
+    return [...new Set(sigs)];
+}
+
 export function normalizeUrlForDedupe(url: string): string {
     if (!url) return '';
     try {

@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -389,13 +389,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // ID match catches exact duplicates; signature match catches the same deal
         // reported by a different source on a later day (the Metuchen / Middlesex County /
         // N.J. area $3.5M case from 2026-04-27 and 2026-04-30).
+        //
+        // Cross-day sigs use the NARROW extractor (granular city/county + full-metric
+        // combo, or M&A company-pair). The wide multi-sig extractor used for
+        // within-newsletter dedup over-blocks across days — its state-only single-metric
+        // sigs (5ac_state-nj, 95sf_state-nj) caused all NJ/FL transactions to be
+        // silently dropped on 2026-05-13.
         const sentArticleIds = loadSentArticles(docsDir);
         const sentSigSet = loadSentSignatures(docsDir);
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
             if (sentArticleIds.has(id)) return false;
             if (sentSigSet.size > 0) {
-                const sigs = extractDealSignatures(a.title || '', (a as any).description || (a as any).summary || '');
+                const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
                     return false;
@@ -997,14 +1003,23 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // a transactions-tagged article (e.g., CenterPoint 4.3-acre sale below threshold)
         // could be pulled into the relevant array because it matches RELEVANT_KEYWORDS.
         // This was the bug that put 3 transactions articles into relevant on 2026-05-12.
+        //
+        // Each refill ALSO runs through finalGate. finalGate executes once at line 874
+        // before descriptions are generated, but post-desc refills add NEW articles that
+        // never see it. On 2026-05-13 this bypassed the LISTING_AGGREGATOR allowlist and
+        // shipped 3 CommercialSearch garbage titles to subscribers.
         refillSection(relevant, MIN_RELEVANT,
-            (items) => applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (refill)'), 'relevant', allPostDescPool);
+            (items) => finalGate(applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (refill)'), 'Relevant'),
+            'relevant', allPostDescPool);
         refillSection(transactions, MIN_TRANSACTIONS,
-            (items) => applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'transactions', regionalPostDescPool);
+            (items) => finalGate(applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'Transactions'),
+            'transactions', regionalPostDescPool);
         refillSection(availabilities, MIN_AVAILABILITIES,
-            (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', regionalPostDescPool);
+            (items) => finalGate(applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'Availabilities'),
+            'availabilities', regionalPostDescPool);
         refillSection(people, MIN_PEOPLE,
-            (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', regionalPostDescPool);
+            (items) => finalGate(applyPeopleFilter(items.filter(a => a.category === 'people')), 'People'),
+            'people', regionalPostDescPool);
 
         // Deep post-desc refill: if sections still below minimum, try 30-day pool with descriptions
         const stillNeedsDeep = relevant.length < MIN_RELEVANT || transactions.length < MIN_TRANSACTIONS || availabilities.length < MIN_AVAILABILITIES || people.length < MIN_PEOPLE;
@@ -1027,15 +1042,22 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     const deepPostDescPool = deepCandidates.filter(postDescriptionRegionCheck);
                     const deepPostDescRegional = deepPostDescPool.filter(isTargetRegion);
 
-                    // Same category restriction as the shallow post-desc refill above.
+                    // Same category restriction + finalGate as the shallow post-desc
+                    // refill above. Deep refill is the most leak-prone path because the
+                    // 30-day pool includes all categories of stale content; finalGate
+                    // here blocks listing aggregators and out-of-region items.
                     refillSection(relevant, MIN_RELEVANT,
-                        (items) => applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'relevant', deepPostDescPool);
+                        (items) => finalGate(applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'Relevant'),
+                        'relevant', deepPostDescPool);
                     refillSection(transactions, MIN_TRANSACTIONS,
-                        (items) => applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'transactions', deepPostDescRegional);
+                        (items) => finalGate(applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'Transactions'),
+                        'transactions', deepPostDescRegional);
                     refillSection(availabilities, MIN_AVAILABILITIES,
-                        (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', deepPostDescRegional);
+                        (items) => finalGate(applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'Availabilities'),
+                        'availabilities', deepPostDescRegional);
                     refillSection(people, MIN_PEOPLE,
-                        (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepPostDescRegional);
+                        (items) => finalGate(applyPeopleFilter(items.filter(a => a.category === 'people')), 'People'),
+                        'people', deepPostDescRegional);
                 }
             }
         }
@@ -1100,7 +1122,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const sentItems = allSentArticles
                 .map(a => ({
                     id: a.id || a.link || '',
-                    sigs: extractDealSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
+                    sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
                 }))
                 .filter(item => item.id);
             saveSentArticles(docsDir, sentItems);

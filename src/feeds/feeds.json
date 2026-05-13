@@ -2224,5 +2224,59 @@
     "enabled": true,
     "source": "Google News Bloomberg CRE",
     "tier": "C"
+  },
+  {
+    "url": "https://re-nj.com/category/people/feed/",
+    "name": "Real Estate NJ People",
+    "region": "NJ",
+    "source": "Real Estate NJ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "url": "https://njbiz.com/category/people-on-the-move/feed/",
+    "name": "NJBIZ People on the Move",
+    "region": "NJ",
+    "source": "NJBIZ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "url": "https://www.roi-nj.com/category/tracking/feed/",
+    "name": "ROI-NJ Tracking",
+    "region": "NJ",
+    "source": "ROI-NJ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=(Prologis+OR+%22Link+Logistics%22+OR+%22Bridge+Industrial%22+OR+Rexford+OR+%22Stag+Industrial%22+OR+%22First+Industrial%22+OR+EastGroup+OR+Terreno+OR+%22Centerpoint%22+OR+%22Duke+Realty%22)+(%22joins%22+OR+%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+OR+%22executive+vice+president%22+OR+%22senior+vice+president%22)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Industrial REIT Personnel",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "B"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=(CBRE+OR+JLL+OR+%22Cushman+Wakefield%22+OR+Newmark+OR+Colliers+OR+%22NAI+Hanson%22+OR+%22NAI+Mertz%22+OR+%22Greek+Real+Estate%22)+industrial+(%22joins%22+OR+%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+OR+%22tapped%22)+(%22New+Jersey%22+OR+Pennsylvania+OR+Florida+OR+Newark+OR+Philadelphia+OR+Miami)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Brokerage Industrial Hires",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "B"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:citybiz.co+(industrial+OR+warehouse+OR+logistics+OR+%22real+estate%22)+(hired+OR+promoted+OR+appointed+OR+named+OR+joins+OR+%22executive+vice+president%22)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News citybiz Executive Moves",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "B"
   }
 ]
