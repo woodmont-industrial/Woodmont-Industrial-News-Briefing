@@ -298,7 +298,12 @@ export function extractDealSignatures(title: string, description?: string): stri
  *   - Granular per-metric sigs (`5ac_nj-north`)
  */
 export function extractCrossDayDedupSignatures(title: string, description?: string): string[] {
-    const text = `${title} ${description || ''}`.toLowerCase();
+    // Google News RSS appends " - Publisher Name" to titles. Strip it so the same
+    // article from re-nj.com and news.google.com produces the same signature.
+    // Conservative: only strip a trailing " - X" where X is a short capitalized
+    // publisher-like phrase (no further hyphens, ≤40 chars).
+    const titleClean = title.replace(/\s+[-–—]\s+[^-–—]{1,40}$/, '').trim();
+    const text = `${titleClean} ${description || ''}`.toLowerCase();
     const sigs: string[] = [];
 
     // Metric extraction (mirrors extractDealSignatures)
@@ -339,6 +344,7 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         'trenton': 'nj-central', 'princeton': 'nj-central', 'cranbury': 'nj-central',
         'monroe township': 'nj-central', 'monroe twp': 'nj-central',
         'middlesex county': 'nj-central', 'mercer county': 'nj-central', 'somerset county': 'nj-central',
+        'middlesex': 'nj-central', 'bergen': 'nj-north', 'hudson': 'nj-north',
         'lakewood': 'nj-coast', 'toms river': 'nj-coast', 'red bank': 'nj-coast',
         'asbury park': 'nj-coast', 'long branch': 'nj-coast', 'freehold': 'nj-coast',
         'manalapan': 'nj-coast',
@@ -372,6 +378,8 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         /\b(harrisburg|lancaster|reading|york|lancaster county|york county|pittsburgh|scranton|wilkes-barre)\b/i,
         /\b(miami|doral|hialeah|medley|miami-dade|fort lauderdale|pompano|broward|west palm|boca raton|palm beach)\b/i,
         /\b(orlando|tampa|jacksonville|ocala)\b/i,
+        // Bare NJ county names with adjacent industrial context — Google News drops "County" suffix.
+        /\b(middlesex|bergen|hudson)\b(?=[^.]{0,60}?(?:industrial|warehouse|logistics|distribution|fulfillment|cold storage|building|facility|park))/i,
     ];
     const locations: string[] = [];
     for (const pat of locationPatterns) {

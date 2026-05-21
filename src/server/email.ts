@@ -816,7 +816,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const TRUSTED_DIRECT_SOURCES = new Set([
             're-nj.com', 'roi-nj.com', 'bisnow.com', 'globest.com', 'commercialsearch.com',
             'commercialobserver.com', 'connectcre.com', 'credaily.com', 'supplychaindive.com',
-            'supplychainbrain.com', 'freightwaves.com', 'blog.naiop.org', 'commercialcafe.com',
+            'freightwaves.com', 'blog.naiop.org', 'commercialcafe.com',
             'areadevelopment.com', 'rejournals.com', 'ir.prologis.com', 'lvb.com', 'njbiz.com',
             'dcvelocity.com', 'logisticsmgmt.com', 'cpexecutive.com',
         ]);

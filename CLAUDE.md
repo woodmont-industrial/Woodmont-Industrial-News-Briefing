@@ -8,7 +8,7 @@ This doc is for Claude when picking up work on a fresh machine. Skim top-to-bott
 
 ## What this project is
 
-Automated daily industrial-real-estate newsletter for Woodmont Industrial Partners. Focus regions: **New Jersey, Pennsylvania, South Florida**. Deal threshold: ≥100K SF or ≥$25M.
+Automated daily industrial-real-estate newsletter for Woodmont Industrial Partners. Focus regions: **New Jersey, Pennsylvania, Florida (all)**. Deal threshold: ≥100K SF or ≥$25M.
 
 - **Stack:** TypeScript + Node, GitHub Actions for scheduling, GitHub Pages for the SPA, Power Automate webhook for email send.
 - **Frontend:** Single-HTML SPA — React 18 via CDN + Babel standalone (NOT a build pipeline). `docs/index.html` (~2500 lines) and `docs/raw.html` (~420 lines) use inline `<script type="text/babel">`.

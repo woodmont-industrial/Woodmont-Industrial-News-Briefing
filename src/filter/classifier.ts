@@ -86,7 +86,7 @@ function classifyArticleOriginal330(title: string, description: string, link: st
       // Listing Platforms & Marketplaces
       'crexi.com', 'ten-x.com', 'realtyrates.com',
       // Industry-Specific Sources
-      'dcvelocity.com', 'supplychainbrain.com', 'logisticsmgmt.com', 'inboundlogistics.com',
+      'dcvelocity.com', 'logisticsmgmt.com', 'inboundlogistics.com',
       'manufacturing.net', 'industryweek.com', 'mbtmag.com', 'modernmaterialshandling.com',
       'commercialcafe.com', 'commercialobserver.com', 'rejournals.com',
       // Logistics & Warehousing

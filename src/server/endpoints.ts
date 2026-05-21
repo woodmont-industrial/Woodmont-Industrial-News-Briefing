@@ -228,7 +228,7 @@ async function handleNewsletterEndpoint(req: IncomingMessage, res: ServerRespons
       'supplychaindive.com', 'bloomberg.com', 'reuters.com', 'apnews.com',
       'cbre.com', 'jll.com', 'cushwake.com', 'colliers.com', 'traded.co',
       // Industry-Specific Sources
-      'dcvelocity.com', 'supplychainbrain.com', 'logisticsmgmt.com', 'inboundlogistics.com',
+      'dcvelocity.com', 'logisticsmgmt.com', 'inboundlogistics.com',
       'manufacturing.net', 'industryweek.com', 'mbtmag.com', 'modernmaterialshandling.com',
       'commercialcafe.com', 'commercialobserver.com', 'rejournals.com',
       // Logistics & Warehousing
