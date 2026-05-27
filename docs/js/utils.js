@@ -501,20 +501,32 @@
   // ============================================
   // GITHUB SYNC — persist ignores to excluded-articles.json
   // ============================================
-  var GITHUB_TOKEN_KEY = 'woodmont_github_token';
   var GITHUB_REPO = 'woodmont-industrial/Woodmont-Industrial-News-Briefing';
   var EXCLUDE_FILE_PATH = 'docs/excluded-articles.json';
 
+  // Session-only in-memory token storage (clears on reload/tab close).
+  // We deliberately do NOT persist the GitHub PAT in localStorage anymore —
+  // a stored write-scoped token combined with any XSS bug would let an
+  // attacker exfiltrate the token and modify the repo. See SECURITY notes.
+  var _sessionGitHubToken = '';
+
+  // Migration: wipe any token left over from the old persistent-storage
+  // implementation. Without this, users upgrading from a previous version
+  // would still have their PAT sitting in localStorage forever, defeating
+  // the purpose of the switch. Runs once at module load.
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('woodmont_github_token');
+    }
+  } catch (_) { /* localStorage unavailable (e.g., private mode) */ }
+
   function getGitHubToken() {
-    return localStorage.getItem(GITHUB_TOKEN_KEY) || '';
+    return _sessionGitHubToken || '';
   }
 
   function setGitHubToken(token) {
-    if (token) {
-      localStorage.setItem(GITHUB_TOKEN_KEY, token.trim());
-    } else {
-      localStorage.removeItem(GITHUB_TOKEN_KEY);
-    }
+    _sessionGitHubToken = (token || '').trim();
+    return _sessionGitHubToken;
   }
 
   async function syncExcludeToGitHub(articleId, articleUrl, articleTitle) {
@@ -875,7 +887,6 @@
     removeIgnoredTopic: removeIgnoredTopic,
     removeIgnoredArticle: removeIgnoredArticle,
     isArticleIgnored: isArticleIgnored,
-    GITHUB_TOKEN_KEY: GITHUB_TOKEN_KEY,
     getGitHubToken: getGitHubToken,
     setGitHubToken: setGitHubToken,
     syncExcludeToGitHub: syncExcludeToGitHub,
