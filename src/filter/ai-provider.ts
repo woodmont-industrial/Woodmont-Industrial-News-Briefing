@@ -32,14 +32,14 @@ const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
     model: process.env.CEREBRAS_MODEL || 'llama3.1-8b',
-    // 2026-05-27: lowered from 5/1000ms/8/500ms — was triggering 429
-    // "Requests per minute limit exceeded" with exponential backoff to 16s,
-    // adding ~5 min to every build. New values keep RPM under the free-tier limit.
-    maxConcurrent: 3,
-    batchDelayMs: 2000,
-    maxArticles: 60,
-    descBatchSize: 4,
-    descBatchDelayMs: 1500,
+    // 2026-05-27 v2: tighter still since Cerebras is now the fallback. When it
+    // does run, it's because Groq already 429'd — we should be extra-gentle.
+    // 2 concurrent x 5000ms = ~24 RPM, well under free-tier RPM cap.
+    maxConcurrent: 2,
+    batchDelayMs: 5000,
+    maxArticles: 40,
+    descBatchSize: 3,
+    descBatchDelayMs: 2000,
 };
 
 const GROQ_CONFIG = {
@@ -64,19 +64,45 @@ const tokenUsage = { prompt: 0, completion: 0, total: 0, requests: 0 };
  * Returns null if no API key is configured.
  */
 export function getAIProvider(): AIProvider | null {
-    // 2026-05-27: Groq is primary, Cerebras is fallback. Cerebras's free-tier
-    // RPM was triggering 429s with exponential backoff (up to 16s per retry)
-    // adding ~5 min to every build. Groq's free tier has been more reliable.
+    // Kept for backward compat. Returns the first available provider.
+    // For true fallback behavior, use getAIProviders() and iterate.
+    return getAIProviders()[0] ?? null;
+}
+
+/**
+ * Return ALL available AI providers in preference order:
+ * Groq first (primary), Cerebras second (fallback).
+ * Use this when you want 429-fallback: on rate-limit-exhaustion in one
+ * provider, advance to the next.
+ */
+export function getAIProviders(): AIProvider[] {
+    const providers: AIProvider[] = [];
+
     const groqKey = process.env.GROQ_API_KEY;
     if (groqKey) {
-        return { ...GROQ_CONFIG, apiKey: groqKey };
+        providers.push({ ...GROQ_CONFIG, apiKey: groqKey });
     }
 
     const cerebrasKey = process.env.CEREBRAS_API_KEY;
     if (cerebrasKey) {
-        return { ...CEREBRAS_CONFIG, apiKey: cerebrasKey };
+        providers.push({ ...CEREBRAS_CONFIG, apiKey: cerebrasKey });
     }
 
+    return providers;
+}
+
+/**
+ * Parse the Retry-After header from a 429 response.
+ * Returns milliseconds to wait, or null if header missing/unparseable.
+ * Handles both delta-seconds (e.g., "30") and HTTP-date formats.
+ */
+export function getRetryAfterMs(response: Response): number | null {
+    const retryAfter = response.headers.get('retry-after');
+    if (!retryAfter) return null;
+    const seconds = Number(retryAfter);
+    if (!Number.isNaN(seconds)) return Math.max(0, seconds * 1000);
+    const retryDate = new Date(retryAfter).getTime();
+    if (!Number.isNaN(retryDate)) return Math.max(0, retryDate - Date.now());
     return null;
 }
 

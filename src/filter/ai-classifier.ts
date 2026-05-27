@@ -11,7 +11,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProvider, trackTokenUsage, logTokenUsage } from './ai-provider.js';
+import { getAIProvider, getAIProviders, getRetryAfterMs, trackTokenUsage, logTokenUsage } from './ai-provider.js';
 
 export interface AIClassificationResult {
     category: 'relevant' | 'transactions' | 'availabilities' | 'people' | 'exclude';
@@ -98,103 +98,124 @@ Respond with JSON only (no markdown, no code blocks):
 }`;
 
 /**
- * Classify an article using AI (Cerebras preferred, Groq fallback)
+ * Classify an article using AI. Tries providers in preference order
+ * (Groq first, then Cerebras) with true 429-fallback: when one provider
+ * exhausts its retries on rate-limiting, advances to the next.
  */
 export async function classifyWithAI(
     title: string,
     description: string,
     source: string
 ): Promise<AIClassificationResult | null> {
-    const provider = getAIProvider();
+    const providers = getAIProviders();
 
-    if (!provider) {
+    if (providers.length === 0) {
         console.warn('No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping AI classification');
         return null;
     }
 
-    try {
-        const userPrompt = USER_PROMPT_TEMPLATE
-            .replace('{title}', title || 'No title')
-            .replace('{description}', (description || '').substring(0, 500))
-            .replace('{source}', source || 'Unknown');
+    const userPrompt = USER_PROMPT_TEMPLATE
+        .replace('{title}', title || 'No title')
+        .replace('{description}', (description || '').substring(0, 500))
+        .replace('{source}', source || 'Unknown');
 
-        // Retry logic for rate limits
-        let response: Response | null = null;
-        let retries = 0;
-        const maxRetries = 3;
+    for (let pIdx = 0; pIdx < providers.length; pIdx++) {
+        const provider = providers[pIdx];
+        const isLastProvider = pIdx === providers.length - 1;
 
-        while (retries < maxRetries) {
-            response = await fetch(provider.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${provider.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: provider.model,
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        { role: 'user', content: userPrompt }
-                    ],
-                    temperature: 0.1,
-                    max_tokens: 300
-                })
-            });
+        try {
+            let response: Response | null = null;
+            let retries = 0;
+            const maxRetries = 3;
+            let exhausted429 = false;
 
-            if (response.status === 429) {
-                // Rate limited - wait and retry
-                retries++;
-                const waitTime = Math.pow(2, retries) * 2000;
-                console.log(`[${provider.name}] Rate limited, waiting ${waitTime / 1000}s before retry ${retries}/${maxRetries}`);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
+            while (retries < maxRetries) {
+                response = await fetch(provider.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${provider.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: provider.model,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 300
+                    })
+                });
+
+                if (response.status === 429) {
+                    retries++;
+                    // Prefer the API's Retry-After hint; fall back to exponential backoff.
+                    const retryAfterMs = getRetryAfterMs(response);
+                    const waitTime = retryAfterMs ?? Math.pow(2, retries) * 2000;
+                    if (retries < maxRetries) {
+                        console.log(`[${provider.name}] Rate limited, waiting ${Math.round(waitTime / 1000)}s before retry ${retries}/${maxRetries}`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue;
+                    }
+                    exhausted429 = true;
+                    break;
+                }
+
+                break;
+            }
+
+            // If this provider exhausted retries on 429 AND another provider exists, try it.
+            if (exhausted429 && !isLastProvider) {
+                console.log(`[${provider.name}] Exhausted ${maxRetries} retries on 429 — falling back to ${providers[pIdx + 1].name}`);
                 continue;
             }
 
-            break;
-        }
+            if (!response || !response.ok) {
+                const errorText = response ? await response.text() : 'No response';
+                console.error(`[${provider.name}] API error:`, response?.status, errorText);
+                if (!isLastProvider) {
+                    console.log(`[${provider.name}] Trying next provider: ${providers[pIdx + 1].name}`);
+                    continue;
+                }
+                return null;
+            }
 
-        if (!response || !response.ok) {
-            const error = response ? await response.text() : 'No response';
-            console.error(`[${provider.name}] API error:`, response?.status, error);
+            const data = await response.json();
+            trackTokenUsage(data.usage);
+            const content = data.choices?.[0]?.message?.content;
+
+            if (!content) {
+                console.error(`[${provider.name}] No content in response`);
+                if (!isLastProvider) continue;
+                return null;
+            }
+
+            // Parse JSON response (handle potential markdown code blocks)
+            let jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+            const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                console.error(`[${provider.name}] Could not parse JSON from response:`, content);
+                if (!isLastProvider) continue;
+                return null;
+            }
+
+            const result = JSON.parse(jsonMatch[0]) as AIClassificationResult;
+
+            const validCategories = ['relevant', 'transactions', 'availabilities', 'people', 'exclude'];
+            if (!validCategories.includes(result.category)) {
+                result.category = 'exclude';
+            }
+            result.relevanceScore = Number(result.relevanceScore) || 0;
+
+            return result;
+        } catch (error) {
+            console.error(`[${provider.name}] classification error:`, error);
+            if (!isLastProvider) continue;
             return null;
         }
-
-        const data = await response.json();
-        trackTokenUsage(data.usage);
-        const content = data.choices?.[0]?.message?.content;
-
-        if (!content) {
-            console.error(`[${provider.name}] No content in response`);
-            return null;
-        }
-
-        // Parse JSON response (handle potential markdown code blocks)
-        let jsonStr = content;
-        jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-
-        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            console.error(`[${provider.name}] Could not parse JSON from response:`, content);
-            return null;
-        }
-
-        const result = JSON.parse(jsonMatch[0]) as AIClassificationResult;
-
-        // Validate category
-        const validCategories = ['relevant', 'transactions', 'availabilities', 'people', 'exclude'];
-        if (!validCategories.includes(result.category)) {
-            result.category = 'exclude';
-        }
-
-        // Ensure relevanceScore is number
-        result.relevanceScore = Number(result.relevanceScore) || 0;
-
-        return result;
-
-    } catch (error) {
-        console.error('AI classification error:', error);
-        return null;
     }
+
+    return null;
 }
 
 /**
