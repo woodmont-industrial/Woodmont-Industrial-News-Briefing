@@ -67,7 +67,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'jll.com',
         name: 'JLL',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'primary',
         targets: [
             { url: 'https://www.us.jll.com/en/newsroom', label: 'JLL Newsroom' },
@@ -140,7 +140,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'bloomberg.com',
         name: 'Bloomberg',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://www.bloomberg.com/markets/real-estate', label: 'Bloomberg Real Estate' }
@@ -153,7 +153,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'wsj.com',
         name: 'WSJ',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://www.wsj.com/real-estate', label: 'WSJ Real Estate' }
@@ -196,7 +196,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'njbiz.com',
         name: 'NJBIZ',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://njbiz.com/real-estate/', label: 'NJBIZ Real Estate' }
@@ -224,7 +224,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'rejournals.com',
         name: 'REJournals',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://rejournals.com/category/industrial/', label: 'REJournals Industrial' },
@@ -241,7 +241,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'loopnet.com',
         name: 'LoopNet',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://www.loopnet.com/search/industrial-space/nj/for-lease/', label: 'LoopNet NJ Industrial Lease' },
@@ -288,7 +288,7 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
     {
         domain: 'bizjournals.com/southflorida',
         name: 'South FL Business Journal',
-        strategy: 'playwright',
+        strategy: 'axios-pw-fallback',
         type: 'supplementary',
         targets: [
             { url: 'https://www.bizjournals.com/southflorida/news/commercial-real-estate', label: 'SFBJ CRE' }
