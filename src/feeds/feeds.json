@@ -2166,13 +2166,13 @@
     "tier": "D"
   },
   {
-    "url": "https://news.google.com/rss/search?q=site:wsj.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "url": "https://news.google.com/rss/search?q=site:wsj.com+(industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+%22commercial+real+estate%22)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
     "name": "Google News WSJ CRE",
     "region": "US",
     "source": "Google News",
     "type": "macro",
     "timeout": 30000,
-    "_note": "Proxy for WSJ Real Estate (paywall/feed issues)",
+    "_note": "Proxy for WSJ Real Estate (paywall/feed issues). 2026-05-27: parens added around the first OR set so Google parses (industrial|warehouse|logistics|...) AND (NJ|PA|FL|...) instead of joining only the last term with the region filter — old version was getting 0%/100 keep rate.",
     "tier": "D"
   },
   {
@@ -2222,10 +2222,41 @@
   },
   {
     "name": "Google News Bloomberg CRE",
-    "url": "https://news.google.com/rss/search?q=site:bloomberg.com+%22industrial+real+estate%22+OR+%22warehouse%22+OR+%22logistics%22+OR+%22commercial+real+estate%22+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "url": "https://news.google.com/rss/search?q=site:bloomberg.com+(industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+%22commercial+real+estate%22)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
     "enabled": true,
     "source": "Google News Bloomberg CRE",
-    "tier": "C"
+    "tier": "C",
+    "_note": "2026-05-27: parens added around first OR set — same fix as WSJ CRE. Was yielding 4 kept / 100 fetched."
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:jll.com+(industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22+OR+research)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News JLL Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "B",
+    "_note": "Added 2026-05-27: JLL direct scraper is bot-blocked. Filters JLL research/news to NJ/PA/FL industrial topics."
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:loopnet.com+(industrial+OR+warehouse+OR+%22distribution+center%22+OR+%22for+lease%22+OR+%22for+sale%22)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News LoopNet NJ/PA/FL",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "C",
+    "_note": "Added 2026-05-27: LoopNet direct scraper is bot-blocked. NJ/PA/FL filter from the start so we don't repeat the Australian-listings problem the previous broad LoopNet proxy had."
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:rejournals.com+(industrial+OR+warehouse+OR+logistics+OR+%22distribution+center%22)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News REJournals Industrial",
+    "region": "US",
+    "source": "Google News",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "C",
+    "_note": "Added 2026-05-27: REJournals direct scraper is bot-blocked. Filters to NJ/PA/FL industrial."
   },
   {
     "url": "https://re-nj.com/category/people/feed/",
