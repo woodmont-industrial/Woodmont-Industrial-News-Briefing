@@ -318,6 +318,22 @@ export function generateFeedHealthReport(results: FetchResult[], previousReport?
         });
     }
 
+    // BUG FIX 2026-05-27: Two-step build (Step 1 scrapers-only with SKIP_RSS=true,
+    // Step 3 RSS-only with SKIP_SCRAPERS=true) was wiping scraper entries from
+    // feed-health.json because Step 3 ran with no scraper results and overwrote
+    // Step 1's report. feed.json itself merged correctly (load existing -> add fresh),
+    // but feed-health.json was getting clobbered. Preserve previous scraper entries
+    // here when the current `results` set has none.
+    const currentResultsHaveScrapers = results.some(r => r.meta.feed.startsWith('Scraper: '));
+    if (!currentResultsHaveScrapers && previousReport?.feeds) {
+        const previousScrapers = previousReport.feeds.filter(f => f.type === 'scraper');
+        for (const prevFeed of previousScrapers) {
+            // Skip if already present (avoid duplicates if pipeline runs both steps later)
+            if (feeds.some(f => f.name === prevFeed.name)) continue;
+            feeds.push(prevFeed);
+        }
+    }
+
     feeds.sort((a, b) => {
         if (a.status !== b.status) return a.status === 'failed' ? -1 : 1;
         return a.name.localeCompare(b.name);

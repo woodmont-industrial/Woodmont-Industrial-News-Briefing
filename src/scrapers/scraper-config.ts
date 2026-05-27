@@ -114,8 +114,9 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         type: 'supplementary',
         targets: [
             { url: 'https://www.bisnow.com/national/news', label: 'Bisnow National' },
-            { url: 'https://www.bisnow.com/new-york/news', label: 'Bisnow NY' },
-            { url: 'https://www.bisnow.com/new-jersey/news', label: 'Bisnow NJ' }
+            { url: 'https://www.bisnow.com/new-jersey/news', label: 'Bisnow NJ' },
+            { url: 'https://www.bisnow.com/philadelphia/news', label: 'Bisnow Philadelphia' },
+            { url: 'https://www.bisnow.com/south-florida/news', label: 'Bisnow South Florida' }
         ],
         maxRunsPerDay: 6,
         cacheTTLMs: SUPPLEMENTARY_TTL,
