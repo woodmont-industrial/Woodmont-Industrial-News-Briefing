@@ -16,7 +16,8 @@ import {
     RELEVANT_KEYWORDS, PEOPLE_ACTION_KEYWORDS, INDUSTRIAL_CONTEXT_KEYWORDS,
     TRANSACTION_ACTION_WORDS, APPROVAL_KEYWORDS, EXCLUDE_FROM_PEOPLE,
     APPROVED_DOMAINS, REGIONAL_SOURCES, BROKERAGE_SOURCES,
-    isStrictlyIndustrial
+    isStrictlyIndustrial,
+    hasWrongPropertyType, hasStrongIndustrialOverride
 } from '../shared/region-data.js';
 
 // Geographic-only target regions (no CRE company names)
@@ -310,6 +311,13 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
     const filtered = items.filter(article => {
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('transactions', 'POLITICAL_CONTENT'); return false; }
+        // Hard property-type guard. Office/residential/retail/hospitality/self-storage
+        // articles get rejected here even if description is empty (paywalled/title-only
+        // items where isIndustrialProperty's EXCLUDE_NON_INDUSTRIAL check would miss them).
+        if (hasWrongPropertyType(text) && !hasStrongIndustrialOverride(text)) {
+            if (diag) diag.recordReject('transactions', 'WRONG_PROPERTY_TYPE');
+            return false;
+        }
         if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('transactions', 'NOT_INDUSTRIAL'); return false; }
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;

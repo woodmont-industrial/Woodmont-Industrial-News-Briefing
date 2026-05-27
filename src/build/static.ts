@@ -15,7 +15,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
-import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
+import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
@@ -334,27 +334,13 @@ export async function buildStaticRSS(): Promise<void> {
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
 
-            // 2026-05-27: Hard property-type gate. Office / residential / retail
-            // transactions with SF signals were sneaking into the Transactions
-            // section (e.g., "Fashion Designer Pamella Roland Takes 10K-SF Office
-            // at 462 Seventh Avenue"). Reject these unless the article ALSO has a
-            // strong industrial-asset override term.
-            const STRONG_INDUSTRIAL_OVERRIDE = /\b(warehouse|industrial\s+(building|park|outdoor\s+storage|space)|logistics\s+(center|facility|hub)|distribution\s+center|fulfillment\s+center|manufacturing\s+facility|cold\s+storage|truck\s+terminal|cross[ -]?dock|trailer\s+parking|loading\s+dock|3pl|drayage|intermodal)\b/i;
-            const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
-            const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living)\b/i;
-            const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
-            const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;
-            const SELF_STORAGE_RE = /\b(self[ -]storage|storage\s+unit|climate[ -]controlled\s+storage)\b/i;
-
-            const hasWrongPropertyTypeSignal =
-                OFFICE_TRANSACTION_RE.test(text) ||
-                RESIDENTIAL_TRANSACTION_RE.test(text) ||
-                RETAIL_TRANSACTION_RE.test(text) ||
-                HOSPITALITY_TRANSACTION_RE.test(text) ||
-                SELF_STORAGE_RE.test(text);
-            const hasStrongIndustrialOverride = STRONG_INDUSTRIAL_OVERRIDE.test(text);
-
-            if (hasWrongPropertyTypeSignal && !hasStrongIndustrialOverride) {
+            // Hard property-type gate (regexes in shared/region-data.ts so
+            // newsletter-filters.ts uses the same set). Office / residential /
+            // retail / hospitality / self-storage articles with SF signals
+            // were sneaking into Transactions ("Fashion Designer Pamella Roland
+            // Takes 10K-SF Office at 462 Seventh Avenue"). Reject unless the
+            // article ALSO has a strong industrial-asset override term.
+            if (hasWrongPropertyType(text) && !hasStrongIndustrialOverride(text)) {
                 item.category = 'exclude';
                 (item as any)._classificationReason = 'REJECT_WRONG_PROPERTY_TYPE';
                 return item;
@@ -928,6 +914,89 @@ export async function buildStaticRSS(): Promise<void> {
             else regionCounts.National++;
         }
         log('info', `Region breakdown: NJ=${regionCounts.NJ} PA=${regionCounts.PA} FL=${regionCounts.FL} National=${regionCounts.National}`);
+
+        // === STEP 4.5: Predicted-publish simulation (Path A) ===
+        // For every item, simulate whether it would survive the send-time per-section
+        // publishing filters + section caps. Stamps:
+        //   _predictedPublish: boolean
+        //   _predictedReason: string  (WOULD_PUBLISH / CAP_OVERFLOW / FAILED_PUBLISH_FILTER /
+        //                              REJECT_WRONG_PROPERTY_TYPE / EXCLUDED / ...)
+        //   _tier: 'A' | 'B' | 'C' | 'D'
+        // The SPA reads these to show predicted-publishable items by default and reveal
+        // reasons with ?debug=1.
+        try {
+            const { applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter } =
+                await import('../server/newsletter-filters.js');
+            const { RELEVANT_KEYWORDS } = await import('../shared/region-data.js');
+
+            const byCat: Record<string, NormalizedItem[]> = {
+                relevant: rssItems.filter(i => i.category === 'relevant'),
+                transactions: rssItems.filter(i => i.category === 'transactions'),
+                availabilities: rssItems.filter(i => i.category === 'availabilities'),
+                people: rssItems.filter(i => i.category === 'people'),
+            };
+
+            const publishedByCat: Record<string, NormalizedItem[]> = {
+                relevant: applyStrictFilter(byCat.relevant, RELEVANT_KEYWORDS, 'Relevant'),
+                transactions: applyTransactionFilter(byCat.transactions),
+                availabilities: applyAvailabilityFilter(byCat.availabilities),
+                people: applyPeopleFilter(byCat.people),
+            };
+
+            // Mirror the send-time MAX_PER_SECTION (=6, 3 for availabilities) from email.ts.
+            const CAPS: Record<string, number> = {
+                relevant: 6, transactions: 6, availabilities: 3, people: 6,
+            };
+
+            const publishedIds = new Set<string>();
+            const filterPassedIds = new Set<string>();
+            for (const [cat, list] of Object.entries(publishedByCat)) {
+                list.forEach(i => i.id && filterPassedIds.add(i.id));
+                const sorted = [...list].sort((a, b) =>
+                    new Date(b.pubDate || (b as any).date_published || 0).getTime() -
+                    new Date(a.pubDate || (a as any).date_published || 0).getTime()
+                );
+                sorted.slice(0, CAPS[cat] || 6).forEach(i => i.id && publishedIds.add(i.id));
+            }
+
+            let publishedCount = 0;
+            for (const item of rssItems) {
+                const id = item.id;
+                const classReason = (item as any)._classificationReason;
+                if (id && publishedIds.has(id)) {
+                    (item as any)._predictedPublish = true;
+                    (item as any)._predictedReason = 'WOULD_PUBLISH';
+                    publishedCount++;
+                } else if (id && filterPassedIds.has(id)) {
+                    (item as any)._predictedPublish = false;
+                    (item as any)._predictedReason = 'CAP_OVERFLOW';
+                } else if (classReason && classReason.startsWith('REJECT')) {
+                    (item as any)._predictedPublish = false;
+                    (item as any)._predictedReason = classReason;
+                } else if (item.category === 'exclude') {
+                    (item as any)._predictedPublish = false;
+                    (item as any)._predictedReason = 'EXCLUDED';
+                } else {
+                    (item as any)._predictedPublish = false;
+                    (item as any)._predictedReason = 'FAILED_PUBLISH_FILTER';
+                }
+
+                // Source-tier lookup: derive from feeds.json entry that produced this item.
+                const feedName = ((item as any)._source?.feedName || (item as any).source || '').toLowerCase();
+                let tier = 'C';
+                for (const feed of (RSS_FEEDS as any[])) {
+                    const fname = (feed.name || '').toLowerCase();
+                    if (fname && (feedName.includes(fname) || fname.includes(feedName))) {
+                        tier = feed.tier || 'C';
+                        break;
+                    }
+                }
+                (item as any)._tier = tier;
+            }
+            log('info', `Predicted publish: ${publishedCount} of ${rssItems.length} items would ship today (capped)`);
+        } catch (e) {
+            log('warn', 'Predicted-publish simulation failed: ' + (e as Error).message);
+        }
 
         // === STEP 5: Enrich articles with og:image thumbnails ===
         await enrichArticleImages(rssItems);

@@ -210,6 +210,32 @@ export const EXCLUDE_POLITICAL = [
 ];
 
 // Non-industrial property types to exclude
+// Hard property-type guards used by both the build phase (static.ts
+// recategorizeArticle) and the send phase (newsletter-filters.ts
+// applyTransactionFilter). Reject office / residential / retail /
+// hospitality / self-storage transactions UNLESS the article has a strong
+// industrial-asset override term (STRONG_INDUSTRIAL_OVERRIDE_RE).
+// Keeps "Fashion Designer Takes 10K-SF Office" out of Transactions even
+// when description is empty (paywalled or Google News title-only items).
+export const STRONG_INDUSTRIAL_OVERRIDE_RE = /\b(warehouse|industrial\s+(building|park|outdoor\s+storage|space)|logistics\s+(center|facility|hub)|distribution\s+center|fulfillment\s+center|manufacturing\s+facility|cold\s+storage|truck\s+terminal|cross[ -]?dock|trailer\s+parking|loading\s+dock|3pl|drayage|intermodal)\b/i;
+export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
+export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living)\b/i;
+export const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
+export const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;
+export const SELF_STORAGE_RE = /\b(self[ -]storage|storage\s+unit|climate[ -]controlled\s+storage)\b/i;
+
+export function hasWrongPropertyType(text: string): boolean {
+    return OFFICE_TRANSACTION_RE.test(text) ||
+        RESIDENTIAL_TRANSACTION_RE.test(text) ||
+        RETAIL_TRANSACTION_RE.test(text) ||
+        HOSPITALITY_TRANSACTION_RE.test(text) ||
+        SELF_STORAGE_RE.test(text);
+}
+
+export function hasStrongIndustrialOverride(text: string): boolean {
+    return STRONG_INDUSTRIAL_OVERRIDE_RE.test(text);
+}
+
 export const EXCLUDE_NON_INDUSTRIAL = [
     // Office
     'office lease', 'office building', 'office tower', 'office space', 'offices', 'coworking', 'co-working',

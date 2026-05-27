@@ -149,7 +149,14 @@ export function generateJSONFeed(items: NormalizedItem[]): object {
                     feedName: item.source || websiteDomain
                 },
                 category: category,
-                tags: [categoryLabels[category] || category, websiteDomain, ...(item.regions || [])]
+                tags: [categoryLabels[category] || category, websiteDomain, ...(item.regions || [])],
+                // Path A: pass through publishing-simulation + tier + classification reason
+                // so the SPA can default to predicted-publishable items + show reasons in
+                // debug mode (?debug=1).
+                _predictedPublish: (item as any)._predictedPublish ?? null,
+                _predictedReason: (item as any)._predictedReason ?? null,
+                _classificationReason: (item as any)._classificationReason ?? null,
+                _tier: (item as any)._tier ?? null,
             };
         })
     };
