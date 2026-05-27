@@ -45,7 +45,12 @@ async function startServer(openBrowserOnStart: boolean = true): Promise<void> {
             console.log('Opening browser... (use --no-browser flag to disable)');
             setTimeout(() => {
                 import('./src/server/browser.js').then(({ openBrowser }) => {
-                    openBrowser(`http://localhost:${PORT}`);
+                    // openBrowser now returns Promise<void>; catch so any launch
+                    // failure (bad URL, spawn error) doesn't become an unhandled
+                    // promise rejection.
+                    openBrowser(`http://localhost:${PORT}`).catch(err => {
+                        console.warn('Failed to open browser:', (err as Error)?.message || err);
+                    });
                 });
             }, 1000);
         } else {
