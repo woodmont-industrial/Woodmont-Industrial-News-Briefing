@@ -3,6 +3,24 @@ import { getPublisherName } from '../shared/publisher-name.js';
 
 // Build HTML briefing in required format. Expects sections with arrays of items: { title, link, publisher, author, pubDate, description }
 export function buildBriefing({ relevant = [], transactions = [], availabilities = [], people = [] }: { relevant?: NormalizedItem[]; transactions?: NormalizedItem[]; availabilities?: NormalizedItem[]; people?: NormalizedItem[] }, period: string = "Current Period") {
+    const escapeHtml = (text: string): string => text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const escapeAttr = (text: string): string => escapeHtml(text);
+
+    const safeUrl = (url: string): string => {
+        try {
+            const parsedUrl = new URL(url);
+            return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:' ? parsedUrl.toString() : '#';
+        } catch (_error) {
+            return '#';
+        }
+    };
+
     // Calculate date range for the header
     const now = new Date();
 
@@ -58,7 +76,7 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
                               sourceWebsite || sourceFeedName || sourceName ||
                               it.publisher || it.source || extractedDomain || 'Industry News';
 
-            const link = articleUrl || '#';
+            const link = safeUrl(articleUrl || '#');
 
             // Get description from multiple possible fields - NEVER show "No description available"
             const rawDescription = (it.description && it.description.trim()) ||
@@ -91,34 +109,37 @@ export function buildBriefing({ relevant = [], transactions = [], availabilities
 
             // Create tags: state, category, source
             const tags = [
-                `<span class="badge badge-location">${state}</span>`,
-                `<span class="badge badge-category">${categoryDisplay}</span>`,
-                `<span class="badge badge-source">${publisher}</span>`
+                `<span class="badge badge-location">${escapeHtml(state)}</span>`,
+                `<span class="badge badge-category">${escapeHtml(categoryDisplay)}</span>`,
+                `<span class="badge badge-source">${escapeHtml(publisher)}</span>`
             ].join(' ');
 
             // Create tracking keyword from publisher/source
             const trackKeyword = encodeURIComponent(publisher.toLowerCase().replace(/[^a-z0-9]/g, '-'));
             const webAppUrl = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing';
+            const trackingUrlBase = safeUrl(webAppUrl);
+            const trackUrl = safeUrl(`${trackingUrlBase}?action=track&keyword=${trackKeyword}`);
+            const ignoreUrl = safeUrl(`${trackingUrlBase}?action=ignore&keyword=${trackKeyword}`);
 
             return `<div class="article-card">
                 <div class="article-title-header">
-                    <h3 class="article-title">${title}</h3>
+                    <h3 class="article-title">${escapeHtml(title)}</h3>
                 </div>
                 <div class="article-header">
                     ${tags}
                 </div>
                 <div class="article-description">
-                    <p>${fullSummary}</p>
+                    <p>${escapeHtml(fullSummary)}</p>
                 </div>
                 <div class="article-source">
                     <div class="source-info">
                         <span class="source-label">📰 Source:</span>
-                        <span class="source-name">${publisher}</span>
+                        <span class="source-name">${escapeHtml(publisher)}</span>
                     </div>
                     <div class="action-buttons-inline">
-                        <a href="${link}" class="read-more-btn" target="_blank">Read Full Article →</a>
-                        <a href="${webAppUrl}?action=track&keyword=${trackKeyword}" class="action-btn btn-track" target="_blank">✅ Track</a>
-                        <a href="${webAppUrl}?action=ignore&keyword=${trackKeyword}" class="action-btn btn-ignore" target="_blank">🚫 Ignore</a>
+                        <a href="${escapeAttr(link)}" class="read-more-btn" target="_blank">Read Full Article →</a>
+                        <a href="${escapeAttr(trackUrl)}" class="action-btn btn-track" target="_blank">✅ Track</a>
+                        <a href="${escapeAttr(ignoreUrl)}" class="action-btn btn-ignore" target="_blank">🚫 Ignore</a>
                     </div>
                 </div>
             </div>`;
