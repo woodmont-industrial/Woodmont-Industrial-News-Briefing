@@ -127,7 +127,13 @@ export function buildWorkBriefing(
             ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
             : '';
 
-        // Get 1-2 sentence description (up to 350 chars for compact bullets)
+        // Sentence/char limits depend on category:
+        //   transactions / availabilities → 1-2 sentences (compact deal info)
+        //   relevant / people             → 2-3 sentences (more context for trends + bio)
+        const cat = (item as any).category || 'relevant';
+        const maxSentences = (cat === 'relevant' || cat === 'people') ? 3 : 2;
+        const charLimit = (cat === 'relevant' || cat === 'people') ? 450 : 280;
+
         let description = '';
         const rawDesc = (item.description || (item as any).content_text || (item as any).summary || '').trim();
         if (rawDesc && rawDesc.length > 10) {
@@ -136,12 +142,12 @@ export function buildWorkBriefing(
             const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2');
             const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.replace(/\u0000/g, '.'));
             if (sentences && sentences.length > 0) {
-                description = sentences.slice(0, 2).join('').trim();
+                description = sentences.slice(0, maxSentences).join('').trim();
             } else {
                 description = rawDesc;
             }
-            if (description.length > 350) {
-                description = description.substring(0, 347).replace(/\s+\S*$/, '') + '...';
+            if (description.length > charLimit) {
+                description = description.substring(0, charLimit - 3).replace(/\s+\S*$/, '') + '...';
             }
         }
 

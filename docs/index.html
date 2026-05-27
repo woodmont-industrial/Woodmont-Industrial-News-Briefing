@@ -2453,10 +2453,24 @@
           relevant: 'Macro trend affecting industrial real estate fundamentals and investment decisions.'
         };
 
+        // Category-aware description length:
+        //   transactions / availabilities → 1-2 sentences, ~280 chars
+        //   relevant / people             → 2-3 sentences, ~450 chars
+        const buildDesc = (item, category) => {
+          const maxSent = (category === 'relevant' || category === 'people') ? 3 : 2;
+          const charLim = (category === 'relevant' || category === 'people') ? 450 : 280;
+          const raw = (item.description || item.content_text || item.summary || '').trim();
+          if (!raw || raw.length < 10) return '';
+          const sentences = raw.match(/[^.!?]+[.!?]+/g);
+          let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
+          if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
+          return out;
+        };
+
         const renderArticle = (item, category) => {
           const region = item.regions?.[0] || 'US';
           const title = item.title || 'Untitled';
-          const desc = (item.description || '').substring(0, 200) + (item.description?.length > 200 ? '...' : '');
+          const desc = buildDesc(item, category);
           const whyItMatters = relevanceContext[category] || relevanceContext.relevant;
           const source = item.source || 'Industry News';
 
@@ -2566,11 +2580,26 @@
         const availabilities = articles.filter(a => a.category === 'availabilities').sort(byDate).slice(0, 5);
         const people = articles.filter(a => a.category === 'people').sort(byDate).slice(0, 5);
 
+        // Category-aware description length:
+        //   transactions / availabilities → 1-2 sentences, ~280 chars
+        //   relevant / people             → 2-3 sentences, ~450 chars
+        const buildDescGoth = (item) => {
+          const cat = item.category || 'relevant';
+          const maxSent = (cat === 'relevant' || cat === 'people') ? 3 : 2;
+          const charLim = (cat === 'relevant' || cat === 'people') ? 450 : 280;
+          const raw = (item.description || item.content_text || item.summary || '').trim();
+          if (!raw || raw.length < 10) return '';
+          const sentences = raw.match(/[^.!?]+[.!?]+/g);
+          let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
+          if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
+          return out;
+        };
+
         const formatBullet = (item) => {
           const title = item.title || 'Untitled';
           const url = item.link || '#';
           const source = item.source || 'Industry News';
-          const desc = (item.description || '').substring(0, 180) + (item.description?.length > 180 ? '...' : '');
+          const desc = buildDescGoth(item);
 
           return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
             <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
@@ -2692,18 +2721,23 @@
             ? ` <span style="background: #2563eb; color: white; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: bold;">${dealSize}</span>`
             : '';
 
-          // Get 2-3 sentence description (up to 450 chars)
+          // Category-aware description length:
+          //   transactions / availabilities → 1-2 sentences, ~280 chars
+          //   relevant / people             → 2-3 sentences, ~450 chars
+          const cat = item.category || 'relevant';
+          const maxSentences = (cat === 'relevant' || cat === 'people') ? 3 : 2;
+          const charLimit = (cat === 'relevant' || cat === 'people') ? 450 : 280;
           let description = '';
           const rawDesc = (item.description || item.content_text || item.summary || '').trim();
           if (rawDesc && rawDesc.length > 10) {
             const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
             if (sentences && sentences.length > 0) {
-              description = sentences.slice(0, 3).join('').trim();
+              description = sentences.slice(0, maxSentences).join('').trim();
             } else {
               description = rawDesc;
             }
-            if (description.length > 450) {
-              description = description.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+            if (description.length > charLimit) {
+              description = description.substring(0, charLimit - 3).replace(/\s+\S*$/, '') + '...';
             }
           }
 
