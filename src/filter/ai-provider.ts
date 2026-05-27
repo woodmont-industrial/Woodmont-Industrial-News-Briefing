@@ -32,11 +32,14 @@ const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
     model: process.env.CEREBRAS_MODEL || 'llama3.1-8b',
-    maxConcurrent: 5,
-    batchDelayMs: 1000,
+    // 2026-05-27: lowered from 5/1000ms/8/500ms — was triggering 429
+    // "Requests per minute limit exceeded" with exponential backoff to 16s,
+    // adding ~5 min to every build. New values keep RPM under the free-tier limit.
+    maxConcurrent: 3,
+    batchDelayMs: 2000,
     maxArticles: 60,
-    descBatchSize: 8,
-    descBatchDelayMs: 500,
+    descBatchSize: 4,
+    descBatchDelayMs: 1500,
 };
 
 const GROQ_CONFIG = {
