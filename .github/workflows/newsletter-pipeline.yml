@@ -23,6 +23,11 @@ on:
         required: false
         type: boolean
         default: false
+      force_build:
+        description: 'Bypass 2-hour dedup gate (force a fresh build)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -43,6 +48,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            // Honor manual force_build input — bypass dedup gate entirely
+            if ('${{ inputs.force_build }}' === 'true') {
+              core.setOutput('skip', 'false');
+              console.log('force_build=true — bypassing dedup gate');
+              return;
+            }
             // Skip if this pipeline already succeeded today (avoid redundant builds)
             try {
               const runs = await github.rest.actions.listWorkflowRuns({
