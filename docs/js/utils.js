@@ -501,20 +501,20 @@
   // ============================================
   // GITHUB SYNC — persist ignores to excluded-articles.json
   // ============================================
-  var GITHUB_TOKEN_KEY = 'woodmont_github_token';
+  var GITHUB_TOKEN_KEY = 'woodmont_github_token_session';
   var GITHUB_REPO = 'woodmont-industrial/Woodmont-Industrial-News-Briefing';
   var EXCLUDE_FILE_PATH = 'docs/excluded-articles.json';
 
+  // Session-only in-memory token storage (clears on reload/tab close).
+  var _sessionGitHubToken = '';
+
   function getGitHubToken() {
-    return localStorage.getItem(GITHUB_TOKEN_KEY) || '';
+    return _sessionGitHubToken || '';
   }
 
   function setGitHubToken(token) {
-    if (token) {
-      localStorage.setItem(GITHUB_TOKEN_KEY, token.trim());
-    } else {
-      localStorage.removeItem(GITHUB_TOKEN_KEY);
-    }
+    _sessionGitHubToken = (token || '').trim();
+    return _sessionGitHubToken;
   }
 
   async function syncExcludeToGitHub(articleId, articleUrl, articleTitle) {

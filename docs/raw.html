@@ -160,7 +160,7 @@ function RawApp() {
   const [hideInFeed, setHideInFeed] = useState(false);
   const [hidePicked, setHidePicked] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
-  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'synced' | 'failed'
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'synced' | 'failed' | 'no_token'
 
   // Dark mode
   useEffect(() => {
@@ -241,13 +241,18 @@ function RawApp() {
       setPrefs(newPrefs);
       savePrefs(newPrefs);
       // Fire-and-forget GitHub sync
-      if (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
-        setSyncStatus('syncing');
-        const syncFn = wasRemoved
-          ? window.WoodmontUtils.removeIncludeFromGitHub(article.id)
-          : window.WoodmontUtils.syncIncludeToGitHub(article.id, next[article.id]);
-        syncFn.then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
-              .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+      if (window.WoodmontUtils) {
+        if (window.WoodmontUtils.getGitHubToken()) {
+          setSyncStatus('syncing');
+          const syncFn = wasRemoved
+            ? window.WoodmontUtils.removeIncludeFromGitHub(article.id)
+            : window.WoodmontUtils.syncIncludeToGitHub(article.id, next[article.id]);
+          syncFn.then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+                .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+        } else {
+          setSyncStatus('no_token');
+          setTimeout(() => setSyncStatus(null), 2500);
+        }
       }
       return next;
     });
@@ -256,11 +261,16 @@ function RawApp() {
   const clearPicks = useCallback(() => {
     setPicks({});
     clearRawPicks();
-    if (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
-      setSyncStatus('syncing');
-      window.WoodmontUtils.clearIncludesOnGitHub()
-        .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
-        .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+    if (window.WoodmontUtils) {
+      if (window.WoodmontUtils.getGitHubToken()) {
+        setSyncStatus('syncing');
+        window.WoodmontUtils.clearIncludesOnGitHub()
+          .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+          .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+      } else {
+        setSyncStatus('no_token');
+        setTimeout(() => setSyncStatus(null), 2500);
+      }
     }
   }, []);
 
@@ -280,11 +290,16 @@ function RawApp() {
     setAllRawPicks(newPicks);
     setPrefs(newPrefs);
     savePrefs(newPrefs);
-    if (Object.keys(newlyAdded).length > 0 && window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) {
-      setSyncStatus('syncing');
-      window.WoodmontUtils.syncMultipleIncludesToGitHub(newlyAdded)
-        .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
-        .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+    if (Object.keys(newlyAdded).length > 0 && window.WoodmontUtils) {
+      if (window.WoodmontUtils.getGitHubToken()) {
+        setSyncStatus('syncing');
+        window.WoodmontUtils.syncMultipleIncludesToGitHub(newlyAdded)
+          .then(r => { setSyncStatus(r.ok ? 'synced' : 'failed'); setTimeout(() => setSyncStatus(null), 2000); })
+          .catch(() => { setSyncStatus('failed'); setTimeout(() => setSyncStatus(null), 2000); });
+      } else {
+        setSyncStatus('no_token');
+        setTimeout(() => setSyncStatus(null), 2500);
+      }
     }
   }, [filtered, picks, prefs]);
 
@@ -491,7 +506,7 @@ function RawApp() {
           )}
           {syncStatus && (
             <span className={`text-xs font-medium ${syncStatus === 'syncing' ? 'text-blue-500' : syncStatus === 'synced' ? 'text-emerald-500' : 'text-red-500'}`}>
-              {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'synced' ? 'Synced!' : 'Sync failed'}
+              {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'synced' ? 'Synced!' : syncStatus === 'no_token' ? 'Session token required' : 'Sync failed'}
             </span>
           )}
           <span className="text-xs text-slate-400 dark:text-slate-500">
