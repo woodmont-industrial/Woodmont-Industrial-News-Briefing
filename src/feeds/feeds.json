@@ -222,7 +222,19 @@
     "source": "Supply Chain Dive",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "B"
+    "tier": "B",
+    "enabled": false,
+    "_note": "Disabled 2026-05-27 — broad publisher RSS pulled retail/delivery noise (Mattress Firm contactless delivery, Albertsons AI produce). Replaced with Google News filtered proxy below."
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site:supplychaindive.com+(industrial+OR+warehouse+OR+%22distribution+center%22+OR+fulfillment+OR+%223PL%22+OR+logistics+OR+%22cold+storage%22)+(NJ+OR+PA+OR+FL+OR+%22New+Jersey%22+OR+Pennsylvania+OR+Florida)&hl=en-US&gl=US&ceid=US:en",
+    "name": "Google News Supply Chain Dive Industrial",
+    "region": "US",
+    "source": "Supply Chain Dive",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "B",
+    "_note": "Replaces broad Supply Chain Dive direct RSS — filters to industrial/logistics terms with NJ/PA/FL targeting"
   },
   {
     "url": "https://www.freightwaves.com/feed/",

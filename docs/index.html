@@ -2498,9 +2498,12 @@
           </div>`;
         };
         
+        const LOGO_URL = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/assets/woodmont-logo.jpg';
         return `<!DOCTYPE html><html><head><style>
           *{margin:0;padding:0;box-sizing:border-box}
           body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px}
+          .logo-wrap{background:#fff;text-align:center;padding:20px 0 10px 0}
+          .logo-wrap img{max-width:220px;height:auto;display:inline-block;border:0}
           .container{max-width:800px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
           .header{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;padding:40px 30px;text-align:center}
           .header h1{font-size:28px;margin-bottom:10px}.header .subtitle{font-size:16px;opacity:.9;margin-bottom:8px}
@@ -2528,8 +2531,11 @@
           .empty-section{background:#f8f9fa;padding:20px;border-radius:8px;text-align:center;color:#666;font-style:italic}
           .footer{background:#f8f9fa;padding:25px 30px;text-align:center;color:#666;font-size:14px;border-top:1px solid #dee2e6}
         </style></head><body><div class="container">
+          <div class="logo-wrap">
+            <img src="${LOGO_URL}" alt="Woodmont Industrial Partners" width="220">
+          </div>
           <div class="header">
-            <h1>🏭 Woodmont Industrial Partners</h1>
+            <h1>Woodmont Industrial Partners</h1>
             <div class="subtitle">Daily Industrial News Briefing</div>
             <div class="date-range">Coverage Period: ${dateRange}</div>
             <div class="date-range">Focus Markets: NJ, PA, FL</div>
@@ -2589,10 +2595,14 @@
           </div>`;
         };
 
+        const LOGO_URL_GOTH = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/assets/woodmont-logo.jpg';
         return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin: 0; padding: 20px; background: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif;">
           <div style="max-width: 700px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: #fff; text-align: center; padding: 18px 0 10px 0;">
+              <img src="${LOGO_URL_GOTH}" alt="Woodmont Industrial Partners" width="220" style="max-width: 220px; height: auto; display: inline-block; border: 0;">
+            </div>
             <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; padding: 30px; text-align: center;">
-              <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">🏭 Woodmont Industrial Partners</h1>
+              <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Woodmont Industrial Partners</h1>
               <p style="margin: 0 0 4px 0; font-size: 14px; opacity: 0.9;">Daily Industrial News Briefing — Executive Summary</p>
               <p style="margin: 0; font-size: 12px; opacity: 0.7;">${dateRange} | Focus: NJ, PA, FL</p>
             </div>
@@ -2747,11 +2757,15 @@
           ? 'Woodmont Industrial Partners — Weekly Industrial News Briefing'
           : 'Woodmont Industrial Partners — Daily Industrial News Briefing';
 
+        const LOGO_URL_WORK = 'https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/assets/woodmont-logo.jpg';
         return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${headerTitle}</title></head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; margin: 0; padding: 30px 40px; color: #333; line-height: 1.5;">
   <div style="max-width: 800px; margin: 0 auto;">
-    <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e3a5f; font-weight: bold;">${headerTitle}</h1>
-    <p style="margin: 0 0 15px 0; font-size: 14px; color: #333;"><strong>Date:</strong> ${formattedDate}</p>
+    <div style="text-align: center; margin: 0 0 20px 0;">
+      <img src="${LOGO_URL_WORK}" alt="Woodmont Industrial Partners" width="220" style="max-width: 220px; height: auto; display: inline-block; border: 0;">
+    </div>
+    <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e3a5f; font-weight: bold; text-align: center;">${headerTitle}</h1>
+    <p style="margin: 0 0 15px 0; font-size: 14px; color: #333; text-align: center;"><strong>Date:</strong> ${formattedDate}</p>
     <hr style="border: none; border-top: 2px solid #2563eb; margin: 0 0 25px 0;">
     ${renderSection('Relevant News', relevant, 6)}
     ${renderSection('Transactions', transactions, 6)}
@@ -2761,7 +2775,7 @@
     <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
     <p style="font-size: 11px; color: #888; margin: 0;">
       This briefing is automatically generated for Woodmont Industrial Partners.<br>
-      Focus regions: New Jersey, Pennsylvania, South Florida | Deals ≥100K SF or ≥$25M
+      Focus regions: New Jersey, Pennsylvania, Florida | Deals ≥100K SF or ≥$25M
     </p>
   </div>
 </body></html>`;

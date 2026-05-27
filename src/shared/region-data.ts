@@ -329,16 +329,21 @@ export function isStrictlyIndustrial(text: string): boolean {
         return true;
     }
 
-    // Supply chain / freight / shipping — only pass if article has CRE or physical-asset context
-    // "Vibe coding for FreightTech" should NOT pass; "Freight warehouse demand surges" should
+    // Supply chain / freight / shipping — only pass if article has a real
+    // INDUSTRIAL ASSET signal. Tightened 2026-05-27: removed `delivery`,
+    // `deliveries`, `operations`, `inventory`, `fleet`, `carrier`, `building`
+    // from the asset regex — those were too generic and let through
+    // retail-delivery/inventory-tech content ("Mattress Firm contactless
+    // delivery", "Albertsons AI produce inspection"). Asset signal now
+    // requires actual physical infrastructure language.
     const SUPPLY_CHAIN_KEYWORDS = [
         'supply chain', 'freight', 'trucking', 'shipping', 'cargo',
         'e-commerce', 'ecommerce', 'automation', 'autonomous', 'robotics',
     ];
     if (SUPPLY_CHAIN_KEYWORDS.some(kw => lower.includes(kw))) {
-        const hasPhysicalAsset = /\b(warehouse|facility|building|distribution|fulfillment|logistics center|port|terminal|yard|dock|fleet|carrier|3pl|drayage|intermodal|cold chain|inventory|trailer|unload|delivery|deliveries|operations|last.?mile)\b/i.test(lower);
-        if (hasPhysicalAsset) return true;
-        // Generic supply chain/freight tech articles without physical context → reject
+        const hasIndustrialAsset = /\b(warehouse|distribution\s+center|fulfillment\s+center|logistics\s+center|industrial\s+park|industrial\s+building|manufacturing\s+facility|cold\s+storage|3pl|drayage|intermodal|port|terminal|rail\s+yard|truck\s+terminal|trailer\s+parking|last[ -]?mile\s+facility|loading\s+dock|cross[ -]?dock|industrial\s+outdoor\s+storage|spec\s+industrial)\b/i.test(lower);
+        if (hasIndustrialAsset) return true;
+        // Generic supply chain/freight content without a physical-asset signal → reject
         return false;
     }
 
