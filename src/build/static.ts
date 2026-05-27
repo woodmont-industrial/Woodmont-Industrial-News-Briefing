@@ -334,6 +334,32 @@ export async function buildStaticRSS(): Promise<void> {
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
 
+            // 2026-05-27: Hard property-type gate. Office / residential / retail
+            // transactions with SF signals were sneaking into the Transactions
+            // section (e.g., "Fashion Designer Pamella Roland Takes 10K-SF Office
+            // at 462 Seventh Avenue"). Reject these unless the article ALSO has a
+            // strong industrial-asset override term.
+            const STRONG_INDUSTRIAL_OVERRIDE = /\b(warehouse|industrial\s+(building|park|outdoor\s+storage|space)|logistics\s+(center|facility|hub)|distribution\s+center|fulfillment\s+center|manufacturing\s+facility|cold\s+storage|truck\s+terminal|cross[ -]?dock|trailer\s+parking|loading\s+dock|3pl|drayage|intermodal)\b/i;
+            const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
+            const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living)\b/i;
+            const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
+            const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;
+            const SELF_STORAGE_RE = /\b(self[ -]storage|storage\s+unit|climate[ -]controlled\s+storage)\b/i;
+
+            const hasWrongPropertyTypeSignal =
+                OFFICE_TRANSACTION_RE.test(text) ||
+                RESIDENTIAL_TRANSACTION_RE.test(text) ||
+                RETAIL_TRANSACTION_RE.test(text) ||
+                HOSPITALITY_TRANSACTION_RE.test(text) ||
+                SELF_STORAGE_RE.test(text);
+            const hasStrongIndustrialOverride = STRONG_INDUSTRIAL_OVERRIDE.test(text);
+
+            if (hasWrongPropertyTypeSignal && !hasStrongIndustrialOverride) {
+                item.category = 'exclude';
+                (item as any)._classificationReason = 'REJECT_WRONG_PROPERTY_TYPE';
+                return item;
+            }
+
             // CRE/Industrial context check - article must be about industrial real estate
             const hasCREContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|flex space|commercial real estate|cre|reit|portfolio)\b/i.test(text);
             // Exclude non-industrial property types from transaction/availability categorization
@@ -373,6 +399,7 @@ export async function buildStaticRSS(): Promise<void> {
                 || (item.link || (item as any).url || '').toLowerCase().includes('loopnet.com');
             if (isLoopNetListing && hasPropertyType) {
                 item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_LOOPNET_LISTING';
                 return item;
             }
 
@@ -388,12 +415,14 @@ export async function buildStaticRSS(): Promise<void> {
             // 1. STRONG AVAILABILITIES - Title says "for lease/sale" and title doesn't say "sold/leased"
             if (titleHasAvailability && hasPropertyType && !titleHasCompletedDeal) {
                 item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_TITLE_LEASE_SALE';
                 return item;
             }
 
             // 1b. STRONG AVAILABILITIES in body - Clearly marketed property, not a completed deal
             if (hasStrongAvailability && hasPropertyType && !isCompletedDeal) {
                 item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_BODY_LEASE_SALE';
                 return item;
             }
 
@@ -401,6 +430,7 @@ export async function buildStaticRSS(): Promise<void> {
             const isNewSupply = /\b(breaks\s*ground|groundbreaking|under\s*construction|starts?\s*work|starts?\s*construction|delivers|delivered|spec\s*(industrial|warehouse|building|development)|plans\s*(to\s*build|construction|development|facility|warehouse|logistics|distribution)|proposed\s*(warehouse|industrial|logistics|distribution)|new\s*(warehouse|industrial|logistics|distribution)\s*(facility|building|center|park|development))\b/i.test(text);
             if (isNewSupply && hasPropertyType && hasCREContext) {
                 item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_NEW_SUPPLY';
                 return item;
             }
 
@@ -409,11 +439,13 @@ export async function buildStaticRSS(): Promise<void> {
             const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
             if (titleHasPeopleSignal && hasCREFirmContext) {
                 item.category = 'people';
+                (item as any)._classificationReason = 'PEOPLE_TITLE_SIGNAL';
                 return item;
             }
             // Profile/interview articles about named CRE people
             if (hasProfileFormat && hasCREFirmContext) {
                 item.category = 'people';
+                (item as any)._classificationReason = 'PEOPLE_PROFILE_FORMAT';
                 return item;
             }
 
@@ -421,18 +453,21 @@ export async function buildStaticRSS(): Promise<void> {
             // Also accept: transaction action + SF (e.g., "Leases 16,515 Square Feet") even without explicit "warehouse"
             if (!isNonIndustrial && ((hasCREContext && (hasTransactionAction || (hasDollarAmount && hasSquareFeet) || (hasDollarAmount && hasPropertyType))) || (hasTransactionAction && hasSquareFeet))) {
                 item.category = 'transactions';
+                (item as any)._classificationReason = 'TXN_DEAL_SIGNAL';
                 return item;
             }
 
             // 3. SOFTER AVAILABILITIES - Property coming to market WITH property type context (may overlap with deals)
             if (hasAvailabilityWords && hasPropertyType && !isCompletedDeal) {
                 item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_SOFT_MARKETING';
                 return item;
             }
 
             // 3. PEOPLE NEWS - Personnel moves WITH CRE firm context
             if (hasPeopleWords && hasCREFirmContext) {
                 item.category = 'people';
+                (item as any)._classificationReason = 'PEOPLE_BODY_SIGNAL';
                 return item;
             }
 
@@ -440,6 +475,7 @@ export async function buildStaticRSS(): Promise<void> {
             // "Sitex Group Buys 26,000 SF Warehouse" → transaction, not relevant
             if (hasSquareFeet && hasPropertyType && !hasStrongAvailability) {
                 item.category = 'transactions';
+                (item as any)._classificationReason = 'TXN_SF_IN_TITLE';
                 return item;
             }
 
@@ -448,8 +484,10 @@ export async function buildStaticRSS(): Promise<void> {
             const hasAnyCRESignal = hasCREContext || hasTransactionAction || hasAvailabilityWords || hasPeopleWords || hasCREFirmContext || hasDollarAmount || hasSquareFeet || strictIndustrial;
             if (hasAnyCRESignal) {
                 item.category = 'relevant';
+                (item as any)._classificationReason = 'RELEVANT_CRE_SIGNAL';
             } else {
                 item.category = 'exclude';
+                (item as any)._classificationReason = 'EXCLUDE_NO_CRE_SIGNAL';
             }
             return item;
         };

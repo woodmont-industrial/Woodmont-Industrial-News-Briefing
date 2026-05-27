@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "purpose": "Seed fixtures for the classification/filter pipeline. Each item has the expected category and a human reason. A future test runner imports recategorizeArticle from static.ts (or a stable export) and asserts the result against expectedCategory + reasonCode.",
+    "createdAt": "2026-05-27",
+    "validReasonCodes": [
+      "REJECT_WRONG_PROPERTY_TYPE",
+      "AVAIL_LOOPNET_LISTING",
+      "AVAIL_TITLE_LEASE_SALE",
+      "AVAIL_BODY_LEASE_SALE",
+      "AVAIL_NEW_SUPPLY",
+      "AVAIL_SOFT_MARKETING",
+      "PEOPLE_TITLE_SIGNAL",
+      "PEOPLE_PROFILE_FORMAT",
+      "PEOPLE_BODY_SIGNAL",
+      "TXN_DEAL_SIGNAL",
+      "TXN_SF_IN_TITLE",
+      "RELEVANT_CRE_SIGNAL",
+      "EXCLUDE_NO_CRE_SIGNAL"
+    ]
+  },
+  "cases": [
+    {
+      "label": "fashion-designer-office-leak",
+      "title": "Fashion Designer Pamella Roland Takes 10K-SF Office at 462 Seventh Avenue",
+      "description": "Designer signs an office lease in midtown Manhattan.",
+      "expectedCategory": "exclude",
+      "expectedReason": "REJECT_WRONG_PROPERTY_TYPE",
+      "humanNote": "Manhattan office lease + SF signal. Was sneaking into Transactions before the 2026-05-27 hard property-type gate."
+    },
+    {
+      "label": "rite-aid-retail-leak",
+      "title": "TFE adds two ex-Rite Aid properties in high-traffic locations in Manchester, Lacey",
+      "description": "TFE Properties has purchased two former Rite Aid locations in Ocean County, touting their redevelopment and leasing potential.",
+      "expectedCategory": "exclude",
+      "expectedReason": "REJECT_WRONG_PROPERTY_TYPE",
+      "humanNote": "Rite Aid = pharmacy/retail. Manchester/Lacey NJ but wrong asset class. Shipped 5/20 before this fix."
+    },
+    {
+      "label": "monmouth-100m-warehouse",
+      "title": "$100M deal clears way for massive Monmouth County warehouse project",
+      "description": "A $100 million financing package has cleared the path for a major industrial development in Monmouth County.",
+      "expectedCategory": "transactions",
+      "expectedReason": "TXN_DEAL_SIGNAL",
+      "humanNote": "Real NJ industrial transaction, $100M, target region."
+    },
+    {
+      "label": "mattress-firm-noise",
+      "title": "What Mattress Firm gained from contactless delivery",
+      "description": "The shipping option has added customer flexibility and freed up drivers' time despite early hurdles.",
+      "expectedCategory": "exclude",
+      "humanNote": "Retail-delivery operations story masquerading as supply chain. Should fail the tightened supply-chain gate (no industrial-asset signal). Currently passes via supplychaindive feed swap to GN-filtered."
+    },
+    {
+      "label": "sloths-orlando-warehouse",
+      "title": "31 sloths die in Orlando warehouse before exhibit opens",
+      "description": "Sloths from the now-closed roadside attraction were transported to a warehouse near Orlando.",
+      "expectedCategory": "exclude",
+      "humanNote": "Animal welfare news with keyword match on warehouse. Wrong topic. User explicitly flagged 5/21 as off-topic."
+    },
+    {
+      "label": "oahu-industrial-report",
+      "title": "Oahu Industrial Market Report Q1 2026 - Colliers",
+      "description": "Quarterly industrial market analysis for Oahu.",
+      "expectedCategory": "exclude",
+      "humanNote": "Hawaii not a target region. Now in MAJOR_EXCLUDE_REGIONS after 5/21 fix."
+    },
+    {
+      "label": "tastykake-philly-deal",
+      "title": "Prologis Offloads Tastykake Facility In Philly Navy Yard For $87M",
+      "description": "A bakery and distribution facility occupied by one of Philadelphia's most iconic food companies has traded hands.",
+      "expectedCategory": "transactions",
+      "expectedReason": "TXN_DEAL_SIGNAL",
+      "humanNote": "PA target, $87M, real Prologis industrial deal. Shipped 5/27."
+    },
+    {
+      "label": "naiop-data-centers-nj",
+      "title": "Capital Drives the Market: Why Power, Partnerships and Preparation Are Defining the Next Era of Data Center Investment",
+      "description": "Panelists at NAIOP's I.CON Data Centers conference this week in New Jersey discussed deployment capital.",
+      "expectedCategory": "relevant",
+      "expectedReason": "RELEVANT_CRE_SIGNAL",
+      "humanNote": "Data center macro + NJ conference. Shipped 5/20."
+    },
+    {
+      "label": "loopnet-tweed-heads-au",
+      "title": "7 Machinery Dr, 2486 Tweed Heads South - Industrial for Lease - LoopNet",
+      "description": "7 Machinery Dr, 2486 Tweed Heads South - Industrial for Lease LoopNet",
+      "expectedCategory": "exclude",
+      "humanNote": "Australian LoopNet listing surfaced via Google News fuzzy match. Should die at build-phase Rule 2.5 (no target-region token)."
+    },
+    {
+      "label": "loopnet-wood-ridge-nj",
+      "title": "150 S Main St, Wood-Ridge, NJ 07075 - Industrial for Lease - LoopNet",
+      "description": "Industrial space available for lease in Wood-Ridge, NJ.",
+      "expectedCategory": "availabilities",
+      "expectedReason": "AVAIL_LOOPNET_LISTING",
+      "humanNote": "Legit NJ LoopNet listing. Rule 2.5 keeps it; recategorizeArticle's LoopNet rule classifies as availabilities. Shipped 5/27."
+    },
+    {
+      "label": "watch-vendor-video",
+      "title": "Watch: AI and Warehousing: From Theory to Throughput",
+      "description": "Vendor explainer video on warehouse automation.",
+      "expectedCategory": "exclude",
+      "humanNote": "supplychainbrain.com Watch: vendor video. Should die at build Rule 2.5 (URL pattern + no target region)."
+    },
+    {
+      "label": "student-competition",
+      "title": "Kennesaw State Students Named Winners of Supply Chain Video Competition",
+      "description": "Student team's video on supply chain optimization.",
+      "expectedCategory": "exclude",
+      "humanNote": "Student fluff, no industrial RE angle. User flagged 5/21."
+    }
+  ]
+}
