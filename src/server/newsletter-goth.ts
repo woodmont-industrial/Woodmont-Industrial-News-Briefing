@@ -1,5 +1,6 @@
 import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
+import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 
 /**
  * Build stripped-down "Goth" briefing - clean, scannable, boss-approved format
@@ -74,12 +75,14 @@ export function buildGothBriefing(
         const trackKeyword = extractTrackKeyword(title);
         const trackUrl = `${dashboardUrl}?track=${encodeURIComponent(trackKeyword)}`;
 
+        const safeHref = safeUrl(url);
+        const safeTrackHref = safeUrl(trackUrl);
         return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
-            <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
-            ${description ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${description}</p>` : ''}
+            <a href="${escapeAttr(safeHref)}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${escapeHtml(title)}</a>
+            ${description ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${escapeHtml(description)}</p>` : ''}
             <div style="margin-top: 8px;">
-                <a href="${url}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${source || 'source'} →</a>
-                <span style="font-size: 11px; margin-left: 12px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <span style="color: #999;">[Share] [Ignore]</span></span>
+                <a href="${escapeAttr(safeHref)}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${escapeHtml(source || 'source')} →</a>
+                <span style="font-size: 11px; margin-left: 12px;"><a href="${escapeAttr(safeTrackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <span style="color: #999;">[Share] [Ignore]</span></span>
             </div>
         </li>`;
     };
@@ -109,7 +112,7 @@ export function buildGothBriefing(
                     const title = item.title || 'Untitled';
                     const url = (item as any).url || item.link || '#';
                     return `<li style="margin-bottom: 12px; line-height: 1.5;">
-                        <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600;">${title}</a>
+                        <a href="${escapeAttr(safeUrl(url))}" style="color: #1e3c72; text-decoration: none; font-weight: 600;">${escapeHtml(title)}</a>
                     </li>`;
                 }).join('')}
             </ol>

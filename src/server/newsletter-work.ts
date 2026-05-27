@@ -5,6 +5,7 @@
 
 import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
+import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
@@ -151,16 +152,18 @@ export function buildWorkBriefing(
             }
         }
 
-        // Always show the title — never replace it with the description
-        let displayText = title;
-        // Append description only if it's meaningfully different from the title
+        // Always show the title — never replace it with the description.
+        // Escape RSS-derived text BEFORE injecting into the HTML span/template.
+        const titleSafe = escapeHtml(title);
+        const descSafe = escapeHtml(description);
+        let displayText = titleSafe;
         if (description && description.length > 20) {
             const titleWords = new Set(title.toLowerCase().split(/\s+/));
             const descWords = description.toLowerCase().split(/\s+/);
             const overlap = descWords.filter(w => titleWords.has(w)).length / descWords.length;
             // Only append if description adds new info (less than 60% word overlap with title)
             if (overlap < 0.6) {
-                displayText = `${title} — <span style="color: #555;">${description}</span>`;
+                displayText = `${titleSafe} — <span style="color: #555;">${descSafe}</span>`;
             }
         }
         if (displayText.length > 500) {
@@ -183,10 +186,14 @@ export function buildWorkBriefing(
         // Publisher in parens before the Source link — e.g., "(WSVN) Source"
         // Uses shared getPublisherName so server + SPA agree on display value.
         const publisher = getPublisherName(item);
-        const publisherTag = publisher ? `<span style="color: #777; font-size: 12px;">(${publisher})</span> ` : '';
+        const publisherTag = publisher ? `<span style="color: #777; font-size: 12px;">(${escapeHtml(publisher)})</span> ` : '';
+        // safeUrl rejects non-http(s) (data:, javascript:, etc.) → '#'.
+        const sourceHref = safeUrl(url);
+        const trackHref = safeUrl(trackUrl);
+        const ignoreHref = safeUrl(ignoreUrl);
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${url}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${trackUrl}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${ignoreUrl}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
+            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 
