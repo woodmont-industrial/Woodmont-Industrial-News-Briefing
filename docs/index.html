@@ -2461,7 +2461,9 @@
           const charLim = (category === 'relevant' || category === 'people') ? 450 : 280;
           const raw = (item.description || item.content_text || item.summary || '').trim();
           if (!raw || raw.length < 10) return '';
-          const sentences = raw.match(/[^.!?]+[.!?]+/g);
+          // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
+          const safeRaw = raw.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
+          const sentences = safeRaw.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
           let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
           if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
           return out;
@@ -2589,7 +2591,9 @@
           const charLim = (cat === 'relevant' || cat === 'people') ? 450 : 280;
           const raw = (item.description || item.content_text || item.summary || '').trim();
           if (!raw || raw.length < 10) return '';
-          const sentences = raw.match(/[^.!?]+[.!?]+/g);
+          // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
+          const safeRaw = raw.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
+          const sentences = safeRaw.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
           let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
           if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
           return out;
@@ -2730,7 +2734,11 @@
           let description = '';
           const rawDesc = (item.description || item.content_text || item.summary || '').trim();
           if (rawDesc && rawDesc.length > 10) {
-            const sentences = rawDesc.match(/[^.!?]+[.!?]+/g);
+            // Protect decimal points in numbers ($3.15M, 23.5M) so they don't get
+            // treated as sentence breaks. Replace `digit.digit` with `digit\u0000digit`,
+            // split sentences, then restore the dot.
+            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
+            const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
             if (sentences && sentences.length > 0) {
               description = sentences.slice(0, maxSentences).join('').trim();
             } else {

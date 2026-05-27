@@ -377,7 +377,17 @@ export function isStrictlyIndustrial(text: string): boolean {
         'joint venture', 'recapitalization', 'sale-leaseback', 'sale leaseback',
         'ground lease', 'assemblage', 'entitlements',
     ];
-    if (CRE_DEAL_SIGNALS.some(kw => lower.includes(kw))) return true;
+    if (CRE_DEAL_SIGNALS.some(kw => lower.includes(kw))) {
+        // 2026-05-27: tightened to require real property context. Plain "for sale"
+        // was letting through vehicle ads from Daily Record ("Affordable Pickups
+        // For Sale With Top Safety & Comfort") and similar non-RE listings.
+        const hasPropertyContext = /\b(warehouse|industrial|distribution|logistics|fulfillment|manufacturing|cold\s+storage|building|facility|property|portfolio|asset|site|acres|square\s+feet|sq\.?\s*ft|\bsf\b|land\s+(sale|deal)|industrial\s+park|center|complex|campus|loading\s+dock)\b/i.test(lower);
+        const isVehicleAd = /\b(pickup|sedan|suv|truck\s+for\s+sale|dealership|2024|2025\s+(ford|chevy|toyota|honda|ram)|crew\s+cab|king\s+cab|4x4|safety\s*&\s*comfort|test\s+drive|learn\s+more\s*\))\b/i.test(lower);
+        if (isVehicleAd) return false;
+        if (hasPropertyContext) return true;
+        // Deal signal w/o property context (e.g., vehicle/consumer good "for sale") → reject
+        return false;
+    }
 
     // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context
     // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context

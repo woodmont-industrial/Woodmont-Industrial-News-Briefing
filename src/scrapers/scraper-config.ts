@@ -272,19 +272,24 @@ export const SCRAPER_CONFIGS: ScraperDomainConfig[] = [
         cacheTTLMs: SUPPLEMENTARY_TTL,
         feedType: 'industrial-news'
     },
-    {
-        domain: 'dailyrecord.com',
-        name: 'Daily Record',
-        strategy: 'playwright',
-        type: 'supplementary',
-        targets: [
-            { url: 'https://www.dailyrecord.com/news/business/', label: 'Daily Record Business' }
-        ],
-        maxRunsPerDay: 4,
-        cacheTTLMs: SUPPLEMENTARY_TTL,
-        region: 'NJ',
-        feedType: 'news'
-    },
+    // 2026-05-27: Daily Record (Morris County NJ) scraper disabled. Its
+    // /news/business/ page returns sponsored content (auto dealer ads like
+    // "Affordable Pickups For Sale With Top Safety & Comfort (Learn More)")
+    // and stale archived articles (e.g., a 2020 Paulsboro item). NJ industrial
+    // news is already covered by re-nj.com, njbiz.com, roi-nj.com.
+    // {
+    //     domain: 'dailyrecord.com',
+    //     name: 'Daily Record',
+    //     strategy: 'playwright',
+    //     type: 'supplementary',
+    //     targets: [
+    //         { url: 'https://www.dailyrecord.com/news/business/', label: 'Daily Record Business' }
+    //     ],
+    //     maxRunsPerDay: 4,
+    //     cacheTTLMs: SUPPLEMENTARY_TTL,
+    //     region: 'NJ',
+    //     feedType: 'news'
+    // },
     {
         domain: 'bizjournals.com/southflorida',
         name: 'South FL Business Journal',
