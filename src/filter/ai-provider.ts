@@ -46,11 +46,14 @@ const GROQ_CONFIG = {
     name: 'Groq',
     url: 'https://api.groq.com/openai/v1/chat/completions',
     model: 'llama-3.1-8b-instant',
-    maxConcurrent: 2,
-    batchDelayMs: 5000,
-    maxArticles: 15,
-    descBatchSize: 3,
-    descBatchDelayMs: 2000,
+    // 2026-05-27: promoted to primary; Cerebras now fallback. Bumped maxArticles
+    // 15 -> 60 to match Cerebras throughput. Groq's free tier RPM is similar to
+    // Cerebras but their TPM cap is generous; these values should stay within it.
+    maxConcurrent: 3,
+    batchDelayMs: 2000,
+    maxArticles: 60,
+    descBatchSize: 4,
+    descBatchDelayMs: 1500,
 };
 
 // Cumulative token usage tracking per build
@@ -61,14 +64,17 @@ const tokenUsage = { prompt: 0, completion: 0, total: 0, requests: 0 };
  * Returns null if no API key is configured.
  */
 export function getAIProvider(): AIProvider | null {
-    const cerebrasKey = process.env.CEREBRAS_API_KEY;
-    if (cerebrasKey) {
-        return { ...CEREBRAS_CONFIG, apiKey: cerebrasKey };
-    }
-
+    // 2026-05-27: Groq is primary, Cerebras is fallback. Cerebras's free-tier
+    // RPM was triggering 429s with exponential backoff (up to 16s per retry)
+    // adding ~5 min to every build. Groq's free tier has been more reliable.
     const groqKey = process.env.GROQ_API_KEY;
     if (groqKey) {
         return { ...GROQ_CONFIG, apiKey: groqKey };
+    }
+
+    const cerebrasKey = process.env.CEREBRAS_API_KEY;
+    if (cerebrasKey) {
+        return { ...CEREBRAS_CONFIG, apiKey: cerebrasKey };
     }
 
     return null;
