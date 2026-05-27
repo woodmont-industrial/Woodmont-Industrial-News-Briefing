@@ -219,14 +219,24 @@ export function buildWorkBriefing(
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; margin: 0; padding: 30px 40px; color: #333; line-height: 1.5;">
     <div style="max-width: 800px; margin: 0 auto;">
 
+        <!-- Logo (centered, top) -->
+        <div style="text-align: center; margin: 0 0 20px 0;">
+            <img src="https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/assets/woodmont-logo.jpg"
+                 alt="Woodmont Industrial Partners"
+                 width="220"
+                 style="max-width: 220px; height: auto; display: inline-block; border: 0;">
+        </div>
+
         <!-- Header -->
-        <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e3a5f; font-weight: bold;">
+        <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e3a5f; font-weight: bold; text-align: center;">
             ${headerTitle}
         </h1>
-        <p style="margin: 0 0 15px 0; font-size: 14px; color: #333;">
+        <p style="margin: 0 0 15px 0; font-size: 14px; color: #333; text-align: center;">
             <strong>Date:</strong> ${formattedDate}
         </p>
         <hr style="border: none; border-top: 2px solid #2563eb; margin: 0 0 25px 0;">
+
+
 
         <!-- Relevant Articles -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
@@ -258,7 +268,7 @@ export function buildWorkBriefing(
         <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
         <p style="font-size: 11px; color: #888; margin: 0;">
             This briefing is automatically generated for Woodmont Industrial Partners.<br>
-            Focus regions: New Jersey, Pennsylvania, South Florida | Deals ≥100K SF or ≥$25M
+            Focus regions: New Jersey, Pennsylvania, Florida | Deals ≥100K SF or ≥$25M
         </p>
 
     </div>

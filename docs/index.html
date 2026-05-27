@@ -296,16 +296,25 @@
             <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
               <span className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wide">
                 {(() => {
-                  const src = item.source || item.publisher;
-                  if (!src) return 'Source';
-                  return typeof src === 'string' ? src : (src.name || 'Source');
+                  // Prefer the resolved publisher; if that still has "Google News" prefix, strip it.
+                  let src = item.source || item.publisher;
+                  if (!src) src = (typeof getPublisherName === 'function') ? getPublisherName(item) : 'Source';
+                  if (typeof src !== 'string') src = src.name || 'Source';
+                  return src.replace(/^google\s+news\s+/i, '').trim() || 'Source';
                 })()}
               </span>
-              {item.author && (
-                <span className="bg-emerald-500/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
-                  By {typeof item.author === 'string' ? item.author : (item.author.name || 'Unknown')}
-                </span>
-              )}
+              {/* Author chip suppressed when it duplicates the source or is a Google News feed name */}
+              {item.author && (() => {
+                const authorStr = typeof item.author === 'string' ? item.author : (item.author.name || '');
+                if (!authorStr || /^google\s+news/i.test(authorStr)) return null;
+                const srcStr = (item.source || item.publisher || '').toString();
+                if (srcStr && authorStr.toLowerCase() === srcStr.toLowerCase()) return null;
+                return (
+                  <span className="bg-emerald-500/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
+                    By {authorStr}
+                  </span>
+                );
+              })()}
             </div>
           </div>
           <div className="p-4 flex flex-col gap-3 flex-1">
@@ -1246,11 +1255,17 @@
         return true;
       }, []);
 
-      // Normalize title for dedup
+      // Normalize title for dedup. Strip ANY trailing " - Publisher" suffix
+      // (Google News pattern) so "$100M ... - Yahoo Finance" and
+      // "$100M ... - NJ.com" collapse to the same normalized form.
       const normalizeForDedup = useCallback((title) => {
         if (!title) return '';
         return title.toLowerCase()
-          .replace(/\s*[-|:]\s*(commercial observer|bisnow|re-nj|globest|costar|connectcre|news\.google\.com).*$/i, '')
+          // Strip generic trailing publisher suffix: " - Foo Bar" (Google News style)
+          .replace(/\s+[-–—|]\s+[a-z0-9 .&'-]{1,50}$/i, '')
+          // Also strip "N.J." / "Monmouth County" variants so cross-source dupes collapse
+          .replace(/\bn\.j\.|new jersey\b/gi, 'nj')
+          .replace(/\bmonmouth county|monmouth\b/gi, 'monmouth')
           .replace(/[^a-z0-9\s]/g, '')
           .replace(/\s+/g, ' ')
           .trim();

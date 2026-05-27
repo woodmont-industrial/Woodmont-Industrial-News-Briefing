@@ -253,6 +253,21 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
+            // 2.5 EXCLUDE: Listing-aggregator titles + low-signal sources without target region.
+            // Google News fuzzy-matches surface international listings (Australia Tweed Heads,
+            // NSW Cardiff) and supplychainbrain Watch: videos even when queries have NJ/PA/FL
+            // filters. Send-time Rule (d) catches these later, but dropping at build keeps the
+            // candidate pool + reserve pool + SPA clean.
+            const LISTING_AGG_TITLE = /\s+[-–—|]\s+(?:LoopNet|PropertyShark|CommercialSearch|Crexi|Traded\.co)\s*$/i;
+            const LOW_SIGNAL_URL = /supplychainbrain\.com\/articles/i;
+            // Use NJ/PA/FL-unambiguous tokens only. Bare county names like "Bergen" or "Hudson"
+            // collide with other states (Hudson CO, Bergen Norway) and let false positives through.
+            const TARGET_REGION_TOKEN = /\b(N\.?J\.?|NEW\s+JERSEY|P\.?A\.?|PENNSYLVANIA|PHILADELPHIA|F\.?L\.?|FLORIDA|MIAMI|TAMPA|ORLANDO|JACKSONVILLE|NEWARK|JERSEY\s+CITY|EDISON|ELIZABETH|TRENTON|RAHWAY|ALLENTOWN|BETHLEHEM|LEHIGH\s+VALLEY|HOBOKEN|MEADOWLANDS|FORT\s+LAUDERDALE|MIAMI-DADE|BROWARD\s+COUNTY|PALM\s+BEACH|BERGEN\s+COUNTY|HUDSON\s+COUNTY|MIDDLESEX\s+COUNTY|MONMOUTH\s+COUNTY|OCEAN\s+COUNTY|MERCER\s+COUNTY|SOMERSET\s+COUNTY|ESSEX\s+COUNTY)\b/i;
+            if ((LISTING_AGG_TITLE.test(item.title || '') || LOW_SIGNAL_URL.test(url)) && !TARGET_REGION_TOKEN.test(text)) {
+                log('info', `EXCLUDED (aggregator/low-signal, no target region): ${item.title?.substring(0, 60)}`);
+                return false;
+            }
+
             // 3. EXCLUDE: Non-industrial property types — uses shared unified gate
             const hasIndustrialContext = industrialKeywords.some(k => text.includes(k));
             if (!isStrictlyIndustrial(text.toLowerCase())) {

@@ -349,6 +349,10 @@ export function isStrictlyIndustrial(text: string): boolean {
         'commercial real estate', 'cre', 'reit', 'cmbs',
         'construction cost', 'labor cost', 'insurance cost',
         'reshoring', 'nearshoring', 'onshoring',
+        // Added 2026-05-27: CRE financial/structural terms to expand build-phase coverage.
+        'joint venture', 'value-add', 'value add', 'adaptive reuse', 'opportunity zone',
+        'irr', 'ltv', 'loan-to-value', 'valuation', 'net operating income',
+        'intermodal', 'build-to-suit', 'bts',
     ];
     if (CRE_MACRO.some(kw => lower.includes(kw))) return true;
 
@@ -364,6 +368,9 @@ export function isStrictlyIndustrial(text: string): boolean {
         'square feet', 'sq ft', 'sq. ft', 'acres',
         'zoning', 'rezoning', 'entitlement',
         'economic development', ' eda ',
+        // Added 2026-05-27: deal-structure terms.
+        'joint venture', 'recapitalization', 'sale-leaseback', 'sale leaseback',
+        'ground lease', 'assemblage', 'entitlements',
     ];
     if (CRE_DEAL_SIGNALS.some(kw => lower.includes(kw))) return true;
 
@@ -414,7 +421,14 @@ export const RELEVANT_KEYWORDS = [
     'last-mile facility', 'micro-fulfillment', 'micro fulfillment',
     'agri-tech', 'agritech', 'food processing', 'food facility',
     'advanced manufacturing', 'contract manufacturing',
-    'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate'
+    'commercial real estate', 'cre', 'vacancy', 'absorption', 'rent growth', 'cap rate',
+    // Added 2026-05-26: CRE/intent terms requested by boss
+    'leasing', 'acquisition', 'investment', 'tenant', 'brokerage',
+    'site selection', 'flex', 'facility', 'intermodal', 'build-to-suit',
+    'redevelopment', 'clear height', 'reit', 'value-add', 'pipeline',
+    'opportunity zone', 'expansion', 'adaptive reuse', 'irr',
+    'loan-to-value', 'ltv', 'valuation', 'joint venture', 'yield',
+    'noi', 'net operating income', 'e-commerce growth', 'e-commerce trends'
 ];
 
 // People news action keywords
@@ -548,7 +562,13 @@ export const CRE_INTENT_KEYWORDS = [
     "build-to-suit", "bts", "design-build", "turnkey",
     "net lease", "absolute net lease", "ground lease",
     "sale-leaseback", "sale leaseback", "monetization",
-    "refinance", "mortgage", "loan", "financing"
+    "refinance", "mortgage", "loan", "financing",
+    // Added 2026-05-26: CRE/intent terms requested by boss
+    "site selection", "flex", "facility", "intermodal",
+    "clear height", "value-add", "pipeline", "opportunity zone",
+    "supply chain", "expansion", "adaptive reuse", "irr",
+    "loan-to-value", "ltv", "valuation", "joint venture", "yield",
+    "net operating income", "e-commerce growth", "e-commerce trends"
 ];
 
 // Property signals for classification
