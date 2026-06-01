@@ -210,6 +210,17 @@ export const EXCLUDE_POLITICAL = [
     'shutdown', 'debt ceiling', 'stimulus', 'government spending',
     'foreign policy', 'military', 'defense budget', 'pentagon',
     'nato', 'sanctions', 'diplomatic',
+    // 2026-06-01: Geopolitical / armed-conflict framings. Even when wrapped in
+    // a "market report" the headline alone is reputationally bad for a CRE
+    // newsletter. The May 2026 CommercialCafe industrial report shipped with
+    // "Consequences of Iran Conflict Affect Industrial Sector" in the title;
+    // unsendable on hindsight. Block at title-level even when source is a
+    // legitimate CRE outlet.
+    'iran conflict', 'israel-iran', 'iran-israel', 'gaza conflict',
+    'ukraine war', 'russia-ukraine', 'middle east conflict',
+    'taiwan conflict', 'china conflict', 'north korea',
+    'war in ', 'consequences of war', 'consequences of conflict',
+    'geopolitical conflict', 'armed conflict',
     // Accidents / disasters / crime (not CRE news)
     'killed', 'dead', 'injured', 'crash', 'collapsed', 'collapse', 'explosion',
     'helicopter', 'shooting', 'homicide', 'murder', 'arson', 'fire kills',
