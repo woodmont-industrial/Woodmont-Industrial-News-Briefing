@@ -258,8 +258,13 @@ export async function buildStaticRSS(): Promise<void> {
             // NSW Cardiff) and supplychainbrain Watch: videos even when queries have NJ/PA/FL
             // filters. Send-time Rule (d) catches these later, but dropping at build keeps the
             // candidate pool + reserve pool + SPA clean.
-            const LISTING_AGG_TITLE = /\s+[-–—|]\s+(?:LoopNet|PropertyShark|CommercialSearch|Crexi|Traded\.co)\s*$/i;
-            const LOW_SIGNAL_URL = /supplychainbrain\.com\/articles/i;
+            const LISTING_AGG_TITLE = /\s+[-–—|]\s+(?:LoopNet|PropertyShark|CommercialSearch|Crexi|Traded\.co|DVIDS)\s*$/i;
+            // 2026-06-01: domain-level blocks for sources that produced pure noise.
+            //   supplychainbrain.com/articles  → Watch:/student fluff video pages
+            //   dvids.net / dvidshub.net      → U.S. military personnel announcements
+            //                                    (DVIDS = Defense Visual Information Distribution Service)
+            //   defense.gov / af.mil / army.mil → same — military news, not CRE
+            const LOW_SIGNAL_URL = /supplychainbrain\.com\/articles|dvidshub\.net|\bdvids\.net|defense\.gov|\baf\.mil|\barmy\.mil|\bnavy\.mil/i;
             // Use NJ/PA/FL-unambiguous tokens only. Bare county names like "Bergen" or "Hudson"
             // collide with other states (Hudson CO, Bergen Norway) and let false positives through.
             const TARGET_REGION_TOKEN = /\b(N\.?J\.?|NEW\s+JERSEY|P\.?A\.?|PENNSYLVANIA|PHILADELPHIA|F\.?L\.?|FLORIDA|MIAMI|TAMPA|ORLANDO|JACKSONVILLE|NEWARK|JERSEY\s+CITY|EDISON|ELIZABETH|TRENTON|RAHWAY|ALLENTOWN|BETHLEHEM|LEHIGH\s+VALLEY|HOBOKEN|MEADOWLANDS|FORT\s+LAUDERDALE|MIAMI-DADE|BROWARD\s+COUNTY|PALM\s+BEACH|BERGEN\s+COUNTY|HUDSON\s+COUNTY|MIDDLESEX\s+COUNTY|MONMOUTH\s+COUNTY|OCEAN\s+COUNTY|MERCER\s+COUNTY|SOMERSET\s+COUNTY|ESSEX\s+COUNTY)\b/i;

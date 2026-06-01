@@ -66,6 +66,13 @@ export const MAJOR_EXCLUDE_REGIONS = [
     'ST. LOUIS', 'CLEVELAND', 'CINCINNATI', 'LAS VEGAS', 'SALT LAKE', 'BOISE', 'SACRAMENTO',
     'OKLAHOMA CITY', 'TUCSON', 'ALBUQUERQUE', 'NEW ORLEANS', 'MESA, ARIZONA', 'ARIZONA',
     'TENNESSEE', 'KENTUCKY', 'LOUISVILLE', 'ALABAMA', 'ARKANSAS',
+    // 2026-06-01: TN/KY/AL/etc. mid-size cities that LoopNet/CommercialSearch
+    // surface as industrial deals without ever mentioning the state name.
+    'COOKEVILLE', 'CHATTANOOGA', 'KNOXVILLE', 'CLARKSVILLE', 'MURFREESBORO',
+    'JACKSON, TN', 'NASHVILLE',  // Nashville sometimes listed without "TN"
+    'BOWLING GREEN', 'LEXINGTON, KY', 'OWENSBORO',
+    'HUNTSVILLE', 'TUSCALOOSA', 'MONTGOMERY, AL', 'AUBURN, AL',
+    'LITTLE ROCK, AR', 'FAYETTEVILLE, AR', 'FORT SMITH',
     'CALIFORNIA', 'FREMONT', 'SAN JOSE', 'SILICON VALLEY', 'BAY AREA',
     'OREGON', 'WASHINGTON STATE', 'HAWAII', 'OAHU', 'HONOLULU', 'MAUI', 'KAUAI', 'KONA', 'HILO', 'BIG ISLAND', 'IOWA', 'NEBRASKA', 'MONTANA', 'WYOMING',
     'NORTH DAKOTA', 'SOUTH DAKOTA', 'IDAHO', 'UTAH', 'MISSISSIPPI', 'WEST VIRGINIA',
@@ -218,18 +225,36 @@ export const EXCLUDE_POLITICAL = [
 // Keeps "Fashion Designer Takes 10K-SF Office" out of Transactions even
 // when description is empty (paywalled or Google News title-only items).
 export const STRONG_INDUSTRIAL_OVERRIDE_RE = /\b(warehouse|industrial\s+(building|park|outdoor\s+storage|space)|logistics\s+(center|facility|hub)|distribution\s+center|fulfillment\s+center|manufacturing\s+facility|cold\s+storage|truck\s+terminal|cross[ -]?dock|trailer\s+parking|loading\s+dock|3pl|drayage|intermodal)\b/i;
-export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
-export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living)\b/i;
+export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|medical\s+for\s+(lease|sale)|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
+export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living|homebuilding|homebuilder|home\s+builder)\b/i;
 export const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
 export const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;
 export const SELF_STORAGE_RE = /\b(self[ -]storage|storage\s+unit|climate[ -]controlled\s+storage)\b/i;
+
+// 2026-06-01: Software/data/SaaS/venture-funding transactions that are NOT real
+// estate deals. Catches things like "CoStar to Acquire Homebuilding Data and
+// Marketplace Platform Zonda for $800M" and "Logistics Firm Stord Nabs $250M to
+// Help Brands Take On Amazon" — both are software/data companies with no
+// underlying RE asset. Tightened to catch generic VC-round language.
+export const SOFTWARE_MA_RE = /\b(data\s+(platform|marketplace|company|provider|service|analytics)|software\s+(platform|company|provider|firm)|saas\s+(platform|company)|tech\s+(platform|startup|company)|proptech\s+(platform|startup|firm)|venture\s+round|series\s+[a-h]\s+(round|funding)|(nabs?|raises?|secures?|closes?|lands?)\s+\$\d[\d.,]*\s*(million|m\b|billion|b\b)\s+(to\s+(help|build|expand|launch|scale|compete|take\s+on)|in\s+(seed|series|funding|venture)|from\s+(investors?|vcs?))|api\s+platform|cloud\s+platform)\b/i;
+// Military/government-personnel news (DVIDS, military.com etc.) — pure noise for
+// industrial CRE. Patterns: rank + name, "promoted" / "advances" without RE context.
+export const MILITARY_PERSONNEL_RE = /\b(seaman|petty\s+officer|sergeant|sgt\.?|corporal|lieutenant|captain\s+\w+\s+promoted|airman|sailor|marine\s+(corporal|sergeant|sgt\.?|lt\.?))\b/i;
+// Retail/grocery/restaurant chain personnel news — retail-side supply chain
+// hires (e.g., "Target taps former Walmart exec as supply chain chief") are
+// not industrial CRE even when they mention "logistics" or "supply chain".
+// Require industrial-asset override to keep legit industrial-side hires.
+export const RETAIL_PERSONNEL_RE = /\b(target|walmart|amazon|kroger|albertsons|costco|whole\s+foods|trader\s+joe'?s|aldi|publix|wegmans|safeway|home\s+depot|lowe'?s|cvs|walgreens|rite\s+aid|7-eleven)\s+(taps?|hires?|names?|appoints?|elevates?|promotes?)\b/i;
 
 export function hasWrongPropertyType(text: string): boolean {
     return OFFICE_TRANSACTION_RE.test(text) ||
         RESIDENTIAL_TRANSACTION_RE.test(text) ||
         RETAIL_TRANSACTION_RE.test(text) ||
         HOSPITALITY_TRANSACTION_RE.test(text) ||
-        SELF_STORAGE_RE.test(text);
+        SELF_STORAGE_RE.test(text) ||
+        SOFTWARE_MA_RE.test(text) ||
+        MILITARY_PERSONNEL_RE.test(text) ||
+        RETAIL_PERSONNEL_RE.test(text);
 }
 
 export function hasStrongIndustrialOverride(text: string): boolean {
