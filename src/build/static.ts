@@ -1003,6 +1003,35 @@ export async function buildStaticRSS(): Promise<void> {
             log('warn', 'Predicted-publish simulation failed: ' + (e as Error).message);
         }
 
+        // === STEP 4.6: Woodmont rubric LLM second-pass ===
+        // Only candidates that survived Path A get the LLM check (saves cost).
+        // The LLM applies the editorial rubric in src/filter/woodmont-rubric.ts
+        // and catches the leak classes that mutate too fast for regex:
+        //   - Anti-DC framing variants
+        //   - Cross-source duplicates of same story
+        //   - Sensitive content (mass shootings, war, tragedy)
+        //   - Novel software-M&A phrasings
+        //   - Wrong-region articles with sneaky abbreviations
+        //   - Negative editorial framing
+        // Result stamped per item:
+        //   _woodmontApprove: boolean
+        //   _woodmontReason: string
+        //   _woodmontConfidence: 0-100
+        //   _woodmontClassifier: 'groq' | 'cerebras'
+        // Items not stamped (failed LLM) fall back to _predictedPublish.
+        try {
+            const { classifyWoodmontBatch } = await import('../filter/llm-classifier.js');
+            const candidates = rssItems.filter(i => (i as any)._predictedPublish === true);
+            if (candidates.length > 0) {
+                const result = await classifyWoodmontBatch(candidates, 2, 1500);
+                log('info', 'Woodmont LLM classification complete', result);
+            } else {
+                log('info', 'Woodmont LLM: no predicted-publish candidates to classify');
+            }
+        } catch (e) {
+            log('warn', 'Woodmont LLM classification failed: ' + (e as Error).message);
+        }
+
         // === STEP 5: Enrich articles with og:image thumbnails ===
         await enrichArticleImages(rssItems);
 

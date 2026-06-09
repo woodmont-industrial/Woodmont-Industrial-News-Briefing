@@ -157,6 +157,12 @@ export function generateJSONFeed(items: NormalizedItem[]): object {
                 _predictedReason: (item as any)._predictedReason ?? null,
                 _classificationReason: (item as any)._classificationReason ?? null,
                 _tier: (item as any)._tier ?? null,
+                // Woodmont LLM rubric verdict (second-pass after Path A).
+                // SPA filters by _woodmontApprove === true by default.
+                _woodmontApprove: (item as any)._woodmontApprove ?? null,
+                _woodmontReason: (item as any)._woodmontReason ?? null,
+                _woodmontConfidence: (item as any)._woodmontConfidence ?? null,
+                _woodmontClassifier: (item as any)._woodmontClassifier ?? null,
             };
         })
     };

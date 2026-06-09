@@ -333,7 +333,7 @@
                    'Relevant'}
                 </span>
               )}
-              {/* Debug badges (?debug=1): predicted-publish reason + source tier */}
+              {/* Debug badges (?debug=1): predicted-publish reason + source tier + Woodmont LLM verdict */}
               {(() => {
                 if (typeof window === 'undefined') return null;
                 const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
@@ -346,6 +346,16 @@
                   : reason.startsWith('REJECT') || reason === 'EXCLUDED'
                     ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200'
                     : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200';
+                // Woodmont LLM second-pass verdict
+                const wmApprove = item._woodmontApprove;
+                const wmReason = item._woodmontReason || '';
+                const wmConf = item._woodmontConfidence;
+                const wmClass = item._woodmontClassifier || '';
+                const wmColor = wmApprove === true
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
+                  : wmApprove === false
+                    ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
                 return (
                   <>
                     {reason && (
@@ -356,6 +366,14 @@
                     {tier && (
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" title={`source tier ${tier}`}>
                         tier {tier}
+                      </span>
+                    )}
+                    {wmApprove !== null && wmApprove !== undefined && (
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${wmColor}`}
+                        title={`Woodmont LLM (${wmClass || 'unknown'}, confidence ${wmConf ?? '?'}): ${wmReason}`}
+                      >
+                        {wmApprove ? 'LLM ✓' : 'LLM ✗'}{typeof wmConf === 'number' ? ` ${wmConf}` : ''}
                       </span>
                     )}
                   </>
@@ -497,12 +515,14 @@
         return getMatchingTrackedTopics(article);
       };
 
-      // Path A: predicted-publish filter
-      //   Default view: only items the publishing simulation thinks would ship
-      //     (_predictedPublish === true) PLUS any item without the field at all
-      //     (backward compat for old feed.json before the simulation existed).
-      //   "Show all candidates" toggle: bypass and show every collected item.
-      //   ?debug=1 in URL: reveals _predictedReason + _tier as badges on each card.
+      // Path A + Woodmont LLM rubric: predicted-publish + LLM second-pass filter
+      //   Default view: only items where BOTH:
+      //     - the publishing simulation predicts ship (_predictedPublish !== false), AND
+      //     - the LLM rubric did not explicitly reject (_woodmontApprove !== false)
+      //   Items without the LLM field stamped (rubric failed, or item is from before
+      //   the classifier was wired in) pass through — better to show than blackhole.
+      //   "Show all candidates" toggle: bypass both filters and show every collected item.
+      //   ?debug=1 in URL: reveals _predictedReason + _tier + LLM verdict badges on each card.
       const isDebugMode = typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('debug') === '1';
       const [showAllCandidates, setShowAllCandidates] = React.useState(false);
@@ -510,7 +530,9 @@
       let visibleItems = items.filter(item => !isArticleIgnored(item));
       const totalBeforePredict = visibleItems.length;
       if (!showAllCandidates) {
-        visibleItems = visibleItems.filter(item => item._predictedPublish !== false);
+        visibleItems = visibleItems.filter(item =>
+          item._predictedPublish !== false && item._woodmontApprove !== false
+        );
       }
       const hiddenByPredictCount = totalBeforePredict - visibleItems.length;
       const hiddenCount = items.length - totalBeforePredict;

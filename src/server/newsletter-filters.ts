@@ -285,8 +285,27 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
 // SECTION FILTERS
 // =====================================================================
 
+/**
+ * Hard reject if the Woodmont LLM rubric rejected the article at build time.
+ * Used at the top of every per-section filter so Tier 3/Tier 4 backfill
+ * can't sneak rejected items past the editorial gate.
+ *
+ * If the article wasn't classified (LLM failed or item is from before the
+ * classifier was wired in), pass through — better to ship a rule-filter-OK
+ * item than block everything on infrastructure failure.
+ */
+function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext | undefined, section: Section): boolean {
+    const verdict = (article as any)._woodmontApprove;
+    if (verdict === false) {
+        if (diag) diag.recordReject(section, 'WOODMONT_RUBRIC_REJECT');
+        return false;
+    }
+    return true;
+}
+
 export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string, diag?: DiagnosticContext, diagSection?: Section): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (diagSection && !passesWoodmontRubric(article, diag, diagSection)) return false;
         const text = getText(article);
         if (isPolitical(text)) {
             if (diag && diagSection) diag.recordReject(diagSection, 'POLITICAL_CONTENT');
@@ -309,6 +328,7 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
 
 export function applyTransactionFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (!passesWoodmontRubric(article, diag, 'transactions')) return false;
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('transactions', 'POLITICAL_CONTENT'); return false; }
         // Hard property-type guard. Office/residential/retail/hospitality/self-storage
@@ -340,6 +360,7 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
 
 export function applyAvailabilityFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (!passesWoodmontRubric(article, diag, 'availabilities')) return false;
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('availabilities', 'POLITICAL_CONTENT'); return false; }
         // Accept availability-specific language
@@ -363,6 +384,7 @@ export function applyAvailabilityFilter(items: NormalizedItem[], diag?: Diagnost
 
 export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (!passesWoodmontRubric(article, diag, 'people')) return false;
         const text = getText(article);
         const url = ((article as any).url || article.link || '').toLowerCase();
         if (isPolitical(text)) { if (diag) diag.recordReject('people', 'POLITICAL_CONTENT'); return false; }
