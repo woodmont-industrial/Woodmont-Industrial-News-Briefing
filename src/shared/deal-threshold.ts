@@ -15,10 +15,22 @@ export interface DealThreshold {
 export function meetsDealThreshold(text: string): DealThreshold {
     const upperText = text.toUpperCase();
 
-    // Extract SF values
-    const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+    // Extract SF values. Supports:
+    //   208,000 SF / 208000 SF       (plain digits)
+    //   208K SF / 208K-SF            (K shorthand, optional hyphen)
+    //   1.5M SF / 1.5M-SF / 2M SF    (M shorthand for million SF)
+    // 2026-06-09: K/M shorthand added — Connect CRE "208K-SF Ft. Myers" was
+    // dropping at the threshold filter because old regex only matched comma-
+    // separated digits, so 208K-SF parsed as 208 SF and failed the 50K floor.
+    const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
     let sizeSF: number | null = null;
-    if (sfMatch) sizeSF = parseInt(sfMatch[1].replace(/,/g, ''));
+    if (sfMatch) {
+        const num = parseFloat(sfMatch[1].replace(/,/g, ''));
+        const unit = (sfMatch[2] || '').toUpperCase();
+        sizeSF = unit === 'M' ? Math.round(num * 1000000)
+            : unit === 'K' ? Math.round(num * 1000)
+            : Math.round(num);
+    }
 
     // Extract dollar values (millions)
     const dollarMatch = upperText.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:MILLION|M\b)/i);
@@ -44,10 +56,12 @@ export function getDealScore(article: NormalizedItem): number {
     const text = `${article.title || ''} ${article.description || ''}`.toUpperCase();
     let score = 0;
 
-    // Check SF
-    const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+)\s*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+    // Check SF — mirrors meetsDealThreshold above; K/M shorthand supported.
+    const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
     if (sfMatch) {
-        const sf = parseInt(sfMatch[1].replace(/,/g, ''));
+        const num = parseFloat(sfMatch[1].replace(/,/g, ''));
+        const unit = (sfMatch[2] || '').toUpperCase();
+        const sf = unit === 'M' ? num * 1000000 : unit === 'K' ? num * 1000 : num;
         if (sf >= 100000) score += 3;
         else if (sf >= 50000) score += 2;
         else if (sf >= 25000) score += 1;
