@@ -39,7 +39,16 @@ interface WoodmontVerdict {
  * available providers on 429 (mirrors classifyWithAI pattern).
  */
 async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerdict | null> {
-    const providers = getAIProviders();
+    // 2026-06-10: reversed provider order — Cerebras first, Groq fallback.
+    // The upstream AI categorizer (filterArticlesWithAI in static.ts) drains
+    // Groq's quota by the time we get to the Woodmont second-pass; reversing
+    // the order gives us a separate budget. Cerebras 1M tokens/day free is
+    // plenty for ~20-100 verdicts per build.
+    const providers = [...getAIProviders()].sort((a, b) => {
+        if (a.name === 'Cerebras') return -1;
+        if (b.name === 'Cerebras') return 1;
+        return 0;
+    });
     if (providers.length === 0) return null;
 
     const userPrompt = buildArticleUserPrompt({
@@ -160,8 +169,15 @@ export async function classifyWoodmontBatch(
         return { classified: 0, approved: 0, rejected: 0, failed: 0, budgetExhausted: false };
     }
 
+    // Show the actual provider order this run will use (Cerebras-first after the 2026-06-10
+    // sort in classifyOneArticle). Helps diagnose quota issues from build logs.
+    const sortedProviders = [...providers].sort((a, b) => {
+        if (a.name === 'Cerebras') return -1;
+        if (b.name === 'Cerebras') return 1;
+        return 0;
+    });
     const start = Date.now();
-    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${providers[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${WOODMONT_RUBRIC_VERSION})`);
+    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${sortedProviders[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${WOODMONT_RUBRIC_VERSION})`);
 
     let approved = 0;
     let rejected = 0;

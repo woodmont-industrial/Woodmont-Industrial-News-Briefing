@@ -418,12 +418,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const isMonday = today.getDay() === 1;
 
         // Constants for section minimums and caps
-        const MIN_RELEVANT = 4;       // 4-6 relevant articles
-        const MIN_TRANSACTIONS = 4;   // 4-6 transactions
-        const MIN_AVAILABILITIES = 1; // 1-3 availabilities (fewer listing-type articles exist)
-        const MIN_PEOPLE = 2;         // 2-4 people articles
-        const MAX_PER_SECTION = 6;
-        const MAX_AVAILABILITIES = 3;
+        // 2026-06-10: bumped MAX_PER_SECTION 6→10 (and availabilities 3→5) so
+        // we don't drop strong industrial articles to CAP_OVERFLOW when there's
+        // good supply. User wants "as many recent industrial articles as we can"
+        // shipped each day. Mins unchanged so quiet days don't bloat with backfill.
+        const MIN_RELEVANT = 4;       // 4-10 relevant articles
+        const MIN_TRANSACTIONS = 4;   // 4-10 transactions
+        const MIN_AVAILABILITIES = 1; // 1-5 availabilities (fewer listing-type articles exist)
+        const MIN_PEOPLE = 2;         // 2-10 people articles
+        const MAX_PER_SECTION = 10;
+        const MAX_AVAILABILITIES = 5;
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;

@@ -235,7 +235,11 @@ export const EXCLUDE_POLITICAL = [
 // industrial-asset override term (STRONG_INDUSTRIAL_OVERRIDE_RE).
 // Keeps "Fashion Designer Takes 10K-SF Office" out of Transactions even
 // when description is empty (paywalled or Google News title-only items).
-export const STRONG_INDUSTRIAL_OVERRIDE_RE = /\b(warehouse|industrial\s+(building|park|outdoor\s+storage|space)|logistics\s+(center|facility|hub)|distribution\s+center|fulfillment\s+center|manufacturing\s+facility|cold\s+storage|truck\s+terminal|cross[ -]?dock|trailer\s+parking|loading\s+dock|3pl|drayage|intermodal)\b/i;
+// 2026-06-10: pluralized warehouse/center/facility/etc. — `\bwarehouse\b` doesn't
+// match "warehouses" (word boundary fails on trailing 's'). Same for "distribution
+// centers", "logistics facilities", etc. Caused Blackstone Broward $99.6M to slip
+// past the override check and downstream categorization.
+export const STRONG_INDUSTRIAL_OVERRIDE_RE = /\b(warehouses?|industrial\s+(buildings?|parks?|outdoor\s+storage|space)|logistics\s+(centers?|facilit(?:y|ies)|hubs?)|distribution\s+centers?|fulfillment\s+centers?|manufacturing\s+facilit(?:y|ies)|cold\s+storage|truck\s+terminals?|cross[ -]?docks?|trailer\s+parking|loading\s+docks?|3pl|drayage|intermodal)\b/i;
 export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|medical\s+for\s+(lease|sale)|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
 export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living|homebuilding|homebuilder|home\s+builder)\b/i;
 export const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
@@ -385,7 +389,7 @@ export function isStrictlyIndustrial(text: string): boolean {
         const industrialOnly = lower.includes('industrial') &&
             !CORE_INDUSTRIAL.filter(kw => kw !== 'industrial').some(kw => lower.includes(kw));
         if (industrialOnly) {
-            const hasCRESignal = /\b(warehouse|lease|sold|acquired|sq\.?\s*ft|square feet|acres|property|building|facility|site|sites|development|tenant|portfolio|zoning|asset|assets|market|report|sector|demand|outlook|recovery|real estate|investor|investment|rent|cap rate|occupancy|ops|operations|leaders|users|space)\b/i.test(lower);
+            const hasCRESignal = /\b(warehouses?|leases?|sold|acquired|sq\.?\s*ft|square\s*feet|acres|propert(?:y|ies)|buildings?|facilit(?:y|ies)|sites?|developments?|tenants?|portfolios?|zoning|assets?|markets?|reports?|sectors?|demand|outlook|recovery|real\s*estate|investors?|investments?|rents?|cap\s*rate|occupancy|ops|operations|leaders|users|space)\b/i.test(lower);
             if (!hasCRESignal) return false;
         }
         return true;
@@ -403,7 +407,7 @@ export function isStrictlyIndustrial(text: string): boolean {
         'e-commerce', 'ecommerce', 'automation', 'autonomous', 'robotics',
     ];
     if (SUPPLY_CHAIN_KEYWORDS.some(kw => lower.includes(kw))) {
-        const hasIndustrialAsset = /\b(warehouse|distribution\s+center|fulfillment\s+center|logistics\s+center|industrial\s+park|industrial\s+building|manufacturing\s+facility|cold\s+storage|3pl|drayage|intermodal|port|terminal|rail\s+yard|truck\s+terminal|trailer\s+parking|last[ -]?mile\s+facility|loading\s+dock|cross[ -]?dock|industrial\s+outdoor\s+storage|spec\s+industrial)\b/i.test(lower);
+        const hasIndustrialAsset = /\b(warehouses?|distribution\s+centers?|fulfillment\s+centers?|logistics\s+centers?|industrial\s+parks?|industrial\s+buildings?|manufacturing\s+facilit(?:y|ies)|cold\s+storage|3pl|drayage|intermodal|ports?|terminals?|rail\s+yards?|truck\s+terminals?|trailer\s+parking|last[ -]?mile\s+facilit(?:y|ies)|loading\s+docks?|cross[ -]?docks?|industrial\s+outdoor\s+storage|spec\s+industrial)\b/i.test(lower);
         if (hasIndustrialAsset) return true;
         // Generic supply chain/freight content without a physical-asset signal → reject
         return false;
@@ -443,7 +447,7 @@ export function isStrictlyIndustrial(text: string): boolean {
         // 2026-05-27: tightened to require real property context. Plain "for sale"
         // was letting through vehicle ads from Daily Record ("Affordable Pickups
         // For Sale With Top Safety & Comfort") and similar non-RE listings.
-        const hasPropertyContext = /\b(warehouse|industrial|distribution|logistics|fulfillment|manufacturing|cold\s+storage|building|facility|property|portfolio|asset|site|acres|square\s+feet|sq\.?\s*ft|\bsf\b|land\s+(sale|deal)|industrial\s+park|center|complex|campus|loading\s+dock)\b/i.test(lower);
+        const hasPropertyContext = /\b(warehouses?|industrials?|distribution|logistics|fulfillment|manufacturing|cold\s+storage|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|assets?|sites?|acres|square\s+feet|sq\.?\s*ft|\bsf\b|land\s+(sale|deal)|industrial\s+parks?|centers?|complex(?:es)?|campus(?:es)?|loading\s+docks?)\b/i.test(lower);
         const isVehicleAd = /\b(pickup|sedan|suv|truck\s+for\s+sale|dealership|2024|2025\s+(ford|chevy|toyota|honda|ram)|crew\s+cab|king\s+cab|4x4|safety\s*&\s*comfort|test\s+drive|learn\s+more\s*\))\b/i.test(lower);
         if (isVehicleAd) return false;
         if (hasPropertyContext) return true;
@@ -457,7 +461,7 @@ export function isStrictlyIndustrial(text: string): boolean {
     // "Seagis signs lease at industrial building" SHOULD pass (industrial context)
     const GENERIC_DEAL_WORDS = ['leasing', 'lease', 'tenant', 'landlord'];
     if (GENERIC_DEAL_WORDS.some(kw => lower.includes(kw))) {
-        const hasIndustrialContext = /\b(warehouse|industrial|logistics|distribution|manufacturing|fulfillment|cold storage|flex space|commercial real estate|cre)\b/i.test(lower);
+        const hasIndustrialContext = /\b(warehouses?|industrials?|logistics|distribution|manufacturing|fulfillment|cold\s*storage|flex\s*space|commercial\s*real\s*estate|cre)\b/i.test(lower);
         const hasStrongPropertySignal = /\b(sq\.?\s*ft|square feet|acres)\b/i.test(lower);
         if (hasIndustrialContext || hasStrongPropertySignal) return true;
     }

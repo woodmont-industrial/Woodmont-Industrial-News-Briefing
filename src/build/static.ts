@@ -351,11 +351,15 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
-            // CRE/Industrial context check - article must be about industrial real estate
-            const hasCREContext = /\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|flex space|commercial real estate|cre|reit|portfolio)\b/i.test(text);
+            // CRE/Industrial context check - article must be about industrial real estate.
+            // 2026-06-10: added `s?` to plural-prone terms because `\bwarehouse\b` does
+            // NOT match "warehouses" (word boundary fails when trailing 's' is present).
+            // Blackstone Broward $99.6M article was miscategorized as relevant because
+            // its title only uses "warehouses" (plural) and hasCREContext returned false.
+            const hasCREContext = /\b(warehouses?|logistics|industrials?|distribution(?:\s*centers?)?|manufacturing|cold\s*storage|fulfillment|flex\s*space|commercial\s*real\s*estate|cre|reits?|portfolios?)\b/i.test(text);
             // Exclude non-industrial property types from transaction/availability categorization
             // Uses shared EXCLUDE_NON_INDUSTRIAL list for consistency with newsletter filters
-            const isNonIndustrial = EXCLUDE_NON_INDUSTRIAL.some(kw => text.includes(kw)) && !/\b(warehouse|industrial|logistics|distribution|manufacturing|cold storage|fulfillment)\b/i.test(text);
+            const isNonIndustrial = EXCLUDE_NON_INDUSTRIAL.some(kw => text.includes(kw)) && !/\b(warehouses?|industrials?|logistics|distribution|manufacturing|cold\s*storage|fulfillment)\b/i.test(text);
 
             // Check for dollar amounts ($) or square feet (SF/sq ft)
             const hasDollarAmount = /\$[\d,]+/.test(text) || /\d+\s*(million|m)\b/i.test(text);
@@ -366,7 +370,7 @@ export async function buildStaticRSS(): Promise<void> {
 
             // Availability indicators - must have property type context
             const hasAvailabilityWords = /\b(available|listed|for\s*lease|for\s*sale|on\s*the\s*market|ground-?up|spec|build-?to-?suit|under\s*construction|breaks\s*ground|groundbreaking|delivers|delivered)\b/i.test(text);
-            const hasPropertyType = /\b(warehouse|industrial|distribution|logistics|building|facility|property|center|park|site|acres|square\s*feet|sf|sq\.?\s*ft|space|campus|complex|portfolio)\b/i.test(text);
+            const hasPropertyType = /\b(warehouses?|industrials?|distribution|logistics|buildings?|facilit(?:y|ies)|propert(?:y|ies)|centers?|parks?|sites?|acres|square\s*feet|sf|sq\.?\s*ft|space|campus(?:es)?|complex(?:es)?|portfolios?)\b/i.test(text);
 
             // People News indicators - must have CRE firm/role context
             // Also catch interview/profile formats: "Person's Name on Topic", "Q&A with Name"
@@ -515,6 +519,27 @@ export async function buildStaticRSS(): Promise<void> {
                 const aiResult = await Promise.race([aiPromise, timeoutPromise]);
                 aiFilteredItems = aiResult.included;
 
+                // === POST-AI CATEGORY CORRECTION ===
+                // The AI categorizer sometimes mis-labels obvious industrial transactions
+                // as "relevant" (e.g. "Blackstone sells nine Broward warehouses for $99.6M"
+                // → AI said relevant). Force-correct these so they land in the right
+                // newsletter section. Conservative — only overrides when the title has all
+                // three signals: industrial property type + transaction verb + price/SF.
+                let forcedToTxn = 0;
+                for (const item of aiFilteredItems) {
+                    if (item.category === 'transactions' || item.category === 'people') continue;
+                    const title = (item.title || '').toLowerCase();
+                    const hasIndustrial = /\b(warehouses?|industrials?|distribution(?:\s+centers?)?|logistics(?:\s+centers?)?|fulfillment\s+centers?|manufacturing\s+facilit(?:y|ies)|cold\s+storage|industrial\s+(?:park|building|portfolio|outdoor\s+storage))\b/i.test(title);
+                    const hasTxnVerb = /\b(sells?|sold|acquires?|acquired|bought|buys?|purchases?|purchased|closes?(?:\s+on)?|signs?\s+lease|leases?|leased|inks?|nabs?|brokers?\s+(?:sale|deal)|arranges?\s+sale|secures?\s+(?:sale|deal|refi|financing)|refinanc)\b/i.test(title);
+                    const hasPriceOrSF = /(\$\d|\bm\s+sale\b|\d+\s*(?:k|m)?\s*[- ]?(?:sf|square\s*feet|sq\.?\s*ft))/i.test(title);
+                    if (hasIndustrial && hasTxnVerb && hasPriceOrSF) {
+                        (item as any).category = 'transactions';
+                        (item as any)._classificationReason = 'TXN_POSTAI_OVERRIDE';
+                        forcedToTxn++;
+                    }
+                }
+                if (forcedToTxn > 0) log('info', `Post-AI override: forced ${forcedToTxn} obvious transactions out of 'relevant'`);
+
                 // Log AI filtering stats
                 const excludedByAI = aiResult.excluded.length;
                 const categoryBreakdown: Record<string, number> = {};
@@ -661,7 +686,7 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // If article has industrial context, always keep (national trends are valuable)
-            if (/\b(warehouse|logistics|industrial|distribution|manufacturing|cold storage|fulfillment|last.?mile|supply chain|freight)\b/i.test(text)) {
+            if (/\b(warehouses?|logistics|industrials?|distribution|manufacturing|cold\s*storage|fulfillment|last.?mile|supply\s*chain|freight)\b/i.test(text)) {
                 return true;
             }
 
@@ -948,9 +973,10 @@ export async function buildStaticRSS(): Promise<void> {
                 people: applyPeopleFilter(byCat.people),
             };
 
-            // Mirror the send-time MAX_PER_SECTION (=6, 3 for availabilities) from email.ts.
+            // Mirror the send-time MAX_PER_SECTION (=10, 5 for availabilities) from email.ts.
+            // Bumped 2026-06-10 to ship more strong industrial articles per day.
             const CAPS: Record<string, number> = {
-                relevant: 6, transactions: 6, availabilities: 3, people: 6,
+                relevant: 10, transactions: 10, availabilities: 5, people: 10,
             };
 
             const publishedIds = new Set<string>();
@@ -1033,9 +1059,13 @@ export async function buildStaticRSS(): Promise<void> {
                 });
             if (candidates.length > 0) {
                 // 4-min wall-clock cap leaves ~6min for the rest of the build (image
-                // enrichment, file writes) under the workflow's 10-min step timeout.
-                // Concurrency 5, batch delay 500ms — Groq free tier handles this fine.
-                const result = await classifyWoodmontBatch(candidates, 5, 500, 4 * 60 * 1000);
+                // enrichment, file writes) under the workflow's 15-min step timeout.
+                // 2026-06-10: lowered concurrency 5→3 and bumped delay 500→1000ms after
+                // the prior run showed 100% Groq 429 failures. With Cerebras-first
+                // (separate quota from the upstream categorizer) and these gentler
+                // RPS, we should land in a sustainable ~90 RPM region with 429
+                // fallback catching spikes.
+                const result = await classifyWoodmontBatch(candidates, 3, 1000, 4 * 60 * 1000);
                 log('info', 'Woodmont LLM classification complete', result);
             } else {
                 log('info', 'Woodmont LLM: no predicted-publish candidates to classify');
