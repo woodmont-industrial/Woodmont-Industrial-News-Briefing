@@ -125,6 +125,9 @@ jobs:
           echo "✅ Gap assessment complete"
 
       # === STEP 3: RSS BUILD (with GN backups now correctly set) ===
+      # Step timeout raised 10→15 min to accommodate the Woodmont LLM second-pass
+      # (capped at 4 min internally via classifyWoodmontBatch budgetMs).
+      # Baseline RSS build runs ~6-9 min; LLM adds up to 4 → 13 min worst case.
       - name: "Step 3: RSS build with correct GN backup state"
         if: steps.dedup.outputs.skip != 'true'
         run: |
@@ -137,7 +140,7 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        timeout-minutes: 10
+        timeout-minutes: 15
 
       # === COMMIT ===
       - name: Commit updated data

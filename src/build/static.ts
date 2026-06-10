@@ -1021,9 +1021,21 @@ export async function buildStaticRSS(): Promise<void> {
         // Items not stamped (failed LLM) fall back to _predictedPublish.
         try {
             const { classifyWoodmontBatch } = await import('../filter/llm-classifier.js');
-            const candidates = rssItems.filter(i => (i as any)._predictedPublish === true);
+            // Sort by recency so the freshest predicted-publishable items get the LLM
+            // verdict first. If budget exhausts, older items keep their _predictedPublish
+            // flag and fall through Path A — fresh news always gets the editorial gate.
+            const candidates = rssItems
+                .filter(i => (i as any)._predictedPublish === true)
+                .sort((a, b) => {
+                    const ad = new Date((a as any).pubDate || (a as any).date_published || 0).getTime();
+                    const bd = new Date((b as any).pubDate || (b as any).date_published || 0).getTime();
+                    return bd - ad;
+                });
             if (candidates.length > 0) {
-                const result = await classifyWoodmontBatch(candidates, 2, 1500);
+                // 4-min wall-clock cap leaves ~6min for the rest of the build (image
+                // enrichment, file writes) under the workflow's 10-min step timeout.
+                // Concurrency 5, batch delay 500ms — Groq free tier handles this fine.
+                const result = await classifyWoodmontBatch(candidates, 5, 500, 4 * 60 * 1000);
                 log('info', 'Woodmont LLM classification complete', result);
             } else {
                 log('info', 'Woodmont LLM: no predicted-publish candidates to classify');

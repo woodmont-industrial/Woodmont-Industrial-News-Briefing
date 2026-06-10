@@ -134,36 +134,55 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
  * Batch-classify a set of articles, stamping each with _woodmontApprove /
  * _woodmontReason / _woodmontConfidence / _woodmontClassifier.
  *
- * Concurrency is capped so we don't hammer the API. Articles that fail
- * to get a verdict are left unstamped — callers should fall back to
- * _predictedPublish in that case.
+ * Concurrency tuned for Groq free tier (30 RPM): 5 in flight × 500ms inter-batch
+ * gives ~10 req/sec peak which Groq absorbs fine, with the 429-fallback in
+ * classifyOneArticle catching any rate-limit spikes.
+ *
+ * Wall-clock budget enforced: if budgetMs elapses before the batch finishes,
+ * any remaining items are left unstamped (no verdict). The build step has a
+ * 10-minute timeout; we cap the LLM at 5 to leave headroom for image
+ * enrichment and feed.json writes.
  *
  * @param items   Items to classify. Typically the subset where
  *                _predictedPublish === true (saves LLM cost by 80%+).
- * @param maxConcurrent  How many parallel requests (default 2 — Groq's
- *                       free tier RPM is the constraint, not throughput).
+ * @param maxConcurrent  How many parallel requests (default 5).
+ * @param batchDelayMs   Pause between batches (default 500ms).
+ * @param budgetMs       Hard wall-clock cap. Default 5 min (300_000ms).
  */
 export async function classifyWoodmontBatch(
     items: NormalizedItem[],
-    maxConcurrent: number = 2,
-    batchDelayMs: number = 1500
-): Promise<{ classified: number; approved: number; rejected: number; failed: number }> {
+    maxConcurrent: number = 5,
+    batchDelayMs: number = 500,
+    budgetMs: number = 5 * 60 * 1000
+): Promise<{ classified: number; approved: number; rejected: number; failed: number; budgetExhausted: boolean }> {
     const providers = getAIProviders();
     if (providers.length === 0 || items.length === 0) {
-        return { classified: 0, approved: 0, rejected: 0, failed: 0 };
+        return { classified: 0, approved: 0, rejected: 0, failed: 0, budgetExhausted: false };
     }
 
-    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${providers[0].name} (batch: ${maxConcurrent}, rubric: ${WOODMONT_RUBRIC_VERSION})`);
+    const start = Date.now();
+    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${providers[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${WOODMONT_RUBRIC_VERSION})`);
 
     let approved = 0;
     let rejected = 0;
     let failed = 0;
+    let processed = 0;
+    let budgetExhausted = false;
 
     for (let i = 0; i < items.length; i += maxConcurrent) {
+        // Wall-clock guard — bail before kicking off the next batch
+        if (Date.now() - start >= budgetMs) {
+            budgetExhausted = true;
+            const remaining = items.length - i;
+            console.log(`[Woodmont LLM] Budget exhausted after ${Math.round((Date.now()-start)/1000)}s. ${remaining} items left unstamped (will fall back to _predictedPublish).`);
+            break;
+        }
+
         const batch = items.slice(i, i + maxConcurrent);
         const results = await Promise.all(batch.map(item => classifyOneArticle(item)));
 
         results.forEach((verdict, idx) => {
+            processed++;
             const item = batch[idx];
             if (verdict === null) {
                 failed++;
@@ -176,13 +195,12 @@ export async function classifyWoodmontBatch(
             if (verdict.approve) approved++; else rejected++;
         });
 
-        // Throttle between batches
         if (i + maxConcurrent < items.length) {
             await new Promise(resolve => setTimeout(resolve, batchDelayMs));
         }
     }
 
-    const total = items.length;
-    console.log(`[Woodmont LLM] Classification done: ${approved} approved, ${rejected} rejected, ${failed} failed (of ${total})`);
-    return { classified: total - failed, approved, rejected, failed };
+    const elapsedSec = Math.round((Date.now() - start) / 1000);
+    console.log(`[Woodmont LLM] Done in ${elapsedSec}s: ${approved} approved, ${rejected} rejected, ${failed} failed (processed ${processed}/${items.length}${budgetExhausted ? ', BUDGET EXHAUSTED' : ''})`);
+    return { classified: processed - failed, approved, rejected, failed, budgetExhausted };
 }
