@@ -43,6 +43,13 @@ interface ReserveItem {
     date_published: string;
     score: number;
     sigs: string[];
+    // 2026-06-11: persist description so FINAL GATE in email.ts can evaluate
+    // isStrictlyIndustrial against full text. PREMIER Trautmann (industrial GC
+    // people move) had "Northeast industrial market" only in the description;
+    // reserve pool dropped it, FINAL GATE then false-positive blocked as
+    // "not industrial". Title alone is insufficient signal for people-moves
+    // and short-headline articles.
+    description?: string;
 }
 
 interface ReservePool {
@@ -153,7 +160,7 @@ function loadCurrentReserve(): ReservePool | null {
 
 function toReserveItem(a: NormalizedItem, score: number): ReserveItem {
     const title = a.title || '';
-    const desc = (a as any).description || (a as any).summary || '';
+    const desc = (a as any).description || (a as any).content_text || (a as any).summary || '';
     return {
         id: a.id || a.link || '',
         title,
@@ -163,6 +170,9 @@ function toReserveItem(a: NormalizedItem, score: number): ReserveItem {
         date_published: (a as any).date_published || (a as any).pubDate || '',
         score,
         sigs: extractDealSignatures(title, desc),
+        // Truncate to keep reserve-pool.json size sane; 800 chars is plenty for
+        // FINAL GATE's industrial/region keyword checks.
+        description: desc ? desc.slice(0, 800) : undefined,
     };
 }
 

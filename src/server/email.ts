@@ -598,12 +598,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             if (section.length >= min) break;
                             const key = r.id || r.url;
                             if (usedIds.has(key)) continue;
-                            // Reserve items are NormalizedItem-compatible after this mapping
+                            // Reserve items are NormalizedItem-compatible after this mapping.
+                            // 2026-06-11: carry description from reserve pool (added in
+                            // build-reserve-pool.ts) so FINAL GATE's isStrictlyIndustrial
+                            // check has full text, not just title. Empty-fallback retained
+                            // for legacy reserve pools written before the field was added.
                             const item: NormalizedItem = {
                                 id: r.id,
                                 title: r.title,
                                 link: r.url,
-                                description: '',
+                                description: r.description || '',
                                 category: r.category,
                                 source: r.source,
                                 pubDate: r.date_published,
@@ -825,7 +829,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             'dcvelocity.com', 'logisticsmgmt.com', 'cpexecutive.com',
         ]);
 
-        const TARGET_REGION_PATTERN = /\b(new jersey|nj|newark|edison|carlstadt|rahway|piscataway|parsippany|robbinsville|hamilton|monmouth|somerset|harrison|wall twp|north bergen|garwood|linden|moonachie|cranbury|green brook|clark|freehold|exit \d|meadowlands|turnpike|route 1|i-95|i-78|i-287|pennsylvania|philadelphia|philly|allentown|lehigh|morrisville|bucks county|montgomery county|chester county|delaware county|pittsburgh|florida|miami|orlando|doral|jacksonville|tampa|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|duval|hillsborough|orange county, fl)\b/i;
+        // 2026-06-11: expanded after Capital Partners "Ft. Myers" got false-positive blocked
+        // (Ft. Myers wasn't in the list, news.google.com isn't a trusted source). Added the
+        // top FL/NJ/PA cities + counties + 'northeast' regional descriptor (catches GC people
+        // moves like PREMIER's Trautmann named superintendent for Northeast industrial market).
+        const TARGET_REGION_PATTERN = /\b(new jersey|nj|newark|edison|carlstadt|rahway|piscataway|parsippany|robbinsville|hamilton|monmouth|somerset|harrison|wall twp|north bergen|garwood|linden|moonachie|cranbury|green brook|clark|freehold|trenton|camden|woodbridge|elizabeth|paterson|lakewood|mount olive|mt olive|mt laurel|mount laurel|middlesex|essex|union county|bergen|hudson county|morris county|burlington county|ocean county|exit \d|meadowlands|turnpike|route 1|i-95|i-78|i-287|pennsylvania|philadelphia|philly|allentown|lehigh|morrisville|bucks county|montgomery county|chester county|delaware county|pittsburgh|reading|lancaster|harrisburg|carlisle|wilkes.?barre|scranton|york county|bethlehem|easton|exton|king of prussia|valley forge|cumberland county|berks county|florida|miami|orlando|doral|jacksonville|tampa|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|duval|hillsborough|orange county, fl|fort myers|ft\.?\s*myers|naples|sarasota|lakeland|ocala|st\.?\s*petersburg|saint petersburg|gainesville|tallahassee|pensacola|polk county|pasco county|lee county|collier county|alachua|seminole county|brevard|volusia|northeast industrial|north east industrial)\b/i;
 
         const NATIONAL_MACRO_PATTERN = /\b(interest rates?|cap rates?|vacancy rates?|absorption|industrial market|warehouse market|warehouse demand|logistics market|reit|industrial reit|supply chain|freight market|e-commerce|automation|robotics|build-to-suit|spec development|industrial outlook|market report|quarterly report|national industrial|us industrial|u\.s\. industrial|industrial sector|logistics sector|warehouse sector|industrial fund|industrial portfolio|industrial real estate|warehouse real estate|big.?box|shallow.?bay|last.?mile|cold storage market)\b/i;
 
