@@ -17,7 +17,7 @@ import {
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles
 } from './newsletter-filters.js';
-import { DiagnosticContext, writeNewsletterDiagnostics, Section } from './newsletter-diagnostics.js';
+import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section } from './newsletter-diagnostics.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -1111,6 +1111,29 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 windowDays: 7,
             });
         }
+        // Newsletter Quality Score — composite 0-100 grade for this send, computed
+        // from the funnel + the selected items. Written into the run JSON and
+        // appended to docs/quality-scores.json (the trendline data source).
+        try {
+            const recentSigs = loadSentSignatures(docsDir); // prior-day deal signatures (last 14d)
+            const quality = computeNewsletterScore(
+                diag.toJSON(),
+                { relevant, transactions, availabilities, people },
+                {
+                    sigOf: (it: any) => extractCrossDayDedupSignatures(it.title || '', it.description || (it as any).summary || ''),
+                    recentSigs,
+                }
+            );
+            diag.recordQuality(quality);
+            const penaltyStr = quality.penalties.length
+                ? ' — ' + quality.penalties.map(p => `-${p.points} ${p.type}`).join(', ')
+                : ' — clean';
+            console.log(`📊 Quality score: ${quality.score}/100 (${quality.grade}, ${quality.outOf10}/10)${penaltyStr}`);
+            writeQualityHistory(docsDir, new Date().toISOString().split('T')[0], diag.toJSON().runId, quality);
+        } catch (e) {
+            console.warn('⚠️ Quality score failed:', (e as Error).message);
+        }
+
         try {
             writeNewsletterDiagnostics(docsDir, diag.toJSON());
             console.log(`📊 Diagnostics written: docs/diagnostics/latest.json`);

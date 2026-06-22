@@ -1,0 +1,531 @@
+{
+  "updatedAt": "2026-06-22T14:02:00.525Z",
+  "history": [
+    {
+      "date": "2026-05-11",
+      "runId": "2026-05-11-1448",
+      "score": 76,
+      "outOf10": 7.6,
+      "grade": "C",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 19.8,
+        "regional": 12.5,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-05-12",
+      "runId": "2026-05-12-1423",
+      "score": 74,
+      "outOf10": 7.4,
+      "grade": "C",
+      "itemCount": 4,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 16.9,
+        "regional": 25,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "duplicate_in_send",
+          "points": 6
+        }
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "runId": "2026-05-13-1431",
+      "score": 46,
+      "outOf10": 4.6,
+      "grade": "F",
+      "itemCount": 5,
+      "breakdown": {
+        "coverage": 8,
+        "freshness": 16,
+        "regional": 2,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-05-14",
+      "runId": "2026-05-14-1409",
+      "score": 83,
+      "outOf10": 8.3,
+      "grade": "B",
+      "itemCount": 10,
+      "breakdown": {
+        "coverage": 30,
+        "freshness": 16.9,
+        "regional": 19.5,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "runId": "2026-05-15-1405",
+      "score": 69,
+      "outOf10": 6.9,
+      "grade": "D",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 17.3,
+        "regional": 13.6,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-05-18",
+      "runId": "2026-05-18-1530",
+      "score": 56,
+      "outOf10": 5.6,
+      "grade": "F",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 18.7,
+        "regional": 14.3,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "leak",
+          "points": 12
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "runId": "2026-05-19-1518",
+      "score": 71,
+      "outOf10": 7.1,
+      "grade": "C",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 19.3,
+        "regional": 19.3,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "runId": "2026-05-20-1517",
+      "score": 61,
+      "outOf10": 6.1,
+      "grade": "D",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 18.3,
+        "regional": 19.3,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "leak",
+          "points": 12
+        }
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "runId": "2026-05-21-1522",
+      "score": 41,
+      "outOf10": 4.1,
+      "grade": "F",
+      "itemCount": 4,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 13.3,
+        "regional": 5,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "leak",
+          "points": 12
+        }
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "runId": "2026-05-22-1436",
+      "score": 67,
+      "outOf10": 6.7,
+      "grade": "D",
+      "itemCount": 4,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 14.6,
+        "regional": 17.5,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-25",
+      "runId": "2026-05-25-1451",
+      "score": 70,
+      "outOf10": 7,
+      "grade": "C",
+      "itemCount": 2,
+      "breakdown": {
+        "coverage": 8,
+        "freshness": 16.9,
+        "regional": 25,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-05-26",
+      "runId": "2026-05-26-1523",
+      "score": 70,
+      "outOf10": 7,
+      "grade": "C",
+      "itemCount": 2,
+      "breakdown": {
+        "coverage": 10,
+        "freshness": 14.7,
+        "regional": 25,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-05-27",
+      "runId": "2026-05-27-1417",
+      "score": 64,
+      "outOf10": 6.4,
+      "grade": "D",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 13.5,
+        "regional": 10,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "runId": "2026-05-28-1619",
+      "score": 79,
+      "outOf10": 7.9,
+      "grade": "C",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 16.9,
+        "regional": 20.8,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "runId": "2026-05-29-1603",
+      "score": 83,
+      "outOf10": 8.3,
+      "grade": "B",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 18.6,
+        "regional": 20.7,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-06-01",
+      "runId": "2026-06-01-1448",
+      "score": 73,
+      "outOf10": 7.3,
+      "grade": "C",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 20,
+        "freshness": 13.5,
+        "regional": 20,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-06-02",
+      "runId": "2026-06-02-1504",
+      "score": 79,
+      "outOf10": 7.9,
+      "grade": "C",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 18.9,
+        "regional": 15.7,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-06-04",
+      "runId": "2026-06-04-1530",
+      "score": 82,
+      "outOf10": 8.2,
+      "grade": "B",
+      "itemCount": 8,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 19.8,
+        "regional": 18.1,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-06-05",
+      "runId": "2026-06-05-1517",
+      "score": 80,
+      "outOf10": 8,
+      "grade": "B",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 16.4,
+        "regional": 22.9,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-08",
+      "runId": "2026-06-08-1418",
+      "score": 79,
+      "outOf10": 7.9,
+      "grade": "C",
+      "itemCount": 10,
+      "breakdown": {
+        "coverage": 30,
+        "freshness": 16.1,
+        "regional": 18.5,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-11",
+      "runId": "2026-06-11-1553",
+      "score": 81,
+      "outOf10": 8.1,
+      "grade": "B",
+      "itemCount": 10,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 19.2,
+        "regional": 18,
+        "relevanceIntegrity": 20
+      },
+      "penalties": []
+    },
+    {
+      "date": "2026-06-12",
+      "runId": "2026-06-12-1429",
+      "score": 67,
+      "outOf10": 6.7,
+      "grade": "D",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 13.5,
+        "regional": 15.8,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-15",
+      "runId": "2026-06-15-1647",
+      "score": 69,
+      "outOf10": 6.9,
+      "grade": "D",
+      "itemCount": 5,
+      "breakdown": {
+        "coverage": 14,
+        "freshness": 15.5,
+        "regional": 22,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-16",
+      "runId": "2026-06-16-1616",
+      "score": 66,
+      "outOf10": 6.6,
+      "grade": "D",
+      "itemCount": 5,
+      "breakdown": {
+        "coverage": 14,
+        "freshness": 12.5,
+        "regional": 22,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-17",
+      "runId": "2026-06-17-1443",
+      "score": 80,
+      "outOf10": 8,
+      "grade": "B",
+      "itemCount": 8,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 17.3,
+        "regional": 21.3,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-18",
+      "runId": "2026-06-18-1437",
+      "score": 60,
+      "outOf10": 6,
+      "grade": "D",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 14.3,
+        "regional": 21.4,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "broken_item",
+          "points": 8
+        },
+        {
+          "type": "duplicate_in_send",
+          "points": 6
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-06-19",
+      "runId": "2026-06-19-1434",
+      "score": 81,
+      "outOf10": 8.1,
+      "grade": "B",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 24,
+        "freshness": 18.1,
+        "regional": 21.4,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
+    }
+  ]
+}
