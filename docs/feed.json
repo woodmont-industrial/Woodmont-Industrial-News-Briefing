@@ -1104,7 +1104,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial market report with neutral tone, target region (macro/national) + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial market report with neutral tone, target region (macro) + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq"
     },
@@ -2591,7 +2591,7 @@
       "_classificationReason": "AVAIL_NEW_SUPPLY",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 45K SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "New NJ industrial project at 45,000 sq. ft. meets target region and above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq"
     },
@@ -3877,6 +3877,40 @@
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
+      "id": "a61689eb79a10aef55d529a2049069cf25b406cc",
+      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQUHJWbGhQZXJHbjJSRGxrZDV1bklSZUlCcHVFazlldmdDbjlfV0Y5bWNIZlhMV1daSFhQalVpLWhNbXJDdENJOFpUdE5rVEJEX2RSS3BnNzctQUVwNTlyMnlBckt3Yk5sLU5IazRlb3pGY3lPRGlLQnJvSVJydHFLazJrcGE?oc=5",
+      "title": "8650 Transport Dr - Industrial For Lease - JLL Properties",
+      "content_html": "8650 Transport Dr - Industrial For Lease JLL Properties",
+      "content_text": "8650 Transport Dr - Industrial For Lease JLL Properties",
+      "summary": "8650 Transport Dr - Industrial For Lease JLL Properties",
+      "date_published": "2026-06-04T08:01:38.000Z",
+      "date_modified": "2026-06-22T16:52:09.182Z",
+      "image": "https://picsum.photos/seed/q800d8/640/360",
+      "author": {
+        "name": "Google News JLL Industrial"
+      },
+      "_source": {
+        "name": "Google News JLL Industrial",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQUHJWbGhQZXJHbjJSRGxrZDV1bklSZUlCcHVFazlldmdDbjlfV0Y5bWNIZlhMV1daSFhQalVpLWhNbXJDdENJOFpUdE5rVEJEX2RSS3BnNzctQUVwNTlyMnlBckt3Yk5sLU5IazRlb3pGY3lPRGlLQnJvSVJydHFLazJrcGE?oc=5",
+        "feedName": "Google News JLL Industrial"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
