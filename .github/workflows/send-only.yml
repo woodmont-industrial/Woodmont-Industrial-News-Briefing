@@ -6,13 +6,14 @@ name: "Send: Newsletter Only"
 
 on:
   schedule:
-    # Shotgun crons 8:00-8:45 AM EST (12:00-12:45 UTC) Mon-Fri
-    # Build pipeline finishes by ~7:30 AM. Send starts at 8:00 AM.
-    # 1 hour gap ensures build is done before send starts.
-    - cron: '0 12 * * 1-5'
-    - cron: '15 12 * * 1-5'
-    - cron: '30 12 * * 1-5'
-    - cron: '45 12 * * 1-5'
+    # 2026-06-23: moved 12:00 UTC -> 10:00 UTC. GitHub delays scheduled runs
+    # ~2-4h, so a 12:00 UTC (8am EDT) cron was landing 10am-12pm EDT, past the
+    # 10am target. Nominal 10:00 UTC (6am EDT) + lag lands ~8-10am EDT, by target.
+    # Build pipeline fires 08:00-09:00 UTC (see newsletter-pipeline.yml) — 2h gap.
+    - cron: '0 10 * * 1-5'
+    - cron: '15 10 * * 1-5'
+    - cron: '30 10 * * 1-5'
+    - cron: '45 10 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:

@@ -6,14 +6,15 @@ name: Newsletter Pipeline (Build Only)
 
 on:
   schedule:
-    # Fire every 15 min from 7-8 AM EST (11:00-12:00 UTC) Mon-Fri
-    # Pipeline takes ~15-20 min. Finishing by 8-8:30 AM.
-    # send-only.yml starts at 8:00 AM EST — 1 hour gap ensures build is done first.
-    - cron: '0 11 * * 1-5'
-    - cron: '15 11 * * 1-5'
-    - cron: '30 11 * * 1-5'
-    - cron: '45 11 * * 1-5'
-    - cron: '0 12 * * 1-5'
+    # 2026-06-23: moved 11:00-12:00 UTC -> 08:00-09:00 UTC. GitHub delays runs
+    # ~2-4h; firing earlier gives the build max headroom to commit fresh content
+    # before send-only.yml (now 10:00 UTC) runs. 2h nominal gap absorbs differential
+    # lag. (Robust ordering would chain build->send via repository_dispatch.)
+    - cron: '0 8 * * 1-5'
+    - cron: '15 8 * * 1-5'
+    - cron: '30 8 * * 1-5'
+    - cron: '45 8 * * 1-5'
+    - cron: '0 9 * * 1-5'
   repository_dispatch:
     types: [build-feed]
   workflow_dispatch:
