@@ -423,6 +423,52 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         }
     }
 
+    // === Conservative cross-day NEWS signals (2026-06-23) =========================
+    // For recurring stories that emit NO deal signature above — policy news with no
+    // $/SF/acre, corporate expansions phrased differently across outlets, and named
+    // industrial-REIT deals reported without a granular city. Each is deliberately
+    // narrow so two genuinely different stories won't collide. All logged + validated
+    // against the trailing 14-day window before shipping.
+    let xstate: string | null = null;
+    if (/\b(n\.?j\.?|new jersey|newark|edison|piscataway|woodbridge|elizabeth|trenton|camden|middlesex|bergen|hudson county|essex county|meadowlands|cranbury)\b/i.test(text)) xstate = 'nj';
+    else if (/\b(p\.?a\.?|pennsylvania|philadelphia|philly|allentown|bethlehem|lehigh valley|lehigh|bucks county|montgomery county|chester county|pittsburgh|harrisburg|lancaster|new castle)\b/i.test(text)) xstate = 'pa';
+    else if (/\b(fla?\.?|florida|miami|doral|hialeah|fort lauderdale|pompano|west palm|palm beach|orlando|tampa|clearwater|jacksonville|broward|miami-dade|brevard)\b/i.test(text)) xstate = 'fl';
+
+    // (A) Named industrial REIT + $ bucket (nearest $25M) — same REIT deal repeated
+    //     across outlets/days. Catches Terreno Hialeah $56M (shipped 6/22 AND 6/23).
+    //     Finer $25M bucket (vs the $250M M&A bucket) keeps distinct REIT deals apart.
+    const REITS = ['terreno', 'rexford', 'stag industrial', 'first industrial', 'eastgroup', 'link logistics', 'bridge industrial', 'dalfen', 'faropoint'];
+    if (dollars !== null) {
+        const db = Math.round(dollars / 25) * 25;
+        for (const r of REITS) {
+            if (text.includes(r)) { sigs.push(`reit_${r.replace(/\s+/g, '-')}_${db}m`); break; }
+        }
+    }
+
+    // (B) Data-center POLICY + state — repeated legislation/zoning/board coverage of
+    //     the same state's data-center policy. Gated on a policy verb so it does NOT
+    //     collapse distinct data-center DEALS (those carry their own deal sig).
+    //     Catches the PA "pause-button bill" (6/19) vs "push for regulations" (6/22).
+    // Policy terms are matched as word-START stems (no trailing \b) so "regulations",
+    // "lawmakers", "legislation", "approval" etc. all hit. Leading \b avoids substrings.
+    if (xstate && /\bdata\s?cent(er|re)s?\b/i.test(text) &&
+        /\b(bill|ban|moratori|regulat|ordinance|zoning|lawmaker|legislat|pause|approv|den(?:y|ies|ied)|reject|board|committee|vote)/i.test(text)) {
+        sigs.push(`dcpolicy_${xstate}`);
+    }
+
+    // (C) Corporate expansion/investment + lead entity + $ + state — same company's
+    //     expansion announcement re-reported. Gated on an expansion verb AND a lead
+    //     proper-noun AND a $ amount AND a state, so it's specific to one announcement.
+    //     Catches Nokia "$30M expansion in Pennsylvania" (6/19) vs "Investing $30M …
+    //     Lehigh Valley" (6/22).
+    if (xstate && dollars !== null &&
+        /\b(expand|expansion|investing|invests|to build|opens|new (facility|plant|factory|campus)|manufacturing operation|scale[^.]*manufacturing)\b/i.test(text)) {
+        const m = titleClean.match(/^([A-Z][A-Za-z0-9&.]{2,})/);
+        const lead = m ? m[1].toLowerCase().replace(/[.]+$/, '') : null;
+        const STOP = new Set(['the', 'top', 'new', 'how', 'why', 'this', 'best', 'why', 'these']);
+        if (lead && lead.length >= 3 && !STOP.has(lead)) sigs.push(`expansion_${lead}_${dollars}m_${xstate}`);
+    }
+
     return [...new Set(sigs)];
 }
 
