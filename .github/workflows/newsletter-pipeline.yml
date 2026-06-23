@@ -39,7 +39,14 @@ jobs:
     timeout-minutes: 30
     concurrency:
       group: newsletter-build
-      cancel-in-progress: true
+      # 2026-06-23: was `true`, which caused the 5 shotgun crons (11:00-12:00 UTC)
+      # to CANCEL each other when GitHub delayed them into a cluster — the build
+      # would churn through 5+ cancelled runs and never commit fresh content
+      # (root cause of the stale feeds all week). With `false` the delayed runs
+      # QUEUE instead; the first completes and commits, and the "Check for
+      # duplicate build" guard makes the queued 2nd-5th skip fast. Preserves the
+      # shotgun reliability without self-cancellation.
+      cancel-in-progress: false
 
     steps:
       # === DEDUP CHECK — skip if build already succeeded today ===

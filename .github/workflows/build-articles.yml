@@ -76,7 +76,11 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        timeout-minutes: 10
+        # 2026-06-22: weekend builds were timing out at 10 min while the IDENTICAL
+        # weekday RSS build (newsletter-pipeline.yml) gets 15 min and succeeds. The
+        # degraded LLM path (Groq 429 retries + dead Cerebras fallback) + og:image
+        # enrichment needs the full 15 min. Match weekdays so weekends stop failing.
+        timeout-minutes: 15
 
       # Commit
       - name: Commit updated feed
