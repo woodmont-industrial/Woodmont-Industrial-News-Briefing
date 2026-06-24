@@ -219,6 +219,115 @@ export async function classifyWithAI(
     return null;
 }
 
+// Articles per LLM request when request-batching. Cuts ~60 single calls to ~10 —
+// the main lever against Groq 429s. Modest size keeps prompt+output within token
+// limits and bounds the blast radius if one batch fails (only those N fall back).
+const CLASSIFY_BATCH_SIZE = 6;
+
+function buildBatchUserPrompt(items: { title: string; description: string; source: string }[]): string {
+    const blocks = items.map((a, i) =>
+        `[${i}]\nTITLE: ${a.title || 'No title'}\nDESCRIPTION: ${(a.description || '').substring(0, 500)}\nSOURCE: ${a.source || 'Unknown'}`
+    ).join('\n\n');
+    return `Classify these ${items.length} articles. Respond with JSON only (no markdown), an object with a "results" array of EXACTLY ${items.length} objects — one per article — each carrying its "index" matching the [n] label:
+
+${blocks}
+
+JSON format:
+{"results":[{"index":0,"category":"relevant|transactions|availabilities|people|exclude","relevanceScore":0-100,"reason":"brief","keywords":["k1"],"summary":"one sentence","isIndustrial":true,"region":"NJ|PA|FL|null"}]}`;
+}
+
+/**
+ * Classify a batch of articles in ONE request. Returns an array aligned to the
+ * input order (mapped by the model's returned "index"); any entry the model
+ * omits/malforms is left null so the caller falls back to per-article for just
+ * that item. Returns null on total failure (caller falls back entirely).
+ * Mirrors classifyWithAI's provider iteration + 429 fallback.
+ */
+async function classifyMultipleWithAI(
+    items: { title: string; description: string; source: string }[]
+): Promise<(AIClassificationResult | null)[] | null> {
+    const providers = getAIProviders();
+    if (providers.length === 0) return null;
+    const userPrompt = buildBatchUserPrompt(items);
+    const validCategories = ['relevant', 'transactions', 'availabilities', 'people', 'exclude'];
+
+    for (let pIdx = 0; pIdx < providers.length; pIdx++) {
+        const provider = providers[pIdx];
+        const isLastProvider = pIdx === providers.length - 1;
+        try {
+            let response: Response | null = null;
+            let retries = 0;
+            const maxRetries = 3;
+            let exhausted429 = false;
+            while (retries < maxRetries) {
+                response = await fetch(provider.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.apiKey}` },
+                    body: JSON.stringify({
+                        model: provider.model,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        temperature: 0.1,
+                        max_completion_tokens: 4096,
+                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
+                    })
+                });
+                if (response.status === 429) {
+                    retries++;
+                    const retryAfterMs = getRetryAfterMs(response);
+                    const waitTime = retryAfterMs ?? Math.pow(2, retries) * 2000;
+                    if (retries < maxRetries) {
+                        console.log(`[${provider.name}] Rate limited (batch), waiting ${Math.round(waitTime / 1000)}s before retry ${retries}/${maxRetries}`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue;
+                    }
+                    exhausted429 = true;
+                    break;
+                }
+                break;
+            }
+            if (exhausted429 && !isLastProvider) {
+                console.log(`[${provider.name}] Exhausted retries on 429 (batch) — falling back to ${providers[pIdx + 1].name}`);
+                continue;
+            }
+            if (!response || !response.ok) { if (!isLastProvider) continue; return null; }
+            const data = await response.json();
+            trackTokenUsage(data.usage);
+            const content = data.choices?.[0]?.message?.content;
+            if (!content) { if (!isLastProvider) continue; return null; }
+            const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+            const objMatch = jsonStr.match(/\{[\s\S]*\}/);
+            if (!objMatch) { if (!isLastProvider) continue; return null; }
+            const parsed = JSON.parse(objMatch[0]);
+            const arr: any[] = Array.isArray(parsed) ? parsed : parsed.results;
+            if (!Array.isArray(arr)) { if (!isLastProvider) continue; return null; }
+            // Map by returned index so reordering can't misattribute verdicts.
+            const out: (AIClassificationResult | null)[] = new Array(items.length).fill(null);
+            for (const r of arr) {
+                const idx = Number(r?.index);
+                if (!Number.isInteger(idx) || idx < 0 || idx >= items.length) continue;
+                out[idx] = {
+                    category: validCategories.includes(r.category) ? r.category : 'exclude',
+                    relevanceScore: Number(r.relevanceScore) || 0,
+                    reason: r.reason || '',
+                    keywords: Array.isArray(r.keywords) ? r.keywords : [],
+                    summary: r.summary || '',
+                    isIndustrial: !!r.isIndustrial,
+                    region: r.region && r.region !== 'null' ? r.region : null,
+                } as AIClassificationResult;
+            }
+            return out;
+        } catch (error) {
+            console.error(`[${provider.name}] batch classification error:`, error);
+            if (!isLastProvider) continue;
+            return null;
+        }
+    }
+    return null;
+}
+
 /**
  * Batch classify multiple articles (with rate limiting)
  */
@@ -247,32 +356,34 @@ export async function batchClassifyWithAI(
 
     const results = new Map<string, AIClassificationResult>();
 
-    // Process in batches to avoid rate limits
-    for (let i = 0; i < articlesToProcess.length; i += maxConcurrent) {
-        const batch = articlesToProcess.slice(i, i + maxConcurrent);
+    // Request-batch: classify CLASSIFY_BATCH_SIZE articles per call (cuts call
+    // volume ~6x → far fewer 429s). Any item the batch omits/malforms falls back
+    // to a per-article classifyWithAI call, so results never regress vs. before.
+    let batchedOk = 0, fellBack = 0;
+    for (let i = 0; i < articlesToProcess.length; i += CLASSIFY_BATCH_SIZE) {
+        const batch = articlesToProcess.slice(i, i + CLASSIFY_BATCH_SIZE);
+        const items = batch.map(a => ({ title: a.title || '', description: a.description || '', source: a.source || '' }));
+        const batchResults = await classifyMultipleWithAI(items);
 
-        const batchPromises = batch.map(async (article) => {
+        for (let j = 0; j < batch.length; j++) {
+            const article = batch[j];
             const id = article.id || article.link || article.title;
-            const result = await classifyWithAI(
-                article.title || '',
-                article.description || '',
-                article.source || ''
-            );
-
+            let result = batchResults ? batchResults[j] : null;
             if (result) {
-                results.set(id, result);
+                batchedOk++;
+            } else {
+                result = await classifyWithAI(article.title || '', article.description || '', article.source || '');
+                fellBack++;
             }
-
-            return result;
-        });
-
-        await Promise.all(batchPromises);
+            if (result) results.set(id, result);
+        }
 
         // Delay between batches
-        if (i + maxConcurrent < articlesToProcess.length) {
+        if (i + CLASSIFY_BATCH_SIZE < articlesToProcess.length) {
             await new Promise(resolve => setTimeout(resolve, delayMs));
         }
     }
+    console.log(`[${provider?.name ?? 'AI'}] Request-batched: ${batchedOk} classified via batch, ${fellBack} via per-article fallback`);
 
     return results;
 }
