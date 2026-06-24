@@ -210,7 +210,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
 
 async function generateSingleDescription(
     article: NormalizedItem,
-    provider: { name: string; url: string; model: string; apiKey: string }
+    provider: { name: string; url: string; model: string; apiKey: string; reasoningEffort?: 'low' | 'medium' | 'high' }
 ): Promise<string | null> {
     try {
         // Derive source from article metadata or URL domain
@@ -247,7 +247,8 @@ async function generateSingleDescription(
                         { role: 'user', content: prompt }
                     ],
                     temperature: 0.1,
-                    max_tokens: 300
+                    max_completion_tokens: 2048,
+                    ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
                 })
             });
 

@@ -143,7 +143,8 @@ export async function classifyWithAI(
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
-                        max_tokens: 300
+                        max_completion_tokens: 2048,
+                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
                     })
                 });
 

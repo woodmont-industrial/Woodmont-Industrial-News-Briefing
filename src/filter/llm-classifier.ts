@@ -83,7 +83,8 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
-                        max_tokens: 250,
+                        max_completion_tokens: 2048,
+                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {}),
                         response_format: { type: 'json_object' }
                     })
                 });
