@@ -670,8 +670,14 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // deal can ship multiple times across days (2026-04-27 and 2026-04-30 incidents).
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
-                const sigs = extractDealSignatures(a.title || '', a.description || '');
-                if (sigs.length === 0) return true; // no deal signature, keep
+                // Merge deal signatures with the conservative cross-day news signals
+                // (dcpolicy/reit/expansion) so same-topic-same-state items can't STACK in
+                // one edition — e.g. 3 PA data-center-policy stories shipped 2026-06-24.
+                const sigs = [
+                    ...extractDealSignatures(a.title || '', a.description || ''),
+                    ...extractCrossDayDedupSignatures(a.title || '', a.description || ''),
+                ];
+                if (sigs.length === 0) return true; // no signature, keep
                 const matched = sigs.find(s => seenSigs.has(s));
                 if (matched) {
                     console.log(`🔁 Fuzzy dedup removed: "${a.title?.substring(0, 60)}" (same deal: ${matched})`);
