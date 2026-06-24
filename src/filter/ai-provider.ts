@@ -49,10 +49,10 @@ const CEREBRAS_CONFIG = {
 const GROQ_CONFIG = {
     name: 'Groq',
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    // 2026-06-24: upgraded llama-3.1-8b-instant -> gpt-oss-120b (reasoning model).
-    // Call sites send max_completion_tokens + reasoning_effort (see reasoningEffort).
-    model: 'openai/gpt-oss-120b',
-    reasoningEffort: 'low' as const,
+    // 2026-06-24: tried gpt-oss-120b but reasoning latency x ~60 calls blew the
+    // 15-min build timeout. Reverted to fast llama-3.1-8b-instant. No reasoningEffort,
+    // so the reasoning_effort param isn't sent. (Batching planned to cut call volume.)
+    model: 'llama-3.1-8b-instant',
     // 2026-05-27: promoted to primary; Cerebras now fallback. Bumped maxArticles
     // 15 -> 60 to match Cerebras throughput. Groq's free tier RPM is similar to
     // Cerebras but their TPM cap is generous; these values should stay within it.
