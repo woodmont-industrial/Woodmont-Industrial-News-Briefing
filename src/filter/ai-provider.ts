@@ -28,13 +28,14 @@ export interface AIProvider {
     reasoningEffort?: 'low' | 'medium' | 'high';
 }
 
-// Model override via env: CEREBRAS_MODEL=qwen-3-235b-a22b-instruct-2507
-// Default: llama3.1-8b (production, guaranteed available)
-// Upgrade to qwen-3-235b-a22b-instruct-2507 once preview access is confirmed
+// Model via env: CEREBRAS_MODEL (set to zai-glm-4.7 in repo vars 2026-06-24).
+// 2026-06-24: Cerebras RETIRED llama3.1-8b -> every fallback call 404'd, dumping
+// the Woodmont second-pass load onto Groq (caused the 429 storms). Switched to
+// Cerebras's current free preview model zai-glm-4.7.
 const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
-    model: process.env.CEREBRAS_MODEL || 'llama3.1-8b',
+    model: process.env.CEREBRAS_MODEL || 'zai-glm-4.7',
     // 2026-05-27 v2: tighter still since Cerebras is now the fallback. When it
     // does run, it's because Groq already 429'd — we should be extra-gentle.
     // 2 concurrent x 5000ms = ~24 RPM, well under free-tier RPM cap.
