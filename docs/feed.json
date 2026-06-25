@@ -10,6 +10,40 @@
   },
   "items": [
     {
+      "id": "3fdd471ea5fd6d5ffd43dbedd173dc4fa5daa745",
+      "url": "https://re-nj.com/terreno-inks-92000-sq-ft-lease-in-kearny-with-undisclosed-3pl-firm/",
+      "title": "Terreno inks 92,000 sq. ft. lease in Kearny with undisclosed 3PL firm",
+      "content_html": "Terreno Realty Corp. has filled 92,000 square feet of industrial space in Kearny after securing a lease with a third-party logistics provider, the company announced this week.",
+      "content_text": "Terreno Realty Corp. has filled 92,000 square feet of industrial space in Kearny after securing a lease with a third-party logistics provider, the company announced this week.",
+      "summary": "Terreno Realty Corp. has filled 92,000 square feet of industrial space in Kearny after securing a lease with a third-party logistics provider, the company announced this week.",
+      "date_published": "2026-06-25T11:36:31.000Z",
+      "date_modified": "2026-06-25T17:17:40.652Z",
+      "image": "https://picsum.photos/seed/h6e63/640/360",
+      "author": {
+        "name": "Joshua Burd"
+      },
+      "_source": {
+        "name": "Real Estate NJ",
+        "website": "re-nj.com",
+        "url": "https://re-nj.com/terreno-inks-92000-sq-ft-lease-in-kearny-with-undisclosed-3pl-firm/",
+        "feedName": "Real Estate NJ"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "re-nj.com",
+        "NJ"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "A",
+      "_woodmontApprove": true,
+      "_woodmontReason": "NJ industrial lease transaction (92,000 SF) meets the 50K SF soft floor threshold with transaction action verb 'inks' and targets the correct region.",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
       "id": "22a23258e13ce5bc10135d959f846435e6f1281a",
       "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPbzVaOEZ5cWRVdkRSc1RyTENrMDN5aDlwdG1mTTljcDNucUZ6Z2p1TFgzM3NXeUdnanVBekxWN0g5S0JmX3lUNVJvd1Y5cG9iTDFMVS1TajhyTi1iZTNibkpSVWIta0tHS3dyUFZsSEhnc0dtY1VZZGpxRUZORzREV3ZPNnpGX1JseHpXdTgxTkp5Nll5c2c?oc=5",
       "title": "Fort Myers portfolio trades for $48M in region’s biggest industrial sale this year - The Real Deal",
@@ -23,23 +57,22 @@
         "name": "Google News Vacancy Rates"
       },
       "_source": {
-        "name": "Google News Vacancy Rates",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPbzVaOEZ5cWRVdkRSc1RyTENrMDN5aDlwdG1mTTljcDNucUZ6Z2p1TFgzM3NXeUdnanVBekxWN0g5S0JmX3lUNVJvd1Y5cG9iTDFMVS1TajhyTi1iZTNibkpSVWIta0tHS3dyUFZsSEhnc0dtY1VZZGpxRUZORzREV3ZPNnpGX1JseHpXdTgxTkp5Nll5c2c?oc=5",
-        "feedName": "Google News Vacancy Rates"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at $48M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "The article reports on a $48M industrial portfolio sale in Fort Myers, Florida, meeting the target region (FL) and transaction threshold ($25M+) criteria.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -72,7 +105,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a push to 'restrict' data center development, which matches Rule 3's prohibition on anti-development or oppositional framing.",
+      "_woodmontReason": "Anti-DC framing — headline mentions 'restrict data center development' pushed by environmental groups, which matches Rule 3 blocking opposition to data center development.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -138,7 +171,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a 'pause' on data center development, which matches Rule 3's list of prohibited keywords (pause, moratorium, freeze, halt).",
+      "_woodmontReason": "Anti-Data-Center Framing — headline contains 'Pauses', which matches Rule 3 keywords ('pause', 'moratorium', 'freeze', 'halt') for blocking opposition to data center development.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -171,7 +204,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — 'data center zoning amendments' implies opposition, matches Rule 3",
+      "_woodmontReason": "Anti-data-center framing — 'zoning amendments' implies opposition to data center development, matches Rule 3",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -204,8 +237,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Software / SAAS / Venture Funding — Crexi is a proptech/software platform, and the article focuses on scaling its data business rather than a real estate transaction or market report, matching Rule 6.",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Software / SaaS focus — the article is about scaling Crexi's data and intelligence business, which is a proptech/software platform, not a real estate transaction or market report, matches Rule 6.",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -237,7 +270,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real PA industrial leasing story at target region + relevant macro (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real PA industrial leasing story at target region + relevant macro, matches APPROVE criteria (Rule: Primary subject is industrial real estate or directly relevant macro)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq"
     },
@@ -303,8 +336,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Political content — article covers a rally criticizing a named politician (Gov. Shapiro), which violates Rule 17 against partisan content and political criticism.",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Political content — the article covers a rally criticizing a named politician (Gov. Shapiro) for his ties to the industry, which violates Rule 17 against partisan content and political criticism.",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -369,7 +402,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a 'moratorium' on data center development, which is listed as a rejection keyword in Rule 3.",
+      "_woodmontReason": "Anti-DC framing — headline explicitly mentions 'moratorium on data center development', which is blocked by Rule 3",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -435,7 +468,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Software / SAAS / VENTURE FUNDING — Basis Industrial is a software/3PL platform, the article is an interview with the CEO, matches Rule 6",
+      "_woodmontReason": "Software / SAAS / VENTURE FUNDING — Basis Industrial is a software/3PL platform, matches Rule 6",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -501,7 +534,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "SENSITIVE EVENT — massive four-alarm fire at a Pa. warehouse, matches Rule 1",
+      "_woodmontReason": "SENSITIVE EVENT — massive four-alarm fire at a Pa. warehouse matches Rule 1",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq"
     },
@@ -519,16 +552,15 @@
         "name": "Google News 3PL"
       },
       "_source": {
-        "name": "Google News 3PL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQUUhiVzg4Q0pIM3BjY2ZSeVg2cUR3YzI5dWh1TnhQOElMWXY3WUtWamVtaVhPQlhpc0NfWUI4UjRNZkZnYWZVaTdlSEMxTFlXUFh5aEVmMmxXS25tSGxHY09iOWt5ZW1FQzM5bFJvLVBxVUhXb0dxUDRRS21zOXpzVW9ibGN2dlNJR1JfSk9VU002Y3p2RDVhc1ctSzdmcTlT?oc=5",
-        "feedName": "Google News 3PL"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -634,9 +666,9 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — 'advances data center development projects' is a neutral framing, but the article is about a stock surge which is more about the company's financials than industrial real estate market, matches borderline judgment call (Rule: JUDGMENT CALLS)",
-      "_woodmontConfidence": 60,
-      "_woodmontClassifier": "groq"
+      "_woodmontReason": "Lacks geographic specificity for target regions (NJ, PA, FL) and focuses on stock price movement rather than a specific real estate transaction meeting the $25M/100K SF threshold.",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "af55f31becd3eaae34442e8dea6286c975550f0d",
@@ -766,7 +798,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "NJ industrial transaction of 810,000 sq. ft. in Somerville meets size threshold (100K SF) and target region criteria (Rule: APPROVE criteria all met).",
+      "_woodmontReason": "NJ industrial transaction exceeding 100K SF threshold (810,000 sq. ft.), target region met, fresh news (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -868,39 +900,6 @@
       "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token in the title, matches Rule 13",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "33a69e6e634b8cb2a44a4a63d59caaa0d97ea6a3",
-      "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE1ya0tnZkxxZVdNdTB6dklkak9TTWtSSnJhMHQ1d1RLbVdMOHJpVGIyblpjOGhsU0JrTkVyQmJUVldINUVacnBfYzB4amlkOWxqRkRubDBDWkltMU1RZlVtaGxxc0Z5Zm1BMlB1SkI5Zw?oc=5",
-      "title": "Industrial – Page 360 - Real Estate NJ",
-      "content_html": "Industrial – Page 360 Real Estate NJ",
-      "content_text": "Industrial – Page 360 Real Estate NJ",
-      "summary": "Industrial – Page 360 Real Estate NJ",
-      "date_published": "2026-06-19T18:11:16.000Z",
-      "date_modified": "2026-06-24T10:55:51.532Z",
-      "image": "https://picsum.photos/seed/10nzvz/640/360",
-      "author": {
-        "name": "Google News RE-NJ Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE1ya0tnZkxxZVdNdTB6dklkak9TTWtSSnJhMHQ1d1RLbVdMOHJpVGIyblpjOGhsU0JrTkVyQmJUVldINUVacnBfYzB4amlkOWxqRkRubDBDWkltMU1RZlVtaGxxc0Z5Zm1BMlB1SkI5Zw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
     },
     {
       "id": "5289d5b858b62ed0fd66d7da443d07a70c194d68",
@@ -1031,7 +1030,7 @@
       "_tier": "C",
       "_woodmontApprove": true,
       "_woodmontReason": "Real FL industrial transaction at $56M, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 100,
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1294,7 +1293,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Target region (Tampa, FL) industrial transaction meeting the 100K SF size threshold (100,698 SF) and within the 7-day freshness window.",
+      "_woodmontReason": "Target region (FL/Tampa) industrial lease meeting the 100K SF size threshold and published within the 7-day freshness window.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1891,39 +1890,6 @@
       "_woodmontReason": "Article is older than 7 days (published June 16, today is June 24), matches Rule 11",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "68cae88d1661967f5245696ffbc37dd45ba9d56e",
-      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOV05DUE5nOVM1aVphaGtXb1kwR2x4X1hwb3N5dkZyNG5fY3M5RTR2WFUwR1RRVnFUNmF6MXNuYXQxSXlmcUNnQm1OUHphODJTQU1QZ3k1dHkzR0VvY3BGcFZ4STNXaWNBVmZUOHdVT3Zwd2MyU0hBajY5eHB4clNlNjFuTnJDLTDSAYwBQVVfeXFMT0JDdjU2TlJONGRXMEl2ZFRqeDlNZHktLTBJSDctQWF3TlJqTldmXzYxWkNORC1zSHhpWEZsdlNVV3RQb0xSY2lOV3B0Yi1rb241YnVFLTVwWm1zZi1BbFI1NnpSU2huUEFNa1Y4VEdBU3VPek1xa1ZiTlFadDY2bEZiRWpoR2w0NnN6MkM?oc=5",
-      "title": "Fifth sloth dies after Sloth World warehouse rescue - FOX 13 Tampa Bay",
-      "content_html": "Fifth sloth dies after Sloth World warehouse rescue FOX 13 Tampa Bay",
-      "content_text": "Fifth sloth dies after Sloth World warehouse rescue FOX 13 Tampa Bay",
-      "summary": "Fifth sloth dies after Sloth World warehouse rescue FOX 13 Tampa Bay",
-      "date_published": "2026-06-16T16:27:05.000Z",
-      "date_modified": "2026-06-18T15:08:24.913Z",
-      "image": "https://picsum.photos/seed/2z6zie/640/360",
-      "author": {
-        "name": "Google News Tampa Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOV05DUE5nOVM1aVphaGtXb1kwR2x4X1hwb3N5dkZyNG5fY3M5RTR2WFUwR1RRVnFUNmF6MXNuYXQxSXlmcUNnQm1OUHphODJTQU1QZ3k1dHkzR0VvY3BGcFZ4STNXaWNBVmZUOHdVT3Zwd2MyU0hBajY5eHB4clNlNjFuTnJDLTDSAYwBQVVfeXFMT0JDdjU2TlJONGRXMEl2ZFRqeDlNZHktLTBJSDctQWF3TlJqTldmXzYxWkNORC1zSHhpWEZsdlNVV3RQb0xSY2lOV3B0Yi1rb241YnVFLTVwWm1zZi1BbFI1NnpSU2huUEFNa1Y4VEdBU3VPek1xa1ZiTlFadDY2bEZiRWpoR2w0NnN6MkM?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
     },
     {
       "id": "fa426c621c71adbe2f0bf8a1fe07480255eda495",
@@ -3731,8 +3697,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3863,8 +3829,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3896,8 +3862,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3929,8 +3895,8 @@
         "Transactions — Property Sales & Leases",
         "commercialsearch.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3963,13 +3929,13 @@
         "news.google.com"
       ],
       "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at 208K SF, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontApprove": false,
+      "_woodmontReason": "Stale content — published on June 9, 2026, which is 16 days before the briefing date of June 25, 2026, violating the 7-day freshness rule (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "f0e2211ba73c2e660b90f78932b4a72197e8c545",
@@ -4227,13 +4193,13 @@
         "news.google.com"
       ],
       "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at $34M, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontApprove": false,
+      "_woodmontReason": "Stale — the article was published on June 8, 2026, which is 17 days ago, exceeding the 7-day limit (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "2f22f73fcd8ae5edbb1c47bd3a9a1e37b2989ae5",
@@ -4359,13 +4325,13 @@
         "news.google.com"
       ],
       "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at ~71k SF, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article is stale — published on June 8, 2026, which is more than 7 days before today's date of June 25, 2026 (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "cac949c91aa5e75eee2067d3356ad701501e301d",
@@ -4392,13 +4358,13 @@
         "re-nj.com"
       ],
       "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at 129K SF, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontApprove": false,
+      "_woodmontReason": "The article was published on June 8, 2026, which is 17 days prior to the current date of June 25, 2026, violating the 7-day freshness rule (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "4e14d5a44ab4a62019ab3aaa153ee943d9b6851d",
@@ -4531,6 +4497,40 @@
       "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token, matches Rule 13",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
+    },
+    {
+      "id": "3ba4e970322ef5525099010354a141f871f1d4bf",
+      "url": "https://www.areadevelopment.com/newsItems/6-6-2026/blue-origin-merritt-island-florida.shtml",
+      "title": "Blue Origin Expands Merritt Island, Florida, Manufacturing Operations",
+      "content_html": "Aerospace company Blue Origin plans to expand its operations in Merritt Island, Florida. The $600 million project is expected to create 500 jobs in Brevard County.",
+      "content_text": "Aerospace company Blue Origin plans to expand its operations in Merritt Island, Florida. The $600 million project is expected to create 500 jobs in Brevard County.",
+      "summary": "Aerospace company Blue Origin plans to expand its operations in Merritt Island, Florida. The $600 million project is expected to create 500 jobs in Brevard County.",
+      "date_published": "2026-06-06T11:47:00.000Z",
+      "date_modified": "2026-06-25T17:17:52.416Z",
+      "image": "https://picsum.photos/seed/tz80b2/640/360",
+      "author": {
+        "name": "Area Development Master"
+      },
+      "_source": {
+        "name": "Area Development Master",
+        "website": "areadevelopment.com",
+        "url": "https://www.areadevelopment.com/newsItems/6-6-2026/blue-origin-merritt-island-florida.shtml",
+        "feedName": "Area Development Master"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "areadevelopment.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "A",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
     },
     {
       "id": "17c27c792fd0e4ccdc0c330cef6df74928590dcc",
@@ -4688,14 +4688,14 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article published on 2026-06-04 is 21 days old, exceeding the 7-day freshness limit (Rule 11: STALE).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "77aa90d350bf32d31249dcfb8df13ad3bc3e7692",
@@ -4754,14 +4754,14 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "Stale content — published on June 4, 2026, which is more than 7 days old from today's date (June 25, 2026), matches Rule 11",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "a61689eb79a10aef55d529a2049069cf25b406cc",
@@ -4919,14 +4919,14 @@
         "Transactions — Property Sales & Leases",
         "re-nj.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "The article was published on June 4, 2026, which is more than 7 days ago from today's date (June 25, 2026), violating Rule 11 (STALE).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "ad8214ff47d630da0498cffe47758cb322ff746d",
@@ -6031,16 +6031,15 @@
         "name": "Google News Industrial RE"
       },
       "_source": {
-        "name": "Google News Industrial RE",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQckI5aGk5ampBSGJ4SjFsdXNSWGFfQWIxY2xlSVliSmNWczZWaUJDYnFFMW8zYmNVUU1iVnp4cnlOVC1fMEhSel9xSnF5ZFhSYjRTUDROaUtuQXVnZk5zVDdZVjIyY1owYkQ2RVlUTWJXZFRuTUJ4bXRZTHZtMXctVUhsSmtGQ0NWSERDOE9pYjBVRjF5QzA5ZDNWdEFvZFdlVzVR?oc=5",
-        "feedName": "Google News Industrial RE"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -6506,6 +6505,40 @@
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
+      "id": "987089dee48987d7f172a7620140ea7fc22be8f1",
+      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNNWdmdW1GdVU1ZC1xUWthbC1qR0E2UVlKTlJ4Y3JKWG1NRmlGdE5nbDh3emVLOXhxTDJ4QmhZT3dwVlVZLTJXazFrM0J0RmJhbmZTSldueDhMTUpPQmZ4VHI4MjM5ei1HRXhYYjhXYlZFVVpVUnFPbEE2c1lLdkJlNVd0Mm9oNGV3OGhVMXBVZHo?oc=5",
+      "title": "JLL arranges $300M sale of FedEx industrial portfolio across Southeast - JLL",
+      "content_html": "JLL arranges $300M sale of FedEx industrial portfolio across Southeast JLL",
+      "content_text": "JLL arranges $300M sale of FedEx industrial portfolio across Southeast JLL",
+      "summary": "JLL arranges $300M sale of FedEx industrial portfolio across Southeast JLL",
+      "date_published": "2026-05-29T07:00:00.000Z",
+      "date_modified": "2026-06-25T17:17:45.786Z",
+      "image": "https://picsum.photos/seed/lz74ae/640/360",
+      "author": {
+        "name": "Google News Distribution"
+      },
+      "_source": {
+        "name": "Google News Distribution",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNNWdmdW1GdVU1ZC1xUWthbC1qR0E2UVlKTlJ4Y3JKWG1NRmlGdE5nbDh3emVLOXhxTDJ4QmhZT3dwVlVZLTJXazFrM0J0RmJhbmZTSldueDhMTUpPQmZ4VHI4MjM5ei1HRXhYYjhXYlZFVVpVUnFPbEE2c1lLdkJlNVd0Mm9oNGV3OGhVMXBVZHo?oc=5",
+        "feedName": "Google News Distribution"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
@@ -7662,72 +7695,6 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "3d7da56e2d26936160783f316c4cfc2b2e35aade",
-      "url": "https://www.areadevelopment.com/newsItems/5-25-2026/mccarls-beaver-county-pennsylvania.shtml",
-      "title": "McCarl’s Expands Beaver County, Pennsylvania, Manufacturing Operations",
-      "content_html": "Industrial contractor and mechanical fabricator McCarl’s plans to expand its operations in Beaver County, Pennsylvania. The $15 million project is expected to create 130 jobs.",
-      "content_text": "Industrial contractor and mechanical fabricator McCarl’s plans to expand its operations in Beaver County, Pennsylvania. The $15 million project is expected to create 130 jobs.",
-      "summary": "Industrial contractor and mechanical fabricator McCarl’s plans to expand its operations in Beaver County, Pennsylvania. The $15 million project is expected to create 130 jobs.",
-      "date_published": "2026-05-25T15:04:00.000Z",
-      "date_modified": "2026-05-26T13:52:17.121Z",
-      "image": "https://picsum.photos/seed/9advv6/640/360",
-      "author": {
-        "name": "Area Development Master"
-      },
-      "_source": {
-        "name": "areadevelopment.com",
-        "website": "areadevelopment.com",
-        "url": "https://www.areadevelopment.com/newsItems/5-25-2026/mccarls-beaver-county-pennsylvania.shtml",
-        "feedName": "areadevelopment.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "areadevelopment.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "f6fadfb0b77f58622c7d3402739987703f26ef6b",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOUzN0QjE0QW9sQUZwWWdwUDNQNGNzbXg3bFJjN050Y0U2cGtrTzZySUw5VzVfZ2xlbGhKdGRReDhFZDd5Y01KTlA2Ymo0X21wZDVUaVk4dXZTNTlsSmF1Y1lMU19Oak54czZvT0t5RmhOOVN4S1BMNGtleldpUU03azh3MkNydmJORkoxaEp1QXN6MmtrZWJUaURwRHBRb1lybUZLSWQ5b9IBrAFBVV95cUxQc2hOakhqTzRXUjE2LXZkcEhmZUdFZlZuRlFYR2I5RWlYR000UHplc2RDQ2ZzcDZTV2w5c2ZSY1NvR1JYUmllX3dGQ2JHeWpHUVlqS085Z05hcEhETXFXVVZMbHRlUDI5X0dLYXY4V2tNN3dtTkFiODU1emFDNGQzQWMyM3hod2ZBQUQ0cm9HaEo3cnM3YmdMblMyZFRlcWdrYmVJWTBBZkc5dkkw?oc=5",
-      "title": "Blue Origin: $600 Million Florida Manufacturing Expansion To Create 500 Aerospace Jobs - Pulse 2.0",
-      "content_html": "Blue Origin: $600 Million Florida Manufacturing Expansion To Create 500 Aerospace Jobs Pulse 2.0",
-      "content_text": "Blue Origin: $600 Million Florida Manufacturing Expansion To Create 500 Aerospace Jobs Pulse 2.0",
-      "summary": "Blue Origin: $600 Million Florida Manufacturing Expansion To Create 500 Aerospace Jobs Pulse 2.0",
-      "date_published": "2026-05-25T12:18:28.000Z",
-      "date_modified": "2026-05-25T14:02:27.049Z",
-      "image": "https://picsum.photos/seed/sdnpik/640/360",
-      "author": {
-        "name": "Google News Manufacturing NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOUzN0QjE0QW9sQUZwWWdwUDNQNGNzbXg3bFJjN050Y0U2cGtrTzZySUw5VzVfZ2xlbGhKdGRReDhFZDd5Y01KTlA2Ymo0X21wZDVUaVk4dXZTNTlsSmF1Y1lMU19Oak54czZvT0t5RmhOOVN4S1BMNGtleldpUU03azh3MkNydmJORkoxaEp1QXN6MmtrZWJUaURwRHBRb1lybUZLSWQ5b9IBrAFBVV95cUxQc2hOakhqTzRXUjE2LXZkcEhmZUdFZlZuRlFYR2I5RWlYR000UHplc2RDQ2ZzcDZTV2w5c2ZSY1NvR1JYUmllX3dGQ2JHeWpHUVlqS085Z05hcEhETXFXVVZMbHRlUDI5X0dLYXY4V2tNN3dtTkFiODU1emFDNGQzQWMyM3hod2ZBQUQ0cm9HaEo3cnM3YmdMblMyZFRlcWdrYmVJWTBBZkc5dkkw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
