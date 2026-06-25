@@ -1,14 +1,14 @@
 {
-  "runId": "2026-06-24-1534",
-  "generatedAt": "2026-06-24T15:34:53.055Z",
+  "runId": "2026-06-25-1213",
+  "generatedAt": "2026-06-25T12:13:12.659Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 229,
-      "inWindow": 7,
-      "regionPass": 7,
+      "loaded": 234,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 4,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -40,8 +40,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 4,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -49,16 +49,16 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 229,
-      "inWindow": 5,
-      "regionPass": 4,
+      "loaded": 234,
+      "inWindow": 4,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -69,7 +69,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,23 +85,23 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 2,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 229,
+      "loaded": 234,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -130,15 +130,15 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 229,
+      "loaded": 234,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -191,25 +191,19 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 81,
-    "outOf10": 8.1,
-    "grade": "B",
-    "itemCount": 7,
+    "score": 65,
+    "outOf10": 6.5,
+    "grade": "D",
+    "itemCount": 6,
     "breakdown": {
-      "coverage": 24,
-      "freshness": 18,
-      "regional": 25,
+      "coverage": 18,
+      "freshness": 10,
+      "regional": 16.7,
       "relevanceIntegrity": 20
     },
-    "penalties": [
-      {
-        "type": "duplicate_in_send",
-        "points": 6,
-        "detail": "Repeats another item in this send: \"Advocates push for moratorium on data center dev\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty sections: people"
+      "Empty sections: availabilities, people"
     ]
   }
 }

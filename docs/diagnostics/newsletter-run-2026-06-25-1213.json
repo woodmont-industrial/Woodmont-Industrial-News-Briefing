@@ -1,14 +1,14 @@
 {
-  "runId": "2026-05-11-1448",
-  "generatedAt": "2026-05-11T14:48:29.249Z",
+  "runId": "2026-06-25-1213",
+  "generatedAt": "2026-06-25T12:13:12.659Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 235,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 234,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -34,13 +34,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -48,16 +49,16 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 235,
-      "inWindow": 1,
-      "regionPass": 0,
+      "loaded": 234,
+      "inWindow": 4,
+      "regionPass": 2,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -68,7 +69,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -78,22 +79,23 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
         "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
+        "tier4_reserve": 2,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 235,
-      "inWindow": 4,
+      "loaded": 234,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -101,7 +103,7 @@
       "stalePruned": 0,
       "selected": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -136,14 +138,14 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 235,
+      "loaded": 234,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -187,5 +189,21 @@
     "afterDedup": 0,
     "selected": 0,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 65,
+    "outOf10": 6.5,
+    "grade": "D",
+    "itemCount": 6,
+    "breakdown": {
+      "coverage": 18,
+      "freshness": 10,
+      "regional": 16.7,
+      "relevanceIntegrity": 20
+    },
+    "penalties": [],
+    "notes": [
+      "Empty sections: availabilities, people"
+    ]
   }
 }
