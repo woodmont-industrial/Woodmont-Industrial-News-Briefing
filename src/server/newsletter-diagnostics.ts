@@ -179,6 +179,10 @@ const MACRO_RX = /\b(industrial market|warehouse market|warehouse demand|logisti
 const INDUSTRIAL_SIGNAL_RX = /\b(warehouse|industrial|logistics|distribution|fulfillment|manufactur|lease|sublease|\bsf\b|square (foot|feet)|acre|\$\s?\d|port|cold storage|spec|build-to-suit|big.?box|last.?mile|developer|portfolio|tenant)\b/i;
 // Positive wrong-region / wrong-asset evidence — a genuine leak (worst penalty).
 const EXCLUDED_REGION_RX = /\b(california|texas|chicago|illinois|ohio|atlanta|georgia|arizona|phoenix|nevada|seattle|denver|oahu|hawaii|tennessee|alabama|india|china|france|toulouse|australia|nsw|canada|mexico|united kingdom)\b|\b(rite aid|pharmacy|apartment complex|multifamily|retail mall|office tower)\b/i;
+// Non-real-estate junk that keyword-matches industrial terms but must never ship:
+// animal-welfare/wildlife (e.g. "sloth … warehouse rescue", 2026-06-25 leak) and
+// scraped pagination/index pages ("Industrial – Page 360"). Penalized as a leak.
+const NON_RE_JUNK_RX = /\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b|[-–—]\s*page\s+\d+\b/i;
 
 function round1(n: number): number { return Math.round(n * 10) / 10; }
 function itemText(it: any): string {
@@ -195,7 +199,8 @@ function regionScoreOf(it: any): number {
 }
 function isBrokenTitle(it: any): boolean {
     const t = (it.title || '').trim();
-    return t.length < 20 || !/\s/.test(t); // empty, stub, or single-token
+    // empty, stub, single-token, or a scraped pagination/index page ("… – Page 360")
+    return t.length < 20 || !/\s/.test(t) || /[-–—]\s*page\s+\d+\b/i.test(t);
 }
 function normTitle(title: string): string {
     return (title || '').toLowerCase()
@@ -289,8 +294,8 @@ export function computeNewsletterScore(
     // Off-target leaks (-12) and weak/borderline items (-3)
     allItems.forEach(it => {
         const text = itemText(it);
-        if (EXCLUDED_REGION_RX.test(text)) {
-            penalties.push({ type: 'leak', points: PENALTY.leak, detail: `Off-target region/asset shipped: ${label(it)}` });
+        if (EXCLUDED_REGION_RX.test(text) || NON_RE_JUNK_RX.test(text)) {
+            penalties.push({ type: 'leak', points: PENALTY.leak, detail: `Off-target / non-RE content shipped: ${label(it)}` });
         } else if (regionScoreOf(it) < 1 && !INDUSTRIAL_SIGNAL_RX.test(text)) {
             penalties.push({ type: 'weak_item', points: PENALTY.weak, detail: `Borderline / off-topic: ${label(it)}` });
         }

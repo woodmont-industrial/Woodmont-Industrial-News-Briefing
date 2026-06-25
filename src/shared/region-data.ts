@@ -363,6 +363,16 @@ export const INDUSTRIAL_PROPERTY_KEYWORDS = [
 export function isStrictlyIndustrial(text: string): boolean {
     const lower = text.toLowerCase();
 
+    // HARD BLOCK (2026-06-25): keyword-matched non-real-estate junk that slips past
+    // the "warehouse" exception below. Runs FIRST so even a "warehouse" mention can't
+    // rescue it.
+    //  - Animal-welfare / wildlife: e.g. "Fifth sloth dies after Sloth World warehouse
+    //    rescue" — keyword "warehouse" but it's an animal story, never industrial CRE.
+    //    (Confirmed leak class — see the 5/21 "sloths die in Orlando warehouse" call.)
+    //  - Scraped pagination/index pages: e.g. "Industrial – Page 360 - Real Estate NJ".
+    if (/\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b/i.test(lower)) return false;
+    if (/[-–—]\s*page\s+\d+\b/i.test(lower)) return false;
+
     // FIRST: If it has non-industrial keywords → reject immediately
     // (prevents "industrial heir sells Palm Beach home" from passing on "industrial")
     const hasNonIndustrial = EXCLUDE_NON_INDUSTRIAL.some(kw => lower.includes(kw));

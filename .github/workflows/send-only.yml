@@ -15,10 +15,13 @@ on:
     # DST: cron is fixed UTC. When ET returns to EST (Nov 2026) bump +1h to 11:00
     # UTC so delivery stays ~8:30 ET.
     # Build pipeline fires 08:00-09:00 UTC (newsletter-pipeline.yml) — lands first.
-    - cron: '0 10 * * 1-5'
-    - cron: '15 10 * * 1-5'
+    # 2026-06-25: bumped 10:00 -> 10:30 UTC. The 10:00 cron delivered 8:13 AM EDT
+    # (only ~2h lag that day) — too early. 10:30 UTC + ~2h lag => ~12:30 UTC = 8:30
+    # AM EDT, so it no longer lands before 8:30.
     - cron: '30 10 * * 1-5'
     - cron: '45 10 * * 1-5'
+    - cron: '0 11 * * 1-5'
+    - cron: '15 11 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:
