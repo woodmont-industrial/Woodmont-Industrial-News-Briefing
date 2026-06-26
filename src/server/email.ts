@@ -15,7 +15,8 @@ import {
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
     loadIncludedArticles, clearIncludedArticles,
-    loadSentArticles, loadSentSignatures, saveSentArticles
+    loadSentArticles, loadSentSignatures, saveSentArticles,
+    loadSentTitleKeys, normalizeTitleKey
 } from './newsletter-filters.js';
 import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section } from './newsletter-diagnostics.js';
 
@@ -397,6 +398,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // silently dropped on 2026-05-13.
         const sentArticleIds = loadSentArticles(docsDir);
         const sentSigSet = loadSentSignatures(docsDir);
+        const sentTitleKeys = loadSentTitleKeys(docsDir);
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
             if (sentArticleIds.has(id)) return false;
@@ -404,6 +406,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
+                    return false;
+                }
+            }
+            // Cross-day TITLE dedup: catches syndicated same-headline repeats with no deal
+            // signature (e.g. "Florida … data center development" across 5 sources / 3 days).
+            if (sentTitleKeys.size > 0) {
+                const tk = normalizeTitleKey(a.title || '');
+                if (tk.length >= 25 && sentTitleKeys.has(tk)) {
+                    console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
                     return false;
                 }
             }
@@ -1206,6 +1217,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 .map(a => ({
                     id: a.id || a.link || '',
                     sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
+                    titleKey: normalizeTitleKey(a.title || ''),
                 }))
                 .filter(item => item.id);
             saveSentArticles(docsDir, sentItems);

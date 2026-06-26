@@ -671,8 +671,48 @@ export function clearIncludedArticles(docsDir: string): void {
 // SENT-ARTICLE DEDUP TRACKING
 // =====================================================================
 
-interface SentEntry { id: string; sentAt: string; sigs?: string[] }
+interface SentEntry { id: string; sentAt: string; sigs?: string[]; titleKey?: string }
 interface SentArticlesData { sent: SentEntry[] }
+
+/**
+ * Normalize a headline for cross-day title dedup: strip the trailing " - Publisher"
+ * suffix Google News/aggregators append, lowercase, drop punctuation. Two copies of
+ * the same syndicated story (e.g. "Florida's … data center development - KPVI" vs
+ * "… - AOL.com") collapse to the same key. 2026-06-26.
+ */
+export function normalizeTitleKey(title: string): string {
+    return (title || '')
+        .replace(/\s+[-–—|]\s+[^-–—|]*$/, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * Load normalized title keys from articles sent in the last 14 days. Used for
+ * cross-day title dedup — catches syndicated same-headline repeats that carry no
+ * deal signature (the recurring "Florida data center development" story).
+ */
+export function loadSentTitleKeys(docsDir: string): Set<string> {
+    const sentPath = path.join(docsDir, 'sent-articles.json');
+    try {
+        if (!fs.existsSync(sentPath)) return new Set();
+        const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const keys = new Set<string>();
+        for (const e of data.sent || []) {
+            if (new Date(e.sentAt) < fourteenDaysAgo) continue;
+            if (e.titleKey && e.titleKey.length >= 25) keys.add(e.titleKey);
+        }
+        console.log(`📋 Loaded ${keys.size} sent title-keys (last 14 days)`);
+        return keys;
+    } catch (e) {
+        console.warn('Could not load sent title keys:', e);
+        return new Set();
+    }
+}
 
 /**
  * Load previously sent article IDs from docs/sent-articles.json.
@@ -726,7 +766,7 @@ export function loadSentSignatures(docsDir: string): Set<string> {
  * Storing signatures alongside IDs enables cross-day fuzzy dedup so the same deal
  * reported by a different source on a later day won't ship twice.
  */
-export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string; sigs?: string[] }>): void {
+export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string; sigs?: string[]; titleKey?: string }>): void {
     const sentPath = path.join(docsDir, 'sent-articles.json');
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const thirtyDaysAgo = new Date();
@@ -753,6 +793,7 @@ export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string;
             id: item.id,
             sentAt: today,
             ...(item.sigs && item.sigs.length > 0 ? { sigs: item.sigs } : {}),
+            ...(item.titleKey ? { titleKey: item.titleKey } : {}),
         }));
 
     const updated: SentArticlesData = { sent: [...pruned, ...newEntries] };
