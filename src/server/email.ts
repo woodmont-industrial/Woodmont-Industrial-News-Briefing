@@ -954,9 +954,39 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     }
                 }
 
-                // Score all week's articles and pick top 5
+                // Score all week's articles (highest first)
                 allWeekArticles.sort((a, b) => scoreArticle(b) - scoreArticle(a));
-                weekInReview = allWeekArticles.slice(0, 5);
+
+                // 2026-06-26: DEDUP the Week-in-Review (it previously had none — the two
+                // "Nokia $30M PA" headlines scored 55 & 45 and BOTH shipped). (a) Collapse
+                // same-deal/same-story variants within the week, and (b) drop anything
+                // already in today's main sections so nothing appears twice in one email.
+                // Uses the same signatures as the daily dedup; sorted desc so the
+                // highest-scored variant of each story is the one kept.
+                const wirSigs = new Set<string>();
+                const wirIds = new Set<string>();
+                const sigsFor = (a: NormalizedItem) => [
+                    ...extractDealSignatures(a.title || '', a.description || ''),
+                    ...extractCrossDayDedupSignatures(a.title || '', a.description || ''),
+                ];
+                for (const a of [...relevant, ...transactions, ...availabilities, ...people]) {
+                    wirIds.add(a.id || a.link || '');
+                    sigsFor(a).forEach(s => wirSigs.add(s));
+                }
+                const dedupedWeek = allWeekArticles.filter(a => {
+                    if (wirIds.has(a.id || a.link || '')) {
+                        console.log(`🔁 Week-in-Review: dropped "${(a.title || '').substring(0, 55)}" (already in today's sections)`);
+                        return false;
+                    }
+                    const sigs = sigsFor(a);
+                    if (sigs.some(s => wirSigs.has(s))) {
+                        console.log(`🔁 Week-in-Review dedup removed: "${(a.title || '').substring(0, 55)}"`);
+                        return false;
+                    }
+                    sigs.forEach(s => wirSigs.add(s));
+                    return true;
+                });
+                weekInReview = dedupedWeek.slice(0, 5);
 
                 weekInReview.forEach((a, i) => {
                     console.log(`📊 Week #${i + 1}: score=${scoreArticle(a)} | "${(a.title || '').substring(0, 55)}"`);
