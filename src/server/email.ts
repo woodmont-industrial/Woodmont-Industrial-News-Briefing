@@ -6,7 +6,7 @@ import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
-import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial } from '../shared/region-data.js';
+import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
@@ -860,6 +860,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const isTrustedSource = TRUSTED_DIRECT_SOURCES.has(source) ||
                     [...TRUSTED_DIRECT_SOURCES].some(d => url.includes(d));
                 const isNationalMacro = NATIONAL_MACRO_PATTERN.test(text);
+
+                // REGION GUARD (2026-06-26): if the article explicitly names a non-target
+                // US region (CA/TX/etc. — OUT_OF_MARKET_KEYWORDS) and has NO NJ/PA/FL
+                // signal, block it EVEN from a trusted source or macro framing. Trusted
+                // sources previously bypassed region entirely, so globest's "...Tustin
+                // Redevelopment" (Tustin = CA) flew straight in. Only fires when there's
+                // zero target region, so an NJ/PA/FL story that merely mentions another
+                // market still passes.
+                if (!hasTargetRegion && OUT_OF_MARKET_KEYWORDS.some(kw => text.includes(kw))) {
+                    console.log(`🚫 FINAL GATE blocked (non-target US region, no NJ/PA/FL): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
 
                 if (!hasTargetRegion && !isTrustedSource && !isNationalMacro) {
                     console.log(`🚫 FINAL GATE blocked (no target region, not trusted source, not macro): "${a.title?.substring(0, 60)}" [${sectionName}]`);

@@ -777,5 +777,7 @@ export const OUT_OF_MARKET_KEYWORDS = [
     "el segundo", "rancho dominguez", "rancho cucamonga", "perris", "hesperia",
     "caddo parish", "shreveport", "louisiana", "niles, il", "niles, ohio",
     "costa mesa", "pinellas park", "soho", "midtown manhattan", "tribeca",
-    "suffern", "westchester county"
+    "suffern", "westchester county",
+    // CA Orange County / SoCal cities that slipped in via trusted sources (2026-06-26: globest "Tustin Redevelopment")
+    "tustin", "irvine", "anaheim", "santa ana", "long beach", "oakland", "fremont", "san jose"
 ];
