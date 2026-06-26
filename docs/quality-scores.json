@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-25T12:13:13.244Z",
+  "updatedAt": "2026-06-26T12:30:59.684Z",
   "history": [
     {
       "date": "2026-05-11",
@@ -596,6 +596,30 @@
         "relevanceIntegrity": 20
       },
       "penalties": []
+    },
+    {
+      "date": "2026-06-26",
+      "runId": "2026-06-26-1230",
+      "score": 57,
+      "outOf10": 5.7,
+      "grade": "F",
+      "itemCount": 5,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 14.7,
+        "regional": 10,
+        "relevanceIntegrity": 20
+      },
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
     }
   ]
 }

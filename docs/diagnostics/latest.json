@@ -1,12 +1,12 @@
 {
-  "runId": "2026-06-25-1213",
-  "generatedAt": "2026-06-25T12:13:12.659Z",
-  "isFriday": false,
+  "runId": "2026-06-26-1230",
+  "generatedAt": "2026-06-26T12:30:31.156Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 234,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 233,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
@@ -35,13 +35,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier3_30d_deep": 3,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -49,16 +49,16 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 234,
+      "loaded": 233,
       "inWindow": 4,
-      "regionPass": 2,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -69,7 +69,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -79,22 +79,21 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 2,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 234,
+      "loaded": 233,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -138,7 +137,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 234,
+      "loaded": 233,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -184,24 +183,35 @@
   },
   "perFeedBySection": {},
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 65,
-    "outOf10": 6.5,
-    "grade": "D",
-    "itemCount": 6,
+    "score": 57,
+    "outOf10": 5.7,
+    "grade": "F",
+    "itemCount": 5,
     "breakdown": {
       "coverage": 18,
-      "freshness": 10,
-      "regional": 16.7,
+      "freshness": 14.7,
+      "regional": 10,
       "relevanceIntegrity": 20
     },
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"JLL Takes Advantage of Advanced Manufacturing Wa\""
+      },
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"21st Annual Shovel Awards: The Projects of the Y\""
+      }
+    ],
     "notes": [
       "Empty sections: availabilities, people"
     ]
