@@ -87,7 +87,19 @@ const GARBAGE_PATTERNS = [
     'based on the title alone',
     'without more context',
     'without additional details',
-    'the article appears to'
+    'the article appears to',
+    // 2026-06-29: LLM leaking meta-commentary/reasoning instead of a description, e.g.
+    // "No specific commercial real estate deal or transaction is mentioned in the title
+    //  or description. However, a general trend is implied: …"
+    'no specific commercial real estate',
+    'no specific deal',
+    'no specific transaction',
+    'is mentioned in the title',
+    'mentioned in the title or description',
+    'a general trend is implied',
+    'trend is implied',
+    'the title or description',
+    'no specific real estate'
 ];
 
 /**

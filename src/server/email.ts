@@ -688,12 +688,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const DEV_ENTITIES = ['woodmont', 'sagard', 'prologis', 'bridge industrial', 'link logistics', 'rockefeller group', 'dermody', 'matrix development', 'crow holdings'];
         const devProjectSigs = (title: string, desc: string): string[] => {
             const text = `${title} ${desc}`.toLowerCase();
-            let st: string | null = null;
-            if (/\b(n\.?j\.?|new jersey|rahway|newark|edison|piscataway|kearny|secaucus|carteret|linden|trenton|camden|middlesex|bergen)\b/.test(text)) st = 'nj';
-            else if (/\b(p\.?a\.?|pennsylvania|philadelphia|allentown|lehigh|bethlehem|bucks county|montgomery county)\b/.test(text)) st = 'pa';
-            else if (/\b(fl|florida|miami|tampa|orlando|jacksonville|broward|palm beach|hialeah|doral)\b/.test(text)) st = 'fl';
-            if (!st) return [];
-            return DEV_ENTITIES.filter(e => text.includes(e)).map(e => `dev_${e.replace(/\s+/g, '-')}_${st}`);
+            // STATELESS on purpose (2026-06-29 v2): within ONE edition, two write-ups
+            // naming the same sponsor are the same project. The earlier state-keyed
+            // version missed "Woodmont … break ground" (no NJ token in its title), so a
+            // 2nd Woodmont item shipped — across the People AND Transactions sections.
+            // One sponsor item per edition is the intent. Within-send only (dedupeByDealSignature
+            // shares seenSigs across ALL sections), NOT stored cross-day.
+            return DEV_ENTITIES.filter(e => text.includes(e)).map(e => `dev_${e.replace(/\s+/g, '-')}`);
         };
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
