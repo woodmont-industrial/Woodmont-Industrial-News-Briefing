@@ -23,16 +23,15 @@
         "name": "Google News Industrial RE"
       },
       "_source": {
-        "name": "Google News Industrial RE",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPR2ZmOE5CS3VDSkNsZ1J1TkpTZjgxeEk5THdmXzhiclpmWGJ0bHI1dTViSlNMc1gtYmVsZkdWSW9JWnRTdXJUU2FTZlMzLTVnS0hWTlNkUHVUUnFEcmNadHBaV2paaUV5R01oc2hTbl9QM0w4NVdSZ3pjRTFCamZzZnBXd1BUYVU4OGpLZG10ZUR3ZXUzaEVnTFFseFdMd004NzZLUzB1LXhrNzBtczREQUhwZk5waURxWnM0TGJQVl9MdkJRS2ZHa1ZIaw?oc=5",
-        "feedName": "Google News Industrial RE"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -70,7 +69,7 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -104,10 +103,10 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "Anti-data-center framing — 'redirects AI data center tax credits' implies opposition to data center development, matches Rule 3",
+      "_woodmontConfidence": 80,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "88b9ab31271cf76023eb4d61ca3b60616b653f8f",
@@ -171,8 +170,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Article covers Woodmont Industrial Partners' own redevelopment project in New Jersey, meeting target region and asset class requirements, and is fresh within 7 days (Rule: APPROVE criteria all met).",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Article covers a Woodmont JV redevelopment project in NJ, which is a target region and relevant industrial real estate news, and is within the 7-day freshness window (Rule: APPROVE criteria all met).",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -204,7 +203,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "The article covers Woodmont Industrial Partners breaking ground on an industrial redevelopment in Rahway, NJ, which is a target region and directly relevant to the firm's activities (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "The article covers Woodmont Industrial Partners breaking ground on a redevelopment project in Rahway, NJ, which is a target region and directly relevant to the audience (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -237,7 +236,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial development (277K SF logistics campus) in target region, above size threshold, and fresh (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Target region (NJ) industrial logistics campus at 277,000 SF, exceeding the 100K SF threshold and published within the last 7 days (Rule: APPROVE criteria all met).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -270,7 +269,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline mentions '180-day moratorium on data center development', which matches Rule 3's ban on opposition/pause/moratorium language.",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a '180-day moratorium on data center development', which matches Rule 3's rejection criteria for 'moratorium', 'pause', or 'freeze' language.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -301,10 +300,10 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Article covers Woodmont's own redevelopment launch in Rahway, NJ, a target region, and involves industrial real estate, meeting all core criteria.",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Article covers Woodmont Industrial Partners launching a redevelopment project in Rahway, NJ (target region), meeting all criteria for relevance, freshness, and subject matter.",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -336,7 +335,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline explicitly mentions 'data center pause', which is a keyword listed in Rule 3 for rejection.",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a legislative 'pause' on data center development, which matches Rule 3's list of prohibited keywords ('pause', 'moratorium', 'freeze').",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -369,7 +368,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a legislative 'pause' on data center development, which matches Rule 3's list of prohibited keywords (pause, ban, moratorium, freeze) and constitutes anti-development framing.",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a data center 'pause', which is a blocked keyword under Rule 3 (along with 'ban', 'moratorium', 'freeze') regardless of the target region.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -435,7 +434,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 92,000 SF in Kearny, meeting the 50K SF soft floor threshold for target region transactions (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ industrial lease transaction in Kearny for 92,000 SF, meeting the 50K SF soft floor for transactions with an action verb (Rule: APPROVE criteria)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -501,7 +500,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at $48M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real FL industrial transaction at $48M, target region + above threshold + fresh (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -534,7 +533,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a bill to 'restrict data center development' pushed by opposition groups, which violates Rule 3's ban on anti-development or oppositional framing.",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions groups pushing to 'restrict data center development', which matches Rule 3's criteria for blocking opposition to development.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -600,7 +599,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — headline contains 'Pauses' regarding data center development, which matches Rule 3's list of prohibited terms (pause, moratorium, freeze, halt).",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline uses the keyword 'Pauses' regarding data center development, which is explicitly blocked under Rule 3",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -635,6 +634,40 @@
       "_woodmontApprove": false,
       "_woodmontReason": "Anti-data-center framing — 'zoning amendments' implies opposition to data center development, matches Rule 3",
       "_woodmontConfidence": 80,
+      "_woodmontClassifier": "groq"
+    },
+    {
+      "id": "ee7fd03f5dde815881df9403373b2b8b5d6c23c7",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9TOURUdjJGS25tQU9wNHZpR3B4aFI2Nml5UEZCTy15c3lRWHZaNGNrZHpnRG5TMkVndmVPQ0FJTkEtNm16S2loVFpBNnNDRTFoclVCcGhFMlRfVGktMTNGNmtielJGOVBIWDdaTTdMMWRsbDFLOU91TjRYM3JRdUE?oc=5",
+      "title": "10 Industrial Way E, Eatontown, NJ 07724 - Industrial for Lease - LoopNet",
+      "content_html": "10 Industrial Way E, Eatontown, NJ 07724 - Industrial for Lease LoopNet",
+      "content_text": "10 Industrial Way E, Eatontown, NJ 07724 - Industrial for Lease LoopNet",
+      "summary": "10 Industrial Way E, Eatontown, NJ 07724 - Industrial for Lease LoopNet",
+      "date_published": "2026-06-24T07:00:00.000Z",
+      "date_modified": "2026-06-29T00:16:30.733Z",
+      "image": "https://picsum.photos/seed/miidos/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9TOURUdjJGS25tQU9wNHZpR3B4aFI2Nml5UEZCTy15c3lRWHZaNGNrZHpnRG5TMkVndmVPQ0FJTkEtNm16S2loVFpBNnNDRTFoclVCcGhFMlRfVGktMTNGNmtielJGOVBIWDdaTTdMMWRsbDFLOU91TjRYM3JRdUE?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token, matches Rule 13",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq"
     },
     {
@@ -948,19 +981,18 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPQmE3YXVvVnUtSkJ0Q2xNc2RsOFRBOVowekVKRm52ejBpbExROUdQWWtGV2Z0VFdkcnlrMlJENGtpT21la3gwVDhxSm51dWUzQnlVNk1aaGpXUmRyWXE5NkczM3p6V2V1a1YtVWVsS1FYOWFTbVJkRWN5Ui15WkVDVnlB?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -1261,7 +1293,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 810,000 SF (above 100K SF threshold), target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ industrial transaction of 810,000 sq. ft. in Somerville meets size threshold (100K SF) and target region requirements (Rule: APPROVE criteria all met).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1292,7 +1324,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -4546,16 +4578,15 @@
         "name": "Google News Data Centers NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Data Centers NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOR05FejloOS1zcl9zV2s4Nk5vLW91Q19HYVJ3bkxYSnh6SVBUOXNObXVCc2RMYXAzUUU0M1VjdUR6OVNRZVRGbHhBMVFkcnlBSUYyS2VTdlNBLXJhb1lSckJYb2hXbzA5WkdzTGJfUVFYVGg5V1NBanhXc0wxbWRQOFgwSXFXQ1poek1QUjFZOW40aGFBZ0NoZVdheDdCRE43UmlvMzRCVUhSUTNOYVNScA?oc=5",
-        "feedName": "Google News Data Centers NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -7233,138 +7264,6 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "a817b44ed935c050d7fcda7a0fcc74618965c297",
-      "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTFByMHVQeTRYeUpTbHF1UVZhNmRmZUVoSkl2VWJHZE9GT3hMWURYdnZwNDN0a0Q5a1k2REpFM2ZZaFhzVkZuTXM3bHZCcnV0YkNsOVdEQ3FzUWhIUTU4Qzkya0JUTS14TjJ0VkJVWE1Xbw?oc=5",
-      "title": "Corporate Logistics Center - Commercial Observer",
-      "content_html": "Corporate Logistics Center Commercial Observer",
-      "content_text": "Corporate Logistics Center Commercial Observer",
-      "summary": "Corporate Logistics Center Commercial Observer",
-      "date_published": "2026-05-28T20:42:32.000Z",
-      "date_modified": "2026-05-30T16:02:18.596Z",
-      "image": "https://picsum.photos/seed/jnkgln/640/360",
-      "author": {
-        "name": "Google News Commercial Observer"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTFByMHVQeTRYeUpTbHF1UVZhNmRmZUVoSkl2VWJHZE9GT3hMWURYdnZwNDN0a0Q5a1k2REpFM2ZZaFhzVkZuTXM3bHZCcnV0YkNsOVdEQ3FzUWhIUTU4Qzkya0JUTS14TjJ0VkJVWE1Xbw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "6b878b65b7bab14f8f85031338a81f92b8c3e9c9",
-      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQYjBmXzQtV19uMi15V1JXNDFBUDg4NlpyWFRvak5wSEc1SF9kU3pSWGdpeVhKMkpFUUdPdDlRalF3cDJMNTlmMnV6bldKdjBPd3Jnaml4ZU9aVVNPeDFnMHQtTG9WUGxUakhKS2IwX2NZTUYzdy1IVzdGZjR1RlVPSVlsMHN1UE9GRFI4Q08tejZPeDZzVjhBeEtodmQ3Y1BhN2JkanMwTm51OW9PTjZQQkpkRzVrU3kx0gG-AUFVX3lxTFBiSGZKbTgxQ3RYY21Ra291UXhYWUlWaHNsRmNjcGFTN2RSalBwU0xWZzNPU1NXVFlVem4xOGk2eTdRYzdtSzgzZ0d3SEZWekhZd00yVnE0TjNQcUtqb0tDT0JnaFVXbzJGd0lBTktvVkNxcklzcWd1ZlVucnBZSkdxX2JhN1ZuV3VzRkVwbVI1ZDJUazBOdHlwelBlRHAwZ3hjU3FvZjNVWUJmSFRlUVBpMVNDNmRPaTVLXzJaYWc?oc=5",
-      "title": "Garrity calls for Pennsylvania to ‘pause’ data center development - ABC27",
-      "content_html": "Garrity calls for Pennsylvania to ‘pause’ data center development ABC27",
-      "content_text": "Garrity calls for Pennsylvania to ‘pause’ data center development ABC27",
-      "summary": "Garrity calls for Pennsylvania to ‘pause’ data center development ABC27",
-      "date_published": "2026-05-28T20:00:59.000Z",
-      "date_modified": "2026-05-29T14:01:01.205Z",
-      "image": "https://picsum.photos/seed/qh4pvl/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQYjBmXzQtV19uMi15V1JXNDFBUDg4NlpyWFRvak5wSEc1SF9kU3pSWGdpeVhKMkpFUUdPdDlRalF3cDJMNTlmMnV6bldKdjBPd3Jnaml4ZU9aVVNPeDFnMHQtTG9WUGxUakhKS2IwX2NZTUYzdy1IVzdGZjR1RlVPSVlsMHN1UE9GRFI4Q08tejZPeDZzVjhBeEtodmQ3Y1BhN2JkanMwTm51OW9PTjZQQkpkRzVrU3kx0gG-AUFVX3lxTFBiSGZKbTgxQ3RYY21Ra291UXhYWUlWaHNsRmNjcGFTN2RSalBwU0xWZzNPU1NXVFlVem4xOGk2eTdRYzdtSzgzZ0d3SEZWekhZd00yVnE0TjNQcUtqb0tDT0JnaFVXbzJGd0lBTktvVkNxcklzcWd1ZlVucnBZSkdxX2JhN1ZuV3VzRkVwbVI1ZDJUazBOdHlwelBlRHAwZ3hjU3FvZjNVWUJmSFRlUVBpMVNDNmRPaTVLXzJaYWc?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "e0e6ceac23dab1697ec226b7168cdee7adefa1b1",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPc1RreEdkTzY5YXVaWWZyWVozQmM1ajB6TUZBSGdILVZEZ3RVQ0gzUWFpNHlwVXRzRFQ2ZmxhSXA4QWFQUnV1U0NUQ2N2YTFjQm52TW80WTc5aVBWNWxic0hoNXVrQkp6V3NjbVgwc2ZhZ1cybEkwYXpPazFLYnZVQktnUExRUi1mazBUNS1mVjJaZnM5TnF5MTZxNA?oc=5",
-      "title": "Colliers Adds to Philadelphia Team, Appoints Allie Gaeta SVP - Connect CRE",
-      "content_html": "Colliers Adds to Philadelphia Team, Appoints Allie Gaeta SVP Connect CRE",
-      "content_text": "Colliers Adds to Philadelphia Team, Appoints Allie Gaeta SVP Connect CRE",
-      "summary": "Colliers Adds to Philadelphia Team, Appoints Allie Gaeta SVP Connect CRE",
-      "date_published": "2026-05-28T19:45:50.000Z",
-      "date_modified": "2026-05-30T16:02:04.327Z",
-      "image": "https://picsum.photos/seed/xz0zi2/640/360",
-      "author": {
-        "name": "Google News ConnectCRE PA"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPc1RreEdkTzY5YXVaWWZyWVozQmM1ajB6TUZBSGdILVZEZ3RVQ0gzUWFpNHlwVXRzRFQ2ZmxhSXA4QWFQUnV1U0NUQ2N2YTFjQm52TW80WTc5aVBWNWxic0hoNXVrQkp6V3NjbVgwc2ZhZ1cybEkwYXpPazFLYnZVQktnUExRUi1mazBUNS1mVjJaZnM5TnF5MTZxNA?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "people",
-      "tags": [
-        "People News — Personnel Moves in CRE",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "PEOPLE_TITLE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Retail company personnel - Allie Gaeta's hire/promotion at Colliers is tied to a retail company (Colliers is a commercial real estate services company, but the article is about a retail-side ops move, not industrial CRE personnel, matches Rule 7)",
-      "_woodmontConfidence": 80,
-      "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "67baa22c598ed54dbcb102466cb5938cf34ba758",
-      "url": "https://commercialobserver.com/2026/05/alaris-aerospace-systems-corporate-logistics-center-jupiter-woodmont-butters/",
-      "title": "Alaris Aerospace Inks Big Industrial Lease in Palm Beach County",
-      "content_html": "Alaris Aerospace Systems has signed a 129,000-square-foot lease at Corporate Logistics Center in Jupiter, Fla., landlords Woodmont Industrial Partners and Butters Group announced. The aerospace company, which specializes in the distribution of engine components, is relocating from Pompano Beach. It will use the new Jupiter location for general warehousing, distribution and office operations. The 252,848-square-foot […]",
-      "content_text": "Alaris Aerospace Systems has signed a 129,000-square-foot lease at Corporate Logistics Center in Jupiter, Fla., landlords Woodmont Industrial Partners and Butters Group announced. The aerospace company, which specializes in the distribution of engine components, is relocating from Pompano Beach. It will use the new Jupiter location for general warehousing, distribution and office operations. The 252,848-square-foot […]",
-      "summary": "Alaris Aerospace Systems has signed a 129,000-square-foot lease at Corporate Logistics Center in Jupiter, Fla., landlords Woodmont Industrial Partners and Butters Group announced. The aerospace compan...",
-      "date_published": "2026-05-28T17:50:33.000Z",
-      "date_modified": "2026-05-29T14:00:20.039Z",
-      "image": "https://picsum.photos/seed/y6n410/640/360",
-      "author": {
-        "name": "Julia Echikson"
-      },
-      "_source": {
-        "name": "commercialobserver.com",
-        "website": "commercialobserver.com",
-        "url": "https://commercialobserver.com/2026/05/alaris-aerospace-systems-corporate-logistics-center-jupiter-woodmont-butters/",
-        "feedName": "commercialobserver.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "commercialobserver.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
