@@ -226,8 +226,8 @@ export function extractDealSignatures(title: string, description?: string): stri
         sigs.push(...stateSigs('pa'));
     }
 
-    const flCities = /\b(miami|doral|hialeah|medley|fort lauderdale|pompano|west palm|boca raton|orlando|tampa|jacksonville|ocala|groveland|winter park)\b/i;
-    const flCounties = /\b(miami-dade|broward|palm beach|hillsborough|orange county|duval|pinellas|lee county|polk county|brevard|osceola county)\b/i;
+    const flCities = /\b(miami|doral|hialeah|medley|fort lauderdale|pompano|west palm|boca raton|orlando|tampa|jacksonville|ocala|groveland|winter park|fort myers|ft\.?\s*myers|naples|sarasota|lakeland|st\.?\s*petersburg|cape coral|estero|clearwater|deltona)\b/i;
+    const flCounties = /\b(miami-dade|broward|palm beach|hillsborough|orange county|duval|pinellas|lee county|polk county|brevard|osceola county|collier county|sarasota county)\b/i;
     const flState = /\b(fla?\.?|florida|fl area|fl market|sunshine state|south florida|central florida)\b/i;
     if (flCities.test(text) || flCounties.test(text) || flState.test(text)) {
         sigs.push(...stateSigs('fl'));

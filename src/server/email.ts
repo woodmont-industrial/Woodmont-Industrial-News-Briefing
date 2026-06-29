@@ -679,14 +679,31 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // collapse — e.g., "Middlesex County" + "Metuchen" + "N.J." all dedup on shared
         // state-nj signature even when their granular codes differ. Without this, the same
         // deal can ship multiple times across days (2026-04-27 and 2026-04-30 incidents).
+        // WITHIN-SEND ONLY developer-project dedup: collapse multiple write-ups of the
+        // same developer's project in ONE edition (2026-06-29: a Woodmont/Sagard Rahway
+        // NJ redevelopment appeared 4 ways — no shared $/SF/title/signature, only the
+        // company names). Emits dev_<entity>_<state>; deliberately NOT stored cross-day
+        // (a developer has many distinct projects over time — only same-edition stacking
+        // is the problem). Keep the list to sponsors that commonly get multi-source pickup.
+        const DEV_ENTITIES = ['woodmont', 'sagard', 'prologis', 'bridge industrial', 'link logistics', 'rockefeller group', 'dermody', 'matrix development', 'crow holdings'];
+        const devProjectSigs = (title: string, desc: string): string[] => {
+            const text = `${title} ${desc}`.toLowerCase();
+            let st: string | null = null;
+            if (/\b(n\.?j\.?|new jersey|rahway|newark|edison|piscataway|kearny|secaucus|carteret|linden|trenton|camden|middlesex|bergen)\b/.test(text)) st = 'nj';
+            else if (/\b(p\.?a\.?|pennsylvania|philadelphia|allentown|lehigh|bethlehem|bucks county|montgomery county)\b/.test(text)) st = 'pa';
+            else if (/\b(fl|florida|miami|tampa|orlando|jacksonville|broward|palm beach|hialeah|doral)\b/.test(text)) st = 'fl';
+            if (!st) return [];
+            return DEV_ENTITIES.filter(e => text.includes(e)).map(e => `dev_${e.replace(/\s+/g, '-')}_${st}`);
+        };
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
                 // Merge deal signatures with the conservative cross-day news signals
-                // (dcpolicy/reit/expansion) so same-topic-same-state items can't STACK in
-                // one edition — e.g. 3 PA data-center-policy stories shipped 2026-06-24.
+                // (dcpolicy/reit/expansion) + within-send developer-project signals so
+                // same-topic-same-state AND same-developer items can't STACK in one edition.
                 const sigs = [
                     ...extractDealSignatures(a.title || '', a.description || ''),
                     ...extractCrossDayDedupSignatures(a.title || '', a.description || ''),
+                    ...devProjectSigs(a.title || '', a.description || ''),
                 ];
                 if (sigs.length === 0) return true; // no signature, keep
                 const matched = sigs.find(s => seenSigs.has(s));
