@@ -1173,6 +1173,36 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions.sort(sortByDealThenDate);
         availabilities.sort(sortByDealThenDate);
 
+        // FINAL PRE-SEND SCRUB (2026-06-29): last line of defense before delivery. Drops
+        // any selected item with a hard problem earlier layers missed — broken/pagination
+        // titles, garbage AI meta-descriptions, or non-RE leaks (sloth/animal-welfare).
+        // Graceful: removes only the offending item, not the whole edition. Runs inside the
+        // send job (cloud), so bad content is caught BEFORE delivery even with no one watching.
+        const GARBAGE_DESC = ['no specific commercial real estate', 'is mentioned in the title', 'mentioned in the title or description', 'a general trend is implied', 'trend is implied', 'the title or description', 'no specific deal', 'no specific transaction', 'no specific real estate'];
+        const scrubHardProblems = (items: NormalizedItem[], section: string): NormalizedItem[] => {
+            return items.filter(it => {
+                const t = (it.title || '').trim();
+                const d = (it.description || '');
+                let bad: string | null = null;
+                if (t.length < 20 || /[-–—]\s*page\s+\d+\b/i.test(t)) bad = 'broken/pagination title';
+                else if (GARBAGE_DESC.some(p => d.toLowerCase().includes(p))) bad = 'garbage AI description';
+                else if (/\b(sloths?|wildlife|\bzoo\b|menagerie|animal (?:rescue|welfare|cruelty|shelter))\b/i.test(`${t} ${d}`)) bad = 'non-RE leak';
+                if (bad) {
+                    console.error(`🚫 PRE-SEND SCRUB [${section}] dropped (${bad}): "${t.slice(0, 55)}"`);
+                    return false;
+                }
+                return true;
+            });
+        };
+        relevant = scrubHardProblems(relevant, 'relevant');
+        transactions = scrubHardProblems(transactions, 'transactions');
+        availabilities = scrubHardProblems(availabilities, 'availabilities');
+        people = scrubHardProblems(people, 'people');
+        if (relevant.length + transactions.length + availabilities.length + people.length === 0) {
+            console.error('🚫 PRE-SEND SCRUB removed all content — holding send (better no send than a junk send)');
+            return true;
+        }
+
         // Finalize diagnostics: record final selected counts + write JSON.
         // The funnel + rejection counts have been accumulating throughout the pipeline.
         diag.finalizeSection('relevant', relevant.length, MIN_RELEVANT);
