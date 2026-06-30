@@ -1187,6 +1187,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 if (t.length < 20 || /[-–—]\s*page\s+\d+\b/i.test(t)) bad = 'broken/pagination title';
                 else if (GARBAGE_DESC.some(p => d.toLowerCase().includes(p))) bad = 'garbage AI description';
                 else if (/\b(sloths?|wildlife|\bzoo\b|menagerie|animal (?:rescue|welfare|cruelty|shelter))\b/i.test(`${t} ${d}`)) bad = 'non-RE leak';
+                // Vendor/TV multimedia clips, not RE news: "Watch: …", "WATCH Hurricane kit…",
+                // "Video:/Listen:/Podcast:/Webinar:". (Known leak class — 5/19 note. The
+                // 2026-06-30 "Watch Hurricane kit distribution - FOX Tampa" slipped this.)
+                else if (/^\s*(watch|video|listen|podcast|webinar|live)\b[:\s]/i.test(t)) bad = 'vendor video/clip';
+                // Student / academic / competition fluff with no real-estate angle.
+                else if (/\b(students?\s+(named|win|compete|awarded)|named winners?|wins?\s+.*competition|university announces|student competition)\b/i.test(t)) bad = 'student/competition fluff';
                 if (bad) {
                     console.error(`🚫 PRE-SEND SCRUB [${section}] dropped (${bad}): "${t.slice(0, 55)}"`);
                     return false;
