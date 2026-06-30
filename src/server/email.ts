@@ -1173,26 +1173,41 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions.sort(sortByDealThenDate);
         availabilities.sort(sortByDealThenDate);
 
-        // FINAL PRE-SEND SCRUB (2026-06-29): last line of defense before delivery. Drops
-        // any selected item with a hard problem earlier layers missed — broken/pagination
-        // titles, garbage AI meta-descriptions, or non-RE leaks (sloth/animal-welfare).
-        // Graceful: removes only the offending item, not the whole edition. Runs inside the
-        // send job (cloud), so bad content is caught BEFORE delivery even with no one watching.
+        // FINAL PRE-SEND SCRUB: last line of defense before delivery. Encodes EVERY leak
+        // class flagged to date so they're enforced by the pipeline, not by manual review.
+        // Drops a selected item for: broken/pagination titles, garbage AI meta-descriptions,
+        // animal-welfare/non-RE leaks, vendor Watch:/Video: clips, student/competition fluff,
+        // non-industrial / wrong-asset-class (retail/office/multifamily/pharma), and wrong US
+        // region (non-target market with no NJ/PA/FL). Graceful: removes only the offending
+        // item, not the edition. Runs inside the send job (cloud) — caught BEFORE delivery,
+        // even with no one watching. (International is handled upstream; see TARGET_RX note.)
         const GARBAGE_DESC = ['no specific commercial real estate', 'is mentioned in the title', 'mentioned in the title or description', 'a general trend is implied', 'trend is implied', 'the title or description', 'no specific deal', 'no specific transaction', 'no specific real estate'];
+        // NJ/PA/FL signal — used to decide a wrong-region drop (only drop an out-of-market
+        // item if NO target region is present, so an on-target story that mentions another
+        // market survives). International is intentionally NOT re-checked here — it's handled
+        // upstream and naive substring matching (e.g. "INDIA" in "Indiana") risks false drops.
+        const TARGET_RX = /\b(n\.?j\.?|new jersey|pennsylvania|\bpa\b|\bfl\b|florida|newark|jersey city|edison|piscataway|kearny|trenton|camden|woodbridge|middlesex|bergen|philadelphia|philly|allentown|lehigh|bethlehem|pittsburgh|harrisburg|lancaster|king of prussia|miami|doral|hialeah|tampa|clearwater|orlando|jacksonville|fort lauderdale|pompano|west palm|palm beach|fort myers|ft\.?\s*myers|naples|sarasota|lakeland)\b/i;
         const scrubHardProblems = (items: NormalizedItem[], section: string): NormalizedItem[] => {
             return items.filter(it => {
                 const t = (it.title || '').trim();
                 const d = (it.description || '');
+                const text = `${t} ${d}`;
                 let bad: string | null = null;
                 if (t.length < 20 || /[-–—]\s*page\s+\d+\b/i.test(t)) bad = 'broken/pagination title';
                 else if (GARBAGE_DESC.some(p => d.toLowerCase().includes(p))) bad = 'garbage AI description';
-                else if (/\b(sloths?|wildlife|\bzoo\b|menagerie|animal (?:rescue|welfare|cruelty|shelter))\b/i.test(`${t} ${d}`)) bad = 'non-RE leak';
+                else if (/\b(sloths?|wildlife|\bzoo\b|menagerie|animal (?:rescue|welfare|cruelty|shelter))\b/i.test(text)) bad = 'non-RE leak';
                 // Vendor/TV multimedia clips, not RE news: "Watch: …", "WATCH Hurricane kit…",
                 // "Video:/Listen:/Podcast:/Webinar:". (Known leak class — 5/19 note. The
                 // 2026-06-30 "Watch Hurricane kit distribution - FOX Tampa" slipped this.)
                 else if (/^\s*(watch|video|listen|podcast|webinar|live)\b[:\s]/i.test(t)) bad = 'vendor video/clip';
                 // Student / academic / competition fluff with no real-estate angle.
                 else if (/\b(students?\s+(named|win|compete|awarded)|named winners?|wins?\s+.*competition|university announces|student competition)\b/i.test(t)) bad = 'student/competition fluff';
+                // Wrong asset class / non-industrial (retail, office, multifamily, pharma, etc.)
+                // — reuses the same gate the pipeline applies, so it only drops what should
+                // never have reached here (e.g. a post-description refill that bypassed it).
+                else if (!isStrictlyIndustrial(text)) bad = 'non-industrial / wrong-asset-class';
+                // Wrong US region: names a non-target market (CA/TX/etc.) and NO NJ/PA/FL.
+                else if (OUT_OF_MARKET_KEYWORDS.some(k => text.toLowerCase().includes(k)) && !TARGET_RX.test(text)) bad = 'wrong US region (no NJ/PA/FL)';
                 if (bad) {
                     console.error(`🚫 PRE-SEND SCRUB [${section}] dropped (${bad}): "${t.slice(0, 55)}"`);
                     return false;
