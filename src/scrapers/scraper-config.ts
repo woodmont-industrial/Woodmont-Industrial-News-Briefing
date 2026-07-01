@@ -318,16 +318,23 @@ export function getScraperConfig(domain: string): ScraperDomainConfig | undefine
     return SCRAPER_CONFIGS.find(c => c.domain === domain);
 }
 
+// 2026-07-01: scrapers consistently failing (403 / bot-block / timeout) AND already
+// covered by working Google News `site:` RSS proxies — skip them so the build doesn't
+// waste time on doomed fetches. Reversible: remove a name to re-enable its scraper.
+const DISABLED_SCRAPERS = new Set([
+    'JLL', 'Bloomberg', 'LoopNet', 'NJBIZ', 'REJournals', 'South FL Business Journal', 'WSJ',
+]);
+
 /**
- * Get all primary scraper configs
+ * Get all primary scraper configs (excluding known-broken, proxy-covered ones)
  */
 export function getPrimaryScrapers(): ScraperDomainConfig[] {
-    return SCRAPER_CONFIGS.filter(c => c.type === 'primary');
+    return SCRAPER_CONFIGS.filter(c => c.type === 'primary' && !DISABLED_SCRAPERS.has(c.name));
 }
 
 /**
  * Get all supplementary scraper configs
  */
 export function getSupplementaryScrapers(): ScraperDomainConfig[] {
-    return SCRAPER_CONFIGS.filter(c => c.type === 'supplementary');
+    return SCRAPER_CONFIGS.filter(c => c.type === 'supplementary' && !DISABLED_SCRAPERS.has(c.name));
 }

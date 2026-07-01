@@ -100,55 +100,6 @@
     "_note": "Disabled — non-target region MA (Tier D quarantine)"
   },
   {
-    "url": "http://feeds.feedblitz.com/globest/industrial",
-    "name": "GlobeSt Industrial",
-    "region": "US",
-    "source": "GlobeSt",
-    "type": "industrial-news",
-    "timeout": 30000,
-    "tier": "D",
-    "enabled": false,
-    "_note": "Disabled — 0 articles kept after filtering (Tier D quarantine)"
-  },
-  {
-    "url": "http://feeds.feedblitz.com/globest/new-jersey",
-    "name": "GlobeSt New Jersey",
-    "region": "NJ",
-    "source": "GlobeSt",
-    "type": "industrial-news",
-    "timeout": 30000,
-    "tier": "D"
-  },
-  {
-    "url": "http://feeds.feedblitz.com/globest/philadelphia",
-    "name": "GlobeSt Philadelphia",
-    "region": "PA",
-    "source": "GlobeSt",
-    "type": "industrial-news",
-    "timeout": 30000,
-    "tier": "D"
-  },
-  {
-    "url": "http://feeds.feedblitz.com/globest/miami",
-    "name": "GlobeSt Miami",
-    "region": "FL",
-    "source": "GlobeSt",
-    "type": "industrial-news",
-    "timeout": 30000,
-    "tier": "D"
-  },
-  {
-    "url": "http://feeds.feedblitz.com/globest/national",
-    "name": "GlobeSt National",
-    "region": "US",
-    "source": "GlobeSt",
-    "type": "industrial-news",
-    "timeout": 30000,
-    "tier": "D",
-    "enabled": false,
-    "_note": "Disabled — 0 articles fetched (Tier D quarantine)"
-  },
-  {
     "url": "https://feeds.bizjournals.com/bizj_southflorida",
     "name": "South Florida Business Journal",
     "region": "FL",
@@ -2354,6 +2305,33 @@
     "region": "NJ",
     "source": "Real Estate NJ",
     "type": "people",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News GlobeSt Deals",
+    "url": "https://news.google.com/rss/search?q=site%3Aglobest.com%20(sells%20OR%20acquires%20OR%20buys%20OR%20leases%20OR%20refinances%20OR%20%22sq%20ft%22%20OR%20million%20OR%20portfolio)%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22distribution%20center%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "US",
+    "source": "GlobeSt",
+    "type": "transactions",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News GlobeSt Industrial Broad",
+    "url": "https://news.google.com/rss/search?q=site%3Aglobest.com%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22distribution%20center%22%20OR%20%22cold%20storage%22%20OR%20%22industrial%20park%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "US",
+    "source": "GlobeSt",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News GlobeSt NJ Industrial",
+    "url": "https://news.google.com/rss/search?q=site%3Aglobest.com%20(industrial%20OR%20warehouse%20OR%20logistics)%20(%22New%20Jersey%22%20OR%20NJ%20OR%20Newark%20OR%20Edison%20OR%20Meadowlands%20OR%20%22Mount%20Olive%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "GlobeSt",
+    "type": "industrial-news",
     "timeout": 30000,
     "tier": "A"
   }
