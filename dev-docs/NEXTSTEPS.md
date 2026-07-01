@@ -1,7 +1,45 @@
 # Woodmont Industrial News Briefing - System Overview
 
-> **Last Updated**: April 2026
-> **Status**: Production - Using Power Automate Webhook
+> **Last Updated**: July 1, 2026
+> **Status**: Production — stable. Being submitted to leadership as complete (~July 7, 2026 sign-off).
+
+---
+
+## 🟢 CURRENT STATE & WHAT'S NEXT — July 1, 2026 (READ THIS FIRST)
+
+> This is the live handoff. The "Next Steps — April 13" section further down is **superseded** (kept for history).
+
+### Where things stand
+The newsletter is **mechanically clean**: exactly one send per weekday for 2+ weeks, zero double-sends, zero leak/dup/broken-item penalties on the last scored send. Latest quality score **77 / grade C** (zero penalties — the C is coverage/freshness headroom, not defects). The website was rebranded navy and de-duplicated.
+
+### Done in June–July 2026
+- **Website** (`docs/index.html`, `docs/css/styles.css`, `docs/raw.html`): navy `#0B223F` theme; killed the emerald-green **body** gradient that was in `docs/css/styles.css` (external file — not inline in index.html); removed the 20px body frame (full-bleed, no white edges); collapsed article actions into **+ / − / ⋯** (Track/Raw/Ignore live under ⋯), navy-gradient buttons with hover.
+- **Feed display dedup** (`docs/index.html`, in the feed-load right before `setItems`): collapses the same developer deal reported by multiple outlets (Woodmont/Sagard Rahway was 5×, Sagard NJ acquisition 2×) via **transitive developer+location/action signatures**. ⚠️ This is client-side only — `feed.json` still contains the raw dupes (see Next #2).
+- **Pre-send scrub** (`src/server/email.ts` → `scrubHardProblems`, ~line 1176): last-line defense that DROPS every flagged leak class before delivery — sloth/animal-welfare, wrong-region/CA, vendor `Watch:`/`Video:` clips, garbage AI descriptions, student fluff, non-industrial, broken/pagination items. **Rule: when a new leak class is flagged, add it here.**
+- **Dedup**: cross-day (`sentArticleIds`/`sigSet`/`sentTitleKeys`), within-send `extractDealSignatures` + **stateless** `devProjectSigs`, Week-in-Review dedup.
+- **429 storms fixed**: Groq `llama-3.1-8b-instant` primary + Cerebras `zai-glm-4.7` fallback + request batching (`CLASSIFY_BATCH_SIZE=6`). 87 → 0 exhaustions.
+- **Feed supply**: disabled dead/mislabeled scrapers; added Google News proxies for real GlobeSt deals, Colliers, Cushman, NAI Keystone, ROI-NJ/NJBIZ/RE-NJ (industrial + people). ~242 feeds.
+- **Quality scoring**: `computeNewsletterScore` → `docs/quality-scores.{json,csv}` + `docs/diagnostics/latest.json`; `docs/feed-health-history.csv` archived daily. These are the **Power BI** data sources.
+- **Cloud monitoring routine** (claude.ai, NOT a GitHub Action): *"Woodmont Newsletter — Daily Health Check"*, id `trig_01RqYLVcigejvKhycmXBAfk6`, cron `0 15 * * 1-5` (11 AM ET), **read-only** (`Bash/Read/Grep/Glob`), **NO email / NO connectors**. Manage at https://claude.ai/code/routines/trig_01RqYLVcigejvKhycmXBAfk6
+
+### ⚠️ Operational constraints (do not violate)
+1. **Never double-send.** Production goes to hundreds; the user's job depends on it. Protection: dedup guard (`sentAt===today`, `force_send` defaults false) + `concurrency` with `cancel-in-progress: false`. Two send workflows exist but *"Send Newsletter (Work - Weekly)"* is **manual-only** (schedule commented out; last ran Apr 3) — no risk. Verify exactly one send; disable after any manual send.
+2. **The monitoring routine must NEVER email.** The user has a Power Automate flow that would disperse any email to associates. Keep it output-only.
+3. **`docs/index.html` is HAND-MAINTAINED** (the build does NOT regenerate it). Its inline JSX runs through **in-browser Babel** — a syntax error blanks the whole site, and a literal `</script>` anywhere in the babel block closes it early. **Before pushing index.html, validate**: extract the `text/babel` block and run `@babel/core` `transformSync` with `@babel/preset-react` (install `--no-save @babel/core @babel/preset-react`).
+4. **Blocked company tooling**: `tsc.cmd` (no typechecking) and `npx tsx` (AV-blocked → use `node --import tsx rssfeed.ts ...`).
+
+### Current schedule (July 2026, UTC)
+| Workflow | Cron (UTC) | Notes |
+|----------|-----------|-------|
+| `newsletter-pipeline.yml` (build) | 08:00–09:00 Mon–Fri | builds feed.json; commits `docs/` + `src/feeds/feeds.json` |
+| `send-only.yml` (send) | 10:30 / 10:45 / 11:00 / 11:15 Mon–Fri | lands ~8:30–9:45 AM ET (GitHub cron lag; crons set early to absorb it) |
+| `build-articles.yml` | weekends | Sat RSS + Sun scrapers |
+
+### Next (all optional — project is shippable as-is)
+1. **Raise score C→B (77→80+)**: inspect `docs/diagnostics/latest.json` to see whether coverage, freshness, or regional is costing the most, then target that. Freshness = prioritize newer articles over reused/old ones.
+2. **Durable feed dedup**: move the Woodmont/Sagard dedup from client-side (`docs/index.html`) into `src/build/static.ts` so `feed.json` itself is clean (matters if Power BI or anything else reads feed.json directly).
+3. **Power BI**: build the trendline off `docs/quality-scores.csv` + `docs/feed-health-history.csv`.
+4. **Watch first live sends after these changes**: Thu 7/2, Mon 7/6, Tue 7/7 (Fri 7/3 likely observed July 4 holiday). The health routine reports each weekday 11 AM ET.
 
 ---
 
@@ -96,7 +134,7 @@ If webhook is not configured or fails, the system falls back to SMTP.
 
 ---
 
-## Next Steps — April 13, 2026
+## Next Steps — April 13, 2026 (⚠️ SUPERSEDED — see the July 1 section at top; kept for history)
 
 ### Priority 1: Fix Philadelphia Business Journal CRE Feed
 **Why:** PA's best direct source is failing (0 fetched). PA is 73% Google News dependent — if GN has a bad day, PA coverage drops significantly.
