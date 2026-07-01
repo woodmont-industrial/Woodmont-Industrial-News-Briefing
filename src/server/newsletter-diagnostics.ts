@@ -156,6 +156,7 @@ export interface NewsletterQuality {
     grade: string;        // A / B / C / D / F
     itemCount: number;
     breakdown: QualityBreakdown;
+    age: { fresh: number; deep: number; reserve: number }; // ≤72h / 3-30d / reserve backfill
     penalties: QualityPenalty[];
     notes: string[];
 }
@@ -238,13 +239,22 @@ export function computeNewsletterScore(
     }
 
     // ---- Freshness (25): tier-weighted average across all selected items ----
+    // Also break out the article-age mix so we can TRACK that new articles are
+    // prioritized over old ones. Tiers already encode age (the pipeline fills
+    // 24h → 48-72h → 30-day → reserve, in that order, and excludes already-sent
+    // items). fresh = ≤72h (genuinely new); deep = 3-30d backfill; reserve = pool
+    // backfill (present only because no edition should ship < 5 articles).
     let tierWeighted = 0, tierTotal = 0;
+    let freshItems = 0, deepItems = 0, reserveItems = 0;
     for (const s of order) {
         const tf = payload.sections[s].tierFill;
         (Object.keys(TIER_WEIGHTS) as (keyof typeof TIER_WEIGHTS)[]).forEach(k => {
             tierWeighted += tf[k] * TIER_WEIGHTS[k];
             tierTotal += tf[k];
         });
+        freshItems += tf.tier1_24h + tf.tier2_48h_72h;
+        deepItems += tf.tier3_30d_deep;
+        reserveItems += tf.tier4_reserve + tf.tier5_manual_include;
     }
     const freshness = tierTotal > 0 ? 25 * (tierWeighted / tierTotal) : 0;
 
@@ -318,6 +328,7 @@ export function computeNewsletterScore(
             regional: round1(regional),
             relevanceIntegrity,
         },
+        age: { fresh: freshItems, deep: deepItems, reserve: reserveItems },
         penalties, notes,
     };
 }
@@ -527,6 +538,7 @@ export interface QualityHistoryEntry {
     grade: string;
     itemCount: number;
     breakdown: QualityBreakdown;
+    age?: { fresh: number; deep: number; reserve: number };
     penalties: { type: string; points: number }[];
     backfill?: boolean;
 }
@@ -536,6 +548,7 @@ const PENALTY_TYPES = ['broken_item', 'duplicate_in_send', 'repeat_cross_day', '
 const CSV_COLUMNS = [
     'date', 'runId', 'score', 'outOf10', 'grade', 'itemCount',
     'coverage', 'freshness', 'regional', 'relevanceIntegrity',
+    'freshItems', 'deepItems', 'reserveItems',
     'penaltyTotal', 'brokenItems', 'duplicatesInSend', 'crossDayRepeats', 'weakItems', 'leaks',
 ];
 
@@ -543,9 +556,11 @@ function entryToCsvRow(e: QualityHistoryEntry): string {
     const counts: Record<string, number> = {};
     let penaltyTotal = 0;
     for (const p of e.penalties) { counts[p.type] = (counts[p.type] || 0) + 1; penaltyTotal += p.points; }
+    const age = e.age || { fresh: 0, deep: 0, reserve: 0 };
     const vals = [
         e.date, e.runId, e.score, e.outOf10, e.grade, e.itemCount,
         e.breakdown.coverage, e.breakdown.freshness, e.breakdown.regional, e.breakdown.relevanceIntegrity,
+        age.fresh, age.deep, age.reserve,
         penaltyTotal,
         counts['broken_item'] || 0, counts['duplicate_in_send'] || 0, counts['repeat_cross_day'] || 0,
         counts['weak_item'] || 0, counts['leak'] || 0,
@@ -574,6 +589,7 @@ export function writeQualityHistory(docsDir: string, date: string, runId: string
         date, runId,
         score: q.score, outOf10: q.outOf10, grade: q.grade, itemCount: q.itemCount,
         breakdown: q.breakdown,
+        age: q.age,
         penalties: q.penalties.map(p => ({ type: p.type, points: p.points })),
     };
     // One entry per day — a re-send replaces the day's prior entry.
