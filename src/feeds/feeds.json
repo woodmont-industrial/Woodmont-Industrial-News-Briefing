@@ -2334,5 +2334,32 @@
     "type": "industrial-news",
     "timeout": 30000,
     "tier": "A"
+  },
+  {
+    "name": "Google News Colliers Industrial",
+    "url": "https://news.google.com/rss/search?q=site%3Acolliers.com%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22distribution%20center%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "US",
+    "source": "Colliers",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News Cushman Wakefield NJ/PA/FL",
+    "url": "https://news.google.com/rss/search?q=%22Cushman%20%26%20Wakefield%22%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22sq%20ft%22%20OR%20lease%20OR%20acquires)%20(%22New%20Jersey%22%20OR%20Pennsylvania%20OR%20Florida)&hl=en-US&gl=US&ceid=US:en",
+    "region": "US",
+    "source": "Cushman & Wakefield",
+    "type": "transactions",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News NAI Keystone",
+    "url": "https://news.google.com/rss/search?q=site%3Anaikeystone.com%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20flex%20OR%20%22sq%20ft%22%20OR%20%22square%20feet%22%20OR%20%22distribution%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "PA",
+    "source": "NAI Keystone",
+    "type": "transactions",
+    "timeout": 30000,
+    "tier": "A"
   }
 ]

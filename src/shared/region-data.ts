@@ -382,6 +382,7 @@ export function isStrictlyIndustrial(text: string): boolean {
             'warehouse', 'logistics center', 'distribution center', 'fulfillment center',
             'manufacturing facility', 'cold storage', 'industrial park', 'loading dock',
             'industrial outdoor storage', 'flex space', 'cross-dock',
+            'commercial flex', 'industrial flex', 'flex/industrial', 'flex building',
         ];
         if (!STRONG_INDUSTRIAL.some(kw => lower.includes(kw))) return false;
     }
@@ -392,6 +393,9 @@ export function isStrictlyIndustrial(text: string): boolean {
         'cold storage', 'last-mile', 'last mile', 'industrial outdoor storage',
         'fulfillment', 'flex space', 'spec industrial', 'industrial park', 'loading dock',
         'data center', 'cross-dock', 'cross dock', 'build-to-suit', 'vacancy rate',
+        // 2026-07-01: flex/commercial-flex — lets trusted-broker deals in (NAI Keystone
+        // "43K SF Commercial Flex"). Specific phrases only (NOT bare "flex" → office leak).
+        'commercial flex', 'industrial flex', 'flex/industrial', 'flex building',
     ];
     if (CORE_INDUSTRIAL.some(kw => lower.includes(kw))) {
         // "industrial" alone can be misleading ("industrial heir", "industrial revolution")
