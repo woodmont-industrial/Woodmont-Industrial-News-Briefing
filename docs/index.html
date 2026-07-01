@@ -77,20 +77,20 @@
         <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex-1 flex gap-3 flex-wrap">
             <input
-              className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
+              className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
               placeholder="Search title or summary"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <select
-              className="w-36 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+              className="w-36 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
               value={region}
               onChange={(e) => setRegion(e.target.value)}
             >
               {regions.map(r => <option key={r} value={r === "All" ? "" : r}>{r}</option>)}
             </select>
             <select
-              className="w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+              className="w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -101,7 +101,7 @@
               <option value="people">People News</option>
             </select>
             <select
-              className="w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+              className="w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
               value={source}
               onChange={(e) => setSource(e.target.value)}
             >
@@ -109,7 +109,7 @@
               {sources.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <select
-              className="w-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+              className="w-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
               value={sort}
               onChange={(e) => setSort(e.target.value)}
             >
@@ -117,7 +117,7 @@
               <option value="oldest">Oldest</option>
             </select>
             <select
-              className="w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+              className="w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
             >
@@ -146,7 +146,7 @@
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                   viewMode === "articles"
                       ? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-                      : "bg-emerald-500 text-white"
+                      : "bg-[#0B223F] text-white"
                 }`}
               >
                   {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
@@ -167,7 +167,7 @@
             <button
               onClick={onRefresh}
               disabled={refreshLoading}
-              className="px-4 py-2 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-[#0B223F] text-white rounded-xl font-medium hover:bg-[#16406b] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {refreshLoading ? (
                 <>
@@ -194,13 +194,13 @@
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-green-600 font-medium">{lastFetchInfo.totalFetched || lastFetchInfo.fetched || 0}</span>
+                    <span className="w-2 h-2 bg-[#0B223F] rounded-full"></span>
+                    <span className="text-blue-600 font-medium">{lastFetchInfo.totalFetched || lastFetchInfo.fetched || 0}</span>
                     <span className="text-slate-600 dark:text-slate-400">fetched</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                    <span className="text-emerald-600 font-medium">{lastFetchInfo.totalKept || lastFetchInfo.kept || 0}</span>
+                    <span className="w-2 h-2 bg-[#0B223F] rounded-full"></span>
+                    <span className="text-blue-600 font-medium">{lastFetchInfo.totalKept || lastFetchInfo.kept || 0}</span>
                     <span className="text-slate-600 dark:text-slate-400">kept</span>
                   </span>
                   <span className="flex items-center gap-1">
@@ -265,14 +265,14 @@
       // Category colors for branded overlay
       const categoryColors = {
         transactions: 'from-amber-600/80',
-        availabilities: 'from-emerald-600/80',
+        availabilities: 'from-[#16406b]/80',
         people: 'from-purple-600/80',
         relevant: 'from-slate-700/80'
       };
 
       return (
         <article
-          className={`card-anim bg-white dark:bg-slate-800 rounded-2xl overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-emerald-400 dark:focus-within:ring-emerald-600 cursor-pointer ${isTracked ? 'tracked-highlight' : ''}`}
+          className={`card-anim bg-white dark:bg-slate-800 rounded-2xl overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-blue-400 dark:focus-within:ring-blue-600 cursor-pointer ${isTracked ? 'tracked-highlight' : ''}`}
           onClick={(e) => {
             // Don't trigger onClick if clicking the track menu
             if (!e.target.closest('.track-menu-container')) {
@@ -310,7 +310,7 @@
                 const srcStr = (item.source || item.publisher || '').toString();
                 if (srcStr && authorStr.toLowerCase() === srcStr.toLowerCase()) return null;
                 return (
-                  <span className="bg-emerald-500/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
+                  <span className="bg-[#0B223F]/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
                     By {authorStr}
                   </span>
                 );
@@ -323,7 +323,7 @@
               {item.category && (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   item.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' :
-                  item.category === 'availabilities' ? 'bg-green-100 dark:bg-amber-900/60 text-green-800 dark:text-amber-300' :
+                  item.category === 'availabilities' ? 'bg-blue-100 dark:bg-amber-900/60 text-blue-800 dark:text-amber-300' :
                   item.category === 'people' ? 'bg-purple-100 dark:bg-amber-900/60 text-purple-800 dark:text-amber-300' :
                   'bg-slate-100 dark:bg-amber-900/60 text-slate-800 dark:text-amber-300'
                 }`}>
@@ -342,7 +342,7 @@
                 const tier = item._tier || '';
                 const willPublish = item._predictedPublish === true;
                 const reasonColor = willPublish
-                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'
                   : reason.startsWith('REJECT') || reason === 'EXCLUDED'
                     ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200'
                     : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200';
@@ -352,7 +352,7 @@
                 const wmConf = item._woodmontConfidence;
                 const wmClass = item._woodmontClassifier || '';
                 const wmColor = wmApprove === true
-                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'
                   : wmApprove === false
                     ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200'
                     : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
@@ -385,7 +385,7 @@
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {item.title}
               </a>
@@ -400,7 +400,7 @@
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 Read more →
@@ -419,8 +419,8 @@
                   }}
                   className={`track-btn px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                     isTracked
-                      ? 'bg-emerald-500 text-white border border-emerald-600 cursor-default'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-500 hover:text-white cursor-pointer'
+                      ? 'bg-[#0B223F] text-white border border-blue-600 cursor-default'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-[#0B223F] hover:text-white cursor-pointer'
                   }`}
                 >
                   {isTracked ? 'TRACKING' : 'Track'}
@@ -549,7 +549,7 @@
                     window.location.reload();
                   }
                 }}
-                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
+                className="ml-2 text-blue-600 hover:text-blue-700 underline"
               >
                 (Clear all)
               </button>
@@ -560,7 +560,7 @@
               {hiddenByPredictCount} article{hiddenByPredictCount !== 1 ? 's' : ''} hidden — would not ship in today&apos;s briefing
               <button
                 onClick={() => setShowAllCandidates(prev => !prev)}
-                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
+                className="ml-2 text-blue-600 hover:text-blue-700 underline"
               >
                 ({showAllCandidates ? 'Hide non-publishable' : 'Show all candidates'})
               </button>
@@ -627,7 +627,7 @@
                     {article.category && (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         article.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' :
-                        article.category === 'availabilities' ? 'bg-green-100 dark:bg-amber-900/60 text-green-800 dark:text-amber-300' :
+                        article.category === 'availabilities' ? 'bg-blue-100 dark:bg-amber-900/60 text-blue-800 dark:text-amber-300' :
                         article.category === 'people' ? 'bg-purple-100 dark:bg-amber-900/60 text-purple-800 dark:text-amber-300' :
                         'bg-slate-100 dark:bg-amber-900/60 text-slate-800 dark:text-amber-300'
                       }`}>
@@ -761,7 +761,7 @@
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Filter by category:</label>
                   <select
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                     value={reviewCategory}
                     onChange={(e) => {
                       setReviewCategory(e.target.value);
@@ -845,7 +845,7 @@
                       type="text"
                       value={manualTitle}
                       onChange={(e) => setManualTitle(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                       placeholder="Article title"
                     />
                   </div>
@@ -856,7 +856,7 @@
                       type="url"
                       value={manualUrl}
                       onChange={(e) => setManualUrl(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                       placeholder="https://example.com/article"
                     />
                   </div>
@@ -867,7 +867,7 @@
                       value={manualSummary}
                       onChange={(e) => setManualSummary(e.target.value)}
                       rows={3}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                       placeholder="Brief summary of the article"
                     />
                   </div>
@@ -878,7 +878,7 @@
                       <select
                         value={manualCategory}
                         onChange={(e) => setManualCategory(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                       >
                         <option value="relevant">RELEVANT ARTICLES</option>
                         <option value="transaction">TRANSACTIONS</option>
@@ -893,7 +893,7 @@
                         type="text"
                         value={manualSource}
                         onChange={(e) => setManualSource(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                         placeholder="Source name"
                       />
                     </div>
@@ -901,7 +901,7 @@
 
                   <button
                     onClick={onAddManualArticle}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+                    className="w-full px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition-colors"
                   >
                     ➕ Add Article
                   </button>
@@ -919,7 +919,7 @@
                     value={newsletterRecipients}
                     onChange={(e) => setNewsletterRecipients(e.target.value)}
                     rows={4}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                     placeholder="email1@company.com, email2@company.com&#10;Separate multiple emails with commas"
                   />
                 </div>
@@ -975,13 +975,13 @@
       return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
           <div
-            className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-slate-700 dark:to-slate-600 text-white cursor-pointer flex items-center justify-between"
+            className="px-4 py-3 bg-gradient-to-r from-[#0B223F] to-[#16406b] dark:from-slate-700 dark:to-slate-600 text-white cursor-pointer flex items-center justify-between"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div className="flex items-center gap-2">
               <span className="text-lg font-semibold">Your Preferences</span>
               {matchingCount > 0 && (
-                <span className="bg-white text-emerald-600 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-white text-blue-600 text-xs font-bold px-2 py-1 rounded-full">
                   {matchingCount} tracking
                 </span>
               )}
@@ -1002,7 +1002,7 @@
                   onClick={() => setActiveTab('tracked')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'tracked'
-                      ? 'bg-emerald-500 text-white'
+                      ? 'bg-[#0B223F] text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
@@ -1040,11 +1040,11 @@
                       onChange={(e) => setNewTopic(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddTopic()}
                       placeholder="Add keyword to track..."
-                      className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none"
+                      className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none"
                     />
                     <button
                       onClick={handleAddTopic}
-                      className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+                      className="px-4 py-2 bg-[#0B223F] text-white rounded-lg text-sm font-medium hover:bg-[#16406b] transition-colors"
                     >
                       + Add
                     </button>
@@ -1059,12 +1059,12 @@
                       {trackedTopics.map((topic, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-full px-3 py-1"
+                          className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-full px-3 py-1"
                         >
-                          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{topic.keyword}</span>
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{topic.keyword}</span>
                           <button
                             onClick={() => onRemoveTopic(topic.keyword)}
-                            className="text-emerald-400 hover:text-red-500 transition-colors text-lg leading-none"
+                            className="text-blue-400 hover:text-red-500 transition-colors text-lg leading-none"
                             title="Stop tracking"
                           >
                             ×
@@ -1144,7 +1144,7 @@
                   <div className="pb-3 border-b border-slate-200 dark:border-slate-700">
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Who are you?
-                      {currentUser && <span className="ml-2 text-emerald-500 text-xs font-normal">● {currentUser}</span>}
+                      {currentUser && <span className="ml-2 text-blue-500 text-xs font-normal">● {currentUser}</span>}
                     </label>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                       Your preferences (tracked topics, ignored articles) are stored per user and synced to GitHub.
@@ -1161,14 +1161,14 @@
                           }
                         }}
                         placeholder="Enter your name..."
-                        className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-300 outline-none"
+                        className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-300 outline-none"
                       />
                       <button
                         onClick={() => {
                           const name = userInput.trim().toLowerCase();
                           if (name) { setUserId(name); onUserChange && onUserChange(name); }
                         }}
-                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+                        className="px-4 py-2 bg-[#0B223F] text-white rounded-lg text-sm font-medium hover:bg-[#16406b] transition-colors"
                       >
                         {currentUser ? 'Switch User' : 'Login'}
                       </button>
@@ -1208,7 +1208,7 @@
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       GitHub Token
-                      {ghToken ? <span className="ml-2 text-emerald-500 text-xs font-normal">Connected</span>
+                      {ghToken ? <span className="ml-2 text-blue-500 text-xs font-normal">Connected</span>
                                : <span className="ml-2 text-amber-500 text-xs font-normal">Not set — paste token each session for GitHub sync</span>}
                     </label>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
@@ -1222,7 +1222,7 @@
                         value={ghToken}
                         onChange={(e) => { setGhToken(e.target.value); setTokenSaved(false); }}
                         placeholder="github_pat_..."
-                        className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-300 outline-none font-mono"
+                        className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-300 outline-none font-mono"
                       />
                       <button
                         onClick={() => {
@@ -1235,7 +1235,7 @@
                           setTokenWarning(false);
                           setTimeout(() => setTokenSaved(false), 2000);
                         }}
-                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+                        className="px-4 py-2 bg-[#0B223F] text-white rounded-lg text-sm font-medium hover:bg-[#16406b] transition-colors"
                       >
                         {tokenSaved ? 'Connected!' : 'Connect'}
                       </button>
@@ -1670,7 +1670,7 @@
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📧 Newsletter Generator</h2>
                 {generated && (
-                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full">
+                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full">
                     ✓ Generated
                   </span>
                 )}
@@ -1696,7 +1696,7 @@
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600 dark:text-slate-400">Timeframe:</label>
                   <select
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                     value={timeframe}
                     onChange={(e) => setTimeframe(e.target.value)}
                   >
@@ -1713,7 +1713,7 @@
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600 dark:text-slate-400">Theme:</label>
                   <select
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 outline-none text-slate-900 dark:text-white"
+                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
                     value={theme}
                     onChange={(e) => setTheme(e.target.value)}
                   >
@@ -1764,7 +1764,7 @@
                   <>
                     <button
                       onClick={downloadNewsletter}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+                      className="px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition-colors"
                     >
                       📄 Download PDF
                     </button>
@@ -1849,7 +1849,7 @@
                       type="checkbox"
                       checked={filters.region}
                       onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.checked }))}
-                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                      className="rounded border-slate-300 text-blue-500 focus:ring-blue-300"
                     />
                     <span className="text-slate-700 dark:text-slate-300">Region filter (NJ/PA/FL)</span>
                   </label>
@@ -1858,7 +1858,7 @@
                       type="checkbox"
                       checked={filters.industrial}
                       onChange={(e) => setFilters(prev => ({ ...prev, industrial: e.target.checked }))}
-                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                      className="rounded border-slate-300 text-blue-500 focus:ring-blue-300"
                     />
                     <span className="text-slate-700 dark:text-slate-300">Industrial only</span>
                   </label>
@@ -1867,7 +1867,7 @@
                       type="checkbox"
                       checked={filters.dedup}
                       onChange={(e) => setFilters(prev => ({ ...prev, dedup: e.target.checked }))}
-                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300"
+                      className="rounded border-slate-300 text-blue-500 focus:ring-blue-300"
                     />
                     <span className="text-slate-700 dark:text-slate-300">Deduplicate</span>
                   </label>
@@ -1904,8 +1904,8 @@
                               onClick={() => handleApproveArticle(article, cat)}
                               className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                                 isApproved
-                                  ? 'bg-green-500 text-white shadow-sm'
-                                  : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 opacity-50 group-hover:opacity-100'
+                                  ? 'bg-[#0B223F] text-white shadow-sm'
+                                  : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 opacity-50 group-hover:opacity-100'
                               }`}
                               title="Approve article"
                             >
@@ -1962,7 +1962,7 @@
                                 {article.title}
                               </a>
                               {isApproved && (
-                                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
                                   {'\u2713'} Approved
                                 </span>
                               )}
@@ -1981,7 +1981,7 @@
                                   {article.region}
                                 </span>
                               )}
-                              <span className="px-1.5 py-0.5 rounded text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300">
+                              <span className="px-1.5 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
                                 {cat}
                               </span>
                             </div>
@@ -2012,7 +2012,7 @@
                             <div key={article.id} className="flex items-center gap-3 py-1.5 px-3 opacity-40 hover:opacity-70 transition-opacity">
                               <button
                                 onClick={() => handleRestoreArticle(article.id)}
-                                className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 flex items-center justify-center text-sm font-bold"
+                                className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 flex items-center justify-center text-sm font-bold"
                                 title="Restore article"
                               >
                                 +
@@ -2043,7 +2043,7 @@
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Preview</h3>
               <button
                 onClick={() => setShowTemplate(!showTemplate)}
-                    className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
               >
                     {showTemplate ? 'Hide Template' : 'Show Template'}
               </button>
@@ -2118,7 +2118,7 @@
                       </td>
                       <td className="py-2">
                         {feed.status === 'ok' ? (
-                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded text-xs">OK</span>
+                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs">OK</span>
                         ) : (
                           <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded text-xs">FAILED</span>
                         )}
@@ -2128,7 +2128,7 @@
                       <td className="py-2 text-right">
                         {feed.successRate ? (
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            parseInt(feed.successRate) >= 80 ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                            parseInt(feed.successRate) >= 80 ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
                             parseInt(feed.successRate) >= 50 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
                             'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
                           }`}>{feed.successRate}</span>
@@ -2154,7 +2154,7 @@
                     href="feed.json"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors text-sm no-underline inline-flex items-center gap-2"
+                    className="px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition-colors text-sm no-underline inline-flex items-center gap-2"
                   >
                     View feed.json
                   </a>
@@ -2194,7 +2194,7 @@
                   <span className="text-slate-600 dark:text-slate-400">
                     Generated: {new Date(feedHealthReport.generatedAt).toLocaleString()}
                   </span>
-                  <span className="text-green-600">
+                  <span className="text-blue-600">
                     ✓ {rssSummary.ok} OK
                   </span>
                   <span className="text-red-600">
@@ -2218,7 +2218,7 @@
                   <span className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded">13 sources</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm">
-                  <span className="text-green-600">
+                  <span className="text-blue-600">
                     ✓ {scraperSummary.successful} OK
                   </span>
                   <span className="text-red-600">

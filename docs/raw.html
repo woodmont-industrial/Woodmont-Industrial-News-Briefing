@@ -131,7 +131,7 @@ function getPublisherName(item) {
 
 // ── Category badge colors ──
 const CAT_COLORS = {
-  relevant: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  relevant: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   transactions: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   people: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   availabilities: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
@@ -306,7 +306,7 @@ function RawApp() {
 
   if (loading) return (
     <div className="container p-12 text-center">
-      <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
       <p className="text-slate-600 dark:text-slate-400">Loading raw articles...</p>
     </div>
   );
@@ -320,10 +320,10 @@ function RawApp() {
   return (
     <div className="container">
       {/* ── Nav Bar ── */}
-      <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 dark:from-slate-800 dark:to-slate-700 px-6 py-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-slate-800 dark:to-slate-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-2xl font-bold text-white tracking-tight">Woodmont Industrial</span>
-          <span className="text-emerald-200 dark:text-slate-400 text-sm hidden sm:inline">Raw Article Feed</span>
+          <span className="text-blue-200 dark:text-slate-400 text-sm hidden sm:inline">Raw Article Feed</span>
           {currentUser && (
             <span className="px-3 py-1 bg-white/20 text-white rounded-full text-xs font-medium">
               {currentUser}
@@ -348,7 +348,7 @@ function RawApp() {
           {stats && <span className="font-normal text-slate-500 dark:text-slate-400"> from {stats.total_fetched} fetched ({stats.window_hours}h window)</span>}
         </span>
         {stats && (
-          <span className="text-emerald-600 dark:text-emerald-400 font-medium">{stats.included_in_feed} in curated feed</span>
+          <span className="text-blue-600 dark:text-blue-400 font-medium">{stats.included_in_feed} in curated feed</span>
         )}
         {prefTags.length > 0 && (
           <div className="flex items-center gap-1 ml-auto">
@@ -367,7 +367,7 @@ function RawApp() {
           placeholder="Search articles..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-600 text-slate-900 dark:text-white"
+          className="flex-1 min-w-[200px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 text-slate-900 dark:text-white"
         />
         <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
           className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm outline-none text-slate-900 dark:text-white">
@@ -397,7 +397,7 @@ function RawApp() {
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer whitespace-nowrap">
           <input type="checkbox" checked={hideInFeed} onChange={e => setHideInFeed(e.target.checked)}
-            className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-300" />
+            className="rounded border-slate-300 text-blue-500 focus:ring-blue-300" />
           Hide in-feed
         </label>
       </div>
@@ -408,7 +408,7 @@ function RawApp() {
           <thead className="sticky top-0 bg-slate-100 dark:bg-slate-700 z-10">
             <tr className="text-left text-xs uppercase text-slate-500 dark:text-slate-400">
               <th className="py-2 px-3 w-10">
-                <button onClick={selectAll} title="Select all visible" className="text-emerald-600 dark:text-emerald-400 hover:underline text-xs">All</button>
+                <button onClick={selectAll} title="Select all visible" className="text-blue-600 dark:text-blue-400 hover:underline text-xs">All</button>
               </th>
               <th className="py-2 px-3">Title</th>
               <th className="py-2 px-3 w-36">Source</th>
@@ -451,13 +451,13 @@ function RawApp() {
                     <td className="py-2 px-3 text-slate-500 dark:text-slate-400 text-xs">{item.r || '-'}</td>
                     {sortBy === 'ai' && (
                       <td className="py-2 px-3 text-right">
-                        <span className={`font-mono text-xs font-bold ${item._score >= 50 ? 'text-emerald-600' : item._score >= 20 ? 'text-amber-600' : 'text-slate-400'}`}>
+                        <span className={`font-mono text-xs font-bold ${item._score >= 50 ? 'text-blue-600' : item._score >= 20 ? 'text-amber-600' : 'text-slate-400'}`}>
                           {item._score || 0}
                         </span>
                       </td>
                     )}
                     <td className="py-2 px-3 text-center">
-                      {item.in_feed && <span className="text-emerald-500" title="In curated feed">&#10003;</span>}
+                      {item.in_feed && <span className="text-blue-500" title="In curated feed">&#10003;</span>}
                     </td>
                   </tr>
                   {expanded && (
@@ -501,12 +501,12 @@ function RawApp() {
         </div>
         <div className="flex items-center gap-3">
           {pickCount > 0 && (
-            <a href="./index.html" className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition text-sm no-underline">
+            <a href="./index.html" className="px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition text-sm no-underline">
               Go to Newsletter ({pickCount} picks ready)
             </a>
           )}
           {syncStatus && (
-            <span className={`text-xs font-medium ${syncStatus === 'syncing' ? 'text-blue-500' : syncStatus === 'synced' ? 'text-emerald-500' : 'text-red-500'}`}>
+            <span className={`text-xs font-medium ${syncStatus === 'syncing' ? 'text-blue-500' : syncStatus === 'synced' ? 'text-blue-500' : 'text-red-500'}`}>
               {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'synced' ? 'Synced!' : syncStatus === 'no_token' ? 'Session token required' : 'Sync failed'}
             </span>
           )}
