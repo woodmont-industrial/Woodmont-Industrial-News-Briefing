@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-01T13:44:29.071Z",
+  "updatedAt": "2026-07-01T14:24:04.879Z",
   "history": [
     {
       "date": "2026-05-11",
@@ -13,6 +13,11 @@
         "freshness": 19.8,
         "regional": 12.5,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 5,
+        "deep": 1,
+        "reserve": 0
       },
       "penalties": []
     },
@@ -28,6 +33,11 @@
         "freshness": 16.9,
         "regional": 25,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 2,
+        "deep": 2,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -49,6 +59,11 @@
         "regional": 2,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 2,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": []
     },
     {
@@ -63,6 +78,11 @@
         "freshness": 16.9,
         "regional": 19.5,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 5,
+        "deep": 5,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -84,6 +104,11 @@
         "regional": 13.6,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 6,
+        "deep": 3,
+        "reserve": 1
+      },
       "penalties": []
     },
     {
@@ -98,6 +123,11 @@
         "freshness": 18.7,
         "regional": 14.3,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 7,
+        "deep": 1,
+        "reserve": 1
       },
       "penalties": [
         {
@@ -123,6 +153,11 @@
         "regional": 19.3,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 7,
+        "deep": 2,
+        "reserve": 0
+      },
       "penalties": [
         {
           "type": "weak_item",
@@ -137,9 +172,9 @@
     {
       "date": "2026-05-20",
       "runId": "2026-05-20-1517",
-      "score": 61,
-      "outOf10": 6.1,
-      "grade": "D",
+      "score": 49,
+      "outOf10": 4.9,
+      "grade": "F",
       "itemCount": 7,
       "breakdown": {
         "coverage": 18,
@@ -147,10 +182,19 @@
         "regional": 19.3,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 6,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": [
         {
           "type": "repeat_cross_day",
           "points": 3
+        },
+        {
+          "type": "leak",
+          "points": 12
         },
         {
           "type": "leak",
@@ -170,6 +214,11 @@
         "freshness": 13.3,
         "regional": 5,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 2,
+        "deep": 5,
+        "reserve": 2
       },
       "penalties": [
         {
@@ -195,6 +244,11 @@
         "regional": 17.5,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 3,
+        "deep": 6,
+        "reserve": 1
+      },
       "penalties": [
         {
           "type": "weak_item",
@@ -215,6 +269,11 @@
         "regional": 25,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 3,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": []
     },
     {
@@ -230,6 +289,11 @@
         "regional": 25,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 2,
+        "deep": 6,
+        "reserve": 0
+      },
       "penalties": []
     },
     {
@@ -244,6 +308,11 @@
         "freshness": 13.5,
         "regional": 10,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 1,
+        "deep": 8,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -265,6 +334,11 @@
         "regional": 20.8,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 5,
+        "deep": 5,
+        "reserve": 0
+      },
       "penalties": [
         {
           "type": "weak_item",
@@ -285,6 +359,11 @@
         "regional": 20.7,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 7,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": []
     },
     {
@@ -299,6 +378,11 @@
         "freshness": 13.5,
         "regional": 20,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 1,
+        "deep": 8,
+        "reserve": 0
       },
       "penalties": []
     },
@@ -315,14 +399,19 @@
         "regional": 15.7,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 8,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": []
     },
     {
       "date": "2026-06-04",
       "runId": "2026-06-04-1530",
-      "score": 82,
-      "outOf10": 8.2,
-      "grade": "B",
+      "score": 79,
+      "outOf10": 7.9,
+      "grade": "C",
       "itemCount": 8,
       "breakdown": {
         "coverage": 24,
@@ -330,14 +419,24 @@
         "regional": 18.1,
         "relevanceIntegrity": 20
       },
-      "penalties": []
+      "age": {
+        "fresh": 10,
+        "deep": 2,
+        "reserve": 0
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
     },
     {
       "date": "2026-06-05",
       "runId": "2026-06-05-1517",
-      "score": 80,
-      "outOf10": 8,
-      "grade": "B",
+      "score": 77,
+      "outOf10": 7.7,
+      "grade": "C",
       "itemCount": 7,
       "breakdown": {
         "coverage": 24,
@@ -345,7 +444,16 @@
         "regional": 22.9,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 4,
+        "deep": 5,
+        "reserve": 0
+      },
       "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
         {
           "type": "weak_item",
           "points": 3
@@ -355,9 +463,9 @@
     {
       "date": "2026-06-08",
       "runId": "2026-06-08-1418",
-      "score": 79,
-      "outOf10": 7.9,
-      "grade": "C",
+      "score": 58,
+      "outOf10": 5.8,
+      "grade": "F",
       "itemCount": 10,
       "breakdown": {
         "coverage": 30,
@@ -365,7 +473,32 @@
         "regional": 18.5,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 5,
+        "deep": 7,
+        "reserve": 0
+      },
       "penalties": [
+        {
+          "type": "duplicate_in_send",
+          "points": 6
+        },
+        {
+          "type": "duplicate_in_send",
+          "points": 6
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
         {
           "type": "weak_item",
           "points": 3
@@ -389,6 +522,11 @@
         "regional": 18,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 10,
+        "deep": 1,
+        "reserve": 2
+      },
       "penalties": []
     },
     {
@@ -403,6 +541,11 @@
         "freshness": 13.5,
         "regional": 15.8,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 1,
+        "deep": 8,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -428,6 +571,11 @@
         "regional": 22,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 3,
+        "deep": 3,
+        "reserve": 1
+      },
       "penalties": [
         {
           "type": "weak_item",
@@ -447,6 +595,11 @@
         "freshness": 12.5,
         "regional": 22,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 0,
+        "deep": 7,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -468,6 +621,11 @@
         "regional": 21.3,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 6,
+        "deep": 3,
+        "reserve": 1
+      },
       "penalties": [
         {
           "type": "repeat_cross_day",
@@ -487,6 +645,11 @@
         "freshness": 14.3,
         "regional": 21.4,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 3,
+        "deep": 4,
+        "reserve": 2
       },
       "penalties": [
         {
@@ -510,9 +673,9 @@
     {
       "date": "2026-06-19",
       "runId": "2026-06-19-1434",
-      "score": 81,
-      "outOf10": 8.1,
-      "grade": "B",
+      "score": 78,
+      "outOf10": 7.8,
+      "grade": "C",
       "itemCount": 7,
       "breakdown": {
         "coverage": 24,
@@ -520,7 +683,16 @@
         "regional": 21.4,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 7,
+        "deep": 2,
+        "reserve": 1
+      },
       "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
         {
           "type": "repeat_cross_day",
           "points": 3
@@ -530,9 +702,9 @@
     {
       "date": "2026-06-22",
       "runId": "2026-06-22-1447",
-      "score": 73,
-      "outOf10": 7.3,
-      "grade": "C",
+      "score": 64,
+      "outOf10": 6.4,
+      "grade": "D",
       "itemCount": 6,
       "breakdown": {
         "coverage": 18,
@@ -540,14 +712,32 @@
         "regional": 22.5,
         "relevanceIntegrity": 20
       },
-      "penalties": []
+      "age": {
+        "fresh": 0,
+        "deep": 9,
+        "reserve": 0
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
     },
     {
       "date": "2026-06-23",
       "runId": "2026-06-23-1617",
-      "score": 82,
-      "outOf10": 8.2,
-      "grade": "B",
+      "score": 79,
+      "outOf10": 7.9,
+      "grade": "C",
       "itemCount": 7,
       "breakdown": {
         "coverage": 24,
@@ -555,7 +745,16 @@
         "regional": 22.9,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 5,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
         {
           "type": "weak_item",
           "points": 3
@@ -565,9 +764,9 @@
     {
       "date": "2026-06-24",
       "runId": "2026-06-24-1534",
-      "score": 81,
-      "outOf10": 8.1,
-      "grade": "B",
+      "score": 75,
+      "outOf10": 7.5,
+      "grade": "C",
       "itemCount": 7,
       "breakdown": {
         "coverage": 24,
@@ -575,19 +774,32 @@
         "regional": 25,
         "relevanceIntegrity": 20
       },
+      "age": {
+        "fresh": 5,
+        "deep": 3,
+        "reserve": 0
+      },
       "penalties": [
         {
           "type": "duplicate_in_send",
           "points": 6
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
         }
       ]
     },
     {
       "date": "2026-06-25",
       "runId": "2026-06-25-1213",
-      "score": 65,
-      "outOf10": 6.5,
-      "grade": "D",
+      "score": 27,
+      "outOf10": 2.7,
+      "grade": "F",
       "itemCount": 6,
       "breakdown": {
         "coverage": 18,
@@ -595,7 +807,33 @@
         "regional": 16.7,
         "relevanceIntegrity": 20
       },
-      "penalties": []
+      "age": {
+        "fresh": 0,
+        "deep": 2,
+        "reserve": 2
+      },
+      "penalties": [
+        {
+          "type": "broken_item",
+          "points": 8
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "leak",
+          "points": 12
+        },
+        {
+          "type": "leak",
+          "points": 12
+        }
+      ]
     },
     {
       "date": "2026-06-26",
@@ -609,6 +847,11 @@
         "freshness": 14.7,
         "regional": 10,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 1,
+        "deep": 3,
+        "reserve": 0
       },
       "penalties": [
         {
@@ -624,23 +867,33 @@
     {
       "date": "2026-06-29",
       "runId": "2026-06-29-1337",
-      "score": 71,
-      "outOf10": 7.1,
-      "grade": "C",
+      "score": 62,
+      "outOf10": 6.2,
+      "grade": "D",
       "itemCount": 5,
       "breakdown": {
-        "coverage": 14,
+        "coverage": 8,
         "freshness": 16.9,
         "regional": 20,
         "relevanceIntegrity": 20
       },
-      "penalties": []
+      "age": {
+        "fresh": 2,
+        "deep": 2,
+        "reserve": 0
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
     },
     {
       "date": "2026-06-30",
       "runId": "2026-06-30-1255",
-      "score": 68,
-      "outOf10": 6.8,
+      "score": 65,
+      "outOf10": 6.5,
       "grade": "D",
       "itemCount": 5,
       "breakdown": {
@@ -649,7 +902,17 @@
         "regional": 20,
         "relevanceIntegrity": 20
       },
-      "penalties": []
+      "age": {
+        "fresh": 1,
+        "deep": 6,
+        "reserve": 0
+      },
+      "penalties": [
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        }
+      ]
     },
     {
       "date": "2026-07-01",
@@ -663,6 +926,11 @@
         "freshness": 15,
         "regional": 18.3,
         "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 2,
+        "deep": 2,
+        "reserve": 1
       },
       "penalties": []
     }
