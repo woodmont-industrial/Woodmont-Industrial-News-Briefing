@@ -2311,5 +2311,50 @@
     "type": "industrial-news",
     "timeout": 30000,
     "tier": "B"
+  },
+  {
+    "name": "Google News ROI-NJ Industrial",
+    "url": "https://news.google.com/rss/search?q=site%3Aroi-nj.com%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22distribution%20center%22%20OR%20%22industrial%20park%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "ROI-NJ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News ROI-NJ People",
+    "url": "https://news.google.com/rss/search?q=site%3Aroi-nj.com%20(named%20OR%20promoted%20OR%20hired%20OR%20appointed%20OR%20%22joins%22%20OR%20%22new%20hire%22%20OR%20%22managing%20director%22%20OR%20broker)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "ROI-NJ",
+    "type": "people",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News NJBIZ Industrial",
+    "url": "https://news.google.com/rss/search?q=site%3Anjbiz.com%20(industrial%20OR%20warehouse%20OR%20logistics%20OR%20%22distribution%20center%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "NJBIZ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News NJBIZ People",
+    "url": "https://news.google.com/rss/search?q=site%3Anjbiz.com%20(%22people%20on%20the%20move%22%20OR%20named%20OR%20promoted%20OR%20hired%20OR%20appointed%20OR%20%22joins%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "NJBIZ",
+    "type": "people",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News RE-NJ People",
+    "url": "https://news.google.com/rss/search?q=site%3Are-nj.com%20(named%20OR%20promoted%20OR%20hired%20OR%20appointed%20OR%20%22joins%22%20OR%20%22managing%20director%22%20OR%20broker%20OR%20%22rising%20star%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "Real Estate NJ",
+    "type": "people",
+    "timeout": 30000,
+    "tier": "A"
   }
 ]

@@ -1110,6 +1110,30 @@ export async function buildStaticRSS(): Promise<void> {
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
         log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
 
+        // Archive a daily feed-health summary to a flat CSV for Power BI time-series
+        // (feed-health.json itself is overwritten each build, so it's only "today").
+        // One row per day; a rebuild replaces that day's row.
+        try {
+            const fh = feedHealthReport as any;
+            const day = (fh.generatedAt || new Date().toISOString()).slice(0, 10);
+            const rs = fh.regionSummary || {};
+            const ss = fh.scraperSummary || {};
+            const header = 'date,totalFeeds,successfulFeeds,failedFeeds,totalFetched,totalKept,scrapersTotal,scrapersOk,scrapersFailed,njKept,paKept,flKept,usKept';
+            const row = [day, fh.totalFeeds || 0, fh.successfulFeeds || 0, fh.failedFeeds || 0,
+                fh.totalArticlesFetched || 0, fh.totalArticlesKept || 0,
+                ss.total || 0, ss.successful || 0, ss.failed || 0,
+                rs.NJ?.articlesKept || 0, rs.PA?.articlesKept || 0, rs.FL?.articlesKept || 0, rs.US?.articlesKept || 0
+            ].join(',');
+            const csvPath = path.join(DOCS_DIR, 'feed-health-history.csv');
+            let rows: string[] = [];
+            try { rows = fs.readFileSync(csvPath, 'utf8').trim().split('\n').filter(l => l && !l.startsWith('date,')); } catch { /* first run */ }
+            rows = rows.filter(l => !l.startsWith(day + ',')); // replace same-day row on rebuild
+            rows.push(row);
+            rows.sort();
+            fs.writeFileSync(csvPath, [header, ...rows].join('\n') + '\n', 'utf8');
+            log('info', 'Appended feed-health-history.csv', { day, totalRows: rows.length });
+        } catch (e) { log('warn', 'feed-health archive failed', { err: (e as Error).message }); }
+
         // Generate Raw Feed for the Raw Articles tab (all fetched items, 72h, cap 500)
         const feedItemIds = new Set(rssItems.map(item => item.id));
         const rawFeed = generateRawFeed(allItems, feedItemIds);

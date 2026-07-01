@@ -1224,6 +1224,21 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return true;
         }
 
+        // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
+        // SELECTED item came from, by section — so we can see which feeds actually produce
+        // transactions vs people vs relevant (feed-health.json has fetch/keep, but not by
+        // section). Uses the article's _source.feedName stamped at fetch time.
+        const recordSelectedFeed = (items: NormalizedItem[], section: Section) => {
+            for (const a of items) {
+                const feed = (a as any)._source?.feedName || (a as any)._source?.name || a.source || 'unknown';
+                diag.recordFeedCandidate(feed, 'selected', undefined, section);
+            }
+        };
+        recordSelectedFeed(relevant, 'relevant');
+        recordSelectedFeed(transactions, 'transactions');
+        recordSelectedFeed(availabilities, 'availabilities');
+        recordSelectedFeed(people, 'people');
+
         // Finalize diagnostics: record final selected counts + write JSON.
         // The funnel + rejection counts have been accumulating throughout the pipeline.
         diag.finalizeSection('relevant', relevant.length, MIN_RELEVANT);
