@@ -1,14 +1,14 @@
 {
-  "runId": "2026-06-30-1255",
-  "generatedAt": "2026-06-30T12:55:10.668Z",
+  "runId": "2026-07-01-1344",
+  "generatedAt": "2026-07-01T13:44:00.088Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 223,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 232,
+      "inWindow": 4,
+      "regionPass": 4,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -34,13 +34,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 3,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -48,14 +49,14 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 223,
+      "loaded": 232,
       "inWindow": 2,
       "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
+      "selected": 1,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -68,7 +69,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -78,8 +79,7 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
@@ -93,7 +93,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 223,
+      "loaded": 232,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -129,15 +129,15 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "people": {
-      "loaded": 223,
+      "loaded": 232,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -190,19 +190,19 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 68,
-    "outOf10": 6.8,
-    "grade": "D",
-    "itemCount": 5,
+    "score": 77,
+    "outOf10": 7.7,
+    "grade": "C",
+    "itemCount": 6,
     "breakdown": {
-      "coverage": 14,
-      "freshness": 13.8,
-      "regional": 20,
+      "coverage": 24,
+      "freshness": 15,
+      "regional": 18.3,
       "relevanceIntegrity": 20
     },
     "penalties": [],
     "notes": [
-      "Empty sections: transactions, people"
+      "Empty sections: people"
     ]
   }
 }
