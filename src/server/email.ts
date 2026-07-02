@@ -1208,6 +1208,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 else if (/^\s*(watch|video|listen|podcast|webinar|live)\b[:\s]/i.test(t)) bad = 'vendor video/clip';
                 // Student / academic / competition fluff with no real-estate angle.
                 else if (/\b(students?\s+(named|win|compete|awarded)|named winners?|wins?\s+.*competition|university announces|student competition)\b/i.test(t)) bad = 'student/competition fluff';
+                // Charity / humanitarian / nonprofit-visit fluff that only mentions a
+                // "warehouse" incidentally. (2026-07-02: "Helping Venezuela: Giménez visits
+                // Doral-based nonprofit GEM's warehouse - WPLG" leaked on the word warehouse.)
+                // The bare "nonprofit" arm requires a charity-context word too, so a nonprofit
+                // *developer* doing an actual industrial project is not dropped.
+                else if (/\b(charit(?:y|ies|able)|humanitarian|food ?bank|toy drive|coat drive|donation drive|relief (?:effort|drive|mission|supplies)|fundrais(?:er|ing)|soup kitchen|homeless shelter|helping (?:venezuela|ukraine|haiti|gaza|families|victims|the poor|the needy|the community))\b/i.test(t)
+                    || (/\bnon-?profit\b/i.test(t) && /\b(visit|donat|relief|charit|distribut|volunteer|drive)\b/i.test(text))) bad = 'charity/humanitarian fluff';
                 // Wrong asset class / non-industrial (retail, office, multifamily, pharma, etc.)
                 // — reuses the same gate the pipeline applies, so it only drops what should
                 // never have reached here (e.g. a post-description refill that bypassed it).
