@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-01T14:24:04.879Z",
+  "updatedAt": "2026-07-02T12:26:17.715Z",
   "history": [
     {
       "date": "2026-05-11",
@@ -933,6 +933,31 @@
         "reserve": 1
       },
       "penalties": []
+    },
+    {
+      "date": "2026-07-02",
+      "runId": "2026-07-02-1225",
+      "score": 70,
+      "outOf10": 7,
+      "grade": "C",
+      "itemCount": 5,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 18.5,
+        "regional": 25,
+        "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 4,
+        "deep": 0,
+        "reserve": 1
+      },
+      "penalties": [
+        {
+          "type": "leak",
+          "points": 12
+        }
+      ]
     }
   ]
 }
