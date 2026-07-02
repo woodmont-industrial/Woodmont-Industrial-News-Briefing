@@ -696,6 +696,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             // shares seenSigs across ALL sections), NOT stored cross-day.
             return DEV_ENTITIES.filter(e => text.includes(e)).map(e => `dev_${e.replace(/\s+/g, '-')}`);
         };
+        // Within-send-removed duplicates. Their cross-day signatures are persisted at
+        // save time too: when two same-day rewrites of one deal collapse, the DROPPED
+        // variant often carries the location token the shipped one lacked, so saving it
+        // lets a later reworded rewrite be caught cross-day.
+        const withinSendRemovedDupes: NormalizedItem[] = [];
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
                 // Merge deal signatures with the conservative cross-day news signals
@@ -710,6 +715,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const matched = sigs.find(s => seenSigs.has(s));
                 if (matched) {
                     console.log(`🔁 Fuzzy dedup removed: "${a.title?.substring(0, 60)}" (same deal: ${matched})`);
+                    withinSendRemovedDupes.push(a);
                     return false;
                 }
                 sigs.forEach(s => seenSigs.add(s));
@@ -1297,7 +1303,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             // newsletters. The signatures enable cross-day fuzzy dedup so the same deal
             // reported by a different source on a later day won't slip through.
             const allSentArticles = [...relevant, ...transactions, ...availabilities, ...people];
-            const sentItems = allSentArticles
+            // Persist signatures for shipped articles PLUS the within-send-removed
+            // duplicates (see note at withinSendRemovedDupes) so a differently-worded
+            // rewrite of the same deal on a LATER day is caught cross-day.
+            const sigSourceArticles = [...allSentArticles, ...withinSendRemovedDupes];
+            const sentItems = sigSourceArticles
                 .map(a => ({
                     id: a.id || a.link || '',
                     sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),

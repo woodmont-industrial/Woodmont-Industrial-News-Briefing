@@ -469,6 +469,27 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         if (lead && lead.length >= 3 && !STOP.has(lead)) sigs.push(`expansion_${lead}_${dollars}m_${xstate}`);
     }
 
+    // (D) Developer + specific project-CITY — the SAME named developer's SAME project
+    //     re-reported across outlets/days with different headlines and NO shared
+    //     metric/verb. Gated on a known developer AND a specific city (a raw town, not
+    //     a region bucket), so two DIFFERENT projects by the same developer in different
+    //     towns stay separate (e.g. a Woodmont Edison deal won't collapse a Woodmont
+    //     Rahway deal). Catches the Woodmont/Sagard Rahway redevelopment, which shipped
+    //     three days running (6/29, 6/30, 7/02) as three reworded headlines because it
+    //     emitted zero signatures above. Deliberately NO city-less "developer+action"
+    //     fallback — that would suppress a developer's genuinely different next project.
+    const DEV_ENTITIES_XD = ['woodmont', 'sagard', 'prologis', 'bridge industrial', 'link logistics', 'rockefeller group', 'dermody', 'matrix development', 'crow holdings', 'butters', 'terreno', 'rexford', 'dalfen', 'faropoint'];
+    const DEV_PROJECT_CITIES = ['rahway', 'avenel', 'linden', 'carteret', 'edison', 'piscataway', 'woodbridge', 'cranbury', 'south brunswick', 'perth amboy', 'elizabeth', 'newark', 'kearny', 'secaucus', 'bayonne', 'logan township', 'bethlehem', 'allentown', 'easton', 'hamilton', 'robbinsville', 'mount laurel', 'doral', 'medley', 'hialeah', 'pompano', 'ocala', 'fort myers'];
+    const devsFound = DEV_ENTITIES_XD.filter(e => text.includes(e));
+    if (devsFound.length > 0) {
+        const escXd = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const citiesFound = DEV_PROJECT_CITIES.filter(c => new RegExp(`\\b${escXd(c)}\\b`).test(text));
+        for (const dev of devsFound) {
+            const d = dev.replace(/\s+/g, '-');
+            for (const c of citiesFound) sigs.push(`devdeal_${d}_${c.replace(/\s+/g, '-')}`);
+        }
+    }
+
     return [...new Set(sigs)];
 }
 
