@@ -1,17 +1,17 @@
 {
-  "runId": "2026-07-02-1225",
-  "generatedAt": "2026-07-02T12:25:52.763Z",
-  "isFriday": false,
+  "runId": "2026-07-03-1224",
+  "generatedAt": "2026-07-03T12:24:07.721Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 245,
-      "inWindow": 4,
-      "regionPass": 4,
+      "loaded": 250,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 3,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -40,25 +40,25 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 245,
+      "loaded": 250,
       "inWindow": 8,
-      "regionPass": 5,
+      "regionPass": 6,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 3,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -69,7 +69,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 4,
+        "BELOW_DEAL_THRESHOLD": 5,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,15 +85,15 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 1,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 245,
+      "loaded": 250,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -137,7 +137,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 245,
+      "loaded": 250,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -182,6 +182,34 @@
     }
   },
   "perFeedBySection": {
+    "commercialsearch.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Palm Beach County FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
@@ -196,7 +224,7 @@
         "people": 0
       }
     },
-    "Doral Medley FL Industrial": {
+    "Real Estate NJ": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -204,13 +232,13 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
     },
-    "Google News Data Centers NJ/PA/FL": {
+    "re-nj.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -218,55 +246,41 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News FL Ports": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 70,
-    "outOf10": 7,
+    "score": 73,
+    "outOf10": 7.3,
     "grade": "C",
-    "itemCount": 5,
+    "itemCount": 6,
     "breakdown": {
       "coverage": 18,
-      "freshness": 18.5,
-      "regional": 25,
+      "freshness": 16.9,
+      "regional": 20.8,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 4,
-      "deep": 0,
-      "reserve": 1
+      "fresh": 3,
+      "deep": 3,
+      "reserve": 0
     },
     "penalties": [
       {
-        "type": "leak",
-        "points": 12,
-        "detail": "Off-target / non-RE content shipped: \"Ohio and Pennsylvania take different approaches \""
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"FTI Experts’ Hub: Funding the Onshore Manufactur\""
       }
     ],
     "notes": [
