@@ -23,24 +23,57 @@
         "name": "FL Zoning Approvals"
       },
       "_source": {
-        "name": "FL Zoning Approvals",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNLWhVWDVBdGt4aUw0S2N6REl6elJ1YW96amVVOUhSZ1lwbFFTSC1YNkE5bVNORzEtS2VYRkdVZlpnMFl3UmxrczIzSVNrTWZwaV9yZGk3RVJtUm44T3hObDBENmxXOUYxVElNYVBSREZ4YmFCTjJPQVczOHpDSnVrOV9uLVk5NHhN?oc=5",
-        "feedName": "FL Zoning Approvals"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "FL"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "A",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline 'Zoning Board denies Project Tango AI data center' reports a regulatory rejection/halt of development, matching Rule 3's criteria for blocking articles about bans, halts, or denials of data center projects.",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Anti-Data-Center Framing — the headline reports a zoning board denial of a data center project, which constitutes a halt to development and is excluded by Rule 3.",
+      "_woodmontConfidence": 90,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "5fcc214dc298c4b38851efcf380b9d97f5c6025a",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNWHp3bEFsM1hCZ0RSOFdTUHBCYVZfcVBOQk4zV2VsNXY1UHZPRUNkQnUwRFVMbHpQOTQzZV9pRjZkWEtyaTBCdkpvZENOaEhQVjh0YzlfV3VlYVNpTHRnYk15aFVZcWdCa2dMQVFfeWQtMDl3QTlFamJQckxzLXhqNU1GbWxzXzd0R0QtYjgtVXk0UEEyeHBUZHdZQ2JKU25HRWZNTlFrak4wakth?oc=5",
+      "title": "Industrial property in Miami-Dade sold for $51M - The Business Journals",
+      "content_html": "Industrial property in Miami-Dade sold for $51M The Business Journals",
+      "content_text": "Industrial property in Miami-Dade sold for $51M The Business Journals",
+      "summary": "Industrial property in Miami-Dade sold for $51M The Business Journals",
+      "date_published": "2026-07-03T11:32:00.000Z",
+      "date_modified": "2026-07-05T16:02:25.985Z",
+      "image": "https://picsum.photos/seed/n5iboz/640/360",
+      "author": {
+        "name": "Google News Miami-Dade FL"
+      },
+      "_source": {
+        "name": "Google News Miami-Dade FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNWHp3bEFsM1hCZ0RSOFdTUHBCYVZfcVBOQk4zV2VsNXY1UHZPRUNkQnUwRFVMbHpQOTQzZV9pRjZkWEtyaTBCdkpvZENOaEhQVjh0YzlfV3VlYVNpTHRnYk15aFVZcWdCa2dMQVFfeWQtMDl3QTlFamJQckxzLXhqNU1GbWxzXzd0R0QtYjgtVXk0UEEyeHBUZHdZQ2JKU25HRWZNTlFrak4wakth?oc=5",
+        "feedName": "Google News Miami-Dade FL"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "FL"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "B",
+      "_woodmontApprove": true,
+      "_woodmontReason": "Real FL industrial transaction at $51M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -72,7 +105,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region - CommercialSearch is a national aggregator, no explicit NJ/PA/FL token in the title, matches Rule 13",
+      "_woodmontReason": "Listing aggregator without region - CommercialSearch is a national aggregator, and the title does not explicitly mention NJ/PA/FL, matches Rule 13",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -90,19 +123,18 @@
         "name": "Google News Data Centers NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Data Centers NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNYmV0aTNvUnA1NDIzbzBnQnpiNk5LaXZ5MUxXaV93eTFzMTRYMTcyY0FtaU5XMTh1VGNkY2J2TVVqUFNKQlgyZVgtb3luMHNrNlRfOGkzbXpOZzB6NU01MnB2S3ByeDhkSHVTNUJBS0Ezd1FzSWllSFFEc21VTVVLSU1yUm9VYkdwNTJ5MEZXQ20yVGZPdGlrdjk4Z0dwX1JRaFV6dlJiWFQzLWtIbUZlSTZudVZxN2c?oc=5",
-        "feedName": "Google News Data Centers NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -137,10 +169,10 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline 'votes against AI data center' indicates opposition to development, which violates Rule 3.",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Anti-Data-Center Framing — the headline 'votes against AI data center' indicates opposition to development, which matches Rule 3.",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -236,9 +268,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Major industrial capital markets transaction ($750M stake in Merritt Properties) meeting the macro/national relevance and deal threshold criteria, with Merritt holding significant portfolio in target regions PA/NJ.",
+      "_woodmontReason": "Major capital markets news involving a $750M investment in Merritt Properties, a significant industrial developer with a footprint in target regions NJ and PA, meeting the $25M+ threshold.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -269,9 +301,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 224K SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real NJ industrial transaction at 224,000 SF, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -337,7 +369,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "The article is political coverage of a politician visiting a nonprofit facility, not industrial real estate market news or a transaction (Rule: APPROVE criteria - Primary subject is not industrial real estate).",
+      "_woodmontReason": "The article is a political/human interest story about a politician visiting a nonprofit warehouse for humanitarian aid, not an industrial real estate transaction or market trend (Rule 17 - Political).",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -408,6 +440,40 @@
       "_woodmontClassifier": "groq"
     },
     {
+      "id": "e5c2b3b9fb89940a69ea9e4f729c64b2a4053aba",
+      "url": "https://www.bisnow.com/national/news/data-center-sustainability-operations/compass-datacenters-walker-webcast-walker-and-dunlop-studiob-135265",
+      "title": "Compass Datacenters CEO: Politicians Should Ask Industry For More",
+      "content_html": "As people around the globe use artificial intelligence at record rates, the demand for data centers is on the rise. But not everyone is eager to see them built in their communities. From concerns about water and power consumption to fears that these...",
+      "content_text": "As people around the globe use artificial intelligence at record rates, the demand for data centers is on the rise. But not everyone is eager to see them built in their communities. From concerns about water and power consumption to fears that these...",
+      "summary": "As people around the globe use artificial intelligence at record rates, the demand for data centers is on the rise. But not everyone is eager to see them built in their communities. From concerns abou...",
+      "date_published": "2026-07-01T17:23:06.000Z",
+      "date_modified": "2026-07-05T16:01:59.222Z",
+      "image": "https://picsum.photos/seed/wvvj1r/640/360",
+      "author": {
+        "name": "julia.troy@bisnow.com"
+      },
+      "_source": {
+        "name": "Bisnow National",
+        "website": "bisnow.com",
+        "url": "https://www.bisnow.com/national/news/data-center-sustainability-operations/compass-datacenters-walker-webcast-walker-and-dunlop-studiob-135265",
+        "feedName": "Bisnow National"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "bisnow.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "B",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Anti-development framing — 'fears that these' matches Rule 3 anti-data-center editorial framing",
+      "_woodmontConfidence": 90,
+      "_woodmontClassifier": "groq"
+    },
+    {
       "id": "b830d1b81ab3407ef0be6559cfc0bab604c0a2e5",
       "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNdlQ2QUFwT1Q0YldnS1FrMmRzUmFlYWU2M1FNb0JpLVR3NEdTbllLNnVDT1BNZDVHMjlpcG1xNGVGMFg5cV9DMjRBcmdZRERZYl9kTlIwZjh2dWU0eHZqNkNOZVdEekFWcUhPNksyQWdlUzR5RmNfZEhzN2tnM05BekFZbTFoX3J4MC1uYl9sdHNFSUUwdGFrNnVWTUYxVFU?oc=5",
       "title": "Office Market Pauses, While Industrial Leasing Remains Strong - New Jersey Business Magazine",
@@ -467,9 +533,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "National capital markets news regarding a $10.2B fund for data center investment, meeting the macro relevance and pro-development criteria (Rule: APPROVE criteria - clearly relevant macro/national)",
+      "_woodmontReason": "Major capital markets news regarding a $10.2B fund closing for data center investment, which qualifies as relevant macro/fund news and is explicitly allowed under Rule 3 for pro-development data center fund flows.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -502,7 +568,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Meets all criteria: NJ industrial logistics development, 170,800 SF (above 100K SF threshold), fresh news (2 days old).",
+      "_woodmontReason": "Real NJ industrial development at 170,800 SF, meeting the 100K SF threshold and target region requirements (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -606,6 +672,40 @@
       "_woodmontClassifier": null
     },
     {
+      "id": "b77e8a52993ded423739eb44d2ee88abfcfa8c0c",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNWjNMemowOHRvc1BTMkpTOVQyUndfdjBnR21nZ2ZKVndKNExtQW5rcF9NR3dtS0kyOFJPZ2FyUF9fbmlVWUFOZ2xCTEd2Z0FPd0Jqc3NXZHJOMDVrMjJLSExST0FlQndXT2hlRjJpV1R3d2ZqS3ByZWlMaHRVXzZoekpQbV9kaWZBTHBtcVNjZjdMbHQ3Y2FRLXlHMA?oc=5",
+      "title": "Sagard Real Estate Expands New Jersey Industrial Portfolio with Monmouth Junction Acquisition - Yahoo Finance",
+      "content_html": "Sagard Real Estate Expands New Jersey Industrial Portfolio with Monmouth Junction Acquisition Yahoo Finance",
+      "content_text": "Sagard Real Estate Expands New Jersey Industrial Portfolio with Monmouth Junction Acquisition Yahoo Finance",
+      "summary": "Sagard Real Estate Expands New Jersey Industrial Portfolio with Monmouth Junction Acquisition Yahoo Finance",
+      "date_published": "2026-07-01T13:00:00.000Z",
+      "date_modified": "2026-07-05T16:02:00.329Z",
+      "image": "https://picsum.photos/seed/377hws/640/360",
+      "author": {
+        "name": "Google News Industrial RE"
+      },
+      "_source": {
+        "name": "Google News Industrial RE",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNWjNMemowOHRvc1BTMkpTOVQyUndfdjBnR21nZ2ZKVndKNExtQW5rcF9NR3dtS0kyOFJPZ2FyUF9fbmlVWUFOZ2xCTEd2Z0FPd0Jqc3NXZHJOMDVrMjJLSExST0FlQndXT2hlRjJpV1R3d2ZqS3ByZWlMaHRVXzZoekpQbV9kaWZBTHBtcVNjZjdMbHQ3Y2FRLXlHMA?oc=5",
+        "feedName": "Google News Industrial RE"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
       "id": "efe6fa3722d8cf05179457821ba360e4f548532c",
       "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxQNVdLbHl6NUdvWTdleDVPd05tYkVpc2FzWEJKRFEwQlozNnZ3bGI3cXhYXzJuMjNzRTBzNGh2VWpFNXNqLTZrbS1vUllqOEZOLTVGYlhzWkgtU0V2ZG9GTHozcDlRaXFjc0ZmUzVwTmVDS2xYTDhReFVoODJpSnptRTF0RW96Tll1dmxRbWlSTXBzUW0yd21melFWbHFPTFB3QWdoRkM0eUlLN25kUHhNLXNuTUJnWmRqYXFjNmxva1VDS0ZiNWtKbUxhaGlsWHpuUUg4Mm1KS2Vxd3FKemVseVVOd0g?oc=5",
       "title": "Sagard Real Estate Expands New Jersey Industrial Portfolio with Monmouth Junction Acquisition - Business Wire",
@@ -667,8 +767,8 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 171,000 sq. ft., target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "NJ industrial logistics center delivery of 171,000 SF meets size threshold and target region criteria (Rule: APPROVE criteria all met).",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -738,6 +838,40 @@
       "_woodmontClassifier": "groq"
     },
     {
+      "id": "af55176356d4e645eafa53d8eade0bb66f34e000",
+      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9SMGpLcUFJajllMzhQcWF6empSemt6RzdBbm56aWgxT244S19VTWRuR2lFQjNiazdoSTFPZ2hzc3dBSnBQdnNXVDN0RmRtNHhjbmVXNGFGZS1GaElVWjdQVjZyOU5LQl8zd04yYXRla1o5QlBLRVozeA?oc=5",
+      "title": "3001 N 7th St, Harrisburg, PA 17110 - Industrial for Lease - LoopNet",
+      "content_html": "3001 N 7th St, Harrisburg, PA 17110 - Industrial for Lease LoopNet",
+      "content_text": "3001 N 7th St, Harrisburg, PA 17110 - Industrial for Lease LoopNet",
+      "summary": "3001 N 7th St, Harrisburg, PA 17110 - Industrial for Lease LoopNet",
+      "date_published": "2026-07-01T07:00:00.000Z",
+      "date_modified": "2026-07-05T16:03:21.449Z",
+      "image": "https://picsum.photos/seed/wa1jjr/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9SMGpLcUFJajllMzhQcWF6empSemt6RzdBbm56aWgxT244S19VTWRuR2lFQjNiazdoSTFPZ2hzc3dBSnBQdnNXVDN0RmRtNHhjbmVXNGFGZS1GaElVWjdQVjZyOU5LQl8zd04yYXRla1o5QlBLRVozeA?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token in the title, matches Rule 13",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "groq"
+    },
+    {
       "id": "802d87b3507b6f636d5711151aa3e791cd6db6d6",
       "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOd0pzNWFZUC1pam9XMmxLMFI0TmkydlBoNnZrQmpFUHBmQ2ZQNl9WR2FRSm9HMGIyV2k3Rk11dzVEYlFYaDlSOUQzVWVQazVkNjhnWUVXbmhqby1NVzhPcGYxOERhRzk0OURIc3NsR094ZEpsUURtc0JQZ1doakJGSzVRM3p1Tk1PZno0VjJFdjRYYVBsS0Y5eV8tS0FNNTVCTy1XNXQ3am1hUQ?oc=5",
       "title": "CMA CGM nears $1.4 billion deal for FedEx logistics unit, FT reports - Reuters",
@@ -794,8 +928,8 @@
         "Relevant — Market Trends & Real Estate News",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -1063,7 +1197,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial development news: 379,000 SF logistics facility in Bergen County exceeds 100K SF threshold and is within the 7-day freshness window (Rule: APPROVE criteria all met).",
+      "_woodmontReason": "Real NJ industrial development news: 379,000 SF logistics facility in Bergen County exceeds the 100K SF threshold and is within the 7-day freshness window (Rule: APPROVE criteria all met).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1195,9 +1329,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant national capital markets news covering a $300M credit facility for Industrial Outdoor Storage (IOS), meeting the asset class and deal threshold criteria (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial transaction at $300M, target region (FL) + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "86b7b1c9ede7ea585f74b1fa28e4d7a3615ff9f8",
@@ -1524,8 +1658,8 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Target region (NJ) industrial development news exceeding 100K SF threshold (277,000 SF) and within the 7-day freshness window.",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Stale — the article was published on June 26, 2026, which is 9 days prior to the current date of July 5, 2026, exceeding the 7-day freshness limit (Rule 11).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1557,9 +1691,9 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial development project (277K SF) involving Woodmont, meets size and region criteria (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article is stale — published on 2026-06-26, which is 9 days prior to today's date of 2026-07-05, exceeding the 7-day limit (Rule 11).",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1827,6 +1961,40 @@
       "_woodmontClassifier": null
     },
     {
+      "id": "d4e179ec360ef91e008a7d6a6f3af580e032cec0",
+      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1RZW5mcURHZTFBRTJhMEFaaURPZmtUeGRCSUhCVEdna0lWZ21OSm5FbWpUOENZYk1VcGwxWHhldF92NTRETzBYdFdhY3lQMzRfXzQwMDNhYV9IVmJhamthRW5McjdKVEJ6LVJfYjRDcHdxbEkzb3pjZQ?oc=5",
+      "title": "100 First Ave, Gouldsboro, PA 18424 - Industrial for Lease - LoopNet",
+      "content_html": "100 First Ave, Gouldsboro, PA 18424 - Industrial for Lease LoopNet",
+      "content_text": "100 First Ave, Gouldsboro, PA 18424 - Industrial for Lease LoopNet",
+      "summary": "100 First Ave, Gouldsboro, PA 18424 - Industrial for Lease LoopNet",
+      "date_published": "2026-06-25T07:00:00.000Z",
+      "date_modified": "2026-07-05T16:03:21.423Z",
+      "image": "https://picsum.photos/seed/t4znku/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1RZW5mcURHZTFBRTJhMEFaaURPZmtUeGRCSUhCVEdna0lWZ21OSm5FbWpUOENZYk1VcGwxWHhldF92NTRETzBYdFdhY3lQMzRfXzQwMDNhYV9IVmJhamthRW5McjdKVEJ6LVJfYjRDcHdxbEkzb3pjZQ?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article is stale — published on June 25, 2026, which is more than 7 days ago from today's date (July 5, 2026), matches Rule 11.",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
       "id": "9ee85b0f8a09163a2c57851798d7a7da8be84720",
       "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNQ2hzU09zMC1jVHRnTUYwMmJrSmdTRkNTdG9VZ2xqUjlzcllUNlJwcnNSb3Y4WlBuai1HRUJRQjZhNEtvTklqSHE1cThJQVZJakJGU2lySXhiVS1nd1FPbmJockQ1OWFSaklBUWlQZnczZEY4bmJ2c1cwVEtrT1B1bU1HLWJvV0g2bTdaWk1n?oc=5",
       "title": "Industrial Property Available at 201 North Sullivan Street - Traded",
@@ -2071,25 +2239,24 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBqajlnLXA5ekJMODRDWHdzUnp6TW1tbzNPSWR1ZU9YcHlENXFwanoyZ2Y2MXAwWFhvc0ViQnJLLVlMT25HXy1CbEk3LWhwdTRYRDNPYVozTkhZNnRhemQzNm8tYXNjVnVvdTRnRHFPLThPc3RBSHc?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article is stale — published on June 24, 2026, which is more than 7 days from today's date of July 5, 2026 (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "ee7fd03f5dde815881df9403373b2b8b5d6c23c7",
@@ -3438,7 +3605,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -6012,7 +6179,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -6446,6 +6613,40 @@
       "_woodmontReason": null,
       "_woodmontConfidence": null,
       "_woodmontClassifier": null
+    },
+    {
+      "id": "4218eaa15a7d161e3c0d77c9bef19e61c3249135",
+      "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQUG9FTnBOMmU0b01qT21ZenpPc085S2lGT0lTMUN0eWloMS1VNGh1UG8xaVBkZG9WY0pacUd1UFVEOVlkNm1vNUo0cy1qLVNvRHVGb2V0cW1lY0JwdG55dDFXT1gxNEtRRWZ4SnV2aTBhenBYOVQwMTV3VFRZSXFCZXRpRlFaQQ?oc=5",
+      "title": "Downeast Global Logistics LLC Leases 107,000 SF Warehouse At 530 John Hancock Road In Taunton - Traded",
+      "content_html": "Downeast Global Logistics LLC Leases 107,000 SF Warehouse At 530 John Hancock Road In Taunton Traded",
+      "content_text": "Downeast Global Logistics LLC Leases 107,000 SF Warehouse At 530 John Hancock Road In Taunton Traded",
+      "summary": "Downeast Global Logistics LLC Leases 107,000 SF Warehouse At 530 John Hancock Road In Taunton Traded",
+      "date_published": "2026-06-09T07:00:00.000Z",
+      "date_modified": "2026-07-05T16:03:01.009Z",
+      "image": "https://picsum.photos/seed/joqni2/640/360",
+      "author": {
+        "name": "Google News Traded.co"
+      },
+      "_source": {
+        "name": "Google News Traded.co",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQUG9FTnBOMmU0b01qT21ZenpPc085S2lGT0lTMUN0eWloMS1VNGh1UG8xaVBkZG9WY0pacUd1UFVEOVlkNm1vNUo0cy1qLVNvRHVGb2V0cW1lY0JwdG55dDFXT1gxNEtRRWZ4SnV2aTBhenBYOVQwMTV3VFRZSXFCZXRpRlFaQQ?oc=5",
+        "feedName": "Google News Traded.co"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "D",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Wrong region — Taunton is in Massachusetts, not NJ, PA, or FL, matches Rule 9",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "4e42cdc5ee31735c911c7c7cf612cea09959aea4",
@@ -7304,501 +7505,6 @@
       "_woodmontReason": null,
       "_woodmontConfidence": null,
       "_woodmontClassifier": null
-    },
-    {
-      "id": "04e7573b0d20775d72aee702232e9cf79234423a",
-      "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNenlaOE9rUlR5WEZtWDIwREhQcWRucVhhVVBmaFhDZ3RPUlBQUUlRRFJSZldoeGh5Z25LRXVzem9nT1BxaVdJSDVGS1FpbFRPZGFKVWU0bm43QnZFenZOT3IyaFhCSXJCUFplQ0g4OERleGdkQVR3Um9LTnAzbVpwUmkxRHZjMmY5SVpEUlJhLU5HVGNqVTRPb0piSzRiZVFHUDhrMVFIcW9GSDl6dVlV?oc=5",
-      "title": "CBRE Brokers Sale of 450,330 SF Industrial Building in Monroe Township, New Jersey - REBusinessOnline",
-      "content_html": "CBRE Brokers Sale of 450,330 SF Industrial Building in Monroe Township, New Jersey REBusinessOnline",
-      "content_text": "CBRE Brokers Sale of 450,330 SF Industrial Building in Monroe Township, New Jersey REBusinessOnline",
-      "summary": "CBRE Brokers Sale of 450,330 SF Industrial Building in Monroe Township, New Jersey REBusinessOnline",
-      "date_published": "2026-06-04T14:44:20.000Z",
-      "date_modified": "2026-06-05T13:53:18.280Z",
-      "image": "https://picsum.photos/seed/cvt5w7/640/360",
-      "author": {
-        "name": "Google News Industrial RE"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNenlaOE9rUlR5WEZtWDIwREhQcWRucVhhVVBmaFhDZ3RPUlBQUUlRRFJSZldoeGh5Z25LRXVzem9nT1BxaVdJSDVGS1FpbFRPZGFKVWU0bm43QnZFenZOT3IyaFhCSXJCUFplQ0g4OERleGdkQVR3Um9LTnAzbVpwUmkxRHZjMmY5SVpEUlJhLU5HVGNqVTRPb0piSzRiZVFHUDhrMVFIcW9GSDl6dVlV?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Stale content — published on June 4, 2026, which is more than 7 days old from today's date (June 25, 2026), matches Rule 11",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "a61689eb79a10aef55d529a2049069cf25b406cc",
-      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQUHJWbGhQZXJHbjJSRGxrZDV1bklSZUlCcHVFazlldmdDbjlfV0Y5bWNIZlhMV1daSFhQalVpLWhNbXJDdENJOFpUdE5rVEJEX2RSS3BnNzctQUVwNTlyMnlBckt3Yk5sLU5IazRlb3pGY3lPRGlLQnJvSVJydHFLazJrcGE?oc=5",
-      "title": "8650 Transport Dr - Industrial For Lease - JLL Properties",
-      "content_html": "8650 Transport Dr - Industrial For Lease JLL Properties",
-      "content_text": "8650 Transport Dr - Industrial For Lease JLL Properties",
-      "summary": "8650 Transport Dr - Industrial For Lease JLL Properties",
-      "date_published": "2026-06-04T08:01:38.000Z",
-      "date_modified": "2026-06-22T16:52:09.182Z",
-      "image": "https://picsum.photos/seed/q800d8/640/360",
-      "author": {
-        "name": "Google News JLL Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQUHJWbGhQZXJHbjJSRGxrZDV1bklSZUlCcHVFazlldmdDbjlfV0Y5bWNIZlhMV1daSFhQalVpLWhNbXJDdENJOFpUdE5rVEJEX2RSS3BnNzctQUVwNTlyMnlBckt3Yk5sLU5IazRlb3pGY3lPRGlLQnJvSVJydHFLazJrcGE?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token, matches Rule 13",
-      "_woodmontConfidence": 80,
-      "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "ed0316e27b92d9ad52e6e5c007c9970b8bc2c6ba",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1FUlA0czJfWm4td241OXZkVEwyajVHUFNULW1HNkNNLWl2WkdGN3c0cWlidUp1bm1MbEJvQTdKS1FtWld5VGhheEJwdlBBWG9KN05HVHdKelVMaDNrSjZKNDROZEJia0hFNUUzSE5xMEdneVlGQ2IxaUxjS1o?oc=5",
-      "title": "570 Commerce Blvd, Carlstadt, NJ 07072 - Industrial for Lease - LoopNet",
-      "content_html": "570 Commerce Blvd, Carlstadt, NJ 07072 - Industrial for Lease LoopNet",
-      "content_text": "570 Commerce Blvd, Carlstadt, NJ 07072 - Industrial for Lease LoopNet",
-      "summary": "570 Commerce Blvd, Carlstadt, NJ 07072 - Industrial for Lease LoopNet",
-      "date_published": "2026-06-04T07:00:00.000Z",
-      "date_modified": "2026-06-30T11:04:36.882Z",
-      "image": "https://picsum.photos/seed/6vus1z/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1FUlA0czJfWm4td241OXZkVEwyajVHUFNULW1HNkNNLWl2WkdGN3c0cWlidUp1bm1MbEJvQTdKS1FtWld5VGhheEJwdlBBWG9KN05HVHdKelVMaDNrSjZKNDROZEJia0hFNUUzSE5xMEdneVlGQ2IxaUxjS1o?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Stale — published on 2026-06-04, which is older than 7 days from today's date (2026-07-01), matches Rule 11",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "5c98dbd6f6676ef3bb5be8f63580e7b5bf288300",
-      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQMXdlVklkeVdiYlZtZGpQeDduNzBpQ2VOOUFmQXo5eTFEbThLLXc1WTVEZzNCQkpKVmt2RW1OSkpMSDY0Q2ZfYklqeHZOeVh4dERLTmp1ZEkzYWM5LXlMYUVlUTJ0UldlRTMyd1dfUGNQNVMzSWhjdV9vOHpBZFlwejFBREFwbG9Cem9Ca3BSWEdzZzJOUlE?oc=5",
-      "title": "News | Costco extends warehouse lease in Sunrise, Florida - CoStar",
-      "content_html": "News | Costco extends warehouse lease in Sunrise, Florida CoStar",
-      "content_text": "News | Costco extends warehouse lease in Sunrise, Florida CoStar",
-      "summary": "News | Costco extends warehouse lease in Sunrise, Florida CoStar",
-      "date_published": "2026-06-04T07:00:00.000Z",
-      "date_modified": "2026-06-26T10:58:07.373Z",
-      "image": "https://picsum.photos/seed/ni63lg/640/360",
-      "author": {
-        "name": "Google News Industrial Lease Deals"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQMXdlVklkeVdiYlZtZGpQeDduNzBpQ2VOOUFmQXo5eTFEbThLLXc1WTVEZzNCQkpKVmt2RW1OSkpMSDY0Q2ZfYklqeHZOeVh4dERLTmp1ZEkzYWM5LXlMYUVlUTJ0UldlRTMyd1dfUGNQNVMzSWhjdV9vOHpBZFlwejFBREFwbG9Cem9Ca3BSWEdzZzJOUlE?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "5bc14ef6fdbe1048373058b69ee2ccc919de9c7d",
-      "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQV1U2T0VsTG16cnBVRjJMM0lVYTZhM2xYanE3YkUwcXpvNzZBanQwTGl2UGZLVDBndkxHby1iRmU4Nm9VTTdKNjZHb3Y3Si1WczZvV3o5clhIel92dWJhSWtJQ1dLUWkzX1ZVX1BrMUQ0UUJXN00waVdXNC1CcnpLNzR1MzRqS25XbzRzdGVPb3hsRjZkZTVzNHdSTlM0ODR4aHFzSVlGZkdOMF9CU2FKTGNnVDJqVXZBeW9xY3pPTkQ4cnRBcWhwRVFHVXVkTTRNR2hSeDA5MHVlTkRtVk1ZT0FhSUNpTHBrMUZMbVJ2Y0VCZw?oc=5",
-      "title": "Warehouse developer pays $2.63M for Southmoore Golf Course property - WFMZ.com",
-      "content_html": "Warehouse developer pays $2.63M for Southmoore Golf Course property WFMZ.com",
-      "content_text": "Warehouse developer pays $2.63M for Southmoore Golf Course property WFMZ.com",
-      "summary": "Warehouse developer pays $2.63M for Southmoore Golf Course property WFMZ.com",
-      "date_published": "2026-06-04T07:00:00.000Z",
-      "date_modified": "2026-06-18T15:09:10.277Z",
-      "image": "https://picsum.photos/seed/rr15gy/640/360",
-      "author": {
-        "name": "Greater Philly Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQV1U2T0VsTG16cnBVRjJMM0lVYTZhM2xYanE3YkUwcXpvNzZBanQwTGl2UGZLVDBndkxHby1iRmU4Nm9VTTdKNjZHb3Y3Si1WczZvV3o5clhIel92dWJhSWtJQ1dLUWkzX1ZVX1BrMUQ0UUJXN00waVdXNC1CcnpLNzR1MzRqS25XbzRzdGVPb3hsRjZkZTVzNHdSTlM0ODR4aHFzSVlGZkdOMF9CU2FKTGNnVDJqVXZBeW9xY3pPTkQ4cnRBcWhwRVFHVXVkTTRNR2hSeDA5MHVlTkRtVk1ZT0FhSUNpTHBrMUZMbVJ2Y0VCZw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "83a4f77833975502a40b7c1094258739e4d6bb30",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQQUNVQjgzdHdkb1lYUGZjbzJrTWlBaVBIQ2xQNklEcTZIUERhWEZZcHpKa05OZEhEV3VzRElvTnN5SE5XRG96T2xzLUJFMFFBRzNJazZEMFlmN3pXWE5yWTRMZnRRX29hQUlTMWN4ZFlwQktuSDFQT2V1Z3VGQzdsUlJZdjVHOFZPUlBPZFNGLVRaZF9HUW5EQ0t0YjZKc2ktaUE?oc=5",
-      "title": "Petition Seeks To Stop Proposed Data Center Development In South Brunswick - Patch",
-      "content_html": "Petition Seeks To Stop Proposed Data Center Development In South Brunswick Patch",
-      "content_text": "Petition Seeks To Stop Proposed Data Center Development In South Brunswick Patch",
-      "summary": "Petition Seeks To Stop Proposed Data Center Development In South Brunswick Patch",
-      "date_published": "2026-06-04T07:00:00.000Z",
-      "date_modified": "2026-06-15T00:20:56.491Z",
-      "image": "https://picsum.photos/seed/w2qwd7/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQQUNVQjgzdHdkb1lYUGZjbzJrTWlBaVBIQ2xQNklEcTZIUERhWEZZcHpKa05OZEhEV3VzRElvTnN5SE5XRG96T2xzLUJFMFFBRzNJazZEMFlmN3pXWE5yWTRMZnRRX29hQUlTMWN4ZFlwQktuSDFQT2V1Z3VGQzdsUlJZdjVHOFZPUlBPZFNGLVRaZF9HUW5EQ0t0YjZKc2ktaUE?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "a56b3e84aa7cb31459dbd67c52d4701135574f52",
-      "url": "https://re-nj.com/newark-industrial-owner-inks-797000-refi-with-valley-bank/",
-      "title": "Newark industrial owner inks $797,000 refi with Valley Bank",
-      "content_html": "Valley Bank has closed a nearly $800,000 cash-out refinance loan to the owner of a Newark industrial property, the Morristown-based lender announced Wednesday.",
-      "content_text": "Valley Bank has closed a nearly $800,000 cash-out refinance loan to the owner of a Newark industrial property, the Morristown-based lender announced Wednesday.",
-      "summary": "Valley Bank has closed a nearly $800,000 cash-out refinance loan to the owner of a Newark industrial property, the Morristown-based lender announced Wednesday.",
-      "date_published": "2026-06-04T02:46:52.000Z",
-      "date_modified": "2026-06-04T13:58:34.848Z",
-      "image": "https://picsum.photos/seed/q1u2h5/640/360",
-      "author": {
-        "name": "Joshua Burd"
-      },
-      "_source": {
-        "name": "re-nj.com",
-        "website": "re-nj.com",
-        "url": "https://re-nj.com/newark-industrial-owner-inks-797000-refi-with-valley-bank/",
-        "feedName": "re-nj.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "re-nj.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "ee34f2a2f896998d5918d4bc7aff0635bb8d5d0f",
-      "url": "https://re-nj.com/ecommerce-3pl-firm-expands-to-final-space-at-larkens-hillsborough-business-center/",
-      "title": "Ecommerce, 3PL firm expands to final space at Larken’s Hillsborough Business Center",
-      "content_html": "Larken Associates has leased up nearly 600,000 square feet of flex industrial space in Hillsborough thanks to an expansion by an ecommerce and third-party logistics firm.",
-      "content_text": "Larken Associates has leased up nearly 600,000 square feet of flex industrial space in Hillsborough thanks to an expansion by an ecommerce and third-party logistics firm.",
-      "summary": "Larken Associates has leased up nearly 600,000 square feet of flex industrial space in Hillsborough thanks to an expansion by an ecommerce and third-party logistics firm.",
-      "date_published": "2026-06-04T02:44:27.000Z",
-      "date_modified": "2026-06-04T13:58:34.849Z",
-      "image": "https://picsum.photos/seed/4thkpq/640/360",
-      "author": {
-        "name": "Joshua Burd"
-      },
-      "_source": {
-        "name": "re-nj.com",
-        "website": "re-nj.com",
-        "url": "https://re-nj.com/ecommerce-3pl-firm-expands-to-final-space-at-larkens-hillsborough-business-center/",
-        "feedName": "re-nj.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "re-nj.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "The article was published on June 4, 2026, which is more than 7 days ago from today's date (June 25, 2026), violating Rule 11 (STALE).",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "ad8214ff47d630da0498cffe47758cb322ff746d",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPb1B3NVNkbzlYOWdOUUlyZElKd0s0a2dyb3FmSEtmOUdxREZKREZva3FobEEwUHFsWU9qZEVKMFZWY2VhdDB1NXNNSGpycHVJOXA1dU5yR0FYLWgzczlkVjJDRzBnaEJlRU5tRWcwN0ZaQ09pRWQ0QlpvdjlIcld5VHFyaDlmSzJWclo4bHJQNlh4OWNNSEpzWVpQVnhWMzlTUmg4Vnlybw?oc=5",
-      "title": "Stonemont Secures Full-Building Lease at Tampa Industrial Complex - citybiz",
-      "content_html": "Stonemont Secures Full-Building Lease at Tampa Industrial Complex citybiz",
-      "content_text": "Stonemont Secures Full-Building Lease at Tampa Industrial Complex citybiz",
-      "summary": "Stonemont Secures Full-Building Lease at Tampa Industrial Complex citybiz",
-      "date_published": "2026-06-04T01:48:17.000Z",
-      "date_modified": "2026-06-04T13:58:53.471Z",
-      "image": "https://picsum.photos/seed/2zey60/640/360",
-      "author": {
-        "name": "Google News Tampa Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPb1B3NVNkbzlYOWdOUUlyZElKd0s0a2dyb3FmSEtmOUdxREZKREZva3FobEEwUHFsWU9qZEVKMFZWY2VhdDB1NXNNSGpycHVJOXA1dU5yR0FYLWgzczlkVjJDRzBnaEJlRU5tRWcwN0ZaQ09pRWQ0QlpvdjlIcld5VHFyaDlmSzJWclo4bHJQNlh4OWNNSEpzWVpQVnhWMzlTUmg4Vnlybw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "7e895e668ad8e4f233693ca3cc24607b31210561",
-      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPQzhKTG5DZGE3YTlNRnVHZkJJNWN0S05sX3kyU0lsOXlsdE1jeFVsMHNRMS05UnBfVnFfYmN3SGJZcnRKcUg1V2hMZThDLUM1dlJrcWw2eVhXYVNmTm9KczlOeFpzSG5qS0NJMFluUGRERXhrTkU3VThTS3pmT1pvYlpTMVFYZkNI?oc=5",
-      "title": "Kurv Delivers 326K-SF Miami Warehouse Project - Connect CRE",
-      "content_html": "Kurv Delivers 326K-SF Miami Warehouse Project Connect CRE",
-      "content_text": "Kurv Delivers 326K-SF Miami Warehouse Project Connect CRE",
-      "summary": "Kurv Delivers 326K-SF Miami Warehouse Project Connect CRE",
-      "date_published": "2026-06-04T00:01:40.000Z",
-      "date_modified": "2026-06-04T13:59:36.222Z",
-      "image": "https://picsum.photos/seed/4y7xg0/640/360",
-      "author": {
-        "name": "Google News ConnectCRE Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPQzhKTG5DZGE3YTlNRnVHZkJJNWN0S05sX3kyU0lsOXlsdE1jeFVsMHNRMS05UnBfVnFfYmN3SGJZcnRKcUg1V2hMZThDLUM1dlJrcWw2eVhXYVNmTm9KczlOeFpzSG5qS0NJMFluUGRERXhrTkU3VThTS3pmT1pvYlpTMVFYZkNI?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Stale article older than 7 days (Rule 11)",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "2cb6f896e6613e01d1c8c80fcf7f5d5c22809eb9",
-      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPbWVXbVRHUGpGV2wwd1FzYUVOcXptckVWRVowd0pRd2NGSkVfYlpZNGNKMTV3QkhnU093Z0ZMLXdhMURocHIzZXJuTGVyTFEwOW9kU0dZT0pBNUM3N19CNnRqREpKTXpSRWU0OEtxeGVfeDMybzNHSU9YbVAyZWhabTRTLXJiRUN5djhiVnpyYjdFMnhuMFp5WFVMb1dWVHZhLW5mQWlWUHB0bFdDR2VZYUUya2Vmdw?oc=5",
-      "title": "Orlando reveals Pulse nightclub artifacts preserved in secret warehouse - Orlando Sentinel",
-      "content_html": "Orlando reveals Pulse nightclub artifacts preserved in secret warehouse Orlando Sentinel",
-      "content_text": "Orlando reveals Pulse nightclub artifacts preserved in secret warehouse Orlando Sentinel",
-      "summary": "Orlando reveals Pulse nightclub artifacts preserved in secret warehouse Orlando Sentinel",
-      "date_published": "2026-06-03T19:15:57.000Z",
-      "date_modified": "2026-06-04T13:58:53.580Z",
-      "image": "https://picsum.photos/seed/u6oz9t/640/360",
-      "author": {
-        "name": "Google News Orlando Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPbWVXbVRHUGpGV2wwd1FzYUVOcXptckVWRVowd0pRd2NGSkVfYlpZNGNKMTV3QkhnU093Z0ZMLXdhMURocHIzZXJuTGVyTFEwOW9kU0dZT0pBNUM3N19CNnRqREpKTXpSRWU0OEtxeGVfeDMybzNHSU9YbVAyZWhabTRTLXJiRUN5djhiVnpyYjdFMnhuMFp5WFVMb1dWVHZhLW5mQWlWUHB0bFdDR2VZYUUya2Vmdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "SENSITIVE EVENT — mass shootings, terror attacks, massacres, tragedy memorials, victim stories, war casualties (Rule 1)",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "506a1d7ad2dee81b094d8a6da16922e5a5c0f674",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNNm5GQVNWWVlXQlktQ3VxenphcWhwVDlHRTIzMTFEcDNmLWs0R29SMUdhVEdZQ2dfNzZvMUZJRmh0UllFTllZTlJIb2J6VE1wY0Q2bUg4RWV2cnktUU1ScmtBREhPM1g0ZGpxOTVNOEVBZDE5MmlQZUdpemtfUmpVMzdfb2E3ZXZoejJGOWgxb1Q5Y3pXY2I4M1ptejA?oc=5",
-      "title": "BKM, Kayne Anderson drop nearly $2B for Link Logistics industrial portfolio - The Real Deal",
-      "content_html": "BKM, Kayne Anderson drop nearly $2B for Link Logistics industrial portfolio The Real Deal",
-      "content_text": "BKM, Kayne Anderson drop nearly $2B for Link Logistics industrial portfolio The Real Deal",
-      "summary": "BKM, Kayne Anderson drop nearly $2B for Link Logistics industrial portfolio The Real Deal",
-      "date_published": "2026-06-03T19:00:00.000Z",
-      "date_modified": "2026-06-06T16:04:08.907Z",
-      "image": "https://picsum.photos/seed/349kfd/640/360",
-      "author": {
-        "name": "Google News Real Deal Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNNm5GQVNWWVlXQlktQ3VxenphcWhwVDlHRTIzMTFEcDNmLWs0R29SMUdhVEdZQ2dfNzZvMUZJRmh0UllFTllZTlJIb2J6VE1wY0Q2bUg4RWV2cnktUU1ScmtBREhPM1g0ZGpxOTVNOEVBZDE5MmlQZUdpemtfUmpVMzdfb2E3ZXZoejJGOWgxb1Q5Y3pXY2I4M1ptejA?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "ff0a2b6612459a1c48f0743c440d7d2f11f99ad6",
-      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxONHZmTVZ2TEF1Y1hPckNablBpeHhqSGUyWmJLSkZNUUw2MXozaVdYVE9HdE9VNF8yQWI5aHlyRl9tT21sTDVKU1M5MGFMeWJVNVM4aHNhN2szcDFOOWEta2JwTVdZWWJvZ2c2aW0tSm03Si0tUU1PdndZRkYzWGJRVTl2QVNxRlQxYjBHMlkwX3NKeDdaQllMT0lTQkphbUJ1YldBTFNRMXVmaHc4Y0gwbU5SWE1rdw?oc=5",
-      "title": "Garrity calls for Pennsylvania to 'pause' data center development - MSN",
-      "content_html": "Garrity calls for Pennsylvania to 'pause' data center development MSN",
-      "content_text": "Garrity calls for Pennsylvania to 'pause' data center development MSN",
-      "summary": "Garrity calls for Pennsylvania to 'pause' data center development MSN",
-      "date_published": "2026-06-03T18:38:32.000Z",
-      "date_modified": "2026-06-04T13:59:53.989Z",
-      "image": "https://picsum.photos/seed/j7pzg5/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxONHZmTVZ2TEF1Y1hPckNablBpeHhqSGUyWmJLSkZNUUw2MXozaVdYVE9HdE9VNF8yQWI5aHlyRl9tT21sTDVKU1M5MGFMeWJVNVM4aHNhN2szcDFOOWEta2JwTVdZWWJvZ2c2aW0tSm03Si0tUU1PdndZRkYzWGJRVTl2QVNxRlQxYjBHMlkwX3NKeDdaQllMT0lTQkphbUJ1YldBTFNRMXVmaHc4Y0gwbU5SWE1rdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "6f2ecda8f0280ea4815d0051967fe421865b8f12",
-      "url": "https://commercialobserver.com/2026/06/blackstones-link-logistics-light-industrial-bkm-kayne-anderson/",
-      "title": "Blackstone’s Link Logistics Sells Light Industrial Portfolio for $1.8B",
-      "content_html": "As the nation’s warehousing space demands shift, a joint venture is putting down $1.81 billion for a 90 percent leased light industrial portfolio across four states. BKM Capital Partners and Kayne Anderson Real Estate on Wednesday announced the acquisition of the 8.5 million-square-foot portfolio from Link Logistics, the industrial arm of real estate titan Blackstone. […]",
-      "content_text": "As the nation’s warehousing space demands shift, a joint venture is putting down $1.81 billion for a 90 percent leased light industrial portfolio across four states. BKM Capital Partners and Kayne Anderson Real Estate on Wednesday announced the acquisition of the 8.5 million-square-foot portfolio from Link Logistics, the industrial arm of real estate titan Blackstone. […]",
-      "summary": "As the nation’s warehousing space demands shift, a joint venture is putting down $1.81 billion for a 90 percent leased light industrial portfolio across four states. BKM Capital Partners and Kayne And...",
-      "date_published": "2026-06-03T17:35:08.000Z",
-      "date_modified": "2026-06-04T13:59:13.627Z",
-      "image": "https://picsum.photos/seed/bzibsk/640/360",
-      "author": {
-        "name": "Gregory Cornfield"
-      },
-      "_source": {
-        "name": "commercialobserver.com",
-        "website": "commercialobserver.com",
-        "url": "https://commercialobserver.com/2026/06/blackstones-link-logistics-light-industrial-bkm-kayne-anderson/",
-        "feedName": "commercialobserver.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "commercialobserver.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "ee2a177494711800823ef47669d97ba7e86af4f4",
-      "url": "https://www.bisnow.com/national/news/industrial/bkm-kayne-anderson-jv-pays-18b-light-industrial-portfolio-134852",
-      "title": "BKM, Kayne Anderson JV Pays $1.8B For Light Industrial Portfolio",
-      "content_html": "BKM Capital Partners and Kayne Anderson Real Estate have acquired an 8.5M SF portfolio in what they say is the largest deal in the light industrial sector since 2022.",
-      "content_text": "BKM Capital Partners and Kayne Anderson Real Estate have acquired an 8.5M SF portfolio in what they say is the largest deal in the light industrial sector since 2022.",
-      "summary": "BKM Capital Partners and Kayne Anderson Real Estate have acquired an 8.5M SF portfolio in what they say is the largest deal in the light industrial sector since 2022.",
-      "date_published": "2026-06-03T16:18:27.000Z",
-      "date_modified": "2026-06-04T13:58:37.198Z",
-      "image": "https://picsum.photos/seed/qrmyfu/640/360",
-      "author": {
-        "name": "alexis.kramer@bisnow.com"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/national/news/industrial/bkm-kayne-anderson-jv-pays-18b-light-industrial-portfolio-134852",
-        "feedName": "bisnow.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Article is stale — published on June 3rd, which is more than 7 days ago from today's date (June 26th), violating Rule 11.",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
     }
   ]
 }
