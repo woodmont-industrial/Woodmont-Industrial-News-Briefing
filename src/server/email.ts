@@ -645,6 +645,52 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         }
 
+        // ============================================================================
+        // THIN-SEND GUARANTEE (2026-07-06)
+        // ============================================================================
+        // The Monday after a long weekend is structurally starved: nothing is published
+        // over the weekend (tier1_24h = 0), and the recent regional deals were already
+        // sent Friday. The per-section reserve fill above only tops each section up to
+        // its MINIMUM, and the transactions/availabilities/people reserves are usually
+        // empty (those categories are scarce and mostly already-sent) — so a section
+        // that already met its min never draws on the DEEP relevant reserve, and the
+        // edition ships with ~5 items (2026-07-06 shipped 5). Here, if the WHOLE edition
+        // is still thin, top up `relevant` from the reserve pool (macro/industry pieces,
+        // already region/industrial/dedup-vetted and always in stock) up to its cap, so
+        // readers get a substantive briefing even on a dead news day. Freshness scoring
+        // already discounts reserve items, so this pads volume without faking freshness.
+        const TARGET_MIN_TOTAL = 10;
+        const editionTotal = () => relevant.length + transactions.length + availabilities.length + people.length;
+        if (editionTotal() < TARGET_MIN_TOTAL) {
+            try {
+                const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
+                if (fs.existsSync(reservePath)) {
+                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    const pool: any[] = reserve.sections?.relevant || [];
+                    const before = relevant.length;
+                    for (const r of pool) {
+                        if (editionTotal() >= TARGET_MIN_TOTAL || relevant.length >= MAX_PER_SECTION) break;
+                        const key = r.id || r.url;
+                        if (usedIds.has(key)) continue;
+                        relevant.push({
+                            id: r.id, title: r.title, link: r.url, description: r.description || '',
+                            category: r.category, source: r.source, pubDate: r.date_published, ...(r as any),
+                        } as NormalizedItem);
+                        usedIds.add(key);
+                    }
+                    const added = relevant.length - before;
+                    if (added > 0) {
+                        console.log(`🏪 Thin-send guarantee: padded relevant +${added} from reserve (edition ${editionTotal() - added}→${editionTotal()})`);
+                        diag.recordTier('relevant', 'tier4_reserve', added);
+                    } else {
+                        console.log('🏪 Thin-send guarantee: edition thin but no unused relevant reserve available');
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ Thin-send padding failed:', (e as Error).message);
+            }
+        }
+
         // Merge manually included articles from raw picks — but validate region/industrial first
         const includedArticles = loadIncludedArticles(docsDir);
         let includedCount = 0;
