@@ -132,22 +132,26 @@ export interface DiagnosticPayload {
 // =============================================================================
 // NEWSLETTER QUALITY SCORE
 // -----------------------------------------------------------------------------
-// A composite 0-100 grade for the whole send, derived from the diagnostics
-// funnel (tier fill, section underfill) plus the selected items (region tags,
-// titles, deal signatures). Pure function: all external data (signatures, prior
-// sends) is passed in, so this module stays I/O-free and import-cycle-free.
+// Computes THREE reported dimensions for a send (all in NewsletterQuality). Pure
+// function: all external data (signatures, prior sends, per-section supply) is passed
+// in, so this module stays I/O-free and import-cycle-free.
 //
-// Rubric (the approved table):
-//   Coverage & balance ....... 30  (sections filled, weighted)
+//   1. CONTENT QUALITY — the headline 0-100 score/grade. This is the rubric below.
+//   2. DELIVERY RELIABILITY — reported SEPARATELY (delivery.score/grade). late_delivery
+//      and manual_send reduce deliveryScore, NOT the headline Content Quality. A late or
+//      manually-rescued send can still be content-excellent; timing is an ops metric.
+//   3. SUPPLY CONDITIONS — Rich/Normal/Thin, from full-lookback candidate volume.
+//
+// Content Quality rubric (the approved table):
+//   Coverage & balance ....... 30  (sections filled, weighted; SUPPLY-AWARE — an empty
+//                                   section with zero market supply is half-excused,
+//                                   one with supply>0 but shipped 0 is charged in full)
 //   Freshness ................ 25  (tier-weighted avg of selected items)
 //   Regional targeting ....... 25  (share of items in NJ/PA/FL; macro = 0.4)
 //   Relevance integrity ...... 20  (baseline; eroded only when a leak ships)
-//   minus penalties: broken -8, dup-in-send -6, cross-day repeat -3,
-//                    weak/borderline -3, off-target leak -12  (each occurrence)
-//   minus timing:    late delivery -1 per 15 min past the 8:30 AM ET target
-//                    (30-min grace, cap -10); manual dispatch -5 (the scheduled
-//                    automation didn't self-deliver — it wouldn't have shipped
-//                    on its own, which matters when nobody's watching).
+//   minus CONTENT penalties: broken -8, dup-in-send -6, cross-day repeat -3,
+//                            weak/borderline -3, off-target leak -12  (each occurrence)
+//   (Timing penalties are NOT subtracted here — see Delivery Reliability above.)
 //
 // NOTE: the region/leak regexes here are a SCORING HEURISTIC for observability.
 // The send pipeline's FINAL GATE remains the authoritative content filter.
@@ -342,9 +346,10 @@ export function computeNewsletterScore(
     });
 
     // ---- Delivery timing: lateness + manual-intervention penalties ----
-    // A great edition that lands hours late (or only because a human clicked the
-    // button) is not a great send from the reader's chair — especially with nobody
-    // watching. Reflected here so the trendline shows reliability, not just content.
+    // Recorded in penalties[] (so the CSV lateDelivery/manualSend columns populate), but
+    // these feed DELIVERY RELIABILITY only — they are filtered OUT of the content penalty
+    // total below and drive deliveryScore instead. Lateness/manual-rescue is an ops
+    // signal, not a comment on how good the content is.
     if (opts.timing) {
         const overGrace = Math.max(0, opts.timing.lateMinutes - TIMING.graceMinutes);
         if (overGrace > 0) {
