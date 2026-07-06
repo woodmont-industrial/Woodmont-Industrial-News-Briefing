@@ -67,6 +67,22 @@ jobs:
               console.log('Force send — bypassing dedup');
               return;
             }
+            // Auto-recovery timing gate. The build completes in the MORNING (~08-09 UTC)
+            // on a normal day, so firing the send on build-completion would deliver hours
+            // before the 8:30 AM ET (12:30 UTC) target. Only let the workflow_run path send
+            // once we're in the delivery window (>= 11:30 UTC). The days the scheduled cron
+            // actually drops are laggy days where GitHub also delays the build (2026-07-06:
+            // build ran 11:58-12:52 UTC), so on those days the build finishes late enough
+            // for this gate to pass and recover the send. On normal days it defers to the cron.
+            if (context.eventName === 'workflow_run') {
+              const nowMin = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+              if (nowMin < 11 * 60 + 30) {
+                core.setOutput('skip', 'true');
+                console.log('Auto-recovery fired before 11:30 UTC delivery window — deferring to the scheduled cron.');
+                return;
+              }
+              console.log('Auto-recovery in delivery window — will send if not already sent today.');
+            }
             try {
               const file = await github.rest.repos.getContent({
                 owner: context.repo.owner,
