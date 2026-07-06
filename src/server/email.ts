@@ -1313,6 +1313,32 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 windowDays: 7,
             });
         }
+        // ---- Supply evidence (Phase 1): full-lookback candidate count per section ----
+        // Count qualifying candidates across the 30-day deep pool + reserve pool,
+        // independent of what was selected. computeNewsletterScore uses this so
+        // supply-aware coverage only excuses an empty section when supply is truly 0
+        // (market gave nothing) — not when we simply failed to select available items.
+        try {
+            const supplyPool = filterArticlesByTimeRange(articles, 30 * 24);
+            const supplyRegional = supplyPool.filter(isTargetRegion);
+            const supplyNotExcluded = supplyPool.filter(isNotExcludedRegion);
+            let reserveSections: any = {};
+            try {
+                const rp = path.join(docsDir, 'preferences', 'reserve-pool.json');
+                if (fs.existsSync(rp)) reserveSections = JSON.parse(fs.readFileSync(rp, 'utf-8')).sections || {};
+            } catch { /* reserve optional */ }
+            const supply: Record<Section, number> = {
+                relevant: applyStrictFilter(supplyNotExcluded.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (supply)').length + (reserveSections.relevant?.length || 0),
+                transactions: applyTransactionFilter(supplyRegional.filter(a => a.category === 'transactions')).length + (reserveSections.transactions?.length || 0),
+                availabilities: applyAvailabilityFilter(supplyRegional.filter(a => a.category === 'availabilities')).length + (reserveSections.availabilities?.length || 0),
+                people: applyPeopleFilter(supplyRegional.filter(a => a.category === 'people')).length + (reserveSections.people?.length || 0),
+            };
+            (Object.keys(supply) as Section[]).forEach(s => diag.recordStage(s, 'supplyCandidates', supply[s]));
+            console.log(`🧮 Supply candidates (30d+reserve): rel=${supply.relevant} tx=${supply.transactions} avail=${supply.availabilities} ppl=${supply.people}`);
+        } catch (e) {
+            console.warn('⚠️ Supply-candidate count failed:', (e as Error).message);
+        }
+
         // Newsletter Quality Score — composite 0-100 grade for this send, computed
         // from the funnel + the selected items. Written into the run JSON and
         // appended to docs/quality-scores.json (the trendline data source).
@@ -1340,7 +1366,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const penaltyStr = quality.penalties.length
                 ? ' — ' + quality.penalties.map(p => `-${p.points} ${p.type}`).join(', ')
                 : ' — clean';
-            console.log(`📊 Quality score: ${quality.score}/100 (${quality.grade}, ${quality.outOf10}/10)${penaltyStr}`);
+            console.log(`📊 Content ${quality.score}/100 (${quality.grade}) | Delivery ${quality.delivery.score}/100 (${quality.delivery.grade}) | Supply ${quality.supply}${penaltyStr}`);
             writeQualityHistory(docsDir, new Date().toISOString().split('T')[0], diag.toJSON().runId, quality);
         } catch (e) {
             console.warn('⚠️ Quality score failed:', (e as Error).message);
@@ -1400,6 +1426,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 articleCount: relevant.length + transactions.length + availabilities.length + people.length,
                 score: dq?.score ?? null,
                 grade: dq?.grade ?? null,
+                deliveryScore: dq?.delivery?.score ?? null,
+                supplyCondition: dq?.supply ?? null,
                 triggerEvent: process.env.TRIGGER_EVENT || process.env.GITHUB_EVENT_NAME || '',
                 isFriday,
                 subject,

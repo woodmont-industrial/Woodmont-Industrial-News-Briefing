@@ -84,6 +84,12 @@ export interface SectionFunnel {
     dedupRemoved: number;
     stalePruned: number;
     selected: number;
+    // Full-lookback supply evidence: qualifying candidates for this section across the
+    // 30-day deep pool + reserve pool (independent of what was selected). This is what
+    // makes supply-aware coverage honest — a section is only "excused" for shipping
+    // empty if this is 0 (the market gave us nothing); if it's >0 but selected is 0,
+    // that's a selection/rules failure and coverage is charged in full.
+    supplyCandidates: number;
     rejectionReasons: Record<string, number>;
     nearMisses: NearMiss[];
     tierFill: {
@@ -155,12 +161,14 @@ export interface QualityBreakdown {
 }
 export interface QualityPenalty { type: string; points: number; detail: string; }
 export interface NewsletterQuality {
-    score: number;        // 0-100, clamped
+    score: number;        // Content Quality (headline), 0-100, clamped
     outOf10: number;      // score / 10
-    grade: string;        // A / B / C / D / F
+    grade: string;        // Content Quality grade A / B / C / D / F
     itemCount: number;
     breakdown: QualityBreakdown;
     age: { fresh: number; deep: number; reserve: number }; // ≤72h / 3-30d / reserve backfill
+    delivery: { score: number; grade: string };            // Delivery Reliability (shown beside)
+    supply: 'Rich' | 'Normal' | 'Thin';                    // Supply Conditions this run
     penalties: QualityPenalty[];
     notes: string[];
 }
@@ -238,12 +246,26 @@ export function computeNewsletterScore(
     const allItems = order.flatMap(s => selected[s] || []);
     const itemCount = allItems.length;
 
-    // ---- Coverage & balance (30) ----
+    // ---- Coverage & balance (30), SUPPLY-AWARE ----
+    // A filled section earns its full weight. An EMPTY section is judged by its
+    // full-lookback supply (30-day + reserve, recorded on the funnel):
+    //   • supply > 0 but shipped 0  → selection FAILURE → 0 credit (full penalty).
+    //   • supply == 0 (market gave nothing) → EXCUSED, but only PARTIAL credit
+    //     (EXCUSE_FRACTION). A thin-market day is genuinely a thinner briefing for the
+    //     reader, so it should land ~C, not be handed an A — supply-aware must not
+    //     become a licence to score weak sends as excellent. The Supply label carries
+    //     the "not our fault" context; coverage stays honest about completeness.
+    const EXCUSE_FRACTION = 0.5;
     let coverage = 0;
-    const emptySections: string[] = [];
+    const emptySections: string[] = [];    // empty AND had supply → charged
+    const excusedSections: string[] = [];  // empty AND no supply → partial credit
     for (const s of order) {
-        if ((selected[s] || []).length > 0) coverage += COVERAGE_WEIGHTS[s];
-        else emptySections.push(s);
+        const w = COVERAGE_WEIGHTS[s];
+        const filled = (selected[s] || []).length > 0;
+        const supplyN = payload.sections[s]?.supplyCandidates ?? 0;
+        if (filled) coverage += w;
+        else if (supplyN > 0) emptySections.push(s);            // charged: +0
+        else { excusedSections.push(s); coverage += EXCUSE_FRACTION * w; }
     }
 
     // ---- Freshness (25): tier-weighted average across all selected items ----
@@ -334,13 +356,34 @@ export function computeNewsletterScore(
         }
     }
 
+    const gradeOf = (n: number) => n >= 90 ? 'A' : n >= 80 ? 'B' : n >= 70 ? 'C' : n >= 60 ? 'D' : 'F';
+
+    // Split the penalties: CONTENT quality vs DELIVERY reliability. Timing/manual
+    // penalties describe HOW it was delivered, not how good the content is, so they
+    // form a separate Delivery score and do NOT drag the headline Content grade.
+    const DELIVERY_PENALTY_TYPES = new Set(['late_delivery', 'manual_send']);
+    const contentPenaltyTotal = penalties.filter(p => !DELIVERY_PENALTY_TYPES.has(p.type)).reduce((a, p) => a + p.points, 0);
+    const deliveryPenaltyTotal = penalties.filter(p => DELIVERY_PENALTY_TYPES.has(p.type)).reduce((a, p) => a + p.points, 0);
+
+    // Headline = Content Quality.
     const positive = coverage + freshness + regional + relevanceIntegrity;
-    const penaltyTotal = penalties.reduce((a, p) => a + p.points, 0);
-    const score = Math.max(0, Math.min(100, Math.round(positive - penaltyTotal)));
-    const grade = score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F';
+    const score = Math.max(0, Math.min(100, Math.round(positive - contentPenaltyTotal)));
+    const grade = gradeOf(score);
+
+    // Delivery Reliability — 100 minus timing penalties (shown beside, NOT blended in).
+    const deliveryScore = Math.max(0, Math.min(100, 100 - deliveryPenaltyTotal));
+
+    // Supply Conditions — what the market gave us this run (full-lookback candidates).
+    const totalSupply = order.reduce((a, s) => a + (payload.sections[s]?.supplyCandidates ?? 0), 0);
+    const sectionsWithSupply = order.filter(s => (payload.sections[s]?.supplyCandidates ?? 0) > 0).length;
+    const supply: 'Rich' | 'Normal' | 'Thin' =
+        (sectionsWithSupply >= 3 && totalSupply >= 25) ? 'Rich'
+        : (sectionsWithSupply <= 1 || totalSupply < 8) ? 'Thin'
+        : 'Normal';
 
     const notes: string[] = [];
-    if (emptySections.length) notes.push(`Empty sections: ${emptySections.join(', ')}`);
+    if (emptySections.length) notes.push(`Empty sections (supply existed — selection gap): ${emptySections.join(', ')}`);
+    if (excusedSections.length) notes.push(`Excused — no market supply: ${excusedSections.join(', ')}`);
     if (itemCount === 0) notes.push('No items selected — empty send');
 
     return {
@@ -352,6 +395,8 @@ export function computeNewsletterScore(
             relevanceIntegrity,
         },
         age: { fresh: freshItems, deep: deepItems, reserve: reserveItems },
+        delivery: { score: deliveryScore, grade: gradeOf(deliveryScore) },
+        supply,
         penalties, notes,
     };
 }
@@ -391,7 +436,7 @@ export class DiagnosticContext {
     private emptySection(): SectionFunnel {
         return {
             loaded: 0, inWindow: 0, regionPass: 0, industrialPass: 0, sectionPass: 0,
-            dedupRemoved: 0, stalePruned: 0, selected: 0,
+            dedupRemoved: 0, stalePruned: 0, selected: 0, supplyCandidates: 0,
             rejectionReasons: Object.fromEntries(REASON_CODES.map(r => [r, 0])),
             nearMisses: [],
             tierFill: { tier1_24h: 0, tier2_48h_72h: 0, tier3_30d_deep: 0, tier4_reserve: 0, tier5_manual_include: 0 },
@@ -562,6 +607,8 @@ export interface QualityHistoryEntry {
     itemCount: number;
     breakdown: QualityBreakdown;
     age?: { fresh: number; deep: number; reserve: number };
+    delivery?: { score: number; grade: string };  // Delivery Reliability (Phase 1+)
+    supply?: 'Rich' | 'Normal' | 'Thin';           // Supply Conditions (Phase 1+)
     penalties: { type: string; points: number }[];
     backfill?: boolean;
 }
@@ -574,6 +621,9 @@ const CSV_COLUMNS = [
     'freshItems', 'deepItems', 'reserveItems',
     'penaltyTotal', 'brokenItems', 'duplicatesInSend', 'crossDayRepeats', 'weakItems', 'leaks',
     'lateDelivery', 'manualSend',
+    // Phase 1: content score is the `score` column above (headline); these are the two
+    // dimensions shown beside it — Delivery Reliability (0-100) and Supply Conditions.
+    'deliveryScore', 'supplyCondition',
 ];
 
 function entryToCsvRow(e: QualityHistoryEntry): string {
@@ -589,6 +639,7 @@ function entryToCsvRow(e: QualityHistoryEntry): string {
         counts['broken_item'] || 0, counts['duplicate_in_send'] || 0, counts['repeat_cross_day'] || 0,
         counts['weak_item'] || 0, counts['leak'] || 0,
         counts['late_delivery'] || 0, counts['manual_send'] || 0,
+        e.delivery?.score ?? '', e.supply ?? '',
     ];
     return vals.join(',');
 }
@@ -615,6 +666,8 @@ export function writeQualityHistory(docsDir: string, date: string, runId: string
         score: q.score, outOf10: q.outOf10, grade: q.grade, itemCount: q.itemCount,
         breakdown: q.breakdown,
         age: q.age,
+        delivery: q.delivery,
+        supply: q.supply,
         penalties: q.penalties.map(p => ({ type: p.type, points: p.points })),
     };
     // One entry per day — a re-send replaces the day's prior entry.
