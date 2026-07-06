@@ -151,6 +151,8 @@ jobs:
           # send; stage them so the Power BI trendline (quality-scores.csv) updates
           # each send. Without this the score lands only in docs/diagnostics/.
           git add docs/sent-articles.json docs/feed.json docs/included-articles.json docs/diagnostics/ docs/quality-scores.json docs/quality-scores.csv
+          # -A so archive retention (deletions of >90-day snapshots) is committed too.
+          git add -A docs/newsletter-archive/
           if git diff --staged --quiet; then
             echo "No changes"
           else

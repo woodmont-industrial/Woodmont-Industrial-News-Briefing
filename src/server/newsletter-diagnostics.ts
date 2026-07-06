@@ -632,6 +632,20 @@ export function writeQualityHistory(docsDir: string, date: string, runId: string
     fs.writeFileSync(path.join(docsDir, 'quality-scores.csv'), csv, 'utf-8');
 }
 
+/**
+ * Rebuild quality-scores.csv from the existing quality-scores.json without needing a
+ * new send. Use after a CSV_COLUMNS change so the committed header/rows reflect the new
+ * schema immediately (the next send would do this anyway — this just avoids the wait).
+ */
+export function regenerateQualityCsv(docsDir: string): void {
+    const jsonFile = path.join(docsDir, 'quality-scores.json');
+    if (!fs.existsSync(jsonFile)) return;
+    const parsed = JSON.parse(fs.readFileSync(jsonFile, 'utf-8'));
+    const history: QualityHistoryEntry[] = Array.isArray(parsed.history) ? parsed.history : [];
+    const csv = [CSV_COLUMNS.join(','), ...history.map(entryToCsvRow)].join('\n') + '\n';
+    fs.writeFileSync(path.join(docsDir, 'quality-scores.csv'), csv, 'utf-8');
+}
+
 // =============================================================================
 // LEGACY HELPERS (kept for compatibility with existing call sites)
 // =============================================================================

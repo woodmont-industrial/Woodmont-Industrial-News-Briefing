@@ -1383,6 +1383,48 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 clearIncludedArticles(docsDir);
             }
         }
+        // ARCHIVE (2026-07-06): snapshot the EXACT HTML we generated + a metadata sidecar,
+        // every send, success or not. This is the ground truth of what GitHub produced —
+        // inspect it even if Gmail/Power Automate mangles the email downstream. Dated file
+        // for history + latest.{html,json} for a stable "most recent" URL.
+        try {
+            const archiveDir = path.join(docsDir, 'newsletter-archive');
+            fs.mkdirSync(archiveDir, { recursive: true });
+            const archiveDate = new Date().toISOString().slice(0, 10);
+            const dq = (diag.toJSON() as any).quality;
+            const meta = {
+                date: archiveDate,
+                githubRunId: process.env.GITHUB_RUN_ID || '',
+                generatedAt: new Date().toISOString(),
+                sentToRelay: success,
+                articleCount: relevant.length + transactions.length + availabilities.length + people.length,
+                score: dq?.score ?? null,
+                grade: dq?.grade ?? null,
+                triggerEvent: process.env.TRIGGER_EVENT || process.env.GITHUB_EVENT_NAME || '',
+                isFriday,
+                subject,
+            };
+            fs.writeFileSync(path.join(archiveDir, `${archiveDate}.html`), html, 'utf-8');
+            fs.writeFileSync(path.join(archiveDir, 'latest.html'), html, 'utf-8');
+            fs.writeFileSync(path.join(archiveDir, `${archiveDate}.json`), JSON.stringify(meta, null, 2) + '\n', 'utf-8');
+            fs.writeFileSync(path.join(archiveDir, 'latest.json'), JSON.stringify(meta, null, 2) + '\n', 'utf-8');
+            // Retention: keep the newest 90 dated snapshots (html+json), drop older.
+            const dates = [...new Set(
+                fs.readdirSync(archiveDir)
+                    .filter(f => /^\d{4}-\d{2}-\d{2}\.(html|json)$/.test(f))
+                    .map(f => f.slice(0, 10))
+            )].sort();
+            for (const d of dates.slice(0, Math.max(0, dates.length - 90))) {
+                for (const ext of ['html', 'json']) {
+                    const p = path.join(archiveDir, `${d}.${ext}`);
+                    if (fs.existsSync(p)) fs.unlinkSync(p);
+                }
+            }
+            console.log(`🗄️  Archived → docs/newsletter-archive/${archiveDate}.html (+latest, +meta, sentToRelay=${success})`);
+        } catch (e) {
+            console.warn('⚠️ Newsletter archive failed:', (e as Error).message);
+        }
+
         console.log(success ? `✅ Work ${isFriday ? 'weekly' : 'daily'} newsletter sent!` : '❌ Failed to send Work newsletter');
         return success;
     } catch (error) {
