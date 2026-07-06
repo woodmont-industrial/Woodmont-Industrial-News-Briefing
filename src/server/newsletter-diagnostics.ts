@@ -138,6 +138,10 @@ export interface DiagnosticPayload {
 //   Relevance integrity ...... 20  (baseline; eroded only when a leak ships)
 //   minus penalties: broken -8, dup-in-send -6, cross-day repeat -3,
 //                    weak/borderline -3, off-target leak -12  (each occurrence)
+//   minus timing:    late delivery -1 per 15 min past the 8:30 AM ET target
+//                    (30-min grace, cap -10); manual dispatch -5 (the scheduled
+//                    automation didn't self-deliver — it wouldn't have shipped
+//                    on its own, which matters when nobody's watching).
 //
 // NOTE: the region/leak regexes here are a SCORING HEURISTIC for observability.
 // The send pipeline's FINAL GATE remains the authoritative content filter.
@@ -169,7 +173,11 @@ const COVERAGE_WEIGHTS: Record<Section, number> = {
 const TIER_WEIGHTS: Record<keyof SectionFunnel['tierFill'], number> = {
     tier1_24h: 1.0, tier2_48h_72h: 0.85, tier3_30d_deep: 0.5, tier4_reserve: 0.3, tier5_manual_include: 0.7,
 };
-const PENALTY = { broken: 8, dupInSend: 6, repeatCrossDay: 3, weak: 3, leak: 12 };
+const PENALTY = { broken: 8, dupInSend: 6, repeatCrossDay: 3, weak: 3, leak: 12, manualSend: 5 };
+// Delivery-timing config. Target is 8:30 AM ET; a 30-min grace absorbs GitHub's
+// normal cron lag, then -1 per 15 min late, capped so timing can't tank a
+// content-perfect send on its own.
+const TIMING = { graceMinutes: 30, minutesPerPoint: 15, lateCap: 10 };
 
 // Target regions (NJ/PA/FL) — major cities/counties + corridors. Subset of the
 // send pipeline's TARGET_REGION_PATTERN, kept compact on purpose.
@@ -224,7 +232,7 @@ function titlesSimilar(a: string, b: string): boolean {
 export function computeNewsletterScore(
     payload: DiagnosticPayload,
     selected: Record<Section, any[]>,
-    opts: { sigOf: (it: any) => string[]; recentSigs: Set<string> }
+    opts: { sigOf: (it: any) => string[]; recentSigs: Set<string>; timing?: { lateMinutes: number; manual: boolean } }
 ): NewsletterQuality {
     const order: Section[] = ['relevant', 'transactions', 'availabilities', 'people'];
     const allItems = order.flatMap(s => selected[s] || []);
@@ -310,6 +318,21 @@ export function computeNewsletterScore(
             penalties.push({ type: 'weak_item', points: PENALTY.weak, detail: `Borderline / off-topic: ${label(it)}` });
         }
     });
+
+    // ---- Delivery timing: lateness + manual-intervention penalties ----
+    // A great edition that lands hours late (or only because a human clicked the
+    // button) is not a great send from the reader's chair — especially with nobody
+    // watching. Reflected here so the trendline shows reliability, not just content.
+    if (opts.timing) {
+        const overGrace = Math.max(0, opts.timing.lateMinutes - TIMING.graceMinutes);
+        if (overGrace > 0) {
+            const pts = Math.min(TIMING.lateCap, Math.ceil(overGrace / TIMING.minutesPerPoint));
+            penalties.push({ type: 'late_delivery', points: pts, detail: `Delivered ~${opts.timing.lateMinutes} min past the 8:30 AM ET target` });
+        }
+        if (opts.timing.manual) {
+            penalties.push({ type: 'manual_send', points: PENALTY.manualSend, detail: 'Sent by manual dispatch — the scheduled automation did not self-deliver' });
+        }
+    }
 
     const positive = coverage + freshness + regional + relevanceIntegrity;
     const penaltyTotal = penalties.reduce((a, p) => a + p.points, 0);
@@ -544,12 +567,13 @@ export interface QualityHistoryEntry {
 }
 
 // Penalty types we surface as their own CSV columns (counts per send).
-const PENALTY_TYPES = ['broken_item', 'duplicate_in_send', 'repeat_cross_day', 'weak_item', 'leak'] as const;
+const PENALTY_TYPES = ['broken_item', 'duplicate_in_send', 'repeat_cross_day', 'weak_item', 'leak', 'late_delivery', 'manual_send'] as const;
 const CSV_COLUMNS = [
     'date', 'runId', 'score', 'outOf10', 'grade', 'itemCount',
     'coverage', 'freshness', 'regional', 'relevanceIntegrity',
     'freshItems', 'deepItems', 'reserveItems',
     'penaltyTotal', 'brokenItems', 'duplicatesInSend', 'crossDayRepeats', 'weakItems', 'leaks',
+    'lateDelivery', 'manualSend',
 ];
 
 function entryToCsvRow(e: QualityHistoryEntry): string {
@@ -564,6 +588,7 @@ function entryToCsvRow(e: QualityHistoryEntry): string {
         penaltyTotal,
         counts['broken_item'] || 0, counts['duplicate_in_send'] || 0, counts['repeat_cross_day'] || 0,
         counts['weak_item'] || 0, counts['leak'] || 0,
+        counts['late_delivery'] || 0, counts['manual_send'] || 0,
     ];
     return vals.join(',');
 }
