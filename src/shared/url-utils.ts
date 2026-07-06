@@ -33,7 +33,7 @@ export function extractDealSignature(title: string, description?: string): strin
     // Extract square footage (normalize "937K SF" and "937,000 Square Foot" to same value)
     let sqft: number | null = null;
     const sfMatchK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
-    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)\s*(?:sf|sq\.?\s*f|square\s*feet|square\s*foot)/i);
+    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
     const sfMatchM = text.match(/(\d+(?:\.\d+)?)\s*(?:million|m)\s*(?:sf|sq\.?\s*f|square\s*feet)/i);
     if (sfMatchK) sqft = Math.round(parseFloat(sfMatchK[1]) * 1000);
     else if (sfMatchFull) sqft = parseInt(sfMatchFull[1].replace(/,/g, ''));
@@ -64,6 +64,9 @@ export function extractDealSignature(title: string, description?: string): strin
         'perth amboy': 'nj-central', 'sayreville': 'nj-central', 'plainfield': 'nj-central',
         'trenton': 'nj-central', 'princeton': 'nj-central', 'cranbury': 'nj-central',
         'monroe township': 'nj-central', 'monroe twp': 'nj-central',
+        'hamilton': 'nj-central', 'hamilton township': 'nj-central', 'robbinsville': 'nj-central',
+        'south plainfield': 'nj-central', 'dayton': 'nj-central', 'swedesboro': 'nj-south',
+        'carlstadt': 'nj-north', 'moonachie': 'nj-north', 'teterboro': 'nj-north',
         'middlesex county': 'nj-central', 'mercer county': 'nj-central', 'somerset county': 'nj-central',
         'central jersey': 'nj-central', 'central new jersey': 'nj-central',
         'exit 8': 'nj-central', 'exit 8a': 'nj-central',
@@ -163,7 +166,7 @@ export function extractDealSignatures(title: string, description?: string): stri
     // Always also emit a STATE-LEVEL signature (one per state) when state can be inferred
     let sqft: number | null = null;
     const sfMatchK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
-    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)\s*(?:sf|sq\.?\s*f|square\s*feet|square\s*foot)/i);
+    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
     const sfMatchM = text.match(/(\d+(?:\.\d+)?)\s*(?:million|m)\s*(?:sf|sq\.?\s*f|square\s*feet)/i);
     if (sfMatchK) sqft = Math.round(parseFloat(sfMatchK[1]) * 1000);
     else if (sfMatchFull) sqft = parseInt(sfMatchFull[1].replace(/,/g, ''));
@@ -309,7 +312,7 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
     // Metric extraction (mirrors extractDealSignatures)
     let sqft: number | null = null;
     const sfMatchK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
-    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)\s*(?:sf|sq\.?\s*f|square\s*feet|square\s*foot)/i);
+    const sfMatchFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
     const sfMatchM = text.match(/(\d+(?:\.\d+)?)\s*(?:million|m)\s*(?:sf|sq\.?\s*f|square\s*feet)/i);
     if (sfMatchK) sqft = Math.round(parseFloat(sfMatchK[1]) * 1000);
     else if (sfMatchFull) sqft = parseInt(sfMatchFull[1].replace(/,/g, ''));
@@ -343,6 +346,9 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         'perth amboy': 'nj-central', 'sayreville': 'nj-central', 'plainfield': 'nj-central',
         'trenton': 'nj-central', 'princeton': 'nj-central', 'cranbury': 'nj-central',
         'monroe township': 'nj-central', 'monroe twp': 'nj-central',
+        'hamilton': 'nj-central', 'hamilton township': 'nj-central', 'robbinsville': 'nj-central',
+        'south plainfield': 'nj-central', 'dayton': 'nj-central', 'swedesboro': 'nj-south',
+        'carlstadt': 'nj-north', 'moonachie': 'nj-north', 'teterboro': 'nj-north',
         'middlesex county': 'nj-central', 'mercer county': 'nj-central', 'somerset county': 'nj-central',
         'middlesex': 'nj-central', 'bergen': 'nj-north', 'hudson': 'nj-north',
         'lakewood': 'nj-coast', 'toms river': 'nj-coast', 'red bank': 'nj-coast',
@@ -368,9 +374,9 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
         'orlando': 'orlando', 'tampa': 'tampa', 'jacksonville': 'jax', 'ocala': 'ocala',
     };
     const locationPatterns = [
-        /\b(bayonne|secaucus|kearny|elizabeth|newark|jersey city|hackensack|paterson|clifton|passaic|hoboken|union city|fort lee|meadowlands)\b/i,
+        /\b(bayonne|secaucus|kearny|elizabeth|newark|jersey city|hackensack|paterson|clifton|passaic|hoboken|union city|fort lee|meadowlands|carlstadt|moonachie|teterboro)\b/i,
         /\b(bergen county|hudson county|essex county|union county|morris county|passaic county|middlesex county|mercer county|somerset county|monmouth county|ocean county|burlington county|camden county|gloucester county|atlantic county|cumberland county)\b/i,
-        /\b(linden|edison|woodbridge|carteret|east brunswick|south brunswick|piscataway|metuchen|new brunswick|perth amboy|sayreville|plainfield|trenton|princeton|cranbury|monroe township|monroe twp)\b/i,
+        /\b(linden|edison|woodbridge|carteret|east brunswick|south brunswick|piscataway|metuchen|new brunswick|perth amboy|sayreville|plainfield|trenton|princeton|cranbury|monroe township|monroe twp|hamilton township|hamilton|robbinsville|south plainfield|dayton|swedesboro)\b/i,
         /\b(lakewood|toms river|red bank|asbury park|long branch|freehold|manalapan)\b/i,
         /\b(camden|cherry hill|mount laurel|vineland|atlantic city|pennsauken)\b/i,
         /\b(philadelphia|philly|morrisville|bucks county|montgomery county|king of prussia|conshohocken|chester county|delaware county|plymouth meeting|malvern|huntingdon valley)\b/i,
