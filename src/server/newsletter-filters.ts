@@ -612,7 +612,9 @@ function loadExcludedArticles(docsDir: string): { ids: Set<string>; urls: Set<st
 export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: string; docsDir: string } {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const docsDir = path.join(__dirname, '../../docs');
+    // WOODMONT_DOCS_DIR override lets the dry-run replay harness point the whole pipeline
+    // at a temp dir of FROZEN run-time inputs. Unset in production → real docs/.
+    const docsDir = process.env.WOODMONT_DOCS_DIR || path.join(__dirname, '../../docs');
     const feedPath = path.join(docsDir, 'feed.json');
 
     if (!fs.existsSync(feedPath)) {

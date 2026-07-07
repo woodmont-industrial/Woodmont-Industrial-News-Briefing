@@ -19,6 +19,7 @@ import {
     loadSentTitleKeys, normalizeTitleKey
 } from './newsletter-filters.js';
 import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section } from './newsletter-diagnostics.js';
+import { getActiveTracer } from './send-tracer.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -53,7 +54,10 @@ function loadScoringWeights(): ScoringWeights {
 
     const __filename_email = fileURLToPath(import.meta.url);
     const __dirname_email = path.dirname(__filename_email);
-    const weightsPath = path.resolve(__dirname_email, '..', '..', 'docs', 'scoring-weights.json');
+    // Honour the harness's frozen docsDir so a replay uses the run-time weights too.
+    const weightsPath = process.env.WOODMONT_DOCS_DIR
+        ? path.join(process.env.WOODMONT_DOCS_DIR, 'scoring-weights.json')
+        : path.resolve(__dirname_email, '..', '..', 'docs', 'scoring-weights.json');
     try {
         if (fs.existsSync(weightsPath)) {
             const raw = fs.readFileSync(weightsPath, 'utf-8');
@@ -143,6 +147,13 @@ async function sendViaSMTP(to: string[], subject: string, html: string): Promise
 }
 
 export async function sendEmail(to: string[], subject: string, html: string): Promise<boolean> {
+    // DRY_RUN: the replay harness sets this so a past send can be re-run deterministically
+    // with NOTHING actually delivered. Returns success so the rest of the pipeline (archive,
+    // sent-articles write to the temp docsDir) proceeds exactly as it would live.
+    if (process.env.DRY_RUN === '1') {
+        console.log(`🧪 DRY_RUN: suppressing send (${to.length} recipients, ${html.length} bytes of HTML)`);
+        return true;
+    }
     console.log('');
     console.log('═══════════════════════════════════════════════════════════');
     console.log('📧 EMAIL SENDING');
@@ -380,6 +391,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
         const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
+        const tracer = getActiveTracer();
+        tracer?.markMany(allLoadedArticles, 'loaded', 'info');
         console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
         // Record the load count uniformly across sections (each section sees the same input pool)
         for (const sec of ['relevant', 'transactions', 'availabilities', 'people'] as Section[]) {
@@ -420,6 +433,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
             return true;
         });
+        tracer?.diff(allLoadedArticles, articles, 'crossDayDedup');
         const dedupRemoved = allLoadedArticles.length - articles.length;
         if (dedupRemoved > 0) console.log(`🔁 Dedup: removed ${dedupRemoved} previously sent article(s)`);
 
@@ -482,6 +496,30 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         let transactions = applyTransactionFilter(regionalArticles.filter(a => a.category === 'transactions'), diag);
         let availabilities = applyAvailabilityFilter(regionalArticles.filter(a => a.category === 'availabilities'), diag);
         let people = applyPeopleFilter(regionalArticles.filter(a => a.category === 'people'), diag);
+        // -- replay tracer: entry-stage fates (no-op in production) --
+        if (tracer) {
+            tracer.diff(articles, recentArticles, 'freshnessWindow');            // dropped = outside window (still deep-eligible)
+            tracer.diff(recentArticles, regionalArticles, 'regionGate');         // dropped = failed target-region (tx/avail/people path)
+            tracer.diff(recentArticles.filter(a => a.category === 'relevant').filter(isNotExcludedRegion), relevant, 'relevantFilter');
+            tracer.diff(regionalArticles.filter(a => a.category === 'transactions'), transactions, 'transactionFilter');
+            tracer.diff(regionalArticles.filter(a => a.category === 'availabilities'), availabilities, 'availabilityFilter');
+            tracer.diff(regionalArticles.filter(a => a.category === 'people'), people, 'peopleFilter');
+            tracer.markMany([...relevant, ...transactions, ...availabilities, ...people], 'selected', 'add');
+        }
+        // -- replay tracer: section-lifecycle checkpoints. stageMark(label) records which
+        // articles were ADDED (backfill/routing/reserve) or DROPPED (dedup/scrub/gate)
+        // since the previous checkpoint. relevant/transactions/etc. are `let`-bound, so the
+        // closure always reads their current value. No-op in production. --
+        const _skey = (a: any) => String(a?.id || a?.link || a?.url || a?.title || '');
+        let _prevSectionKeys = new Set<string>([...relevant, ...transactions, ...availabilities, ...people].map(_skey));
+        const stageMark = (label: string) => {
+            if (!tracer) return;
+            const cur = [...relevant, ...transactions, ...availabilities, ...people];
+            const curKeys = new Set(cur.map(_skey));
+            for (const a of cur) if (!_prevSectionKeys.has(_skey(a))) tracer.mark(a, label, 'add');
+            for (const k of _prevSectionKeys) if (!curKeys.has(k)) tracer.mark({ id: k }, label, 'drop');
+            _prevSectionKeys = curKeys;
+        };
         // Capture sectionPass counts after the section filter
         diag.recordStage('relevant', 'sectionPass', relevant.length);
         diag.recordStage('transactions', 'sectionPass', transactions.length);
@@ -577,6 +615,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepRegional);
         }
 
+        stageMark('backfill');   // adds from addFromAllSources + relevant/deep backfill
+
         // ============================================================================
         // ROUTE SUB-THRESHOLD REGIONAL DEALS → RELEVANT (2026-07-07)
         // ============================================================================
@@ -603,6 +643,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 console.log(`↪️  Routed ${routedCount} sub-threshold regional deals → relevant (real local deal-flow over filler)`);
                 diag.recordTier('relevant', 'tier3_30d_deep', routedCount);
             }
+            stageMark('dealRouting');
         } catch (e) {
             console.warn('⚠️ Deal routing failed:', (e as Error).message);
         }
@@ -720,6 +761,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 console.warn('⚠️ Thin-send padding failed:', (e as Error).message);
             }
         }
+        stageMark('reserveAndThinPad');   // adds from tier-4 reserve fill + thin-send guarantee
 
         // Merge manually included articles from raw picks — but validate region/industrial first
         const includedArticles = loadIncludedArticles(docsDir);
@@ -803,6 +845,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = dedupeByDealSignature(transactions, dealSigs);
         availabilities = dedupeByDealSignature(availabilities, dealSigs);
         relevant = dedupeByDealSignature(relevant, dealSigs);
+        stageMark('dealSignatureDedup');
 
         // Title-based dedup: catch same article from different sources (e.g. GlobeSt direct + Google News)
         const dedupeByTitle = (allSections: NormalizedItem[][]): void => {
@@ -1022,6 +1065,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = finalGate(transactions, 'Transactions');
         availabilities = finalGate(availabilities, 'Availabilities');
         people = finalGate(people, 'People');
+        stageMark('finalGate');
 
         console.log(`📋 Work newsletter (${timeRange}h range, max ${MAX_PER_SECTION}/section):`);
         console.log(`  - Relevant News: ${relevant.length} (min ${MIN_RELEVANT})`);
@@ -1308,6 +1352,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = scrubHardProblems(transactions, 'transactions');
         availabilities = scrubHardProblems(availabilities, 'availabilities');
         people = scrubHardProblems(people, 'people');
+        stageMark('preSendScrub');
         if (relevant.length + transactions.length + availabilities.length + people.length === 0) {
             console.error('🚫 PRE-SEND SCRUB removed all content — holding send (better no send than a junk send)');
             return true;
@@ -1409,7 +1454,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             console.warn('⚠️ Failed to write diagnostics:', (e as Error).message);
         }
 
+        tracer?.markMany([...relevant, ...transactions, ...availabilities, ...people, ...(weekInReview || [])], 'presentBeforeHTML', 'info');
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
+        tracer?.mark({ id: '__HTML__' }, 'htmlBytes', 'info', String(html.length));
         const recipients = getRecipients();
         const subject = isFriday
             ? `Woodmont Industrial Partners — Weekly Industrial News Briefing`
