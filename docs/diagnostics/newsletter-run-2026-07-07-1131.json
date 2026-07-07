@@ -1,17 +1,18 @@
 {
-  "runId": "2026-05-21-1522",
-  "generatedAt": "2026-05-21T15:22:27.753Z",
+  "runId": "2026-07-07-1131",
+  "generatedAt": "2026-07-07T11:31:01.968Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 224,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 232,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 2,
+      "supplyCandidates": 48,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -39,25 +40,26 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 3,
-        "tier4_reserve": 0,
+        "tier4_reserve": 6,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 224,
-      "inWindow": 1,
+      "loaded": 232,
+      "inWindow": 2,
       "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -84,24 +86,25 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 2,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 224,
-      "inWindow": 2,
+      "loaded": 232,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -136,14 +139,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 224,
+      "loaded": 232,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -180,12 +184,64 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    }
+  },
   "weekInReview": {
     "totalCandidates": 0,
     "afterAgeFilter": 0,
     "afterDedup": 0,
     "selected": 0,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 68,
+    "outOf10": 6.8,
+    "grade": "D",
+    "itemCount": 2,
+    "breakdown": {
+      "coverage": 19,
+      "freshness": 10.4,
+      "regional": 25,
+      "relevanceIntegrity": 20
+    },
+    "age": {
+      "fresh": 1,
+      "deep": 3,
+      "reserve": 6
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Thin",
+    "penalties": [
+      {
+        "type": "repeat_cross_day",
+        "points": 3,
+        "detail": "Deal already sent in the last 14 days: \"New Jersey Lawmakers Just Nixed a 2-Year-Old Dat\""
+      },
+      {
+        "type": "repeat_cross_day",
+        "points": 3,
+        "detail": "Deal already sent in the last 14 days: \"Pa. House passes data center 'pause' along with \""
+      }
+    ],
+    "notes": [
+      "Excused — no market supply: transactions, availabilities, people"
+    ]
   }
 }

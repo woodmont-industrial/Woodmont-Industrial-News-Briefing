@@ -1,64 +1,20 @@
 {
-  "runId": "2026-07-06-1350",
-  "generatedAt": "2026-07-06T13:50:06.957Z",
+  "runId": "2026-07-07-1131",
+  "generatedAt": "2026-07-07T11:31:01.968Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 228,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 232,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 2,
+      "supplyCandidates": 48,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 228,
-      "inWindow": 1,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -84,8 +40,53 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 3,
+        "tier4_reserve": 6,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "transactions": {
+      "loaded": 232,
+      "inWindow": 2,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 0,
+      "supplyCandidates": 0,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 1,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -93,7 +94,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 228,
+      "loaded": 232,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -101,6 +102,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -137,7 +139,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 228,
+      "loaded": 232,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -145,6 +147,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -182,44 +185,16 @@
     }
   },
   "perFeedBySection": {
-    "bisnow.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 2,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 2,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "globest.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 2,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 2,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 2,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 1,
+        "relevant": 2,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
@@ -233,35 +208,40 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 54,
-    "outOf10": 5.4,
-    "grade": "F",
-    "itemCount": 5,
+    "score": 68,
+    "outOf10": 6.8,
+    "grade": "D",
+    "itemCount": 2,
     "breakdown": {
-      "coverage": 18,
-      "freshness": 15.4,
-      "regional": 7,
+      "coverage": 19,
+      "freshness": 10.4,
+      "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 1,
-      "deep": 2,
-      "reserve": 0
+      "deep": 3,
+      "reserve": 6
     },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Thin",
     "penalties": [
       {
-        "type": "weak_item",
+        "type": "repeat_cross_day",
         "points": 3,
-        "detail": "Borderline / off-topic: \"Centerbridge Pays $750M For Stake In Family-Owne\""
+        "detail": "Deal already sent in the last 14 days: \"New Jersey Lawmakers Just Nixed a 2-Year-Old Dat\""
       },
       {
-        "type": "weak_item",
+        "type": "repeat_cross_day",
         "points": 3,
-        "detail": "Borderline / off-topic: \"Compass Datacenters CEO: Politicians Should Ask \""
+        "detail": "Deal already sent in the last 14 days: \"Pa. House passes data center 'pause' along with \""
       }
     ],
     "notes": [
-      "Empty sections: availabilities, people"
+      "Excused — no market supply: transactions, availabilities, people"
     ]
   }
 }
