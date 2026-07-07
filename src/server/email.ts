@@ -9,7 +9,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures } from '../shared/url-utils.js';
 import {
-    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal,
+    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     reCategorizeRelevantAsPeople,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
@@ -1402,11 +1402,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const rp = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(rp)) reserveSections = JSON.parse(fs.readFileSync(rp, 'utf-8')).sections || {};
             } catch { /* reserve optional */ }
+            // RAW qualifying gate — NOT the strict section filters. Using applyTransactionFilter
+            // here made supply falsely read 0 on 2026-07-07 (run 28862837091): 15 real regional
+            // deals existed but the strict $/SF floor rejected them, so supply-aware scoring
+            // "excused" an empty transactions section that was actually a filter problem. Supply
+            // must measure MARKET PRESENCE — category + target region + industrial/deal signal —
+            // so the scorer can tell "market gave nothing" (excuse) from "our filter dropped it"
+            // (do NOT excuse). Verified by the replay harness.
+            const hasIndustrial = (a: any) => isIndustrialProperty(getText(a));
             const supply: Record<Section, number> = {
-                relevant: applyStrictFilter(supplyNotExcluded.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (supply)').length + (reserveSections.relevant?.length || 0),
-                transactions: applyTransactionFilter(supplyRegional.filter(a => a.category === 'transactions')).length + (reserveSections.transactions?.length || 0),
-                availabilities: applyAvailabilityFilter(supplyRegional.filter(a => a.category === 'availabilities')).length + (reserveSections.availabilities?.length || 0),
-                people: applyPeopleFilter(supplyRegional.filter(a => a.category === 'people')).length + (reserveSections.people?.length || 0),
+                relevant: supplyNotExcluded.filter(a => a.category === 'relevant').length + (reserveSections.relevant?.length || 0),
+                transactions: supplyRegional.filter(a => a.category === 'transactions' && isRoutableRegionalDeal(a)).length + (reserveSections.transactions?.length || 0),
+                availabilities: supplyRegional.filter(a => a.category === 'availabilities' && hasIndustrial(a)).length + (reserveSections.availabilities?.length || 0),
+                people: supplyRegional.filter(a => a.category === 'people').length + (reserveSections.people?.length || 0),
             };
             (Object.keys(supply) as Section[]).forEach(s => diag.recordStage(s, 'supplyCandidates', supply[s]));
             console.log(`🧮 Supply candidates (30d+reserve): rel=${supply.relevant} tx=${supply.transactions} avail=${supply.availabilities} ppl=${supply.people}`);
