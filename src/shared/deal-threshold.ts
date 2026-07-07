@@ -22,7 +22,7 @@ export function meetsDealThreshold(text: string): DealThreshold {
     // 2026-06-09: K/M shorthand added — Connect CRE "208K-SF Ft. Myers" was
     // dropping at the threshold filter because old regex only matched comma-
     // separated digits, so 208K-SF parsed as 208 SF and failed the 50K floor.
-    const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+    const sfMatch = upperText.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE[\s-]*(?:FEET|FOOT))/i);
     let sizeSF: number | null = null;
     if (sfMatch) {
         const num = parseFloat(sfMatch[1].replace(/,/g, ''));
@@ -57,7 +57,7 @@ export function getDealScore(article: NormalizedItem): number {
     let score = 0;
 
     // Check SF — mirrors meetsDealThreshold above; K/M shorthand supported.
-    const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE\s*FEET)/i);
+    const sfMatch = text.match(/(\d{1,3}(?:,\d{3})*|\d+(?:\.\d+)?)\s*(K|M)?[\s-]*(?:SF|SQ\.?\s*FT|SQUARE[\s-]*(?:FEET|FOOT))/i);
     if (sfMatch) {
         const num = parseFloat(sfMatch[1].replace(/,/g, ''));
         const unit = (sfMatch[2] || '').toUpperCase();

@@ -9,7 +9,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures } from '../shared/url-utils.js';
 import {
-    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion,
+    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     reCategorizeRelevantAsPeople,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
@@ -575,6 +575,36 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 (items) => applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'availabilities', deepRegional);
             deepFill(people, MIN_PEOPLE,
                 (items) => applyPeopleFilter(items.filter(a => a.category === 'people')), 'people', deepRegional);
+        }
+
+        // ============================================================================
+        // ROUTE SUB-THRESHOLD REGIONAL DEALS → RELEVANT (2026-07-07)
+        // ============================================================================
+        // Real NJ/PA/FL industrial deals that don't clear the marquee transactions floor
+        // (a $10.5M Piscataway sale, a broker-named lease, a "full occupancy" with no
+        // stated size) were being DROPPED entirely. Instead, route them into 'relevant'
+        // so the newsletter carries genuine local deal-flow — this runs BEFORE the reserve
+        // fill so real deals are preferred over macro/data-center filler. Drawn from the
+        // 30-day pool (not the fresh window) so it works on thin post-weekend days.
+        try {
+            const dealPool = filterArticlesByTimeRange(articles, 30 * 24)
+                .filter(a => a.category === 'transactions' && !usedIds.has(a.id || a.link));
+            let routedCount = 0;
+            for (const a of dealPool) {
+                if (relevant.length >= MAX_PER_SECTION) break;
+                if (!isRoutableRegionalDeal(a)) continue;
+                (a as any).category = 'relevant';
+                (a as any)._routedFromTransactions = true;
+                relevant.push(a);
+                usedIds.add(a.id || a.link);
+                routedCount++;
+            }
+            if (routedCount > 0) {
+                console.log(`↪️  Routed ${routedCount} sub-threshold regional deals → relevant (real local deal-flow over filler)`);
+                diag.recordTier('relevant', 'tier3_30d_deep', routedCount);
+            }
+        } catch (e) {
+            console.warn('⚠️ Deal routing failed:', (e as Error).message);
         }
 
         // ============================================================================

@@ -358,6 +358,30 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
     return filtered;
 }
 
+/**
+ * A genuine NJ/PA/FL industrial deal that did NOT make the marquee transactions cut —
+ * too small, or its size/price isn't stated in the headline (a "full occupancy" or a
+ * broker-named lease), or a rubric/domain gate rejected it. Rather than DROP these (they
+ * ARE real local deal-flow), the caller routes them into the 'relevant' section so the
+ * newsletter carries actual regional deals instead of macro/reserve filler.
+ *
+ * Deliberately LIGHTER than applyTransactionFilter: no deal-size floor, no Woodmont-rubric
+ * or approved-domain gate. Still requires target region + industrial + not-political +
+ * not-wrong-asset-class, and a concrete DEAL signal (an action word, an approval, a stated
+ * size, or a dollar figure) so vague market commentary doesn't leak in.
+ */
+export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
+    if (!isTargetRegion(article)) return false;
+    const text = getText(article);
+    if (isPolitical(text)) return false;
+    if (hasWrongPropertyType(text) && !hasStrongIndustrialOverride(text)) return false;
+    if (!isIndustrialProperty(text)) return false;
+    return containsAny(text, TRANSACTION_ACTION_WORDS)
+        || containsAny(text, APPROVAL_KEYWORDS)
+        || meetsDealThreshold(text).sizeSF !== null
+        || /\$\s*\d/.test(text);
+}
+
 export function applyAvailabilityFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
         if (!passesWoodmontRubric(article, diag, 'availabilities')) return false;
