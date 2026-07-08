@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-07-1131",
-  "generatedAt": "2026-07-07T11:31:01.968Z",
+  "runId": "2026-07-08-1201",
+  "generatedAt": "2026-07-08T12:01:24.785Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 232,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 243,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 48,
+      "selected": 6,
+      "supplyCandidates": 55,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -35,29 +35,30 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 1,
-        "tier3_30d_deep": 3,
-        "tier4_reserve": 6,
+        "tier3_30d_deep": 7,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "transactions": {
-      "loaded": 232,
-      "inWindow": 2,
-      "regionPass": 1,
+      "loaded": 243,
+      "inWindow": 8,
+      "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 0,
+      "selected": 4,
+      "supplyCandidates": 43,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -70,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 6,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,26 +86,26 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 3,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "availabilities": {
-      "loaded": 232,
-      "inWindow": 0,
+      "loaded": 243,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 0,
+      "supplyCandidates": 26,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -139,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 232,
+      "loaded": 243,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -147,7 +148,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 0,
+      "supplyCandidates": 4,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -185,16 +186,100 @@
     }
   },
   "perFeedBySection": {
+    "Area Development Master": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Data Centers NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News NJBIZ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "globest.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
-        "transactions": 0,
+        "relevant": 1,
+        "transactions": 3,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Miami-Dade FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -208,40 +293,29 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 68,
-    "outOf10": 6.8,
-    "grade": "D",
-    "itemCount": 2,
+    "score": 76,
+    "outOf10": 7.6,
+    "grade": "C",
+    "itemCount": 10,
     "breakdown": {
-      "coverage": 19,
-      "freshness": 10.4,
+      "coverage": 18,
+      "freshness": 12.7,
       "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 1,
-      "deep": 3,
-      "reserve": 6
+      "fresh": 2,
+      "deep": 7,
+      "reserve": 3
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
-    "supply": "Thin",
-    "penalties": [
-      {
-        "type": "repeat_cross_day",
-        "points": 3,
-        "detail": "Deal already sent in the last 14 days: \"New Jersey Lawmakers Just Nixed a 2-Year-Old Dat\""
-      },
-      {
-        "type": "repeat_cross_day",
-        "points": 3,
-        "detail": "Deal already sent in the last 14 days: \"Pa. House passes data center 'pause' along with \""
-      }
-    ],
+    "supply": "Rich",
+    "penalties": [],
     "notes": [
-      "Excused — no market supply: transactions, availabilities, people"
+      "Empty sections (supply existed — selection gap): availabilities, people"
     ]
   }
 }
