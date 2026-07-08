@@ -294,9 +294,31 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
  * classifier was wired in), pass through — better to ship a rule-filter-OK
  * item than block everything on infrastructure failure.
  */
+// The LLM rubric (_woodmontApprove) approves ~0% of availabilities and people — it wasn't
+// calibrated for structured LoopNet listings or people-move blurbs, so for THOSE TWO
+// sections a `false` verdict isn't a quality signal, it just zeroes the section (verified
+// on run 28940971659: 0/34 availabilities and 0/4 people approved). There the rubric is
+// ADVISORY: the deterministic gates (target region, industrial/property type, availability/
+// people language, finalGate, pre-send scrub, dedup) remain the real quality bar. It stays
+// HARD-BLOCKING for transactions and relevant, which the LLM does discriminate.
+const RUBRIC_ADVISORY_SECTIONS = new Set<Section>(['availabilities', 'people']);
 function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext | undefined, section: Section): boolean {
     const verdict = (article as any)._woodmontApprove;
     if (verdict === false) {
+        if (RUBRIC_ADVISORY_SECTIONS.has(section)) {
+            // Only OVERRIDE the LLM's 'no' when the item is CLEANLY target-region. A bypass
+            // must never ship an item that also carries a non-target major market — e.g. the
+            // CoStar people roundup "CBRE promotes Pittsburgh (PA ✓); JLL adds five to Chicago
+            // (✗)" passes isTargetRegion on "Pittsburgh" but is off-target mixed content, which
+            // is exactly what the LLM was right to reject. If any excluded-market token is
+            // present, respect the rejection.
+            const [, excludeCount] = countRegionMatches(getText(article).toUpperCase());
+            if (excludeCount === 0) {
+                // Audit trail: count how often the deterministic gates override the LLM.
+                if (diag) diag.recordReject(section, 'RUBRIC_ADVISORY_BYPASS');
+                return true;
+            }
+        }
         if (diag) diag.recordReject(section, 'WOODMONT_RUBRIC_REJECT');
         return false;
     }

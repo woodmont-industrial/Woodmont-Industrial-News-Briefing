@@ -92,6 +92,22 @@ console.log(`\n▶️  replaying run ${cfg.runId} …\n${'─'.repeat(70)}`);
 await sendDailyNewsletterWork();
 console.log(`${'─'.repeat(70)}\n`);
 
+// ---- 5a. Surface the quality penalties (for auditing leaks/dupes in the replay) ------
+try {
+    const q = JSON.parse(fs.readFileSync(path.join(tmpDocs, 'diagnostics', 'latest.json'), 'utf-8')).quality;
+    if (q?.penalties?.length) {
+        console.log('\n⚠️  quality penalties this run:');
+        for (const p of q.penalties) console.log(`     -${p.points} ${p.type}: ${p.detail || ''}`);
+    }
+    if (q?.notes?.length) q.notes.forEach((n: string) => console.log(`     note: ${n}`));
+    // Audit: how often the LLM rubric was overridden (advisory) per section.
+    const diag = JSON.parse(fs.readFileSync(path.join(tmpDocs, 'diagnostics', 'latest.json'), 'utf-8'));
+    for (const s of ['availabilities', 'people']) {
+        const n = diag.sections?.[s]?.rejectionReasons?.RUBRIC_ADVISORY_BYPASS || 0;
+        if (n) console.log(`     🔎 audit: rubric advisory-bypassed ${n} ${s} candidate(s) (LLM said no, deterministic gates said yes)`);
+    }
+} catch { /* diagnostics optional */ }
+
 // ---- 5. Determine what actually made the archived HTML -------------------------------
 let html = '';
 try { html = fs.readFileSync(path.join(tmpDocs, 'newsletter-archive', 'latest.html'), 'utf-8'); } catch { /* held */ }
@@ -121,8 +137,13 @@ for (const needle of cfg.spotlight) {
 
 // ---- 7. Verify the replay reproduced the real send ----------------------------------
 const shipped = tracer.all().filter(t => t.events.some(e => e.stage === 'presentBeforeHTML')).filter(t => inHtml(t));
-console.log(`\n════════ REPLAY OUTPUT (${shipped.length} articles in HTML) ════════`);
-shipped.forEach(t => console.log(`   • [${t.category}] ${t.title.slice(0, 64)}`));
+const bySection = (cat: string) => shipped.filter(t => t.category === cat);
+console.log(`\n════════ REPLAY OUTPUT — ${shipped.length} articles ════════`);
+for (const cat of ['relevant', 'transactions', 'availabilities', 'people']) {
+    const items = bySection(cat);
+    console.log(`\n  ${cat.toUpperCase()} (${items.length}):`);
+    items.forEach(t => console.log(`     • ${t.title.slice(0, 70)}`));
+}
 
 fs.rmSync(tmpDocs, { recursive: true, force: true });
 console.log('\n✅ replay complete (temp docsDir cleaned up)');

@@ -452,7 +452,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const MIN_AVAILABILITIES = 1; // 1-5 availabilities (fewer listing-type articles exist)
         const MIN_PEOPLE = 2;         // 2-10 people articles
         const MAX_PER_SECTION = 10;
-        const MAX_AVAILABILITIES = 5;
+        const MAX_AVAILABILITIES = 3;   // 2026-07-08: tight cap — valid NJ/PA/FL for-lease listings belong here, but keep it 1-3 so it never becomes LoopNet listing-spam
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;
