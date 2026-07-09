@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-08-1201",
-  "generatedAt": "2026-07-08T12:01:24.785Z",
+  "runId": "2026-07-09-1139",
+  "generatedAt": "2026-07-09T11:39:45.355Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 243,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 255,
+      "inWindow": 10,
+      "regionPass": 10,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 6,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 6,
-      "supplyCandidates": 55,
+      "selected": 7,
+      "supplyCandidates": 64,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 4
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 7,
+        "tier2_48h_72h": 6,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 243,
-      "inWindow": 8,
-      "regionPass": 7,
+      "loaded": 255,
+      "inWindow": 4,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 43,
+      "selected": 0,
+      "supplyCandidates": 25,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 6,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,24 +86,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 3,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 243,
+      "loaded": 255,
       "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 26,
+      "selected": 1,
+      "supplyCandidates": 43,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -132,15 +132,15 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "people": {
-      "loaded": 243,
+      "loaded": 255,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -148,7 +148,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 4,
+      "supplyCandidates": 3,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -178,7 +178,7 @@
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
@@ -186,7 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "Area Development Master": {
+    "Bisnow National": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,7 +200,7 @@
         "people": 0
       }
     },
-    "Real Estate NJ": {
+    "commercialsearch.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -214,7 +214,7 @@
         "people": 0
       }
     },
-    "Google News Data Centers NJ/PA/FL": {
+    "Google News Jacksonville FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -228,7 +228,7 @@
         "people": 0
       }
     },
-    "Google News NJBIZ": {
+    "Google News PA Manufacturing Land": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -242,7 +242,7 @@
         "people": 0
       }
     },
-    "globest.com": {
+    "Google News Lehigh Valley": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -260,27 +260,13 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 3,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 3,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Miami-Dade FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 1,
         "people": 0
       }
     }
@@ -293,20 +279,20 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 76,
-    "outOf10": 7.6,
+    "score": 70,
+    "outOf10": 7,
     "grade": "C",
-    "itemCount": 10,
+    "itemCount": 8,
     "breakdown": {
-      "coverage": 18,
-      "freshness": 12.7,
-      "regional": 25,
+      "coverage": 14,
+      "freshness": 16.2,
+      "regional": 20,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 2,
-      "deep": 7,
-      "reserve": 3
+      "fresh": 6,
+      "deep": 6,
+      "reserve": 1
     },
     "delivery": {
       "score": 100,
@@ -315,7 +301,7 @@
     "supply": "Rich",
     "penalties": [],
     "notes": [
-      "Empty sections (supply existed — selection gap): availabilities, people"
+      "Empty sections (supply existed — selection gap): transactions, people"
     ]
   }
 }
