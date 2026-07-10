@@ -136,13 +136,21 @@ for (const needle of cfg.spotlight) {
 }
 
 // ---- 7. Verify the replay reproduced the real send ----------------------------------
-const shipped = tracer.all().filter(t => t.events.some(e => e.stage === 'presentBeforeHTML')).filter(t => inHtml(t));
-const bySection = (cat: string) => shipped.filter(t => t.category === cat);
-console.log(`\n════════ REPLAY OUTPUT — ${shipped.length} articles ════════`);
+// Section items (the archive's articleCount) and Week-in-Review are DISJOINT blocks.
+const inSections = (t: any) => t.events.some((e: any) => e.stage === 'presentBeforeHTML');
+const inWiR = (t: any) => t.events.some((e: any) => e.stage === 'weekInReview');
+const sectionItems = tracer.all().filter(inSections);
+const wirItems = tracer.all().filter(inWiR);
+console.log(`\n════════ REPLAY OUTPUT — articleCount ${sectionItems.length} (+ ${wirItems.length} Week-in-Review) ════════`);
 for (const cat of ['relevant', 'transactions', 'availabilities', 'people']) {
-    const items = bySection(cat);
+    const items = sectionItems.filter(t => t.category === cat);
     console.log(`\n  ${cat.toUpperCase()} (${items.length}):`);
     items.forEach(t => console.log(`     • ${t.title.slice(0, 70)}`));
+}
+if (wirItems.length) {
+    const distinct = new Set(wirItems.map(t => t.title.trim().toLowerCase()));
+    console.log(`\n  WEEK-IN-REVIEW (${wirItems.length}, ${distinct.size} distinct):`);
+    wirItems.forEach(t => console.log(`     • ${t.title.slice(0, 70)}`));
 }
 
 fs.rmSync(tmpDocs, { recursive: true, force: true });

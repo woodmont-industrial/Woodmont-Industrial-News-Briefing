@@ -1090,12 +1090,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             // already recorded in weekly-top-articles.json would still be a candidate.
             const excludedIds = new Set<string>();
             try {
-                const excludedPath = path.resolve(__dirname, '..', '..', 'docs', 'excluded-articles.json');
+                const excludedPath = path.join(docsDir, 'excluded-articles.json');   // docsDir honors WOODMONT_DOCS_DIR (same path in prod; lets the replay harness freeze it)
                 const excluded = JSON.parse(fs.readFileSync(excludedPath, 'utf-8'));
                 (excluded.excludedIds || []).forEach((id: string) => excludedIds.add(id));
             } catch { /* file optional */ }
             try {
-                const weeklyPath = path.resolve(__dirname, '..', '..', 'docs', 'weekly-top-articles.json');
+                const weeklyPath = path.join(docsDir, 'weekly-top-articles.json');   // docsDir honors WOODMONT_DOCS_DIR (same path in prod; lets the replay harness freeze the WiR source)
                 const weeklyData = JSON.parse(fs.readFileSync(weeklyPath, 'utf-8'));
                 const allWeekArticles: NormalizedItem[] = [];
 
@@ -1462,7 +1462,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             console.warn('⚠️ Failed to write diagnostics:', (e as Error).message);
         }
 
-        tracer?.markMany([...relevant, ...transactions, ...availabilities, ...people, ...(weekInReview || [])], 'presentBeforeHTML', 'info');
+        // Mark section items and Week-in-Review items DISTINCTLY so the replay harness can
+        // report per-section counts that match the archive (WiR is a separate block, not part
+        // of the section counts). Disjoint sets — the WiR dedup drops items already in sections.
+        tracer?.markMany([...relevant, ...transactions, ...availabilities, ...people], 'presentBeforeHTML', 'info');
+        tracer?.markMany(weekInReview || [], 'weekInReview', 'info');
         const html = buildWorkBriefing(relevant, transactions, availabilities, people, dateRange, weekInReview);
         tracer?.mark({ id: '__HTML__' }, 'htmlBytes', 'info', String(html.length));
         const recipients = getRecipients();
