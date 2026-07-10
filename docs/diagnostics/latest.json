@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-09-1139",
-  "generatedAt": "2026-07-09T11:39:45.355Z",
-  "isFriday": false,
+  "runId": "2026-07-10-1133",
+  "generatedAt": "2026-07-10T11:33:21.830Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 255,
-      "inWindow": 10,
-      "regionPass": 10,
+      "loaded": 249,
+      "inWindow": 11,
+      "regionPass": 11,
       "industrialPass": 0,
-      "sectionPass": 6,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 7,
-      "supplyCandidates": 64,
+      "selected": 6,
+      "supplyCandidates": 67,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 4
+        "WOODMONT_RUBRIC_REJECT": 8
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 6,
-        "tier3_30d_deep": 5,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 6,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 255,
-      "inWindow": 4,
-      "regionPass": 1,
+      "loaded": 249,
+      "inWindow": 3,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 25,
+      "selected": 1,
+      "supplyCandidates": 20,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -95,17 +95,17 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 255,
-      "inWindow": 1,
+      "loaded": 249,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 43,
+      "supplyCandidates": 39,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -140,7 +140,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 255,
+      "loaded": 249,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,112 +186,98 @@
     }
   },
   "perFeedBySection": {
-    "Bisnow National": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialsearch.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Jacksonville FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News PA Manufacturing Land": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Lehigh Valley": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 3,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
+        "relevant": 3,
         "transactions": 0,
         "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News Data Centers NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "re-nj.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Orlando Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 70,
-    "outOf10": 7,
+    "score": 75,
+    "outOf10": 7.5,
     "grade": "C",
     "itemCount": 8,
     "breakdown": {
-      "coverage": 14,
-      "freshness": 16.2,
-      "regional": 20,
+      "coverage": 24,
+      "freshness": 15,
+      "regional": 18.8,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 6,
-      "deep": 6,
+      "fresh": 4,
+      "deep": 7,
       "reserve": 1
     },
     "delivery": {
@@ -299,9 +285,15 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Polk County data centers test job creation, infr\""
+      }
+    ],
     "notes": [
-      "Empty sections (supply existed — selection gap): transactions, people"
+      "Empty sections (supply existed — selection gap): people"
     ]
   }
 }
