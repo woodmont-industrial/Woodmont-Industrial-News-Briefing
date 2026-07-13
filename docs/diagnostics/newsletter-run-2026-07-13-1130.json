@@ -1,17 +1,18 @@
 {
-  "runId": "2026-05-27-1417",
-  "generatedAt": "2026-05-27T14:17:43.479Z",
+  "runId": "2026-07-13-1130",
+  "generatedAt": "2026-07-13T11:30:47.786Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 202,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 216,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 6,
+      "supplyCandidates": 68,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -26,7 +27,7 @@
         "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 1,
+        "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
         "DUPLICATE_ID": 0,
         "DUPLICATE_SIGNATURE": 0,
@@ -34,13 +35,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 3,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 7,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -48,14 +50,15 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 202,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 216,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
+      "supplyCandidates": 6,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -68,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -84,7 +87,7 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 4,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -92,16 +95,17 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 202,
-      "inWindow": 2,
+      "loaded": 216,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
+      "supplyCandidates": 36,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -136,7 +140,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 202,
+      "loaded": 216,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -144,6 +148,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
+      "supplyCandidates": 1,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -180,12 +185,101 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 3,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 3,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "re-nj.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "bisnow.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    }
+  },
   "weekInReview": {
     "totalCandidates": 0,
     "afterAgeFilter": 0,
     "afterDedup": 0,
     "selected": 0,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 58,
+    "outOf10": 5.8,
+    "grade": "F",
+    "itemCount": 7,
+    "breakdown": {
+      "coverage": 14,
+      "freshness": 12.5,
+      "regional": 14.3,
+      "relevanceIntegrity": 20
+    },
+    "age": {
+      "fresh": 0,
+      "deep": 8,
+      "reserve": 0
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Rich",
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"FIRST DRAFT LIVE: 'Not Happy, But Comfortable': \""
+      }
+    ],
+    "notes": [
+      "Empty sections (supply existed — selection gap): transactions, people"
+    ]
   }
 }
