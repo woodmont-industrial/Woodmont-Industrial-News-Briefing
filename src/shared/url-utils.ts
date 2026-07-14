@@ -499,6 +499,157 @@ export function extractCrossDayDedupSignatures(title: string, description?: stri
     return [...new Set(sigs)];
 }
 
+// =====================================================================
+// ENTITY-ANCHORED DEAL KEY (metric-optional cross-source dedup)
+// =====================================================================
+//
+// The signature functions above are METRIC-ANCHORED: they require a $/SF/acre value
+// to form a key. Cross-source same-deal pairs where one outlet's headline is metric-less
+// (wire-service PR reruns, broker-vague headlines) therefore emit ZERO signatures and can
+// never be matched to their metric-bearing twin. That is exactly how the Sagard/Monmouth
+// Junction duplicate shipped in one Week-in-Review (2026-07-10): the re-nj headline had
+// "224,000 sq. ft." but the Business Wire PR rerun ("… Expands NJ Industrial Portfolio with
+// Monmouth Junction Acquisition") had no metric.
+//
+// This key is deliberately NARROW — it fires only when THREE independent signals agree:
+//   distinctive CRE entity  +  granular submarket  +  event class
+// so it can't collapse on "city + asset type" alone, and same-event-class matching keeps
+// distinct events on one property apart (sale vs later lease vs financing vs delivery).
+// Metric compatibility is enforced by the CALLER (see the metric-conflict guard in email.ts):
+// two same-entity/same-submarket/same-event deals with DIFFERENT stated sizes are NOT merged.
+
+// Distinctive CRE principals (developers, REITs, owners, buyers, brokers) that identify a
+// specific deal when combined with a market + event. Generic words are excluded on purpose.
+const CRE_DEAL_ENTITIES = [
+    'sagard', 'woodmont', 'prologis', 'bridge industrial', 'link logistics', 'rockefeller group',
+    'dermody', 'matrix development', 'crow holdings', 'butters', 'terreno', 'rexford', 'dalfen',
+    'faropoint', 'northbridge', 'elberon', 'denholtz', 'onyx equities', 'camber', 'clarion', 'blackstone',
+    'hampshire', 'russo development', 'greek development', 'saxum', 'endurance real estate',
+    'duke realty', 'centerpoint', 'mapletree', 'black creek', 'dp world', 'nfi industries', 'first industrial',
+    'stag industrial', 'eastgroup', 'cabot', 'cushman', 'colliers', 'newmark',
+    'midtown capital', 'northpoint', 'heller industrial', 'atlantic realty',
+];
+// Distinctive entities matched with word boundaries; short/ambiguous tokens (nfi, kre, stro,
+// ej, lba, jll, cbre, kkr, ares) are only matched as standalone words to avoid substring hits
+// like "nfi" inside "confidential". Multi-word names are matched as-is.
+const CRE_ENTITY_RES = CRE_DEAL_ENTITIES.map(e => ({
+    name: e,
+    re: new RegExp(`\\b${e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'),
+}));
+
+// TOWN-level market map (municipality -> town slug). Town-level, NOT submarket-level, on
+// purpose: two DIFFERENT Terreno leases in Union City and Kearny (both "north NJ") are
+// distinct deals and must stay apart, so the key must not merge them. Known sub-localities
+// are ALIASED to their parent municipality so cross-source name variants of the SAME deal
+// still merge — "Monmouth Junction" and "Exit 8A" both resolve to South Brunswick (the
+// Sagard duplicate). Longer keys are listed first so multi-word names win over substrings.
+const ENTITY_MARKET_MAP: Record<string, string> = {
+    // NJ sub-locality aliases -> parent municipality
+    'monmouth junction': 'south-brunswick', 'exit 8a': 'south-brunswick', 'dayton': 'south-brunswick',
+    // NJ municipalities
+    'south brunswick': 'south-brunswick', 'east brunswick': 'east-brunswick', 'new brunswick': 'new-brunswick',
+    'union city': 'union-city', 'jersey city': 'jersey-city', 'perth amboy': 'perth-amboy',
+    'south plainfield': 'south-plainfield', 'mount laurel': 'mount-laurel', 'toms river': 'toms-river',
+    'logan township': 'logan-twp', 'monroe township': 'monroe-twp', 'king of prussia': 'king-of-prussia',
+    'bayonne': 'bayonne', 'secaucus': 'secaucus', 'kearny': 'kearny', 'elizabeth': 'elizabeth',
+    'newark': 'newark', 'hackensack': 'hackensack', 'paterson': 'paterson', 'clifton': 'clifton',
+    'passaic': 'passaic', 'carlstadt': 'carlstadt', 'moonachie': 'moonachie', 'teterboro': 'teterboro',
+    'rockaway': 'rockaway', 'parsippany': 'parsippany', 'linden': 'linden', 'edison': 'edison',
+    'woodbridge': 'woodbridge', 'carteret': 'carteret', 'piscataway': 'piscataway', 'metuchen': 'metuchen',
+    'sayreville': 'sayreville', 'cranbury': 'cranbury', 'camden': 'camden', 'vineland': 'vineland',
+    'swedesboro': 'swedesboro', 'freehold': 'freehold', 'lakewood': 'lakewood',
+    // PA municipalities
+    'philadelphia': 'philadelphia', 'conshohocken': 'conshohocken', 'allentown': 'allentown',
+    'bethlehem': 'bethlehem', 'easton': 'easton', 'harrisburg': 'harrisburg', 'lancaster': 'lancaster',
+    'reading': 'reading', 'pittsburgh': 'pittsburgh', 'scranton': 'scranton', 'wilkes-barre': 'wilkes-barre',
+    // FL municipalities
+    'fort lauderdale': 'fort-lauderdale', 'west palm': 'west-palm', 'boca raton': 'boca-raton',
+    'miami': 'miami', 'doral': 'doral', 'hialeah': 'hialeah', 'medley': 'medley', 'pompano': 'pompano',
+    'orlando': 'orlando', 'tampa': 'tampa', 'jacksonville': 'jacksonville', 'ocala': 'ocala',
+};
+// Precompiled, longest-name-first, word-boundary matchers for the town map.
+const ENTITY_MARKET_ENTRIES = Object.entries(ENTITY_MARKET_MAP)
+    .sort((a, b) => b[0].length - a[0].length)
+    .map(([name, slug]) => ({ name, slug, re: new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i') }));
+
+/**
+ * Classify the deal EVENT so distinct events on the same property don't collapse.
+ * Returns 'acquire' | 'lease' | 'finance' | 'develop-start' | 'develop-deliver' | 'people' | null.
+ * Transaction words (sale/acquire) take precedence over "completes/delivers" so
+ * "JLL completes sale …" is an acquire, not a delivery.
+ */
+export function dealEventClass(title: string, description?: string): string | null {
+    const t = `${title} ${description || ''}`.toLowerCase();
+    // Stems use a leading \b but NO trailing \b, so "acquisition"/"acquiring"/"financing"
+    // match. Whole words that need a right boundary (buys, sale, loan) keep their \b.
+    const has = (re: RegExp) => re.test(t);
+    // "acqui" (not "acquir") so it also matches "acquiSition" — which has no 'r'.
+    if (has(/\b(hir(?:e|es|ed|ing)|names?\b|named\b|appoint|promot|joins?\b|joined\b|tapped\b|elevat)/)
+        && !has(/\b(acqui|buys?\b|bought\b|sells?\b|sold\b|sale\b|leas)/)) return 'people';
+    if (has(/\b(acqui|buys?\b|bought\b|purchas|sale\b|sold\b|sells?\b|snaps?\s+up|grabs?\b|grabbed\b|nabs?\b|scoops?\s+up|trades?\b|changes hands|picks?\s+up)/)) return 'acquire';
+    if (has(/\b(refinanc|financ|loan\b|mortgage\b|recap)/)) return 'finance';
+    if (has(/\b(leas(?:e|es|ed|ing)|tenant\b|sublease|renew|occup|signs? a lease|takes?\s+\d)/)) return 'lease';
+    if (has(/\b(delivers?\b|deliver(?:y|ed)\b|completes?\b|opens?\b|tops? out|topped out|ribbon)/)) return 'develop-deliver';
+    if (has(/\b(breaks? ground|groundbreak|propos|plans?\b|approv|rezon|zoning\b|entitl|to build)/)) return 'develop-start';
+    return null;
+}
+
+/**
+ * Extract an entity-anchored deal key + its metrics. Returns null when the three required
+ * signals (entity, granular market, event) aren't all present. The metrics ride along so the
+ * caller can apply a metric-conflict guard before actually collapsing two articles.
+ */
+export function extractEntityDealKey(title: string, description?: string):
+    { key: string; entity: string; market: string; event: string; sqft: number | null; dollars: number | null } | null {
+    const text = `${title} ${description || ''}`.toLowerCase();
+
+    const entityHit = CRE_ENTITY_RES.find(e => e.re.test(text));
+    if (!entityHit) return null;
+    const entity = entityHit.name;
+
+    // Longest town name first so "south brunswick" wins before any shorter substring.
+    let market: string | null = null;
+    for (const { name, slug, re } of ENTITY_MARKET_ENTRIES) {
+        if (re.test(text)) { market = slug; break; }
+    }
+    if (!market) return null;
+
+    const event = dealEventClass(title, description);
+    if (!event) return null;
+
+    // Metrics (reuse the same extraction the signature functions use)
+    let sqft: number | null = null;
+    const sfK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
+    const sfFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
+    if (sfK) sqft = Math.round(parseFloat(sfK[1]) * 1000);
+    else if (sfFull) sqft = parseInt(sfFull[1].replace(/,/g, ''));
+
+    let dollars: number | null = null;
+    const dM = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/i);
+    const dB = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:b|billion)\b/i);
+    if (dB) dollars = Math.round(parseFloat(dB[1]) * 1000);
+    else if (dM) dollars = Math.round(parseFloat(dM[1]));
+
+    const entitySlug = entity.replace(/\s+/g, '-');
+    return { key: `entdeal_${entitySlug}_${market}_${event}`, entity, market, event, sqft, dollars };
+}
+
+/**
+ * Do two entity-deal keys describe the SAME deal? Requires the keys to match AND the metrics
+ * to be compatible: two same-entity/same-submarket/same-event deals with DIFFERENT stated
+ * sizes (SF buckets differ, or $ buckets differ) are distinct deals and must NOT be merged.
+ * A metric-less article (the case this whole key exists for) never conflicts.
+ */
+export function entityKeysSameDeal(
+    a: { key: string; sqft: number | null; dollars: number | null },
+    b: { key: string; sqft: number | null; dollars: number | null }
+): boolean {
+    if (a.key !== b.key) return false;
+    if (a.sqft !== null && b.sqft !== null && Math.round(a.sqft / 10000) !== Math.round(b.sqft / 10000)) return false;
+    if (a.dollars !== null && b.dollars !== null && Math.round(a.dollars / 5) !== Math.round(b.dollars / 5)) return false;
+    return true;
+}
+
 export function normalizeUrlForDedupe(url: string): string {
     if (!url) return '';
     try {

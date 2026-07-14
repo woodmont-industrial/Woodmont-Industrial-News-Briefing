@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -1136,9 +1136,16 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     ...extractDealSignatures(a.title || '', a.description || ''),
                     ...extractCrossDayDedupSignatures(a.title || '', a.description || ''),
                 ];
+                // Entity-key dedup runs HERE (before the top-5 slice) so a metric-less same-deal
+                // variant is collapsed against its twin and the slice still yields 5 UNIQUE items
+                // (the Sagard/Monmouth Junction PR rerun no longer eats a Week-in-Review slot).
+                // Seeded from today's sections so a weekly pick already shown in a section drops.
+                const wirEntityKeys: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
                 for (const a of [...relevant, ...transactions, ...availabilities, ...people]) {
                     wirIds.add(a.id || a.link || '');
                     sigsFor(a).forEach(s => wirSigs.add(s));
+                    const ek = extractEntityDealKey(a.title || '', a.description || '');
+                    if (ek) wirEntityKeys.push(ek);
                 }
                 const dedupedWeek = allWeekArticles.filter(a => {
                     if (wirIds.has(a.id || a.link || '')) {
@@ -1150,7 +1157,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         console.log(`🔁 Week-in-Review dedup removed: "${(a.title || '').substring(0, 55)}"`);
                         return false;
                     }
+                    const ek = extractEntityDealKey(a.title || '', a.description || '');
+                    if (ek && wirEntityKeys.some(s => entityKeysSameDeal(s, ek))) {
+                        console.log(`🔁 Week-in-Review entity-key dedup removed: "${(a.title || '').substring(0, 55)}" (${ek.key})`);
+                        return false;
+                    }
                     sigs.forEach(s => wirSigs.add(s));
+                    if (ek) wirEntityKeys.push(ek);
                     return true;
                 });
                 weekInReview = dedupedWeek.slice(0, 5);
@@ -1287,6 +1300,58 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         availabilities = dedupeByDealSignature(availabilities, postDescDealSigs);
         // Re-run title dedup too — catches CenterPoint A vs CenterPoint A " - Real Estate NJ" suffix
         dedupeByTitle([transactions, relevant, availabilities, people]);
+
+        // ENTITY-KEY cross-source dedup (2026-07-14). The signature dedup above is metric-
+        // anchored: a same-deal variant with no $/SF/acre in its text emits no signature and
+        // survives (that is how the Sagard/Monmouth Junction PR rerun shipped in one Week-in-
+        // Review). This pass matches the metric-less twin via a distinctive ENTITY + granular
+        // TOWN + EVENT class, with a metric-conflict guard (two same-entity/same-town/same-event
+        // deals with DIFFERENT stated sizes are kept apart). Runs cross-section AND folds the
+        // Week-in-Review block against the same seen-set so nothing duplicates across them.
+        // The FIRST occurrence survives; sections are pre-sorted by deal score and the WiR by
+        // score, so the stronger (metric-bearing / preferred-source) variant is the one kept.
+        const entitySeen: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
+        const dedupeByEntityKey = (articles: NormalizedItem[], label: string): NormalizedItem[] =>
+            articles.filter(a => {
+                const ek = extractEntityDealKey(a.title || '', a.description || '');
+                if (!ek) return true;
+                if (entitySeen.some(s => entityKeysSameDeal(s, ek))) {
+                    console.log(`🔁 Entity-key dedup removed from ${label}: "${(a.title || '').slice(0, 60)}" (${ek.key})`);
+                    withinSendRemovedDupes.push(a);
+                    return false;
+                }
+                entitySeen.push(ek);
+                return true;
+            });
+        transactions = dedupeByEntityKey(transactions, 'transactions');
+        availabilities = dedupeByEntityKey(availabilities, 'availabilities');
+        relevant = dedupeByEntityKey(relevant, 'relevant');
+        people = dedupeByEntityKey(people, 'people');
+        // Week-in-Review is deduped inside its own block (before the top-5 slice) so it
+        // backfills to 5 unique — not here, which would drop it back below 5 post-slice.
+
+        // PROBABLE cross-source duplicate FLAG — diagnostic only, NEVER removes. Surfaces
+        // same-deal pairs that share a town + a distinctive asset descriptor + event class but
+        // have NO shared entity (e.g. the Rockaway shallow-bay sale: buyer NorthBridge vs broker
+        // JLL). Auto-collapse is intentionally NOT applied to this class (too close to "city +
+        // asset type"), so both articles ship and a human decides. Log-only: no scoring impact.
+        const FLAG_DESCRIPTORS = ['shallow bay', 'cold storage', 'outdoor storage', 'data center', 'truck terminal', 'last mile'];
+        const flagTown = (t: string): string | null => {
+            // Drop the " - Publisher" suffix, collapse hyphens to spaces (so "ROI-NJ" -> the
+            // multi-space boundary below terminates the town), then read the "in <town>" object.
+            const m = t.toLowerCase().replace(/\s+[-–—|]\s+.*$/, '').replace(/-/g, ' ').match(/\bin ([a-z][a-z .']*?)(?:\s{2,}|,| for | to |$)/);
+            return m ? m[1].trim() : null;
+        };
+        const flagDesc = (t: string): string | null => { const low = t.toLowerCase().replace(/-/g, ' '); return FLAG_DESCRIPTORS.find(d => low.includes(d)) || null; };
+        const flagPool = [...transactions, ...relevant, ...availabilities, ...people, ...(weekInReview || [])];
+        for (let i = 0; i < flagPool.length; i++) {
+            for (let j = i + 1; j < flagPool.length; j++) {
+                const tw = flagTown(flagPool[i].title || ''), d = flagDesc(flagPool[i].title || ''), e = dealEventClass(flagPool[i].title || '');
+                if (tw && d && e && tw === flagTown(flagPool[j].title || '') && d === flagDesc(flagPool[j].title || '') && e === dealEventClass(flagPool[j].title || '')) {
+                    console.log(`⚠️ Probable cross-source duplicate (FLAG ONLY — both kept for review) [town=${tw} | ${d} | ${e}]\n     • ${(flagPool[i].title || '').slice(0, 66)}\n     • ${(flagPool[j].title || '').slice(0, 66)}`);
+                }
+            }
+        }
 
         const postFilterTotal = relevant.length + transactions.length + availabilities.length + people.length;
         if (postFilterTotal === 0) {
