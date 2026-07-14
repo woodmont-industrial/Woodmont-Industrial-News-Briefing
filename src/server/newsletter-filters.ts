@@ -123,6 +123,20 @@ const GOV_INDUSTRIAL_BODY_RE = /\b(?:industrial|economic)\s+development\s+(?:age
 const LISTING_AGGREGATOR_SUFFIX_RE = /\s+[-–—|]\s+(?:CommercialSearch|LoopNet|PropertyShark|Traded\.co|Crexi)\s*$/i;
 const GENERIC_LISTING_TITLE_RE = /^(?:For\s+Lease|For\s+Sale|FOR\s+LEASE|FOR\s+SALE)\s*\|/i;
 
+// Active ACQUISITION verbs whose grammatical subject is the buyer and whose object is the
+// asset. Used by Rule (a): if a target token is the buyer (before the verb) but the asset
+// (after the verb) carries no target token, the property is out-of-region. Disposition verbs
+// (sells/sold) are deliberately EXCLUDED — "Industrial property in Miami-Dade sold for $51M"
+// is passive, with the target token naming the ASSET, not a seller.
+const ACQUISITION_VERB_RE = /\b(?:buys|bought|buying|acquires?|acquired|acquiring|purchas(?:es|ed|ing)|snaps?\s+up|snapped\s+up|picks?\s+up|picked\s+up|scoops?\s+up|scooped\s+up|nabs?|nabbed|grabs?|grabbed)\b/i;
+
+// Target-region presence test for a raw text SEGMENT (used positionally in Rule a).
+// Mirrors isTargetRegion's substring approach against the geographic-only token set.
+function segmentHasTarget(segment: string): boolean {
+    const up = segment.toUpperCase();
+    return TARGET_REGIONS_GEO.some(r => up.includes(r));
+}
+
 /**
  * AUTOMATIC GEOGRAPHY FAILURES — three structural rules that reject articles
  * before the positive-evidence check runs. Implements the rules from the
@@ -180,11 +194,24 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
         return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
     }
 
-    // Rule (a) is largely handled by INTERNATIONAL_EXCLUDE + MAJOR_EXCLUDE_REGIONS
-    // already (in isTargetRegion below). It's mostly a special case of (c) when
-    // the deal location is named in the title. Cases where the company is named
-    // but the deal location is buried in the body cannot be reliably detected
-    // text-only and are accepted; downstream filters handle those.
+    // Rule (a): buyer's home market is in-region but the asset is NOT. Pattern:
+    //   "<Target> [company noun] buys/acquires/grabs <place> …"
+    // The target token is the ACQUIRER (subject, before the deal verb). If NO target token
+    // appears in the asset position (after the verb), the property is out-of-region even
+    // though a target term is present — the term just names the buyer's home. Catches
+    // "Miami investment group buys Temecula industrial park" and "New Jersey-based firm
+    // acquires Dallas portfolio". Requiring a target token BEFORE the verb keeps headlines
+    // whose subject isn't a target market untouched ("Legacy, Commerce Park grab two
+    // Moonachie industrial buildings" has no target token before "grab", so it never fires).
+    const verbMatch = title.match(ACQUISITION_VERB_RE);
+    if (verbMatch) {
+        const verbIdx = title.indexOf(verbMatch[0]);
+        const buyerSeg = title.slice(0, verbIdx);
+        const assetSeg = title.slice(verbIdx + verbMatch[0].length);
+        if (segmentHasTarget(buyerSeg) && !segmentHasTarget(assetSeg)) {
+            return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
+        }
+    }
 
     return { fails: false, reason: '' };
 }
