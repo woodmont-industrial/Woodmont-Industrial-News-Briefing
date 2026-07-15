@@ -268,6 +268,9 @@ export function isTargetRegion(article: NormalizedItem): boolean {
 const EXCLUDE_CITIES_EXTRA = [
     'EL SEGUNDO', 'DFW', 'DALLAS-FORT WORTH', 'INLAND EMPIRE', 'SOCAL',
     'NORCAL', 'BAY AREA', 'SILICON VALLEY', 'RESEARCH TRIANGLE',
+    // East Bay / Tri-Valley (CA) — quarterly broker "market report" titles that carry no
+    // NJ/PA/FL token slipped through the relevant-section macro allowance (2026-07-15).
+    'PLEASANTON', 'TRI-VALLEY',
     'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA', 'PERRIS', 'HESPERIA',
     'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
     'CADDO PARISH', 'SHREVEPORT', 'NILES', 'WALKER, LOUISIANA', 'LOUISIANA',
