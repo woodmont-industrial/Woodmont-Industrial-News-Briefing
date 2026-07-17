@@ -1,17 +1,18 @@
 {
-  "runId": "2026-06-02-1504",
-  "generatedAt": "2026-06-02T15:04:26.016Z",
-  "isFriday": false,
+  "runId": "2026-07-17-1149",
+  "generatedAt": "2026-07-17T11:49:02.446Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
       "loaded": 231,
       "inWindow": 6,
       "regionPass": 6,
       "industrialPass": 0,
-      "sectionPass": 6,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
+      "supplyCandidates": 73,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -34,13 +35,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 6,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 3,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -52,10 +54,11 @@
       "inWindow": 3,
       "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 1,
+      "supplyCandidates": 3,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -68,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -83,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -100,6 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
+      "supplyCandidates": 24,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -137,15 +141,16 @@
     },
     "people": {
       "loaded": 231,
-      "inWindow": 1,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
+      "supplyCandidates": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -180,12 +185,123 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News IOS": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "globest.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Tampa Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    }
+  },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 79,
+    "outOf10": 7.9,
+    "grade": "C",
+    "itemCount": 6,
+    "breakdown": {
+      "coverage": 24,
+      "freshness": 16.4,
+      "regional": 18.3,
+      "relevanceIntegrity": 20
+    },
+    "age": {
+      "fresh": 4,
+      "deep": 5,
+      "reserve": 0
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Rich",
+    "penalties": [],
+    "notes": [
+      "Empty sections (supply existed — selection gap): people"
+    ]
   }
 }

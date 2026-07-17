@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-16-1158",
-  "generatedAt": "2026-07-16T11:58:00.798Z",
-  "isFriday": false,
+  "runId": "2026-07-17-1149",
+  "generatedAt": "2026-07-17T11:49:02.446Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 233,
-      "inWindow": 9,
-      "regionPass": 9,
+      "loaded": 231,
+      "inWindow": 6,
+      "regionPass": 6,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 5,
-      "supplyCandidates": 75,
+      "selected": 4,
+      "supplyCandidates": 73,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 4
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 5,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 3,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 233,
-      "inWindow": 5,
-      "regionPass": 3,
+      "loaded": 231,
+      "inWindow": 3,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 2,
+      "selected": 1,
+      "supplyCandidates": 3,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -81,13 +81,12 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -96,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 233,
+      "loaded": 231,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -104,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 27,
+      "supplyCandidates": 24,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -141,14 +140,14 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 233,
+      "loaded": 231,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 0,
       "supplyCandidates": 1,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
@@ -187,6 +186,20 @@
     }
   },
   "perFeedBySection": {
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "Google News Manufacturing NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
@@ -201,21 +214,7 @@
         "people": 0
       }
     },
-    "Bisnow National": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 3,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 2,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 1
-      }
-    },
-    "Google News Industrial RE": {
+    "Google News IOS": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -229,7 +228,7 @@
         "people": 0
       }
     },
-    "Google News RE-NJ Industrial": {
+    "globest.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -239,6 +238,20 @@
       "bySection": {
         "relevant": 1,
         "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Tampa Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -259,26 +272,26 @@
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 71,
-    "outOf10": 7.1,
+    "score": 79,
+    "outOf10": 7.9,
     "grade": "C",
-    "itemCount": 7,
+    "itemCount": 6,
     "breakdown": {
-      "coverage": 20,
-      "freshness": 16.1,
-      "regional": 20.7,
+      "coverage": 24,
+      "freshness": 16.4,
+      "regional": 18.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
-      "deep": 7,
+      "fresh": 4,
+      "deep": 5,
       "reserve": 0
     },
     "delivery": {
@@ -286,20 +299,9 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Big Banks Shake Off CRE Jitters, Cut Loss Reserv\""
-      },
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Largest U.S. Grid Operator Sees Power Costs Soar\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty sections (supply existed — selection gap): transactions"
+      "Empty sections (supply existed — selection gap): people"
     ]
   }
 }
