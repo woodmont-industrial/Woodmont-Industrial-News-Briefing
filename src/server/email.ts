@@ -1423,6 +1423,33 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             return true;
         }
 
+        // SECOND People rescue (2026-07-20). A people-move mis-tagged 'relevant' at build (the
+        // categorizer requires brokerage/investor context, so a data-center/3PL/developer hire
+        // falls to 'relevant') that enters via the Tier-2/3/4 backfill arrives AFTER the first
+        // reCategorizeRelevantAsPeople pass (Tier-1) and is never rescued — it then ships under
+        // Relevant (e.g. "PA Data Center Partners Names Grant Denham as Chief of Staff", 67h old
+        // → Tier-2, shipped Relevant 2026-07-13).
+        // STRICT criteria (the shared reCategorizeRelevantAsPeople is too loose for the full
+        // post-backfill set — role+industrial alone moved the transaction "…brokers with Cushman"
+        // and the event promo "CREFC President…"). A Relevant item is relocated to People only
+        // when its TITLE carries a genuine personnel verb AND it is target-region AND it passes
+        // the People filter. Net-zero MOVE: total count unchanged, no item in both sections.
+        const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|joins?|joined|taps?|tapped|welcomes?|elevat\w*|recruits?)\b/i;
+        {
+            const moved: NormalizedItem[] = [];
+            relevant = relevant.filter(a => {
+                if (!PEOPLE_TITLE_ACTION.test(a.title || '')) return true;
+                if (!isTargetRegion(a)) return true;
+                if (applyPeopleFilter([a]).length === 0) return true;
+                moved.push(a);
+                return false;
+            });
+            if (moved.length) {
+                people = [...people, ...moved];
+                console.log(`👥 Second People rescue moved ${moved.length} Relevant→People: ${moved.map(m => (m.title || '').slice(0, 48)).join(' || ')}`);
+            }
+        }
+
         // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
         // SELECTED item came from, by section — so we can see which feeds actually produce
         // transactions vs people vs relevant (feed-health.json has fetch/keep, but not by
