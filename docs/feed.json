@@ -122,24 +122,23 @@
         "name": "Google News JLL Industrial"
       },
       "_source": {
-        "name": "Google News JLL Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTFB3RWxJOXcycDRCTG5MMXRXWTZDU0JHNm9sc0dmd2F2bkQ5SFlHZHZsWHZ2X2Z1emFHSVJPNXEwMWRoSjA5T3BCTWJhc3FYR0JXRzFldzQxeDZJUUdxOW1abk1EXzZxMzA0dUx4d3EyWkZsZEVHWTZGRA?oc=5",
-        "feedName": "Google News JLL Industrial"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "B",
       "_woodmontApprove": true,
-      "_woodmontReason": "Fresh Q2 2026 market report from JLL covering the Orlando, Florida industrial market, which is a target region (Rule: APPROVE criteria all met).",
-      "_woodmontConfidence": 98,
+      "_woodmontReason": "Fresh industrial market report covering Orlando, FL (target region), published within 7 days by recognized CRE source JLL, meeting all approval criteria.",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -171,7 +170,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "National macro trend on big-box warehouse leasing is relevant to senior executives under the 'clearly relevant macro/national' allowance (Rule: APPROVE criteria)",
+      "_woodmontReason": "National industrial market trend report on big-box warehouse leasing and vacancy rates, fits the 'clearly relevant macro/national' criteria and is within the 7-day freshness window.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -202,11 +201,11 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — Aleppo Township is in Pennsylvania, but the target region for Woodmont is NJ, PA, FL, and the article does not clearly mention a relevant macro/national story (Rule 9)",
-      "_woodmontConfidence": 80,
-      "_woodmontClassifier": "groq"
+      "_tier": "C",
+      "_woodmontApprove": true,
+      "_woodmontReason": "Target region (PA) and asset class (manufacturing facility) match; fresh date and relevant industrial market activity meeting the soft floor threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 85,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "23daf21b1ba31977e6a00ee53c73b6d1b43be564",
@@ -237,8 +236,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Manufacturing facility opening in target region (PA) fits asset class and geography; 'opens' implies transaction activity meeting the soft floor threshold.",
-      "_woodmontConfidence": 85,
+      "_woodmontReason": "Target region (PA) industrial facility opening, fits adjacent industries rule for manufacturing facilities, fresh within 7 days.",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -301,7 +300,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -321,23 +320,22 @@
         "name": "Google News Manufacturing NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Manufacturing NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPeEd5aU1NTzRETHhiaFkyaWQ0XzlsaGtLVEtiV3V2dENuM1JHWlN5X1phMDFWeUFpZElzZnZySENjZUtlSE9zZS1UcS1GT3R1YVZtZm5uQjB1dHdXaDkyZWtNSEh4UVN3eC1GTjZrYzFGZ0lmUEZGeWlVSENNN1NoNlk0U01oMDlZRTNWeHFvRVZjX0otSVdidHJZS2lYMm0xSERfaldOankyQU1ScnYw?oc=5",
-        "feedName": "Google News Manufacturing NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Approve: New manufacturing facility in target region (Florida) by major pharma user Novartis, fitting the 'adjacent industries' judgment call for industrial real estate.",
+      "_woodmontReason": "Target region (FL) manufacturing facility site selection by Novartis, fits industrial asset class and is fresh (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -371,7 +369,7 @@
       "_tier": "C",
       "_woodmontApprove": true,
       "_woodmontReason": "Real FL industrial transaction at $68M, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 100,
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -436,9 +434,9 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Negative operations framing — the article focuses on internal labor resistance and automation issues at a specific company (Amazon) rather than real estate market trends or transactions, matching Rule 4.",
+      "_woodmontReason": "Negative operations framing — article primarily about layoffs, facility closures, and 'harm caused by' automation, matches Rule 4",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "f9047c462c9c9b6f3e22abf0d668ddfbf5750a7b",
@@ -469,8 +467,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Macro trend article linking AI data center growth to industrial warehouse demand, fits target asset class and is fresh (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Macro trend article linking AI data center growth to industrial warehouse demand, fits the 'clearly relevant macro/national' allowance and is fresh (Rule: APPROVE criteria).",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -502,8 +500,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Editorial/Political framing — the title indicates an opinion column ('Data center hysteria spreads') rather than market news or a transaction, violating Rule 17 (Political) and the instruction to reject editorial/opinionated framing.",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Editorial/Opinion tone — the title indicates an opinion column ('Lowman Henry: Data center hysteria...') which violates the rule against editorial framing and partisan political content (Rule 3 & 17).",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -535,7 +533,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real PA industrial facility expansion at 167,000 SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real PA industrial facility opening at 167,000 SF, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -736,6 +734,40 @@
       "_woodmontReason": null,
       "_woodmontConfidence": null,
       "_woodmontClassifier": null
+    },
+    {
+      "id": "8d947499b5a1778f0861be2bd05d110ae1c7c56d",
+      "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE45TG1IOWJVN1NObTRUQTZEeEVvVHVTRDY3YUpyTGlmc2Z5LVI0S19aemtSWEZGOTJQMFk5Nnhrd0J5b2dud21OcmJXemhpQ0IwbS1kMmZoYXg5ei1jSGlhZ3pGUW9EajJWamxfb3BWcw?oc=5",
+      "title": "60 Owens Dr, Wayne, NJ 07470 - Industrial for Lease - LoopNet",
+      "content_html": "60 Owens Dr, Wayne, NJ 07470 - Industrial for Lease LoopNet",
+      "content_text": "60 Owens Dr, Wayne, NJ 07470 - Industrial for Lease LoopNet",
+      "summary": "60 Owens Dr, Wayne, NJ 07470 - Industrial for Lease LoopNet",
+      "date_published": "2026-07-15T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:53:21.597Z",
+      "image": "https://picsum.photos/seed/586k6h/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE45TG1IOWJVN1NObTRUQTZEeEVvVHVTRDY3YUpyTGlmc2Z5LVI0S19aemtSWEZGOTJQMFk5Nnhrd0J5b2dud21OcmJXemhpQ0IwbS1kMmZoYXg5ei1jSGlhZ3pGUW9EajJWamxfb3BWcw?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token in the title, matches Rule 13",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "1a6674e63b8aa02f6e9e0f3a6d7c5e1be601fca2",
@@ -997,9 +1029,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "National industrial capital markets transaction ($228M refi) meets the dollar threshold and qualifies as clearly relevant macro/national news per APPROVE criteria.",
+      "_woodmontReason": "Real US industrial transaction at $228M, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "efb4457b1259a8daea076c94c189c91820926230",
@@ -1030,8 +1062,8 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Significant industrial transaction in Pinellas County, FL (target region) involving nearly 1M SF, well above the 100K SF threshold and within the 7-day freshness window (Rule: APPROVE criteria all met).",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Real FL industrial transaction at nearly 1M SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1195,7 +1227,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Retail company personnel - hires/promotions at East Coast Warehouse & Distribution, matches Rule 7",
+      "_woodmontReason": "Wrong asset class - primarily about personnel hire at a warehouse/distribution company, matches Rule 7",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -1294,9 +1326,9 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "NJ industrial transaction (81K SF) in Rockaway meets the soft floor threshold (50K SF + transaction verb) and is within the 7-day freshness window.",
-      "_woodmontConfidence": 90,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontReason": "Real NJ industrial transaction at 81K SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "cf3d84c9d14b824711f240be2591db10bb132eef",
@@ -1393,8 +1425,42 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant macro capital markets news regarding a $400M IOS refinancing, meeting the asset class and deal threshold criteria (Rule: APPROVE criteria all met).",
+      "_woodmontReason": "Relevant macro capital markets news regarding a $400M IOS refinancing, meeting the deal size threshold and falling within the 7-day freshness window (Rule: APPROVE criteria all met).",
       "_woodmontConfidence": 90,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "28c1a1d56beb63c5bd84e7a93bb51185bc7e6fee",
+      "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQc0NacVBxd25xeE1RdzVOdjNIMW82N1Y0dTVIR1h3elEyS1VqeG4tWXh5UHV2ZmMwdm9PVTVzLUhscFdVc3k1TzNWbldCallKNFBPU0xmQkFIRjVuajZwQTV0ZDZmelFyTm5TbldPNFBCRlRmbkpsNUJmLU9fM1hvYkRjZUE1dw?oc=5",
+      "title": "745 Joyce Kilmer Ave, New Brunswick, NJ 08901 - Industrial for Lease - LoopNet",
+      "content_html": "745 Joyce Kilmer Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "content_text": "745 Joyce Kilmer Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "summary": "745 Joyce Kilmer Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "date_published": "2026-07-12T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:53:21.549Z",
+      "image": "https://picsum.photos/seed/jrg0yj/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQc0NacVBxd25xeE1RdzVOdjNIMW82N1Y0dTVIR1h3elEyS1VqeG4tWXh5UHV2ZmMwdm9PVTVzLUhscFdVc3k1TzNWbldCallKNFBPU0xmQkFIRjVuajZwQTV0ZDZmelFyTm5TbldPNFBCRlRmbkpsNUJmLU9fM1hvYkRjZUE1dw?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Article is stale — published on July 12, 2026, which is more than 7 days before the current date of July 20, 2026 (Rule 11).",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1692,6 +1758,40 @@
       "_woodmontApprove": true,
       "_woodmontReason": "Target region (FL - Polk County) and fresh date; Rule 3 explicitly allows pro-development/market analysis data center coverage, and this article discusses infrastructure demands and job creation relevant to industrial executives.",
       "_woodmontConfidence": 90,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "25d424046e3be50303489d19c601586456d03c30",
+      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPb3pjT1g2djFhRXhvNXd6ZFNnZXlQN2V1SC1aVGNrT2E0cG0xMkFFbW50Z2lIcF9NaE1VOXJfWG42OVN2ZTFFU29DSzA0ZzNSd2p3WDZYUmRuUUQxeG9PWG13czlYdnFESG1OM1U0UE9NS0h5TGw4V3BDd19UR3EtMDAyZHpDYms?oc=5",
+      "title": "421 N Pennsylvania Ave, Wilkes-Barre, PA 18702 - Industrial for Lease - LoopNet",
+      "content_html": "421 N Pennsylvania Ave, Wilkes-Barre, PA 18702 - Industrial for Lease LoopNet",
+      "content_text": "421 N Pennsylvania Ave, Wilkes-Barre, PA 18702 - Industrial for Lease LoopNet",
+      "summary": "421 N Pennsylvania Ave, Wilkes-Barre, PA 18702 - Industrial for Lease LoopNet",
+      "date_published": "2026-07-10T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:53:21.570Z",
+      "image": "https://picsum.photos/seed/6cxiiw/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPb3pjT1g2djFhRXhvNXd6ZFNnZXlQN2V1SC1aVGNrT2E0cG0xMkFFbW50Z2lIcF9NaE1VOXJfWG42OVN2ZTFFU29DSzA0ZzNSd2p3WDZYUmRuUUQxeG9PWG13czlYdnFESG1OM1U0UE9NS0h5TGw4V3BDd19UR3EtMDAyZHpDYms?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": false,
+      "_woodmontReason": "Stale content — published on July 10, 2026, which is more than 7 days old (Rule 11).",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -2817,6 +2917,40 @@
       "_woodmontClassifier": "groq"
     },
     {
+      "id": "f63829348cd2849b0aa07cad0ca9e2252abe5ecd",
+      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5Tb1RtS3B1dGxlM29adl9ZcWdDRFdRVU40elJzcFFoR2ZHelJXRW4zY3htRUFsTUFTc1h0aWVDWl9pUFZnMlFCZVRsSlZiV09GdkRVT1cyMExoMUZYSGxtQm52cVRCV2VBYUdRdENsdEk5eFRYaWNTTTZqMFk5Zw?oc=5",
+      "title": "625 Jersey Ave, New Brunswick, NJ 08901 - Industrial for Lease - LoopNet",
+      "content_html": "625 Jersey Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "content_text": "625 Jersey Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "summary": "625 Jersey Ave, New Brunswick, NJ 08901 - Industrial for Lease LoopNet",
+      "date_published": "2026-07-07T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:53:21.619Z",
+      "image": "https://picsum.photos/seed/axnta7/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5Tb1RtS3B1dGxlM29adl9ZcWdDRFdRVU40elJzcFFoR2ZHelJXRW4zY3htRUFsTUFTc1h0aWVDWl9pUFZnMlFCZVRsSlZiV09GdkRVT1cyMExoMUZYSGxtQm52cVRCV2VBYUdRdENsdEk5eFRYaWNTTTZqMFk5Zw?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
       "id": "5d82615535fccc80c215736f7f14b4d4e335e917",
       "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9xVVFndVJNUXk5LTlYeTVVOHBMZkUzdzYwcHJucFBvVnhZUW9FUnlkSk92ZlJNZVR2bUZmNjluVDJ3a0NpbXhGdmxNa09qTmZscHRrX2hPcFFYQVZnQVlPMEY2YWViS0hmZGJCV0dCVTh2TUdfQmFIWA?oc=5",
       "title": "1 Dodge Dr, West Caldwell, NJ 07006 - Industrial for Lease - LoopNet",
@@ -2840,8 +2974,8 @@
         "Availabilities — Properties for Sale or Lease",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3005,8 +3139,8 @@
         "Availabilities — Properties for Sale or Lease",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3236,8 +3370,8 @@
         "Availabilities — Properties for Sale or Lease",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -3569,7 +3703,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -4127,8 +4261,8 @@
         "Availabilities — Properties for Sale or Lease",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -4513,16 +4647,15 @@
         "name": "Google News REIT Analysis"
       },
       "_source": {
-        "name": "Google News REIT Analysis",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOZkV2TXd1RDg5QXdmUFlDbjN1aFdCVDduTHdFWmdKMGd5LTUwaTlQSnZyRWhqckNtWUxjcFFJenZsczR5b1VpZXlCeDNYTEhaZEUtc0xQVEhlYWtPR1NmTm5TRm9zaGhFNlRGUnFoOExEU2ZSN2hWOHRleXFvb0ZfcGZOQU5haVhBazlYYnFHUXBZUmVaMWd0YVQ5NmZFMXhna2FQT0g5MjI1eV9GdUIxb3Z3?oc=5",
-        "feedName": "Google News REIT Analysis"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -5159,6 +5292,40 @@
       "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a '180-day moratorium on data center development', which matches Rule 3's prohibition on articles pushing opposition to data center development via keywords like 'moratorium'.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "136585cb87a327b5ce66a56cf9688042a1ea00a3",
+      "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9LYlNSaFhmTnJsR3Z2aXlCYXpqamZVbWQwempGNG1sT29XQm9GYVJJMVJ1UUFmUFpRVEREQXNyZVluWW0wN0pxUC1KaHpNMUxMOEZIQjFVbHl4UC1ETTZJVGJFNDNlaEZkeEhCeURnOU1tOUlp?oc=5",
+      "title": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
+      "content_html": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "content_text": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "summary": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "date_published": "2026-06-26T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:53:21.529Z",
+      "image": "https://picsum.photos/seed/ee9e31/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9LYlNSaFhmTnJsR3Z2aXlCYXpqamZVbWQwempGNG1sT29XQm9GYVJJMVJ1UUFmUFpRVEREQXNyZVluWW0wN0pxUC1KaHpNMUxMOEZIQjFVbHl4UC1ETTZJVGJFNDNlaEZkeEhCeURnOU1tOUlp?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
     },
     {
       "id": "8bb1856e7dbbabd5da5eba657260855921c26081",
@@ -6144,7 +6311,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -6811,6 +6978,40 @@
       "_woodmontClassifier": "cerebras"
     },
     {
+      "id": "6649e86a1d8b5a3c0503091e3ff05b65c8712465",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNT05CVEVaVHZGRDE2LTZqRW1pcDRsdldFaEtNeVd3NVBOSlppbjlkZ3VJeXVJcTl3dzl5X29mMkZQTmhlVUh4QUNHYlhvNXQ5VGZZM3ZlMS1UeEpEdHh1QzhkZG9obWtKQkU2SlgzOXlxTWdzbkxGX0dMWkJXaW5uel85VG96bnZXV193YnRrcElnSTA1SGVlNlNPOFI?oc=5",
+      "title": "Clarion Offloads Hialeah Amazon Fulfillment Center for $56.3M - Connect CRE",
+      "content_html": "Clarion Offloads Hialeah Amazon Fulfillment Center for $56.3M Connect CRE",
+      "content_text": "Clarion Offloads Hialeah Amazon Fulfillment Center for $56.3M Connect CRE",
+      "summary": "Clarion Offloads Hialeah Amazon Fulfillment Center for $56.3M Connect CRE",
+      "date_published": "2026-06-19T07:00:00.000Z",
+      "date_modified": "2026-07-20T02:52:16.776Z",
+      "image": "https://picsum.photos/seed/vpda7x/640/360",
+      "author": {
+        "name": "Google News Amazon NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News Amazon NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNT05CVEVaVHZGRDE2LTZqRW1pcDRsdldFaEtNeVd3NVBOSlppbjlkZ3VJeXVJcTl3dzl5X29mMkZQTmhlVUh4QUNHYlhvNXQ5VGZZM3ZlMS1UeEpEdHh1QzhkZG9obWtKQkU2SlgzOXlxTWdzbkxGX0dMWkJXaW5uel85VG96bnZXV193YnRrcElnSTA1SGVlNlNPOFI?oc=5",
+        "feedName": "Google News Amazon NJ/PA/FL"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
       "id": "60e04907b8d1984d836c861cdde51cb07425d293",
       "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxObmZYdWVoNVR6d0IxUVFHVTVXVDA0amtzWTJQMHNxZHMyMm9nRnVDYkVpZGgyNkhlN3dRaHhNZWk4T1FncU1XSGNLOVlpR2xWVzRsQVQ0aHM3QkNYSVloS0ZYZDR1dmNDTUFVZVF0SXlWWVhDR0tWdFNmdkNKUzlLVzg2Nm1sdmREcXZyck5GUzE4aWI1QnhDQ1hKb0R1aGltSnF1MWpuTWNUZlNqRFJZYVdCUTZ0dWFFLXh1aE5TNXh2TzBGbGVF?oc=5",
       "title": "Why Terreno’s Hialeah Gardens logistics hub stands out for e-commerce tenants - AD HOC NEWS",
@@ -6875,105 +7076,6 @@
       "_woodmontReason": "Primary subject is industrial real estate, target region is US, and framing is neutral (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "0135b44a40fe284262e6b89128243d7a270771f1",
-      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNbTdHTWhOU1JMQk9NSDVnYnRPYWc4eEpTeGRNQTNqbUNNMGlrZDh0SjVsQUdIdWphRzBFdTViamJSaDlNbE12d1Z0dFBOUnBpNUdtTmwxWGlRRUotTEdpT0F5VFJzLXdYd3lJZWFsSkRET0YyMEp6aW1NV2dsSF9ScWpoNzdPbnhWejFwYmdiNDFpTmtndzU2Nk5tYmNaUENUZmgzTlVRVmRBajB3YkprYlFnX3FFbGNZQ0hJWU40TzE4dw?oc=5",
-      "title": "Pennsylvania lawmakers push for data center regulations as development accelerates - CBS News",
-      "content_html": "Pennsylvania lawmakers push for data center regulations as development accelerates CBS News",
-      "content_text": "Pennsylvania lawmakers push for data center regulations as development accelerates CBS News",
-      "summary": "Pennsylvania lawmakers push for data center regulations as development accelerates CBS News",
-      "date_published": "2026-06-18T22:17:00.000Z",
-      "date_modified": "2026-06-19T14:58:22.935Z",
-      "image": "https://picsum.photos/seed/fwwl35/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNbTdHTWhOU1JMQk9NSDVnYnRPYWc4eEpTeGRNQTNqbUNNMGlrZDh0SjVsQUdIdWphRzBFdTViamJSaDlNbE12d1Z0dFBOUnBpNUdtTmwxWGlRRUotTEdpT0F5VFJzLXdYd3lJZWFsSkRET0YyMEp6aW1NV2dsSF9ScWpoNzdPbnhWejFwYmdiNDFpTmtndzU2Nk5tYmNaUENUZmgzTlVRVmRBajB3YkprYlFnX3FFbGNZQ0hJWU40TzE4dw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "a82983b6c1e6bdb24d5c61f7c073468916132409",
-      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNM0hfWFJsLXo1SjlVRlgxbzNrTlNEVWZtbVFkcDdlZTd3ZkRxemtWbUZGSGxKSDM1RzAwTXphU2R3Qm9ZZU9OaWRGeF9XdlI3OVd2THFfcWtuRm9NTmFOamFzU1h1c1Uxc2ZWUFJOc3A1T25UTllWYWNKLVhKMHZxR2w2SmF0SFhLcnlpUjJQT3NzTGpiRmQ1b2RpRFBkN2FSSEJlVnpUQml3OUVVSWMxT1Fqdw?oc=5",
-      "title": "How US Towns Are Fighting ICE Warehouse Detention Plans - Bloomberg.com",
-      "content_html": "How US Towns Are Fighting ICE Warehouse Detention Plans Bloomberg.com",
-      "content_text": "How US Towns Are Fighting ICE Warehouse Detention Plans Bloomberg.com",
-      "summary": "How US Towns Are Fighting ICE Warehouse Detention Plans Bloomberg.com",
-      "date_published": "2026-06-18T16:05:43.000Z",
-      "date_modified": "2026-06-19T14:58:30.224Z",
-      "image": "https://picsum.photos/seed/npzohg/640/360",
-      "author": {
-        "name": "Google News Bloomberg CRE"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNM0hfWFJsLXo1SjlVRlgxbzNrTlNEVWZtbVFkcDdlZTd3ZkRxemtWbUZGSGxKSDM1RzAwTXphU2R3Qm9ZZU9OaWRGeF9XdlI3OVd2THFfcWtuRm9NTmFOamFzU1h1c1Uxc2ZWUFJOc3A1T25UTllWYWNKLVhKMHZxR2w2SmF0SFhLcnlpUjJQT3NzTGpiRmQ1b2RpRFBkN2FSSEJlVnpUQml3OUVVSWMxT1Fqdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "37627ba7d43662f83c1d727f2490cf0e8c80975a",
-      "url": "https://www.bisnow.com/national/news/capital-markets/cre-pricing-spread-between-cycles-winners-and-laggards-the-widest-ever-135080",
-      "title": "CRE Pricing Spread Between Cycle's 'Winners And Laggards' The Widest Ever ",
-      "content_html": "The pricing chasm between property types that are on the rise and those that are struggling is the widest it has ever been. Industrial pricing in Q1 2026 was up 88.5% since the quarter before the pandemic. Office pricing was up just 36.6% over the same...",
-      "content_text": "The pricing chasm between property types that are on the rise and those that are struggling is the widest it has ever been. Industrial pricing in Q1 2026 was up 88.5% since the quarter before the pandemic. Office pricing was up just 36.6% over the same...",
-      "summary": "The pricing chasm between property types that are on the rise and those that are struggling is the widest it has ever been. Industrial pricing in Q1 2026 was up 88.5% since the quarter before the pand...",
-      "date_published": "2026-06-18T16:00:25.000Z",
-      "date_modified": "2026-06-19T14:57:04.937Z",
-      "image": "https://picsum.photos/seed/fayyon/640/360",
-      "author": {
-        "name": "bianca.barragan@bisnow.com"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/national/news/capital-markets/cre-pricing-spread-between-cycles-winners-and-laggards-the-widest-ever-135080",
-        "feedName": "bisnow.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
     }
   ]
 }
