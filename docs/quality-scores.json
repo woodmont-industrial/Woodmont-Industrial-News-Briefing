@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-20T11:49:40.799Z",
+  "updatedAt": "2026-07-21T12:07:40.959Z",
   "history": [
     {
       "date": "2026-05-11",
@@ -1287,6 +1287,36 @@
       "age": {
         "fresh": 1,
         "deep": 8,
+        "reserve": 1
+      },
+      "delivery": {
+        "score": 100,
+        "grade": "A"
+      },
+      "supply": "Rich",
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-07-21",
+      "runId": "2026-07-21-1207",
+      "score": 84,
+      "outOf10": 8.4,
+      "grade": "B",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 30,
+        "freshness": 14.1,
+        "regional": 22.5,
+        "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 2,
+        "deep": 5,
         "reserve": 1
       },
       "delivery": {

@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-20-1149",
-  "generatedAt": "2026-07-20T11:49:07.898Z",
+  "runId": "2026-07-21-1207",
+  "generatedAt": "2026-07-21T12:07:12.094Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 211,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 221,
+      "inWindow": 2,
+      "regionPass": 2,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 73,
+      "selected": 3,
+      "supplyCandidates": 77,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 6,
-        "tier4_reserve": 0,
+        "tier3_30d_deep": 5,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 211,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 221,
+      "inWindow": 7,
+      "regionPass": 3,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 4,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -87,23 +87,23 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 1,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 1,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 211,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 221,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 18,
+      "supplyCandidates": 19,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -131,8 +131,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -140,17 +140,17 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 211,
-      "inWindow": 0,
+      "loaded": 221,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
+      "selected": 1,
       "supplyCandidates": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -186,7 +186,21 @@
     }
   },
   "perFeedBySection": {
-    "credaily.com": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "bisnow.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,21 +214,7 @@
         "people": 0
       }
     },
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 4,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 3,
-        "transactions": 0,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "Google News Orlando Industrial": {
+    "Google News Lehigh Valley Business": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -227,6 +227,34 @@
         "availabilities": 0,
         "people": 0
       }
+    },
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News NJ Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 1
+      }
     }
   },
   "weekInReview": {
@@ -237,19 +265,19 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 75,
-    "outOf10": 7.5,
-    "grade": "C",
+    "score": 84,
+    "outOf10": 8.4,
+    "grade": "B",
     "itemCount": 6,
     "breakdown": {
-      "coverage": 24,
-      "freshness": 12.9,
-      "regional": 20.8,
+      "coverage": 30,
+      "freshness": 14.1,
+      "regional": 22.5,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 1,
-      "deep": 8,
+      "fresh": 2,
+      "deep": 5,
       "reserve": 1
     },
     "delivery": {
@@ -261,11 +289,9 @@
       {
         "type": "weak_item",
         "points": 3,
-        "detail": "Borderline / off-topic: \"Developers Are Back to Building U.S. Warehouses\""
+        "detail": "Borderline / off-topic: \"Data Center Firms DataBank, EdgeCore Reportedly \""
       }
     ],
-    "notes": [
-      "Empty sections (supply existed — selection gap): people"
-    ]
+    "notes": []
   }
 }
