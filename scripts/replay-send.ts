@@ -9,6 +9,15 @@
  * The point: stop debugging with mutated post-run files and hopeful reconstructions. This runs
  * the actual pipeline code and reports where every article lived and died.
  *
+ * LIMITATION (2026-07-21): the replay uses the FROZEN feed.json descriptions. Production may
+ * REGENERATE/enrich descriptions at send time (AI). Gates that read the description — notably
+ * People classification (applyPeopleFilter's people-action + industrial checks, and therefore
+ * the post-backfill People rescue) — can decide DIFFERENTLY in production than in a frozen
+ * replay. Example: "HPS Floors Elevates … Epoxy" stayed in Relevant in replay (title-only
+ * description) but shipped in People in production (enriched description passed the filter).
+ * When validating a description-sensitive change, ALSO add a unit test with a production-like
+ * enriched description (see src/server/people-rescue.test.ts) — do not rely on frozen replay alone.
+ *
  * Usage:  node --import tsx scripts/replay-send.ts [config.json]
  * With no arg it replays production run 28862837091 (2026-07-07).
  */

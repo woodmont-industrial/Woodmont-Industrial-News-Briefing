@@ -578,6 +578,36 @@ export function reCategorizeRelevantAsPeople(
 }
 
 // =====================================================================
+// SECOND PEOPLE RESCUE (post-backfill) — strict predicate
+// =====================================================================
+
+/**
+ * Explicit personnel-action verbs allowed to promote a Relevant item into People in the
+ * post-backfill second rescue. Kept deliberately TIGHT.
+ *
+ * 'elevat*' is intentionally NOT here: it matched the marketing verb in "HPS Floors Elevates
+ * New Jersey Industrial Facilities … Epoxy" and — with a send-time AI description that passed
+ * applyPeopleFilter — relocated a vendor-PR item into People (2026-07-21). "Elevates <product/
+ * facility>" marketing is more common than "elevated <to role>" personnel usage, so it's out.
+ */
+export const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|joins?|joined|taps?|tapped|welcomes?|recruits?)\b/i;
+
+/**
+ * Does a Relevant item qualify to be relocated into People by the post-backfill second rescue?
+ * ALL THREE must hold, so a false personnel signal in any one gate can't carry an item in:
+ *   (1) the TITLE carries an explicit personnel-action verb (PEOPLE_TITLE_ACTION),
+ *   (2) it is target-region, and
+ *   (3) it passes the existing People filter.
+ * Gate (1) is title-only and description-independent, so an AI-enriched description that adds
+ * industrial/facility/company/action language cannot make a non-personnel TITLE qualify.
+ */
+export function qualifiesForPeopleRescue(article: NormalizedItem): boolean {
+    if (!PEOPLE_TITLE_ACTION.test(article.title || '')) return false;
+    if (!isTargetRegion(article)) return false;
+    return applyPeopleFilter([article]).length > 0;
+}
+
+// =====================================================================
 // POST-DESCRIPTION REGIONAL RE-CHECK
 // =====================================================================
 

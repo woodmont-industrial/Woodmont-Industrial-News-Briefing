@@ -11,7 +11,7 @@ import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCr
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
-    reCategorizeRelevantAsPeople,
+    reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
     loadIncludedArticles, clearIncludedArticles,
@@ -1429,18 +1429,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // reCategorizeRelevantAsPeople pass (Tier-1) and is never rescued — it then ships under
         // Relevant (e.g. "PA Data Center Partners Names Grant Denham as Chief of Staff", 67h old
         // → Tier-2, shipped Relevant 2026-07-13).
-        // STRICT criteria (the shared reCategorizeRelevantAsPeople is too loose for the full
-        // post-backfill set — role+industrial alone moved the transaction "…brokers with Cushman"
-        // and the event promo "CREFC President…"). A Relevant item is relocated to People only
-        // when its TITLE carries a genuine personnel verb AND it is target-region AND it passes
-        // the People filter. Net-zero MOVE: total count unchanged, no item in both sections.
-        const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|joins?|joined|taps?|tapped|welcomes?|elevat\w*|recruits?)\b/i;
+        // STRICT criteria via qualifiesForPeopleRescue (newsletter-filters.ts): TITLE has an
+        // explicit personnel verb AND target-region AND passes the People filter. Not a second
+        // call to reCategorizeRelevantAsPeople, which is too loose for the full post-backfill set
+        // (role+industrial alone moved the transaction "…brokers with Cushman" and the event promo
+        // "CREFC President…"). The TITLE gate is description-independent, so a send-time AI-enriched
+        // description can't make a non-personnel title qualify (regression: "HPS Floors Elevates…",
+        // 2026-07-21). Net-zero MOVE: total count unchanged, no item in both sections.
         {
             const moved: NormalizedItem[] = [];
             relevant = relevant.filter(a => {
-                if (!PEOPLE_TITLE_ACTION.test(a.title || '')) return true;
-                if (!isTargetRegion(a)) return true;
-                if (applyPeopleFilter([a]).length === 0) return true;
+                if (!qualifiesForPeopleRescue(a)) return true;
                 moved.push(a);
                 return false;
             });
