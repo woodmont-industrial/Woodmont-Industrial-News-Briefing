@@ -1,18 +1,18 @@
 {
-  "runId": "2026-07-21-1207",
-  "generatedAt": "2026-07-21T12:07:12.094Z",
+  "runId": "2026-07-22-1211",
+  "generatedAt": "2026-07-22T12:11:00.284Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 221,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 231,
+      "inWindow": 7,
+      "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 77,
+      "selected": 5,
+      "supplyCandidates": 82,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 5
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 5,
-        "tier4_reserve": 1,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 6,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "transactions": {
-      "loaded": 221,
-      "inWindow": 7,
-      "regionPass": 3,
+      "loaded": 231,
+      "inWindow": 10,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 2,
+      "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
+        "NO_TARGET_REGION_EVIDENCE": 5,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 5,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -95,7 +95,52 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 221,
+      "loaded": 231,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 1,
+      "supplyCandidates": 21,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "people": {
+      "loaded": 231,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
@@ -103,7 +148,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 19,
+      "supplyCandidates": 2,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -136,57 +181,12 @@
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "people": {
-      "loaded": 221,
-      "inWindow": 1,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 1,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
   "perFeedBySection": {
-    "news.google.com": {
+    "Real Estate NJ": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -194,13 +194,13 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
+        "relevant": 1,
         "transactions": 0,
         "availabilities": 0,
-        "people": 0
+        "people": 1
       }
     },
-    "bisnow.com": {
+    "commercialsearch.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -214,7 +214,7 @@
         "people": 0
       }
     },
-    "Google News Lehigh Valley Business": {
+    "Greater Philly Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -222,13 +222,41 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 1,
+        "relevant": 1,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
     },
-    "Real Estate NJ": {
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -241,20 +269,6 @@
         "availabilities": 1,
         "people": 0
       }
-    },
-    "Google News NJ Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 1
-      }
     }
   },
   "weekInReview": {
@@ -265,20 +279,20 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 84,
-    "outOf10": 8.4,
+    "score": 80,
+    "outOf10": 8,
     "grade": "B",
-    "itemCount": 6,
+    "itemCount": 7,
     "breakdown": {
-      "coverage": 30,
-      "freshness": 14.1,
-      "regional": 22.5,
+      "coverage": 25,
+      "freshness": 15.1,
+      "regional": 22.9,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 2,
-      "deep": 5,
-      "reserve": 1
+      "fresh": 3,
+      "deep": 7,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
@@ -289,9 +303,11 @@
       {
         "type": "weak_item",
         "points": 3,
-        "detail": "Borderline / off-topic: \"Data Center Firms DataBank, EdgeCore Reportedly \""
+        "detail": "Borderline / off-topic: \"10 Emerging Data Center Markets to Watch\""
       }
     ],
-    "notes": []
+    "notes": [
+      "Excused — no market supply: transactions"
+    ]
   }
 }

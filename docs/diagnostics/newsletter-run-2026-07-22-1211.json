@@ -1,17 +1,18 @@
 {
-  "runId": "2026-06-08-1418",
-  "generatedAt": "2026-06-08T14:18:05.713Z",
+  "runId": "2026-07-22-1211",
+  "generatedAt": "2026-07-22T12:11:00.284Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 250,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 231,
+      "inWindow": 7,
+      "regionPass": 7,
       "industrialPass": 0,
       "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 5,
+      "supplyCandidates": 82,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -34,13 +35,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 5
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 2,
-        "tier3_30d_deep": 4,
+        "tier3_30d_deep": 6,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -48,16 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 250,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 231,
+      "inWindow": 10,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 5,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -68,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 5,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -83,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 3,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -92,14 +95,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 250,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 231,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
+      "supplyCandidates": 21,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -127,8 +131,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -136,14 +140,15 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 250,
+      "loaded": 231,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
+      "selected": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -176,16 +181,133 @@
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 1
+      }
+    },
+    "commercialsearch.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Greater Philly Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    }
+  },
   "weekInReview": {
     "totalCandidates": 0,
     "afterAgeFilter": 0,
     "afterDedup": 0,
     "selected": 0,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 80,
+    "outOf10": 8,
+    "grade": "B",
+    "itemCount": 7,
+    "breakdown": {
+      "coverage": 25,
+      "freshness": 15.1,
+      "regional": 22.9,
+      "relevanceIntegrity": 20
+    },
+    "age": {
+      "fresh": 3,
+      "deep": 7,
+      "reserve": 0
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Rich",
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"10 Emerging Data Center Markets to Watch\""
+      }
+    ],
+    "notes": [
+      "Excused — no market supply: transactions"
+    ]
   }
 }
