@@ -241,6 +241,20 @@ export const EXCLUDE_POLITICAL = [
 // past the override check and downstream categorization.
 export const STRONG_INDUSTRIAL_OVERRIDE_RE = /\b(warehouses?|industrial\s+(buildings?|parks?|outdoor\s+storage|space)|logistics\s+(centers?|facilit(?:y|ies)|hubs?)|distribution\s+centers?|fulfillment\s+centers?|manufacturing\s+facilit(?:y|ies)|cold\s+storage|truck\s+terminals?|cross[ -]?docks?|trailer\s+parking|loading\s+docks?|3pl|drayage|intermodal)\b/i;
 export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|market)|class\s*a\s+office|headquarters\s+lease|hq\s+lease|coworking|medical\s+office|medical\s+for\s+(lease|sale)|takes?\s+\d[\d,]*[ -]?(sf|square\s*feet|sq\.?\s*ft)?\s+office|office\s+at\s+\d)\b/i;
+
+// OFFICE-LED primary-subject patterns (2026-07-24). These name OFFICE as the traded/leased/
+// expanded asset in phrasings that EXCLUDE_NON_INDUSTRIAL (compound phrases like "office
+// space") and OFFICE_TRANSACTION_RE both miss — the gap that let "Google Expands Miami Office
+// to 45K SF" and "office footprint" pass isStrictlyIndustrial on generic SF/property signals:
+//   - "office footprint"                      (Google quadrupled its office footprint)
+//   - "office to/for <size>"                  (… Miami Office to 45K SF)
+//   - "office expands/expansion"              (office expands to 60K SF)
+//   - "office lease for <size>"               (office lease for 30,000 SF)
+// Deliberately NARROW: it targets office-as-subject, NOT a bare "office" mention, so an
+// industrial/warehouse property that merely CONTAINS office area is not matched here. The
+// caller pairs this with a strong-industrial-asset guard (office component inside a warehouse
+// still qualifies).
+export const OFFICE_LED_RE = /\b(?:office\s+footprint|office\s+(?:to|for)\s+(?:about\s+|nearly\s+|approximately\s+)?\d|office\s+expand(?:s|ed|ing|sion)?|office\s+lease\s+for)\b/i;
 export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living|homebuilding|homebuilder|home\s+builder)\b/i;
 export const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
 export const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;
@@ -372,6 +386,16 @@ export function isStrictlyIndustrial(text: string): boolean {
     //  - Scraped pagination/index pages: e.g. "Industrial – Page 360 - Real Estate NJ".
     if (/\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b/i.test(lower)) return false;
     if (/[-–—]\s*page\s+\d+\b/i.test(lower)) return false;
+
+    // OFFICE-LED primary-subject guard (2026-07-24). If OFFICE is the primary asset of a
+    // lease/expansion/footprint story AND there is NO strong industrial asset keyword, reject —
+    // so it can't sneak through the generic "square feet"/property-context deal path below (how
+    // "Google Expands Miami Office to 45K SF" leaked). The strong-asset guard is what keeps a
+    // warehouse/industrial building that merely CONTAINS office area eligible: those carry
+    // warehouse/industrial/logistics/etc., so office-led is overridden. Bare "industrial" is
+    // included so LoopNet-style "Industrial for Lease … 2,000 SF office" listings still pass.
+    const hasStrongIndustrialAsset = /\b(warehouses?|logistics|distribution|fulfillment|manufacturing|cold\s+storage|industrial|flex\s+space|commercial\s+flex|industrial\s+flex|last[ -]?mile|cross[ -]?dock|loading\s+dock|truck\s+terminal|\bios\b|outdoor\s+storage)\b/i.test(lower);
+    if (OFFICE_LED_RE.test(lower) && !hasStrongIndustrialAsset) return false;
 
     // FIRST: If it has non-industrial keywords → reject immediately
     // (prevents "industrial heir sells Palm Beach home" from passing on "industrial")
