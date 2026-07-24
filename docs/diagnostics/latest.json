@@ -1,109 +1,18 @@
 {
-  "runId": "2026-07-23-1209",
-  "generatedAt": "2026-07-23T12:09:02.945Z",
-  "isFriday": false,
+  "runId": "2026-07-24-1159",
+  "generatedAt": "2026-07-24T11:59:33.663Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 241,
-      "inWindow": 9,
-      "regionPass": 8,
+      "loaded": 248,
+      "inWindow": 10,
+      "regionPass": 10,
       "industrialPass": 0,
       "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 79,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 4
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 4,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 241,
-      "inWindow": 5,
-      "regionPass": 3,
-      "industrialPass": 0,
-      "sectionPass": 3,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 4,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
-    },
-    "availabilities": {
-      "loaded": 241,
-      "inWindow": 0,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 18,
+      "selected": 5,
+      "supplyCandidates": 82,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -126,13 +35,106 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 6
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 4,
+        "tier3_30d_deep": 6,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "transactions": {
+      "loaded": 248,
+      "inWindow": 10,
+      "regionPass": 6,
+      "industrialPass": 0,
+      "sectionPass": 2,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 1,
+      "supplyCandidates": 4,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 4,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 3,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "availabilities": {
+      "loaded": 248,
+      "inWindow": 1,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 1,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 1,
+      "supplyCandidates": 16,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "RUBRIC_ADVISORY_BYPASS": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -140,7 +142,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 241,
+      "loaded": 248,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,7 +188,7 @@
     }
   },
   "perFeedBySection": {
-    "Google News Warehouse": {
+    "bisnow.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,21 +202,7 @@
         "people": 0
       }
     },
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 3,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 2,
-        "transactions": 0,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "commercialobserver.com": {
+    "Google News Tampa Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -236,27 +224,41 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 1,
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Bisnow Philadelphia": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Industrial Sale Deals": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
     },
     "Google News Industrial RE": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 2,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 1
-      }
-    },
-    "Greater Philly Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -269,29 +271,57 @@
         "availabilities": 0,
         "people": 0
       }
+    },
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 1
+      }
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 93,
-    "outOf10": 9.3,
+    "score": 92,
+    "outOf10": 9.2,
     "grade": "A",
-    "itemCount": 9,
+    "itemCount": 8,
     "breakdown": {
       "coverage": 30,
-      "freshness": 18.1,
+      "freshness": 17.2,
       "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 7,
-      "deep": 4,
+      "deep": 6,
       "reserve": 0
     },
     "delivery": {
