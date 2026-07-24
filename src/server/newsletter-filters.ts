@@ -458,6 +458,48 @@ export function applyAvailabilityFilter(items: NormalizedItem[], diag?: Diagnost
     return filtered;
 }
 
+// =====================================================================
+// PEOPLE-ACTION GATING (2026-07-24)
+// =====================================================================
+
+// Ambiguous verbs a COMPANY (not a person) can trigger — "wins an AWARD", "is SELECTED",
+// "ANNOUNCED news". Counted as a people-action ONLY when a person/role signal is present.
+const PEOPLE_ACTION_AMBIGUOUS = ['award', 'awarded', 'selected', 'recognized', 'honored', 'announces', 'announced'];
+
+// Title/role keywords — presence strongly signals a real person. (Kept here so the
+// people-action gate below and the re-categorization pass both use one definition.)
+const PERSON_ROLE_KEYWORDS = [
+    'ceo', 'cfo', 'coo', 'cio', 'cto', 'president', 'chairman', 'chairwoman',
+    'vice president', 'vp ', 'svp ', 'evp ', 'managing director',
+    'director', 'principal', 'partner', 'executive', 'officer',
+    'broker', 'head of', 'chief', 'senior advisor',
+    'board of directors', 'board member', 'to board', 'advisory board',
+];
+
+// Word-bounded EDA — avoids the "NJEDA" substring false positive the bare 'eda' token caused.
+const EDA_TOKEN_RE = /\beda\b/i;
+
+// A real person/role signal: an explicit title-level personnel verb, or a role/title keyword.
+function hasPersonRoleSignal(article: NormalizedItem): boolean {
+    const titleUpper = (article.title || '').toUpperCase();
+    if (/\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES|RECRUITS|ELEVATES?|ELEVATED)\b/.test(titleUpper)) return true;
+    return containsAny(getText(article), PERSON_ROLE_KEYWORDS);
+}
+
+// A people-action is present when a CLEAR verb matches, OR an AMBIGUOUS verb matches AND a
+// person/role signal is also present. `actionList` is the caller's action vocabulary.
+function hasGatedPeopleAction(article: NormalizedItem, actionList: string[]): boolean {
+    const text = getText(article);
+    if (containsAny(text, actionList.filter(k => !PEOPLE_ACTION_AMBIGUOUS.includes(k)))) return true;
+    const ambiguous = actionList.filter(k => PEOPLE_ACTION_AMBIGUOUS.includes(k));
+    return ambiguous.length > 0 && containsAny(text, ambiguous) && hasPersonRoleSignal(article);
+}
+
+// Industrial context for People filtering — the keyword list plus word-bounded EDA.
+function hasIndustrialContextForPeople(text: string): boolean {
+    return containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS) || EDA_TOKEN_RE.test(text);
+}
+
 export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
         if (!passesWoodmontRubric(article, diag, 'people')) return false;
@@ -465,8 +507,10 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
         const url = ((article as any).url || article.link || '').toLowerCase();
         if (isPolitical(text)) { if (diag) diag.recordReject('people', 'POLITICAL_CONTENT'); return false; }
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) { if (diag) diag.recordReject('people', 'EXCLUDED_BY_LIST'); return false; }
-        const hasAction = containsAny(text, PEOPLE_ACTION_KEYWORDS);
-        const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
+        // Ambiguous corporate verbs (award/selected/announced/…) only count with a person/role
+        // signal, so a company winning an award isn't a people item.
+        const hasAction = hasGatedPeopleAction(article, PEOPLE_ACTION_KEYWORDS);
+        const hasIndustrial = hasIndustrialContextForPeople(text);
         // If title OR body has strong people signal, allow even if body mentions transactions
         const titleUpper = (article.title || '').toUpperCase();
         const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
@@ -504,14 +548,7 @@ const STRONG_PEOPLE_ACTIONS = [
     'milestone', 'anniversary', 'marks milestone', 'retirement', 'retiring',
 ];
 
-// Title/role keywords — presence of these strongly signals a people article
-const PERSON_ROLE_KEYWORDS = [
-    'ceo', 'cfo', 'coo', 'cio', 'cto', 'president', 'chairman', 'chairwoman',
-    'vice president', 'vp ', 'svp ', 'evp ', 'managing director',
-    'director', 'principal', 'partner', 'executive', 'officer',
-    'broker', 'head of', 'chief', 'senior advisor',
-    'board of directors', 'board member', 'to board', 'advisory board',
-];
+// (PERSON_ROLE_KEYWORDS is defined above, next to the people-action gating helpers.)
 
 export function reCategorizeRelevantAsPeople(
     relevant: NormalizedItem[],
@@ -525,16 +562,22 @@ export function reCategorizeRelevantAsPeople(
     const rescueArticle = (article: NormalizedItem): boolean => {
         const text = getText(article);
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
-        const hasStrongAction = containsAny(text, STRONG_PEOPLE_ACTIONS);
+        // Gated: ambiguous corporate verbs (award/recognized/honored) only count with a
+        // person/role signal — so a company award/announcement isn't a "strong action".
+        const hasStrongAction = hasGatedPeopleAction(article, STRONG_PEOPLE_ACTIONS);
         const hasRole = containsAny(text, PERSON_ROLE_KEYWORDS);
-        const hasIndustrial = containsAny(text, INDUSTRIAL_CONTEXT_KEYWORDS);
+        const hasIndustrial = hasIndustrialContextForPeople(text);
         const isPeoplePuff = containsAny(text, ['milestone', 'anniversary', 'retirement', 'retiring', 'marks milestone']);
         // Title-level people signal — very strong indicator
         const titleUpper = (article.title || '').toUpperCase();
         const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
-        // Require 2 of 3 conditions (action + role + industrial) instead of all 3
-        const conditionsMet = [hasStrongAction || titleHasPeopleSignal, hasRole, hasIndustrial].filter(Boolean).length;
-        if (conditionsMet >= 2 || (isPeoplePuff && hasRole)) {
+        // An ACTION signal is now NECESSARY (2026-07-24), not just 2-of-3. Role + industrial
+        // ALONE used to rescue "Greek Real Estate Partners Expands Bucks County …" — a company
+        // whose NAME contains "Partners" (matched PERSON_ROLE_KEYWORDS) with a warehouse project,
+        // no personnel move at all. Require a real action, plus one of role/industrial.
+        const hasAction = hasStrongAction || titleHasPeopleSignal;
+        const conditionsMet = [hasAction, hasRole, hasIndustrial].filter(Boolean).length;
+        if ((hasAction && conditionsMet >= 2) || (isPeoplePuff && hasRole)) {
             console.log(`👤 Re-categorized to People: "${article.title?.substring(0, 60)}"`);
             return true;
         }

@@ -551,10 +551,17 @@ export const RELEVANT_KEYWORDS = [
 ];
 
 // People news action keywords
+// People-action verbs. NOTE (2026-07-24): the clearly CORPORATE verbs expands/grows/
+// bolsters/strengthens were REMOVED — a company "expands its footprint" or "grows its
+// portfolio" is not a personnel move (leak: "Greek Real Estate Partners Expands Bucks
+// County …"). The AMBIGUOUS verbs award/selected/recognized/honored/announces/announced
+// STAY here but are gated behind a person/role signal by the consumers (see
+// PEOPLE_ACTION_AMBIGUOUS in newsletter-filters.ts) — a company can win an award or
+// announce news with no personnel change (leak: "… Approved for NJEDA … Manufacturing Award").
 export const PEOPLE_ACTION_KEYWORDS = [
     'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
     'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
-    'chair', 'nabs', 'welcomes', 'brings', 'expands', 'grows', 'bolsters', 'strengthens',
+    'chair', 'nabs', 'welcomes', 'brings',
     'movers', 'shakers', 'leadership', 'executive', 'move',
     'announces', 'announced', 'selected', 'recognized', 'award', 'honored', 'featured',
     'profile', 'spotlight', 'interview', 'q&a', 'power broker', 'rising star', 'top producer'
@@ -571,7 +578,11 @@ export const INDUSTRIAL_CONTEXT_KEYWORDS = [
     'commercial real estate', 'cre', 'investment sales', 'capital markets', 'brokerage',
     'real estate', 'development', 'developer', 'redevelopment', 'land use', 'zoning',
     'property', 'portfolio', 'asset', 'partner', 'principal', 'managing director', 'vice president',
-    'broker', 'leasing', 'acquisition', 'construction', 'economic development', 'eda',
+    'broker', 'leasing', 'acquisition', 'construction', 'economic development',
+    // 'eda' removed as a bare substring token (2026-07-24): it matched inside "NJEDA",
+    // falsely giving industrial context to "… Approved for NJEDA … Award". Word-bounded
+    // ' eda ' is matched via EDA_TOKEN_RE in the consumer instead; 'economic development'
+    // still covers the spelled-out form.
     'naiop', 'icsc', 'uli', 'boma', 'cbre institute',
     'investor', 'fund manager', 'private equity', 'institutional', 'family office', 'reit',
     'investment firm', 'investment manager', 'allocation', 'fundraising', 'capital raise'
