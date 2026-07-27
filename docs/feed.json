@@ -23,16 +23,15 @@
         "name": "Google News Industrial Sale Deals"
       },
       "_source": {
-        "name": "Google News Industrial Sale Deals",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQcU5zQ1FBaUpOd3paTjl2S2gtNFJuZzZhTHo1UDdJVU03MjlLbmFPUlNibDliOU4yMmZjOVVPU2VzX0FNNFN6QkVSMXM0SS03VjJqc0J6czlKLXh1MDhlaTVSMnpnckxEV1R6Y2FSSUtsR1duMlpfTFFxaW5TQ3VtVGQySE9qcmhEZWJYeWVMdWp6MjdUR215eFI0NHlXbEFsaVNjREpGOGp0Q3lUbXdyYllXenlBQ1MtWExRVVN5RHNBa19FY2FiTmlRbw?oc=5",
-        "feedName": "Google News Industrial Sale Deals"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -70,7 +69,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Wrong region — Burlington is in North Carolina, not NJ/PA/FL, matches Rule 9",
       "_woodmontConfidence": 100,
@@ -103,7 +102,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -169,7 +168,7 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": true,
       "_woodmontReason": "Real industrial transaction at $268M / 11-property logistics acquisition, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
@@ -204,7 +203,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class — primarily about manufacturing facility, but not industrial real estate (Rule: 5)",
+      "_woodmontReason": "Wrong asset class — primarily about a manufacturing facility for a defense and security company, not industrial real estate (Rule: 5)",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -237,9 +236,9 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Lacks strong industrial-asset signal in title or description; appears to be a generic company profile or service provider news, failing Rule 5.",
-      "_woodmontConfidence": 90,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token, matches Rule 13",
+      "_woodmontConfidence": 80,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "6482f810cf59d3c61f3ea6ff13c7425035927523",
@@ -305,7 +304,7 @@
       "_woodmontApprove": true,
       "_woodmontReason": "Real NJ industrial transaction at $56.9M, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "b99f5b53eb9446265fea9f3ce5528d97883e6f35",
@@ -336,7 +335,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong Asset Class — the article focuses on converting warehouses into recreational venues (padel clubs), which is not an industrial use (logistics, manufacturing, etc.) and falls outside the target asset scope (Rule 5).",
+      "_woodmontReason": "Wrong Asset Class — the article focuses on converting warehouses into recreational sports venues (padel clubs), which is not an active industrial use (logistics, manufacturing, flex) and falls outside the scope of industrial real estate investing (Rule 5)",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -369,7 +368,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at 537K SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Target region (Jacksonville, FL) industrial transaction exceeding 100K SF threshold (537K SF), published within 7 days.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -534,9 +533,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction at $343M, target region (US) + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontReason": "Significant national capital markets transaction ($343M recapitalization) qualifies as clearly relevant macro news meeting the threshold criteria (Rule: APPROVE criteria - macro/national exception).",
+      "_woodmontConfidence": 90,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "f0184c490ad5a01fcf4d00ec19874479eaa51f9f",
@@ -600,9 +599,9 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — 'protesting data centers' matches Rule 3 anti-data-center editorial framing",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontReason": "Anti-Data-Center Framing — the article focuses on political protests against data centers, which matches Rule 3's ban on opposition/protest framing.",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "1efbebb925afd51787a215c5642968514af83d29",
@@ -633,7 +632,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — the article describes a generic U.S. manufacturing expansion without specifying a location in NJ, PA, or FL, and does not qualify as relevant macro news for this regional briefing (Rule 9)",
+      "_woodmontReason": "Wrong region — the article mentions 'U.S. Manufacturing' without specifying a location in NJ, PA, or FL, and it is primarily a corporate pharma announcement rather than a real estate transaction.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -698,10 +697,10 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "AVAIL_BODY_LEASE_SALE",
       "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Deal threshold — the facility is 75,000 SF, which is below the 100,000 SF minimum, and no dollar amount is disclosed to meet the $25M threshold.",
+      "_woodmontApprove": true,
+      "_woodmontReason": "Real NJ industrial transaction at 75K SF, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "e7fb8086c648f2764474d44d3db5c37fae0f413d",
@@ -765,7 +764,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "The article details a $208.5M recapitalization of a 2.3M SF industrial portfolio located in target regions Pennsylvania and South Florida, meeting all deal size and regional criteria.",
+      "_woodmontReason": "Real industrial transaction meeting all criteria: $208.5M loan / 2.3M SF portfolio in PA and FL, published within 7 days (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -798,7 +797,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at $56.9M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ industrial transaction meeting the $25M+ threshold ($56.9M) and within the 7-day freshness window.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -816,25 +815,24 @@
         "name": "jarred@bisnow.com"
       },
       "_source": {
-        "name": "Bisnow National",
+        "name": "bisnow.com",
         "website": "bisnow.com",
         "url": "https://www.bisnow.com/national/news/data-center/openai-targets-savannah-for-multibillion-dollar-data-center-135524",
-        "feedName": "Bisnow National"
+        "feedName": "bisnow.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "bisnow.com",
-        "US"
+        "bisnow.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "B",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
+      "_woodmontApprove": false,
+      "_woodmontReason": "Wrong region — Savannah is in Georgia, which is outside the target regions of NJ, PA, and FL (Rule 9)",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "62b0341f053121d6b5da1d4083540ba3660a321c",
@@ -899,8 +897,8 @@
       "_tier": "C",
       "_woodmontApprove": true,
       "_woodmontReason": "Real NJ industrial transaction at 224K SF, target region + above threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "c7cf0d38a0d9473651f36ec7632c9f4ae75fd10f",
@@ -1160,9 +1158,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real PA industrial transaction at 489,000 SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Large industrial lease (489,000 SF) in Philadelphia, PA (target region), meeting size threshold and freshness requirements.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1195,7 +1193,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant personnel move at major industrial REIT Prologis concerning the East Region (which includes NJ), sourced from a NJ publication, meeting industry and regional criteria.",
+      "_woodmontReason": "Relevant personnel move at major industrial REIT Prologis covering the East Region (including NJ), sourced from a NJ-focused publication, fits the target region and industry focus.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1459,7 +1457,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "NJ industrial acquisition of a 5-acre IOS site in Union Township, meeting the 100K SF size threshold and target region criteria (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ IOS acquisition in Union Township (~218k SF based on 5 acres) meets the 100K SF size threshold and target region criteria.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -7120,16 +7118,15 @@
         "name": "Google News Industrial Brokers"
       },
       "_source": {
-        "name": "Google News Industrial Brokers",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxNSVgtY2dYRXYzNjdiWDFWMmxsUElKUFQxc3ZSNE5tV0pWR2tqeUZUZTVoZE5wS2JiZXRoT29kbFpLTE5nUW9rQ3RIQ3hvMXN0ZUFIbmVvLVB5SF9PNXNZbmVQQWY3R1kwUVdKbktUOEo3SmY1Z0J0enQ1MS1tNlRNOTQ4NDNpMS1nU0dsZmRhT2ZXQkFtejdCYXktdUZCVDRxYUZmYlBmSlJXZ2Q5aVVJZVIwcXV0bjJmZFprb2c0Nl8tdTczenRQWHBnSUYxbWhEZ0FMa0wtVjFpdzlUVkRUTThnOUw5ZDl1d3UyOExsSkxyMW9xWWRrNjdaSW5ubWl1di1oZzVPT1Z1eXQ0Q2UweWVjOVhHeWlrQ3RhNUFXQVNvcGkwdXpr?oc=5",
-        "feedName": "Google News Industrial Brokers"
+        "feedName": "news.google.com"
       },
       "category": "people",
       "tags": [
         "People News — Personnel Moves in CRE",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -7436,138 +7433,6 @@
       "_woodmontReason": "Listing aggregator without region - title ends in '-LoopNet' without an explicit NJ/PA/FL token in the title, matches Rule 13",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq"
-    },
-    {
-      "id": "de831d5f031c2e06b796a4bb68b0eb0b033bb5bd",
-      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPTjFvZDdYWUpmLVlZNlBxWTN6VHU4N092eW5wei0zSTJTQW1HM2tRb0hjUXM1emQzTGdnaU5qcldQQTQ0SkxFYlpTZk9UWWVyUjdSNGx5OS0wS2hCN0lGR0F1NmFQOEZuUGNudnZkVm40bFQzODFlUmphU2dMOU9zX2pVM0pmUS1YemE5bkVqZ0RsTEpsSTR0QjVrckpwVFU?oc=5",
-      "title": "Woodmont, Sagard Launch Redevelopment of Rahway Industrial Site - Connect CRE",
-      "content_html": "Woodmont, Sagard Launch Redevelopment of Rahway Industrial Site Connect CRE",
-      "content_text": "Woodmont, Sagard Launch Redevelopment of Rahway Industrial Site Connect CRE",
-      "summary": "Woodmont, Sagard Launch Redevelopment of Rahway Industrial Site Connect CRE",
-      "date_published": "2026-06-25T22:24:14.000Z",
-      "date_modified": "2026-06-27T16:01:16.671Z",
-      "image": "https://picsum.photos/seed/zffmba/640/360",
-      "author": {
-        "name": "Google News ConnectCRE Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPTjFvZDdYWUpmLVlZNlBxWTN6VHU4N092eW5wei0zSTJTQW1HM2tRb0hjUXM1emQzTGdnaU5qcldQQTQ0SkxFYlpTZk9UWWVyUjdSNGx5OS0wS2hCN0lGR0F1NmFQOEZuUGNudnZkVm40bFQzODFlUmphU2dMOU9zX2pVM0pmUS1YemE5bkVqZ0RsTEpsSTR0QjVrckpwVFU?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Article covers Woodmont's own redevelopment of an industrial site in Rahway, NJ, which is a target region and within the 7-day freshness window.",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "eac46efa671734e85249a2e173327fc124db9039",
-      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOeVp5UV9na2t2dUZFT25KVFl0TjlfT2F0Nmw2WGZNcVlrZUZVTDBWMmdNUWc2c0dla1pLZnhYbnpTcGZhSmhKSFJEMUx1bUtPWEs0WE9UcXhVYjVjbi1kY2ZaMnJjZU5Mcjl3NjBzR0dWVGw3U3JOaFB2b2l1RWY0ak9nUFI1dlM1QWwtMER3SE40SWpud1pacXdjMF9mZG9iRkxCYjVWQmFkd0F1N2F4LTdLc0ZodHlQSlJCN281anVQdw?oc=5",
-      "title": "Pa. House passes data center 'pause' along with Shapiro's plan for 'responsible' development - Pennsylvania Capital-Star",
-      "content_html": "Pa. House passes data center 'pause' along with Shapiro's plan for 'responsible' development Pennsylvania Capital-Star",
-      "content_text": "Pa. House passes data center 'pause' along with Shapiro's plan for 'responsible' development Pennsylvania Capital-Star",
-      "summary": "Pa. House passes data center 'pause' along with Shapiro's plan for 'responsible' development Pennsylvania Capital-Star",
-      "date_published": "2026-06-25T21:16:35.000Z",
-      "date_modified": "2026-06-26T10:58:11.234Z",
-      "image": "https://picsum.photos/seed/1skk4i/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOeVp5UV9na2t2dUZFT25KVFl0TjlfT2F0Nmw2WGZNcVlrZUZVTDBWMmdNUWc2c0dla1pLZnhYbnpTcGZhSmhKSFJEMUx1bUtPWEs0WE9UcXhVYjVjbi1kY2ZaMnJjZU5Mcjl3NjBzR0dWVGw3U3JOaFB2b2l1RWY0ak9nUFI1dlM1QWwtMER3SE40SWpud1pacXdjMF9mZG9iRkxCYjVWQmFkd0F1N2F4LTdLc0ZodHlQSlJCN281anVQdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly highlights a legislative 'pause' on data center development, which triggers Rule 3's ban on articles featuring moratoriums or pauses.",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "6c29038f43019f1eff9ddfb93c7baa4535edcc5a",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxObldOS1owQ3pVQ29wWm1WUFhjaFg0OE9OeXVES3FPNDRFTnM4NlgtX2hUUlFjMGJmMzVuTHVZNC1DeGRJcmpqZnVZZWVlS0Rxdzc2NHZVV3RDdGNaRTNRbGVNc3NXUDczR3N3ZEh3NGJVRlRXTzdkZkRhWmJ2OWF5NE9xbG92YWpqVXkzS3NiRXVMTExSOVVxZmtwRWZTLTljR2xNTmN1aXBMMmNfZnpKUjU3N0Z6bWk0UGtR?oc=5",
-      "title": "Pa. House passes data center ‘pause’ along with Shapiro’s plan for ‘responsible’ development - News From The States",
-      "content_html": "Pa. House passes data center ‘pause’ along with Shapiro’s plan for ‘responsible’ development News From The States",
-      "content_text": "Pa. House passes data center ‘pause’ along with Shapiro’s plan for ‘responsible’ development News From The States",
-      "summary": "Pa. House passes data center ‘pause’ along with Shapiro’s plan for ‘responsible’ development News From The States",
-      "date_published": "2026-06-25T21:11:56.000Z",
-      "date_modified": "2026-06-26T10:58:11.236Z",
-      "image": "https://picsum.photos/seed/r3o5ed/640/360",
-      "author": {
-        "name": "Google News Data Centers NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxObldOS1owQ3pVQ29wWm1WUFhjaFg0OE9OeXVES3FPNDRFTnM4NlgtX2hUUlFjMGJmMzVuTHVZNC1DeGRJcmpqZnVZZWVlS0Rxdzc2NHZVV3RDdGNaRTNRbGVNc3NXUDczR3N3ZEh3NGJVRlRXTzdkZkRhWmJ2OWF5NE9xbG92YWpqVXkzS3NiRXVMTExSOVVxZmtwRWZTLTljR2xNTmN1aXBMMmNfZnpKUjU3N0Z6bWk0UGtR?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline explicitly mentions a legislative 'pause' on data centers, which matches Rule 3's list of prohibited keywords ('pause', 'ban', 'moratorium', 'freeze', 'halt').",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "1c0976cb7b835563d8b6d1897289cc421cce6af6",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQbWdrVDdTUnVpNTZVZTJJcENVeGU3WEJIMkoxMzlibWtHSGlEWHZOb0FEclJwTHRiQ19Mc2l3MzN1b2g5OUNRdlF6ZzIwdVlNYmkzbGRUdlZjTENTSkVPOFJRUnVSZ0ZRWERwQjNTdTNQa2x0aVB4VEFpUDl6eHJaNk5FS2hqWW1ZVXhJQ2JZbDVrNHllOGcyb2djV1RhNnp0?oc=5",
-      "title": "Fausto Commercial Sells Rare Medley Industrial Site for $4.5M - citybiz",
-      "content_html": "Fausto Commercial Sells Rare Medley Industrial Site for $4.5M citybiz",
-      "content_text": "Fausto Commercial Sells Rare Medley Industrial Site for $4.5M citybiz",
-      "summary": "Fausto Commercial Sells Rare Medley Industrial Site for $4.5M citybiz",
-      "date_published": "2026-06-25T18:35:01.000Z",
-      "date_modified": "2026-06-26T10:57:57.708Z",
-      "image": "https://picsum.photos/seed/89elyq/640/360",
-      "author": {
-        "name": "Doral Medley FL Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQbWdrVDdTUnVpNTZVZTJJcENVeGU3WEJIMkoxMzlibWtHSGlEWHZOb0FEclJwTHRiQ19Mc2l3MzN1b2g5OUNRdlF6ZzIwdVlNYmkzbGRUdlZjTENTSkVPOFJRUnVSZ0ZRWERwQjNTdTNQa2x0aVB4VEFpUDl6eHJaNk5FS2hqWW1ZVXhJQ2JZbDVrNHllOGcyb2djV1RhNnp0?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
     }
   ]
 }
