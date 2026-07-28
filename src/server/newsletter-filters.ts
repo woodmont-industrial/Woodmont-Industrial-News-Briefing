@@ -10,6 +10,7 @@ import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
+import { dcPolicyVerdict, dcDollarsB, dcMW, nonTargetTokens } from '../shared/dc-policy.js';
 import {
     TARGET_REGIONS, CRE_COMPANY_NAMES, MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
     EXCLUDE_POLITICAL, EXCLUDE_NON_INDUSTRIAL, INDUSTRIAL_PROPERTY_KEYWORDS,
@@ -648,6 +649,77 @@ export function qualifiesForPeopleRescue(article: NormalizedItem): boolean {
     if (!PEOPLE_TITLE_ACTION.test(article.title || '')) return false;
     if (!isTargetRegion(article)) return false;
     return applyPeopleFilter([article]).length > 0;
+}
+
+// =====================================================================
+// DATA-CENTER POLICY ROUTING (2026-07-27)
+// =====================================================================
+// Specific out-of-region DC projects are wrong-region leaks UNLESS they are national
+// megaprojects (>=$5B or >=500MW). Genuine DC macro (trend/policy/financing/power) is allowed.
+// Verdicts (src/shared/dc-policy.ts): allow-macro | allow-regional | allow-national-scale |
+// reject-oor | allow-unknown-location. Routing rules enforced here (NO scoring change):
+//   - reject-oor           -> dropped from ALL sections
+//   - national-scale/unknown-> Relevant ONLY; at most ONE combined per send; placed LAST so
+//                              the section cap prefers confirmed-regional/normal items; and
+//                              they do not count toward NJ/PA/FL regional coverage (see
+//                              isDcExceptionItem, used by coverage logic).
+
+export interface DcPolicyRecord {
+    nationalScaleAllowed: Array<{ id: string; title: string; dollarsB: number | null; mw: number | null }>;
+    unknownLocationAllowed: Array<{ id: string; title: string; unresolvedLocationTokens: string[] }>;
+    rejectedOutOfRegion: Array<{ id: string; title: string; nonTargetTokens: string[] }>;
+}
+const DC_EXCEPTION_VERDICTS = new Set(['allow-national-scale', 'allow-unknown-location']);
+
+export function dcVerdictOf(article: NormalizedItem): string {
+    return dcPolicyVerdict(getText(article));
+}
+/** A national-scale or unknown-location DC exception item — allowed in Relevant but NOT counted
+ *  as NJ/PA/FL regional coverage. Consumed by section-fill / coverage logic. */
+export function isDcExceptionItem(article: NormalizedItem): boolean {
+    return DC_EXCEPTION_VERDICTS.has(dcVerdictOf(article));
+}
+
+/**
+ * Enforce the DC routing policy over the assembled sections. Returns filtered sections plus a
+ * diagnostics record. Must run on the PRE-cap Relevant list: exception items are placed LAST so
+ * the subsequent section cap trims them first (confirmed-regional/normal items outrank them).
+ */
+export function applyDataCenterPolicy(
+    relevant: NormalizedItem[],
+    transactions: NormalizedItem[],
+    availabilities: NormalizedItem[],
+    people: NormalizedItem[],
+    scoreFn: (a: NormalizedItem) => number,
+): { relevant: NormalizedItem[]; transactions: NormalizedItem[]; availabilities: NormalizedItem[]; people: NormalizedItem[]; dc: DcPolicyRecord } {
+    const dc: DcPolicyRecord = { nationalScaleAllowed: [], unknownLocationAllowed: [], rejectedOutOfRegion: [] };
+    const info = (a: NormalizedItem) => ({ id: (a as any).id || a.link || '', title: a.title || '' });
+
+    const dropRejects = (arr: NormalizedItem[]): NormalizedItem[] => arr.filter(a => {
+        if (dcVerdictOf(a) === 'reject-oor') {
+            dc.rejectedOutOfRegion.push({ ...info(a), nonTargetTokens: nonTargetTokens(getText(a)) });
+            return false;
+        }
+        return true;
+    });
+
+    // reject-oor dropped from every section; exception items removed from non-Relevant (Relevant-only).
+    transactions = dropRejects(transactions).filter(a => !isDcExceptionItem(a));
+    availabilities = dropRejects(availabilities).filter(a => !isDcExceptionItem(a));
+    people = dropRejects(people).filter(a => !isDcExceptionItem(a));
+
+    relevant = dropRejects(relevant);
+    const exceptions = relevant.filter(a => isDcExceptionItem(a)).sort((a, b) => scoreFn(b) - scoreFn(a));
+    const normal = relevant.filter(a => !isDcExceptionItem(a));
+    const keptException = exceptions.slice(0, 1); // cap: ONE combined national-scale/unknown per send
+    for (const a of keptException) {
+        const t = getText(a);
+        if (dcVerdictOf(a) === 'allow-national-scale') dc.nationalScaleAllowed.push({ ...info(a), dollarsB: dcDollarsB(t), mw: dcMW(t) });
+        else dc.unknownLocationAllowed.push({ ...info(a), unresolvedLocationTokens: nonTargetTokens(t) });
+    }
+    // Exception placed LAST so the caller's section cap prefers confirmed-regional/normal items.
+    relevant = [...normal, ...keptException];
+    return { relevant, transactions, availabilities, people, dc };
 }
 
 // =====================================================================

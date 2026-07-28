@@ -127,6 +127,11 @@ export interface DiagnosticPayload {
         windowDays: number;
     };
     quality?: NewsletterQuality;
+    dcPolicy?: {
+        nationalScaleAllowed: Array<{ id: string; title: string; dollarsB: number | null; mw: number | null }>;
+        unknownLocationAllowed: Array<{ id: string; title: string; unresolvedLocationTokens: string[] }>;
+        rejectedOutOfRegion: Array<{ id: string; title: string; nonTargetTokens: string[] }>;
+    };
 }
 
 // =============================================================================
@@ -421,6 +426,7 @@ export class DiagnosticContext {
     private perFeed: Map<string, FeedFunnel> = new Map();
     private weekInReview: DiagnosticPayload['weekInReview'];
     private quality?: NewsletterQuality;
+    private dcPolicy?: DiagnosticPayload['dcPolicy'];
 
     constructor(opts: { isFriday?: boolean } = {}) {
         const now = new Date();
@@ -548,6 +554,11 @@ export class DiagnosticContext {
         this.quality = quality;
     }
 
+    /** Attach the DC-policy routing decisions (national-scale/unknown allowed, out-of-region rejected). */
+    recordDcPolicy(dc: DiagnosticPayload['dcPolicy']) {
+        this.dcPolicy = dc;
+    }
+
     // ---------- Output ----------
 
     toJSON(): DiagnosticPayload {
@@ -564,6 +575,7 @@ export class DiagnosticContext {
             perFeedBySection: Object.fromEntries(this.perFeed),
             weekInReview: this.weekInReview,
             ...(this.quality ? { quality: this.quality } : {}),
+            ...(this.dcPolicy ? { dcPolicy: this.dcPolicy } : {}),
         };
     }
 }

@@ -11,6 +11,7 @@ import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCr
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
+    applyDataCenterPolicy, dcVerdictOf, isDcExceptionItem, type DcPolicyRecord,
     reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
@@ -960,6 +961,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         };
 
         // Sort each section by quality score (highest first)
+        let dcPolicyRecord: DcPolicyRecord | undefined;
         const sortByScore = (articles: NormalizedItem[]) => {
             return articles.sort((a, b) => scoreArticle(b) - scoreArticle(a));
         };
@@ -967,6 +969,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = sortByScore(transactions);
         availabilities = sortByScore(availabilities);
         people = sortByScore(people);
+
+        // DATA-CENTER POLICY (2026-07-27): drop out-of-region DC projects (reject-oor), keep
+        // national-scale/unknown-location DC exceptions in Relevant only (max 1, placed last so
+        // the cap below prefers confirmed-regional/normal items). Runs PRE-cap. No scoring change.
+        {
+            const r = applyDataCenterPolicy(relevant, transactions, availabilities, people, scoreArticle);
+            relevant = r.relevant; transactions = r.transactions; availabilities = r.availabilities; people = r.people;
+            dcPolicyRecord = r.dc;
+            if (r.dc.rejectedOutOfRegion.length) console.log(`🛰️  DC-policy dropped ${r.dc.rejectedOutOfRegion.length} out-of-region project(s): ${r.dc.rejectedOutOfRegion.map(x => x.title.slice(0, 45)).join(' | ')}`);
+            if (r.dc.nationalScaleAllowed.length) console.log(`🛰️  DC-policy national-scale kept: ${r.dc.nationalScaleAllowed.map(x => `${x.title.slice(0, 40)} ($${x.dollarsB}B/${x.mw}MW)`).join(' | ')}`);
+            if (r.dc.unknownLocationAllowed.length) console.log(`🛰️  DC-policy unknown-location kept: ${r.dc.unknownLocationAllowed.map(x => x.title.slice(0, 45)).join(' | ')}`);
+        }
 
         // Log top scores for debugging
         if (relevant.length > 0) console.log(`🏆 Top relevant: "${relevant[0].title?.substring(0, 50)}" (score: ${scoreArticle(relevant[0])})`);
@@ -1002,6 +1016,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
                 const url = (a.link || a.url || '').toLowerCase();
                 const source = (a.source || (a as any)._source?.website || '').toLowerCase();
+
+                // DC-policy safety net for post-desc refills: out-of-region DC projects never
+                // ship; DC national-scale/unknown exceptions are Relevant-only. (Primary
+                // enforcement + the one-per-send cap is applyDataCenterPolicy above.)
+                const dcv = dcVerdictOf(a);
+                if (dcv === 'reject-oor') {
+                    console.log(`🚫 FINAL GATE blocked (DC out-of-region project): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
+                if (isDcExceptionItem(a) && sectionName !== 'Relevant') {
+                    console.log(`🚫 FINAL GATE blocked (DC exception outside Relevant): "${a.title?.substring(0, 60)}" [${sectionName}]`);
+                    return false;
+                }
 
                 // Re-run the industrial content check (catches pharma, residential, restaurants)
                 if (!isStrictlyIndustrial(text)) {
@@ -1449,6 +1476,23 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
         }
 
+        // DATA-CENTER POLICY (final pass). The pre-cap pass above prefers regional when the
+        // section is full; this pass re-runs on the FINAL sections so DC items that arrived via
+        // post-description refill (e.g. a deep-pool national-scale project) are still capped to
+        // one, kept in Relevant only, and logged. Merge rejects across both passes; take the
+        // final exception set from this pass.
+        {
+            const r = applyDataCenterPolicy(relevant, transactions, availabilities, people, scoreArticle);
+            relevant = r.relevant; transactions = r.transactions; availabilities = r.availabilities; people = r.people;
+            dcPolicyRecord = {
+                rejectedOutOfRegion: [...(dcPolicyRecord?.rejectedOutOfRegion ?? []), ...r.dc.rejectedOutOfRegion],
+                nationalScaleAllowed: r.dc.nationalScaleAllowed,
+                unknownLocationAllowed: r.dc.unknownLocationAllowed,
+            };
+            if (r.dc.nationalScaleAllowed.length) console.log(`🛰️  DC-policy national-scale kept: ${r.dc.nationalScaleAllowed.map(x => `${x.title.slice(0, 40)} ($${x.dollarsB}B/${x.mw}MW)`).join(' | ')}`);
+            if (r.dc.unknownLocationAllowed.length) console.log(`🛰️  DC-policy unknown-location kept: ${r.dc.unknownLocationAllowed.map(x => x.title.slice(0, 45)).join(' | ')}`);
+        }
+
         // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
         // SELECTED item came from, by section — so we can see which feeds actually produce
         // transactions vs people vs relevant (feed-health.json has fetch/keep, but not by
@@ -1546,6 +1590,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             console.warn('⚠️ Quality score failed:', (e as Error).message);
         }
 
+        if (dcPolicyRecord) diag.recordDcPolicy(dcPolicyRecord);
         try {
             writeNewsletterDiagnostics(docsDir, diag.toJSON());
             console.log(`📊 Diagnostics written: docs/diagnostics/latest.json`);
