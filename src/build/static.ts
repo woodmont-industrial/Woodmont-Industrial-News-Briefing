@@ -15,7 +15,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
-import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride } from '../shared/region-data.js';
+import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
@@ -441,6 +441,17 @@ export async function buildStaticRSS(): Promise<void> {
             if (hasProfileFormat && hasCREFirmContext) {
                 item.category = 'people';
                 (item as any)._classificationReason = 'PEOPLE_PROFILE_FORMAT';
+                return item;
+            }
+
+            // 1e. LISTING EVENT = AVAILABILITY (2026-07-29). A present-tense listing verb governing a
+            // concrete asset ("CPN lists Mercer County development site") means a property is being
+            // brought to market — an availability, NOT a transaction. Placed before the TXN branches so
+            // it overrides TXN_SF_IN_TITLE and the SF+context deal fallback. The completed-deal guard is
+            // inside isMarketingListingEvent, so a genuine deal ("sells and lists") still falls through.
+            if (isMarketingListingEvent(text) && hasPropertyType && !isNonIndustrial) {
+                item.category = 'availabilities';
+                (item as any)._classificationReason = 'AVAIL_LISTING_EVENT';
                 return item;
             }
 

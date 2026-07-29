@@ -19,7 +19,7 @@ import {
     TRANSACTION_ACTION_WORDS, APPROVAL_KEYWORDS, EXCLUDE_FROM_PEOPLE,
     APPROVED_DOMAINS, REGIONAL_SOURCES, BROKERAGE_SOURCES,
     isStrictlyIndustrial,
-    hasWrongPropertyType, hasStrongIndustrialOverride
+    hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent
 } from '../shared/region-data.js';
 
 // Geographic-only target regions (no CRE company names)
@@ -393,6 +393,10 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
             return false;
         }
         if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('transactions', 'NOT_INDUSTRIAL'); return false; }
+        // LISTING EVENT (2026-07-29): a property/site being listed/marketed/offered is an
+        // availability, not a transaction — reject it here BEFORE the approval-keyword bypass and
+        // the SF threshold so neither can re-admit it. Completed deals are excluded inside the helper.
+        if (isMarketingListingEvent(text)) { if (diag) diag.recordReject('transactions', 'LISTING_EVENT_NOT_DEAL'); return false; }
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;
         // Transaction must clear the deal-size floor stated in the newsletter footer
@@ -441,6 +445,10 @@ export function applyAvailabilityFilter(items: NormalizedItem[], diag?: Diagnost
         if (!passesWoodmontRubric(article, diag, 'availabilities')) return false;
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('availabilities', 'POLITICAL_CONTENT'); return false; }
+        // LISTING EVENT (2026-07-29): a property/site being listed/marketed/offered is an
+        // availability even when the present-tense verb ("lists") isn't in availabilityWords and
+        // even if no size is stated (entitled land being marketed). Still requires industrial.
+        if (isMarketingListingEvent(text) && isIndustrialProperty(text)) return true;
         // Accept availability-specific language
         const availabilityWords = [
             'available', 'for sale', 'for lease', 'listing', 'on the market',

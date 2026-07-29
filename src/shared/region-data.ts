@@ -603,6 +603,24 @@ export const APPROVAL_KEYWORDS = [
     'permits', 'planning board', 'commission'
 ];
 
+// LISTING-EVENT OVERRIDE (2026-07-29): a present-tense listing verb (lists/markets/offers)
+// governing a concrete marketed asset means a property/site is being BROUGHT TO MARKET — an
+// availability, not a completed transaction. Deliberately narrow: the verb must directly govern
+// a concrete property object (sector words like "logistics/industrial" count only with a property
+// head-noun), so "10 Emerging Data Center Markets to Watch" and "offers cash" do NOT match.
+export const LISTING_EVENT_RE = /\b(lists|markets|offers)\b(?:\s+(?:up|out|for\s+(?:sale|lease)))?\s+(?:a|an|the|its|new|\d[\d,]*(?:\.\d+)?(?:\s*(?:sf|k|acres?))?\s+)?(?:[\w.\-]+\s+){0,3}?(sites?|propert(?:y|ies)|buildings?|warehouses?|facilit(?:y|ies)|land|acreage|acres?|campus(?:es)?|complex(?:es)?|portfolios?|sq\.?\s*ft|square\s*feet|(?:industrial|logistics|distribution)\s+(?:buildings?|facilit(?:y|ies)|parks?|centers?|centres?|warehouses?|complex(?:es)?|campus(?:es)?|portfolios?))\b/i;
+
+// A genuine COMPLETED-deal action — if present, the item stays a transaction even with a listing
+// verb ("Company sells and lists remaining building"). Bare noun "lease" (as in "for lease") is
+// deliberately excluded so an availability phrasing does not read as a completed deal.
+export const COMPLETED_DEAL_ACTION_RE = /\b(acquires?|acquired|sells?|sold|buys?|bought|purchas(?:es?|ed)|leased|signs?\s+(?:a\s+)?lease|inks?\s+(?:a\s+)?lease|finances?|financed|refinances?|closes?\s+(?:on|the\s+deal|deal)|closed|trades?|traded)\b/i;
+
+// True when text describes a property/site being listed/marketed/offered for sale or lease and
+// there is NO completed-deal action. This is the single source of truth for all three layers.
+export function isMarketingListingEvent(text: string): boolean {
+    return LISTING_EVENT_RE.test(text) && !COMPLETED_DEAL_ACTION_RE.test(text);
+}
+
 // Exclude from people news (residential/non-industrial)
 export const EXCLUDE_FROM_PEOPLE = [
     'residential broker', 'elliman', 'compass real', 'redfin', 'zillow',
