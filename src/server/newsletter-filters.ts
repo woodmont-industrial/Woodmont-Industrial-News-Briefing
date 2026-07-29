@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
+import { normTitle, titlesSimilar } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { dcPolicyVerdict, dcDollarsB, dcMW, nonTargetTokens } from '../shared/dc-policy.js';
 import {
@@ -720,6 +721,99 @@ export function applyDataCenterPolicy(
     // Exception placed LAST so the caller's section cap prefers confirmed-regional/normal items.
     relevant = [...normal, ...keptException];
     return { relevant, transactions, availabilities, people, dc };
+}
+
+// =====================================================================
+// SAME-SEND NEAR-TITLE DEDUP (2026-07-28)
+// =====================================================================
+// Catches a syndicated story that ships twice in ONE send with near-identical titles that the
+// exact-string dedupeByTitle misses (Jul 28: "…remains HEALTHY across the region" [Central Penn]
+// vs "…remains HEALTH across the region" [Lehigh Valley] — a one-char typo across two publishers,
+// no deal signature). Reuses the scorer's titlesSimilar/normTitle. NEVER collapses on title
+// similarity alone — requires NO conflicting location and NO conflicting deal metric. Same-send
+// only; leaves exact-title / signature / entity-key / cross-day dedup untouched.
+
+const NT_STRIP_PUB = (t: string) => t.replace(/\s+[-–—|]\s+[^-–—|]*$/, '');
+// Location tokens (curated; publisher suffix stripped first). Only used to DETECT a conflict —
+// if both titles name a place and the sets are disjoint, they are different stories.
+const NT_LOC_RE = /\b(new jersey|\bnj\b|pennsylvania|\bpa\b|florida|\bfl\b|newark|jersey city|edison|piscataway|elizabeth|trenton|camden|woodbridge|carteret|linden|secaucus|kearny|bayonne|paterson|clifton|hoboken|union city|new brunswick|south brunswick|perth amboy|sayreville|south plainfield|moonachie|carlstadt|rockaway|parsippany|hamilton|robbinsville|cranbury|meadowlands|philadelphia|philly|allentown|bethlehem|easton|lehigh valley|pittsburgh|harrisburg|lancaster|reading|scranton|king of prussia|conshohocken|bucks county|montgomery county|chester county|delaware county|miami|doral|hialeah|medley|fort lauderdale|pompano|broward|west palm|palm beach|miami-dade|orlando|tampa|jacksonville|ocala|winter park|savannah|columbus|phoenix|atlanta|dallas|houston|austin|chicago|denver|seattle|nashville|charlotte|memphis|richmond|louisville|new york|brooklyn|boston|los angeles|san francisco|las vegas)\b/gi;
+function ntLocations(title: string): Set<string> {
+    return new Set((NT_STRIP_PUB(title).toLowerCase().match(NT_LOC_RE) || []).map(s => s.trim()));
+}
+function ntLocationConflict(a: string, b: string): boolean {
+    const la = ntLocations(a), lb = ntLocations(b);
+    if (la.size === 0 || lb.size === 0) return false;
+    for (const x of la) if (lb.has(x)) return false; // share at least one location → no conflict
+    return true;                                     // both name places, none shared → conflict
+}
+// Deal-metric extraction per type, for conflict detection ($ millions, SF, acres, MW).
+function ntMetrics(title: string): { price: Set<number>; sf: Set<number>; acre: Set<number>; mw: Set<number> } {
+    const t = NT_STRIP_PUB(title).toLowerCase();
+    const price = new Set<number>(), sf = new Set<number>(), acre = new Set<number>(), mw = new Set<number>();
+    const n = (s: string) => parseFloat(s.replace(/,/g, ''));
+    for (const m of t.matchAll(/\$\s*(\d[\d,]*(?:\.\d+)?)\s*(b|bn|billion|m|mm|million)?\b/g)) price.add(Math.round(n(m[1]) * (/b/.test(m[2] || '') ? 1000 : 1)));
+    for (const m of t.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*(?:k)?\s*(?:sf|sq\.?\s*ft|square[\s-]*f(?:ee|oo)t)\b/g)) sf.add(Math.round(n(m[1]) * (/k/.test(m[0]) ? 1000 : 1) / 1000));
+    for (const m of t.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*-?\s*acres?\b/g)) acre.add(Math.round(n(m[1])));
+    for (const m of t.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*-?\s*(gw|gigawatts?|mw|megawatts?)\b/g)) mw.add(Math.round(n(m[1]) * (/g/.test(m[2]) ? 1000 : 1)));
+    return { price, sf, acre, mw };
+}
+function ntMetricConflict(a: string, b: string): boolean {
+    const ma = ntMetrics(a), mb = ntMetrics(b);
+    for (const k of ['price', 'sf', 'acre', 'mw'] as const) {
+        const sa = ma[k], sb = mb[k];
+        if (sa.size && sb.size) { let shared = false; for (const x of sa) if (sb.has(x)) shared = true; if (!shared) return true; }
+    }
+    return false;
+}
+
+// Direct/preferred sources rank above Google-News-syndicated for survivor selection.
+const NT_PREFERRED_SOURCES = ['re-nj.com', 'roi-nj.com', 'njbiz.com', 'lvb.com', 'bisnow.com', 'globest.com', 'costar.com', 'bizjournals.com', 'rebusinessonline.com', 'connectcre.com', 'commercialobserver.com', 'therealdeal.com'];
+function ntSourcePriority(a: NormalizedItem): number {
+    const src = (((a as any)._source?.website) || a.source || (a as any).url || a.link || '').toLowerCase();
+    return NT_PREFERRED_SOURCES.some(s => src.includes(s)) ? 1 : 0;
+}
+
+/** Pairwise near-title duplicate test: titlesSimilar AND no conflicting location AND no
+ *  conflicting deal metric. The single definition used by both dedupeByNearTitle (initial
+ *  collapse) and the post-desc refill (so a freed slot isn't refilled with the same dup). */
+export function isNearTitleDuplicate(a: NormalizedItem, b: NormalizedItem): boolean {
+    const ta = a.title || '', tb = b.title || '';
+    if (!titlesSimilar(normTitle(ta), normTitle(tb))) return false;
+    if (ntLocationConflict(ta, tb)) return false;
+    if (ntMetricConflict(ta, tb)) return false;
+    return true;
+}
+
+/**
+ * Collapse same-send near-title duplicates within a section. A pair collapses ONLY when
+ * titlesSimilar passes AND there is no conflicting location AND no conflicting deal metric.
+ * Survivor is deterministic: (1) preferred/direct source, (2) cleaner/more-complete title
+ * (longer normalized title — a truncated/typo copy is shorter), (3) higher score, (4) original
+ * order. Returns the filtered array; logs removed items. When `removedIds` is passed, each
+ * dropped item's id/link is added to it so callers can keep the loser out of later backfill.
+ */
+export function dedupeByNearTitle(items: NormalizedItem[], scoreFn: (a: NormalizedItem) => number, label: string, removedIds?: Set<string>): NormalizedItem[] {
+    const removed = new Set<number>();
+    for (let i = 0; i < items.length; i++) {
+        if (removed.has(i)) continue;
+        for (let j = i + 1; j < items.length; j++) {
+            if (removed.has(j)) continue;
+            if (!isNearTitleDuplicate(items[i], items[j])) continue;
+            // Same story. Pick survivor deterministically; drop the other.
+            const better = (x: number, y: number): number => {
+                const sp = ntSourcePriority(items[x]) - ntSourcePriority(items[y]); if (sp) return sp > 0 ? x : y;
+                const lg = normTitle(items[x].title || '').length - normTitle(items[y].title || '').length; if (lg) return lg > 0 ? x : y;
+                const sc = scoreFn(items[x]) - scoreFn(items[y]); if (sc) return sc > 0 ? x : y;
+                return x; // stable original order
+            };
+            const winner = better(i, j), loser = winner === i ? j : i;
+            removed.add(loser);
+            if (removedIds) { const lid = items[loser].id || items[loser].link; if (lid) removedIds.add(lid); }
+            console.log(`🔁 Near-title dedup [${label}] removed: "${(items[loser].title || '').slice(0, 55)}" (kept "${(items[winner].title || '').slice(0, 40)}")`);
+            if (winner === j) break; // i was dropped; move to next i
+        }
+    }
+    return items.filter((_, idx) => !removed.has(idx));
 }
 
 // =====================================================================

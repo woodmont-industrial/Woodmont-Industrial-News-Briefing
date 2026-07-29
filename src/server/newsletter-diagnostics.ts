@@ -228,13 +228,16 @@ function isBrokenTitle(it: any): boolean {
     // empty, stub, single-token, or a scraped pagination/index page ("… – Page 360")
     return t.length < 20 || !/\s/.test(t) || /[-–—]\s*page\s+\d+\b/i.test(t);
 }
-function normTitle(title: string): string {
+// Exported so candidate-stage within-send dedup reuses ONE definition of near-title
+// similarity (rather than maintaining a second fuzzy-title implementation). See
+// dedupeByNearTitle in newsletter-filters.ts.
+export function normTitle(title: string): string {
     return (title || '').toLowerCase()
         .replace(/\s+[-–—]\s+[^-–—]*$/, '') // strip trailing " - Source" suffix
         .replace(/[^a-z0-9 ]/g, ' ')
         .replace(/\s+/g, ' ').trim();
 }
-function titlesSimilar(a: string, b: string): boolean {
+export function titlesSimilar(a: string, b: string): boolean {
     if (!a || !b) return false;
     if (a === b) return true;
     const sa = new Set(a.split(' ').filter(w => w.length > 3));

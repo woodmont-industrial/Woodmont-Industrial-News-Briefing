@@ -12,6 +12,7 @@ import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     applyDataCenterPolicy, dcVerdictOf, isDcExceptionItem, type DcPolicyRecord,
+    dedupeByNearTitle, isNearTitleDuplicate,
     reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
@@ -540,10 +541,26 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = reCat.transactions;
         people = reCat.people;
 
+        // SAME-SEND NEAR-TITLE DEDUP (2026-07-28): collapse a syndicated story that entered a
+        // section twice with near-identical titles that exact-string dedupeByTitle missed (the
+        // "healthy"/"health" typo pair). Reuses the scorer's titlesSimilar; requires no conflicting
+        // location/metric. Runs BEFORE backfill so the freed slot is refilled with a DISTINCT item,
+        // and the dropped loser is recorded in nearTitleSuppressed so no backfill tier re-adds it.
+        // Score isn't computed this early, so the survivor resolves on source-priority → cleaner/
+        // longer title → order (a near-title duplicate is the same story, so article score — the
+        // 3rd tiebreaker — is immaterial here). Same-send only; does not touch cross-day dedup.
+        const nearTitleSuppressed = new Set<string>();
+        const noScore = (_a: NormalizedItem) => 0;
+        relevant = dedupeByNearTitle(relevant, noScore, 'relevant', nearTitleSuppressed);
+        transactions = dedupeByNearTitle(transactions, noScore, 'transactions', nearTitleSuppressed);
+        availabilities = dedupeByNearTitle(availabilities, noScore, 'availabilities', nearTitleSuppressed);
+        people = dedupeByNearTitle(people, noScore, 'people', nearTitleSuppressed);
+
         // Fill empty sections from ALL regional articles, restricted to the section's own
         // category so a transactions article doesn't get pushed into availabilities (or vice
         // versa) just because it matches the keyword filter.
         const usedIds = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
+        nearTitleSuppressed.forEach(id => usedIds.add(id)); // keep near-title losers out of backfill
         const addFromAllSources = (
             section: NormalizedItem[], min: number,
             filterFn: (items: NormalizedItem[]) => NormalizedItem[], label: string,
@@ -1228,6 +1245,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Second backfill: post-desc filtering can drop sections below minimum,
         // so refill from unused articles that also pass post-desc check
         const usedIdsPostDesc = new Set([...relevant, ...transactions, ...availabilities, ...people].map(a => a.id || a.link));
+        nearTitleSuppressed.forEach(id => usedIdsPostDesc.add(id)); // near-title losers stay out of post-desc refill too
         const regionalPostDescPool = regionalArticles
             .filter(a => !usedIdsPostDesc.has(a.id || a.link) && a.category !== 'exclude')
             .filter(postDescriptionRegionCheck);
@@ -1249,6 +1267,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
             for (const a of candidates) {
                 if (section.length >= min) break;
+                // Don't refill a slot with a same-send near-title duplicate of an already-selected
+                // item (the freed slot must go to a genuinely different article) — 2026-07-28.
+                if (section.some(s => isNearTitleDuplicate(s, a))) { usedIdsPostDesc.add(a.id || a.link); continue; }
                 section.push(a);
                 usedIdsPostDesc.add(a.id || a.link);
             }
