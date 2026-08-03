@@ -339,6 +339,18 @@ export async function buildStaticRSS(): Promise<void> {
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
             const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
 
+            // SCRAPE ARTIFACT (2026-07-30): index/archive pages from category feeds ship as
+            // "Tag: Logistics Real Estate - ROI-NJ" (a tag listing, not an article). Reject on the
+            // TITLE PREFIX only — matched anchored at the start, so a real article that merely
+            // contains "tag"/"category"/"author" elsewhere is untouched. URL paths (/tag/, /category/)
+            // are useless here because Google News RSS obscures the destination URL; body length
+            // alone is unsafe (paywalled real articles are also thin), so neither is used.
+            if (/^\s*(tag|category|archive|topic|author)\s*:/i.test(item.title || '')) {
+                item.category = 'exclude';
+                (item as any)._classificationReason = 'SCRAPE_ARTIFACT_INDEX_PAGE';
+                return item;
+            }
+
             // Hard property-type gate (regexes in shared/region-data.ts so
             // newsletter-filters.ts uses the same set). Office / residential /
             // retail / hospitality / self-storage articles with SF signals
