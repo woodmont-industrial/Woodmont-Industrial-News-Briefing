@@ -1,17 +1,18 @@
 {
-  "runId": "2026-06-22-1447",
-  "generatedAt": "2026-06-22T14:47:37.181Z",
+  "runId": "2026-08-03-1135",
+  "generatedAt": "2026-08-03T11:35:03.682Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 230,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 258,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 9,
+      "supplyCandidates": 95,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -34,13 +35,14 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 7,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -48,14 +50,15 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 230,
-      "inWindow": 1,
-      "regionPass": 0,
+      "loaded": 258,
+      "inWindow": 5,
+      "regionPass": 4,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 3,
+      "supplyCandidates": 9,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -68,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 3,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -83,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 3,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -92,14 +95,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 230,
+      "loaded": 258,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
+      "selected": 1,
+      "supplyCandidates": 7,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -132,18 +136,19 @@
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "people": {
-      "loaded": 230,
+      "loaded": 258,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
+      "selected": 1,
+      "supplyCandidates": 4,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -172,7 +177,7 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
+        "tier3_30d_deep": 2,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -180,12 +185,151 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 8,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 5,
+        "transactions": 1,
+        "availabilities": 1,
+        "people": 1
+      }
+    },
+    "Google News Pittsburgh Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Tampa Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Orlando Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "globest.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "bisnow.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Real Estate NJ": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    }
+  },
   "weekInReview": {
     "totalCandidates": 0,
     "afterAgeFilter": 0,
     "afterDedup": 0,
     "selected": 0,
     "windowDays": 7
+  },
+  "quality": {
+    "score": 78,
+    "outOf10": 7.8,
+    "grade": "C",
+    "itemCount": 14,
+    "breakdown": {
+      "coverage": 30,
+      "freshness": 13.7,
+      "regional": 23.2,
+      "relevanceIntegrity": 20
+    },
+    "age": {
+      "fresh": 2,
+      "deep": 13,
+      "reserve": 0
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Rich",
+    "penalties": [
+      {
+        "type": "duplicate_in_send",
+        "points": 6,
+        "detail": "Repeats another item in this send: \"News | Top industrial leases recognized for Orla\""
+      },
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Why Hessam Nadji Says Commercial Real Estate Is \""
+      }
+    ],
+    "notes": []
+  },
+  "dcPolicy": {
+    "rejectedOutOfRegion": [],
+    "nationalScaleAllowed": [],
+    "unknownLocationAllowed": []
   }
 }
