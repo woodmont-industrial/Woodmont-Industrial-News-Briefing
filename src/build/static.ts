@@ -351,6 +351,18 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
+            // LOW-VALUE ROUNDUP (2026-08-03): CoStar's per-metro recognition franchise ships as
+            // "News | Top industrial leases recognized for [Metro] - CoStar" — a ranking/recognition
+            // page with no body and no specific deal (no SF/$), one boilerplate copy per metro. Reject
+            // BEFORE the transaction/relevant fallbacks (its "leases" verb otherwise reads as a deal
+            // signal). Deliberately narrow — this exact phrase only; NOT a general CoStar exclusion,
+            // so ordinary CoStar deal/market/transaction reporting is untouched.
+            if (/top\s+industrial\s+leases\s+recognized\s+for\b/i.test(item.title || '')) {
+                item.category = 'exclude';
+                (item as any)._classificationReason = 'LOW_VALUE_ROUNDUP';
+                return item;
+            }
+
             // Hard property-type gate (regexes in shared/region-data.ts so
             // newsletter-filters.ts uses the same set). Office / residential /
             // retail / hospitality / self-storage articles with SF signals
