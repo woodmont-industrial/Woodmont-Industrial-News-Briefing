@@ -9,7 +9,7 @@ import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass } from '../shared/url-utils.js';
 import {
-    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty,
+    getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty, hasGeographicFailure,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
     applyDataCenterPolicy, dcVerdictOf, isDcExceptionItem, type DcPolicyRecord,
     dedupeByNearTitle, isNearTitleDuplicate,
@@ -1599,6 +1599,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     sigOf: (it: any) => extractCrossDayDedupSignatures(it.title || '', it.description || (it as any).summary || ''),
                     recentSigs,
                     timing: { lateMinutes, manual: triggerEvent === 'workflow_dispatch' },
+                    // Reuse the routing region verdict so the scorer's region-leak agrees with the gate
+                    // that admitted the item — a buyer-HQ token in a correctly-routed in-region deal is
+                    // not a leak (Rule C, 2026-08-03).
+                    regionOk: (it: any) => isTargetRegion(it) && !hasGeographicFailure(it).fails,
                 }
             );
             diag.recordQuality(quality);

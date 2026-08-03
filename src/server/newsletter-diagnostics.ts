@@ -204,15 +204,46 @@ const MACRO_RX = /\b(industrial market|warehouse market|warehouse demand|logisti
 // Concrete industrial-RE signal — its ABSENCE on a non-target item flags "weak".
 const INDUSTRIAL_SIGNAL_RX = /\b(warehouse|industrial|logistics|distribution|fulfillment|manufactur|lease|sublease|\bsf\b|square (foot|feet)|acre|\$\s?\d|port|cold storage|spec|build-to-suit|big.?box|last.?mile|developer|portfolio|tenant)\b/i;
 // Positive wrong-region / wrong-asset evidence — a genuine leak (worst penalty).
-const EXCLUDED_REGION_RX = /\b(california|texas|chicago|illinois|ohio|atlanta|georgia|arizona|phoenix|nevada|seattle|denver|oahu|hawaii|tennessee|alabama|india|china|france|toulouse|australia|nsw|canada|mexico|united kingdom)\b|\b(rite aid|pharmacy|apartment complex|multifamily|retail mall|office tower)\b/i;
+// Exported so the region-leak test can lock the exact vocabulary.
+export const EXCLUDED_REGION_RX = /\b(california|texas|chicago|illinois|ohio|atlanta|georgia|arizona|phoenix|nevada|seattle|denver|oahu|hawaii|tennessee|alabama|india|china|france|toulouse|australia|nsw|canada|mexico|united kingdom)\b|\b(rite aid|pharmacy|apartment complex|multifamily|retail mall|office tower)\b/i;
 // Non-real-estate junk that keyword-matches industrial terms but must never ship:
 // animal-welfare/wildlife (e.g. "sloth … warehouse rescue", 2026-06-25 leak) and
 // scraped pagination/index pages ("Industrial – Page 360"). Penalized as a leak.
-const NON_RE_JUNK_RX = /\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b|[-–—]\s*page\s+\d+\b/i;
+export const NON_RE_JUNK_RX = /\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b|[-–—]\s*page\s+\d+\b/i;
 
 function round1(n: number): number { return Math.round(n * 10) / 10; }
 function itemText(it: any): string {
     return `${it.title || ''} ${it.description || it.summary || ''} ${it.content_text || ''}`;
+}
+
+// Comparative / policy framing cue — used ONLY for the mixed-region leak exception (Rule C).
+const COMPARE_CUE = /\b(and|vs\.?|versus|compared|comparison|approaches|both|either|between|outpaces?|leads?|trails?)\b/i;
+// Strip a trailing " - Publisher" suffix so publisher names ("… - RE-NJ") never count as in-title
+// region evidence for the mixed-comparison exception.
+function stripPublisherSuffix(title: string): string {
+    return (title || '').replace(/\s+[-–—]\s+[^-–—]*$/, '');
+}
+
+/**
+ * Region-leak verdict (Rule C, 2026-08-03). An excluded-region token is a leak UNLESS the item is
+ * either (a) a correctly-routed target-market item (`routedClean` — the buyer-HQ case, e.g. a Denver
+ * firm buying a Philadelphia portfolio), or (b) a genuine mixed-region MACRO/POLICY comparison:
+ * BOTH a target and an excluded token in the TITLE CORE (publisher suffix stripped, so body-only or
+ * publisher-suffix evidence never qualifies), a comparative/macro cue, AND the item is in the
+ * RELEVANT section (send-time placement — a property TRANSACTION that merely names a comparison still
+ * leaks). `section` MUST be the scorer's send-time section, not a stale feed.json category.
+ * NON_RE_JUNK_RX is independent of this and handled by the caller.
+ */
+export function isRegionLeak(it: any, section: Section, routedClean: boolean): boolean {
+    const text = itemText(it);
+    if (!EXCLUDED_REGION_RX.test(text)) return false;
+    if (routedClean) return false;
+    const titleCore = stripPublisherSuffix(it.title || '');
+    const mixedComparison =
+        EXCLUDED_REGION_RX.test(titleCore) && REGION_RX.test(titleCore) &&
+        (COMPARE_CUE.test(titleCore) || MACRO_RX.test(text)) &&
+        section === 'relevant';
+    return !mixedComparison;
 }
 function regionScoreOf(it: any): number {
     const tagged = [it.region, ...(it.regions || []), ...(it.tags || [])]
@@ -252,7 +283,11 @@ export function titlesSimilar(a: string, b: string): boolean {
 export function computeNewsletterScore(
     payload: DiagnosticPayload,
     selected: Record<Section, any[]>,
-    opts: { sigOf: (it: any) => string[]; recentSigs: Set<string>; timing?: { lateMinutes: number; manual: boolean } }
+    opts: { sigOf: (it: any) => string[]; recentSigs: Set<string>; timing?: { lateMinutes: number; manual: boolean };
+        // Routing region verdict (2026-08-03): true when the item is a correctly-routed target-market
+        // item (isTargetRegion && !hasGeographicFailure). Reused by the region-leak so a buyer-HQ token
+        // in an in-region deal isn't flagged. When absent, routedClean is false (old strictness).
+        regionOk?: (it: any) => boolean }
 ): NewsletterQuality {
     const order: Section[] = ['relevant', 'transactions', 'availabilities', 'people'];
     const allItems = order.flatMap(s => selected[s] || []);
@@ -343,15 +378,19 @@ export function computeNewsletterScore(
         }
     });
 
-    // Off-target leaks (-12) and weak/borderline items (-3)
-    allItems.forEach(it => {
-        const text = itemText(it);
-        if (EXCLUDED_REGION_RX.test(text) || NON_RE_JUNK_RX.test(text)) {
-            penalties.push({ type: 'leak', points: PENALTY.leak, detail: `Off-target / non-RE content shipped: ${label(it)}` });
-        } else if (regionScoreOf(it) < 1 && !INDUSTRIAL_SIGNAL_RX.test(text)) {
-            penalties.push({ type: 'weak_item', points: PENALTY.weak, detail: `Borderline / off-topic: ${label(it)}` });
+    // Off-target leaks (-12) and weak/borderline items (-3). Iterated per-section so the region-leak
+    // (Rule C) can use the item's SEND-TIME placement, not a stale feed.json category.
+    for (const section of order) {
+        for (const it of (selected[section] || [])) {
+            const text = itemText(it);
+            const routedClean = opts.regionOk ? opts.regionOk(it) : false;
+            if (isRegionLeak(it, section, routedClean) || NON_RE_JUNK_RX.test(text)) {
+                penalties.push({ type: 'leak', points: PENALTY.leak, detail: `Off-target / non-RE content shipped: ${label(it)}` });
+            } else if (regionScoreOf(it) < 1 && !INDUSTRIAL_SIGNAL_RX.test(text)) {
+                penalties.push({ type: 'weak_item', points: PENALTY.weak, detail: `Borderline / off-topic: ${label(it)}` });
+            }
         }
-    });
+    }
 
     // ---- Delivery timing: lateness + manual-intervention penalties ----
     // Recorded in penalties[] (so the CSV lateDelivery/manualSend columns populate), but
