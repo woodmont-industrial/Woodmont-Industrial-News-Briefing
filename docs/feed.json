@@ -23,19 +23,18 @@
         "name": "Google News FL Industrial"
       },
       "_source": {
-        "name": "Google News FL Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPbDVzakRyeDhreDFPTEhlZHFNQ0J6cHhCWlZFNEF0dVVwQ1kwSFpOWFFBV3pnWjZaSWotU0MxSER6WmRySFVIZlExM0JLZFF0OXhKQVZEcnJVWEx6OV9vdXFFZ0x1V2NVNklhTGtpcmhlaF9kR0Rra1RZY1hvVXhwN2VzcGwxM1FyTGc?oc=5",
-        "feedName": "Google News FL Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "FL"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "B",
       "_woodmontApprove": false,
@@ -72,7 +71,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — the headline explicitly mentions a 'Statewide Moratorium' on data center development, which matches Rule 3's ban on articles pushing opposition, pauses, or freezes to development.",
+      "_woodmontReason": "Anti-DC framing — headline includes 'Endorses Statewide Moratorium' on data center development, which matches Rule 3 blocking opposition to data center development.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -105,7 +104,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "The article covers the Industrial Outdoor Storage (IOS) market in New Jersey, which is a target asset class in a target region, meeting all APPROVE criteria.",
+      "_woodmontReason": "Target region (NJ) and target asset class (Industrial Outdoor Storage), fresh market intel (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -137,10 +136,10 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Target region (PA) industrial manufacturing facility expansion fits asset class and freshness criteria (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 85,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontApprove": false,
+      "_woodmontReason": "Wrong asset class - primarily about manufacturing facility, but not a warehouse, distribution center, fulfillment center, etc. (Rule: 5)",
+      "_woodmontConfidence": 80,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "61896735b34be7b96ef2ed7fbdffe75e863113dc",
@@ -156,19 +155,18 @@
         "name": "Google News Industrial RE"
       },
       "_source": {
-        "name": "Google News Industrial RE",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSHNWV3BiTW5kMEZYRWpudUZPZkk5Vi05d0dYamNCc3VNVDBGZmRIRU1WT2pRek5MR2hWY29NWjZNaWN2dHk3R2lrdDNnaklscUFUN2JldzhrRjYxTTFldVV2N2RpdnptTTlBcGI3ak1Vazd1WVE1ZWZNcmg1NVczemp5MDdnSmhXcjhzdE82aGZieDBXZE8xankxa3kyZXFmVms3QmR0bzhMZW8?oc=5",
-        "feedName": "Google News Industrial RE"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -190,16 +188,15 @@
         "name": "Google News RE-NJ Industrial"
       },
       "_source": {
-        "name": "Google News RE-NJ Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPbjNDY1JUV1VlTTUwOE1NRWh5Y1plam1CbUR4eDFTQllYbFdGVmF2b0RTMkdpVTZVMVlHbkp0TVRYTl9Ed2hpQnhWTmFHZkhlRlYyS0dWWW5sZ3h2NlMxQkNIdXZvTVEtVThKT2NEME15Vm1XOUVCMjNxVXlhdnBmRjBFejFsZEp5RXk3ZGJTcUtXdk81cTJKQ3NaSWQzY3ZsakRJRjJQWlI5czlqVlJz?oc=5",
-        "feedName": "Google News RE-NJ Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "NJ"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -272,7 +269,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "The article is a general Commercial Real Estate market outlook/interview that does not specifically focus on industrial real estate, failing the 'Industrial real estate only' requirement.",
+      "_woodmontReason": "General CRE focus — the article discusses broad commercial real estate trends (rates, loans) without a specific industrial angle, failing the 'Industrial real estate only' focus.",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -323,23 +320,22 @@
         "name": "Bisnow Philadelphia"
       },
       "_source": {
-        "name": "Bisnow Philadelphia",
+        "name": "bisnow.com",
         "website": "bisnow.com",
         "url": "https://www.bisnow.com/news/philadelphia/industrial/spec-big-box-demise-135636",
-        "feedName": "Bisnow Philadelphia"
+        "feedName": "bisnow.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "bisnow.com",
-        "PA"
+        "bisnow.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "A",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant industrial market trend in target region (PA/Philadelphia) regarding big-box warehouse leasing strategies, published within 7 days by a reputable CRE source.",
+      "_woodmontReason": "Approve - Article covers industrial real estate market trends in target region Pennsylvania (Philly), published within 7 days, and provides relevant market intelligence for senior executives.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -372,8 +368,8 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "The article is about a company award for internships, not industrial real estate transactions, development, or market trends, failing the 'Primary subject is industrial real estate' approval criteria.",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Primary subject is not industrial real estate; it is a corporate HR award for a logistics provider, failing the 'Primary subject is industrial real estate' approval criteria.",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -405,9 +401,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction at $1B / 6M SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Major national industrial transaction ($1B, 6M SF) meets threshold and qualifies as clearly relevant macro/national news (Rule: APPROVE criteria).",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq"
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "c70348a5d5181c59264c71132429cb74394589e9",
@@ -437,10 +433,10 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — 'AI infrastructure boom' is a pro-development framing, but the article is about Equinix's spending plans, which could be seen as a neutral story, however, the framing is still leaning towards a positive spin on the AI boom, which is a sensitive topic (Rule: APPROVE criteri",
-      "_woodmontConfidence": 60,
-      "_woodmontClassifier": "groq"
+      "_woodmontApprove": true,
+      "_woodmontReason": "Article covers pro-development capital flows from a major data center REIT, fitting the macro/national exception and Rule 17 for pro-development data center coverage.",
+      "_woodmontConfidence": 90,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "80a23f598beb9eeaa5fa259f34c5158b00d65c38",
@@ -471,7 +467,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — the article is about a president's comments on data centers, which may be editorial in tone, matches Rule 3",
+      "_woodmontReason": "Anti-data-center framing — article mentions opposition to data centers, matches Rule 3",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -535,7 +531,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_SF_IN_TITLE",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -555,23 +551,22 @@
         "name": "Google News PA CRE People"
       },
       "_source": {
-        "name": "Google News PA CRE People",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPaTJmMnZnamRSc3lwTjhoeFU2UjBqdURyRFJCSmdTODctY3B4c0ZGUU5DWno3Y1hUZzdtN1ctVkRTV0JXallsSTRlODBidTdJTDF1dlhmVElHZ2lZTXBocUVWazNPSmlaOGl4Mi0yai12cGVGT2pzc3lkWm4zTE1Wam8xSl9GUWlha24xR3FQS0ZKRko3UExXNW8xdmdLNW9ka29PNGNtdG1MQnVISjdlRFRJeE84RW4tTnVNTjFqbGR3aE5EYzZoSmlfQkF3Und1SExEWWVyRWJLeDVraWc?oc=5",
-        "feedName": "Google News PA CRE People"
+        "feedName": "news.google.com"
       },
       "category": "people",
       "tags": [
         "People News — Personnel Moves in CRE",
-        "news.google.com",
-        "PA"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "B",
       "_woodmontApprove": false,
-      "_woodmontReason": "People in adjacent roles — Logistics Plus is a logistics company, but the story is about a recognition award for internships, not industrial real estate or macro market intel (Rule: Judgment Calls, adjacent industries with non-industrial framing)",
+      "_woodmontReason": "People in adjacent roles — reject if pure recognition/award, matches Rule 10 (People in adjacent roles)",
       "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
@@ -604,8 +599,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Macro industrial market outlook from REJournals, published within 7 days, qualifies as clearly relevant macro/national content under the APPROVE criteria.",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Macro industrial market analysis piece published within 7 days, relevant to senior executives tracking market cycles (Rule: APPROVE criteria all met).",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -636,9 +631,9 @@
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial facility construction in PA, target region + relevant macro (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
+      "_woodmontApprove": false,
+      "_woodmontReason": "Wrong region — Erie is in Pennsylvania, but the article does not specify the exact location within PA, matches Rule 9",
+      "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
     {
@@ -670,7 +665,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "International location — Xiamen is in China, which is outside the US target region (Rule 10).",
+      "_woodmontReason": "International location — Xiamen is in China, which is outside the US target regions (NJ, PA, FL), matches Rule 10.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -802,7 +797,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — the property is located in France (Saint-Aignan-Grandlieu), not NJ, PA, or FL, matches Rule 10",
+      "_woodmontReason": "Wrong region — the property is located in Saint-Aignan-Grandlieu, France, which is outside the target NJ/PA/FL region and is international, matches Rule 10.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -871,6 +866,40 @@
       "_woodmontReason": "Target region (PA) industrial development news; Bucks County project fits asset class and geography, fresh publication date.",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "cbd49abcbde0d596072eaef84eb50f4f8f600709",
+      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOS0FWdnVlc0ZYb3FoY0NfNXAwdGhaQmZzTm9yUzZOeFdoLWJMdTdISjdndFJNeFpFajVuaUU1WkcxTEZqNlBOQWRFWk1IWjVMeE9ZV3A4dlVsNDREZ2hFT1poMWkyQkMtb1ZUaFBKdGt1bmtQa1RwTVh6VHZ4M3VGOEh0NUlQTFFYYzdjT1JiRi1zcEFS?oc=5",
+      "title": "30 Pennsylvania property owners face eminent domain as data center power line expands - Yahoo",
+      "content_html": "30 Pennsylvania property owners face eminent domain as data center power line expands Yahoo",
+      "content_text": "30 Pennsylvania property owners face eminent domain as data center power line expands Yahoo",
+      "summary": "30 Pennsylvania property owners face eminent domain as data center power line expands Yahoo",
+      "date_published": "2026-07-29T17:47:00.000Z",
+      "date_modified": "2026-08-03T00:04:58.657Z",
+      "image": "https://picsum.photos/seed/cmmlhy/640/360",
+      "author": {
+        "name": "Google News Data Centers NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News Data Centers NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOS0FWdnVlc0ZYb3FoY0NfNXAwdGhaQmZzTm9yUzZOeFdoLWJMdTdISjdndFJNeFpFajVuaUU1WkcxTEZqNlBOQWRFWk1IWjVMeE9ZV3A4dlVsNDREZ2hFT1poMWkyQkMtb1ZUaFBKdGt1bmtQa1RwTVh6VHZ4M3VGOEh0NUlQTFFYYzdjT1JiRi1zcEFS?oc=5",
+        "feedName": "Google News Data Centers NJ/PA/FL"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
     },
     {
       "id": "17f2d68830d7e83e4c1af518bc809a26891a683f",
@@ -1066,9 +1095,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Target region (PA) industrial lease exceeding 100K SF threshold (301,826 SF) and within 7-day freshness window (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontReason": "Real PA industrial transaction at 301,826 SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "ebffadecbf781b88332ac515479489b413190d3c",
@@ -1163,7 +1192,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -1396,9 +1425,9 @@
       "_classificationReason": "PEOPLE_BODY_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "The article is a general personnel move at a mixed-use firm (SJP Properties) known primarily for office, and the role is not explicitly industrial-focused, failing the 'Industrial real estate only' criteria.",
-      "_woodmontConfidence": 85,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontReason": "RETAIL COMPANY PERSONNEL — hires/promotions at retail companies (SJP is a retail company) are not industrial CRE personnel, matches Rule 7",
+      "_woodmontConfidence": 80,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "62bb5806f345964da255dc7a42a245692e31da1f",
@@ -1495,7 +1524,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at $47M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ industrial refinance at $47M meets the $25M+ threshold and target region criteria (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1561,7 +1590,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real FL industrial transaction at $61.5M, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Target region (FL) industrial transaction exceeding $25M threshold ($61.5M) and within 7-day freshness window (Rule: APPROVE criteria all met).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -2150,8 +2179,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
@@ -2216,8 +2245,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
@@ -2305,16 +2334,15 @@
         "name": "Google News LoopNet Industrial"
       },
       "_source": {
-        "name": "Google News LoopNet Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBJWnVOa2RaMWdPYTFFS0Rfc0NPWXlnMkJVeThxbGxfVXZHYlFrRy11cDNMMVFyYV9neS16YjRseHZQV0dRdV9mN0VNcnVFRS1ydGppQWI0M3FJVnpkOGowY3R6ZzZBVnpRVHFfbE1kLVJxbVlOaTlZdHF0dkVCUQ?oc=5",
-        "feedName": "Google News LoopNet Industrial"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -4596,7 +4624,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -5243,16 +5271,15 @@
         "name": "Bisnow Philadelphia"
       },
       "_source": {
-        "name": "Bisnow Philadelphia",
+        "name": "bisnow.com",
         "website": "bisnow.com",
         "url": "https://www.bisnow.com/news/philadelphia/industrial/jpmorgan-investing-24m-to-bolster-shipbuilding-industry-in-philly-135437",
-        "feedName": "Bisnow Philadelphia"
+        "feedName": "bisnow.com"
       },
-      "category": "relevant",
+      "category": "transactions",
       "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "bisnow.com",
-        "PA"
+        "Transactions — Property Sales & Leases",
+        "bisnow.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -7950,16 +7977,15 @@
         "name": "Google News Newmark NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Newmark NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNWGRabGo2dFpxRDhrdjZGcmVjbGloODJCM0JSeXM2Wnl2Wk14LURNRFh6TURVUEZMRHFVZmFMSVlVa2thRnBCT0k3UGpsRDVkT0NsTzdqSFJ3b2RrTlVXRWoxRUVoWURtcVBaY2Z0QnRwQ0FWem1kaEV5ay0wREM3SjV2QzR5QUVzelFpZzJ1TVNKVk5vRkVhNXhYVUswVS1HQzZKUG05ZVlrUnJs?oc=5",
-        "feedName": "Google News Newmark NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -8149,16 +8175,15 @@
         "name": "Google News Manufacturing NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Manufacturing NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOeHNiU2lxZVhRbnlUU2NvdDQzVFVFdkNfdVg3MnNEWnZjOGVoMzQzQmNkRVBGUzJzQldDenFEcE5OUG1yYmE3c2lfQmQ3OTFDcEpmdTdIdm5aZkFLdmVadG9rdWg0TkNCN25PNVdWMGxmdjNzcXU1LWR0b3RiendUX3oxT0RxSWxmSWxGQUdBdkV5eVRDX19hb01hZ3JKN0dBcGVv?oc=5",
-        "feedName": "Google News Manufacturing NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -8333,105 +8358,6 @@
       "_woodmontReason": "Article is older than 7 days (published July 3, today is July 17), matches Rule 11.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "cc2a9fc2f806cad76e432a3249e6f964accc6e0c",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5DSkduMlZuejJ5LWRfekhBNndqRVJMX05KOHIxNmpNdlczTHQ0SEpWQ0o1X1E1LUlJSW01QV9yMVdkb2pYTXl3aVZ3NTBSQ0x0VE5UelRudjBCb081dlBLeFRpV0I3RlpIUDRnUEQ4blZ6Y3JoYmgzbw?oc=5",
-      "title": "Chris Turner & Patrick McKiernan Sell Industrial Property On 32 Acres In Conroe To Omega Morgan - Traded",
-      "content_html": "Chris Turner & Patrick McKiernan Sell Industrial Property On 32 Acres In Conroe To Omega Morgan Traded",
-      "content_text": "Chris Turner & Patrick McKiernan Sell Industrial Property On 32 Acres In Conroe To Omega Morgan Traded",
-      "summary": "Chris Turner & Patrick McKiernan Sell Industrial Property On 32 Acres In Conroe To Omega Morgan Traded",
-      "date_published": "2026-07-02T20:39:13.000Z",
-      "date_modified": "2026-07-07T10:57:21.375Z",
-      "image": "https://picsum.photos/seed/k5d75q/640/360",
-      "author": {
-        "name": "Google News Traded.co Availabilities"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5DSkduMlZuejJ5LWRfekhBNndqRVJMX05KOHIxNmpNdlczTHQ0SEpWQ0o1X1E1LUlJSW01QV9yMVdkb2pYTXl3aVZ3NTBSQ0x0VE5UelRudjBCb081dlBLeFRpV0I3RlpIUDRnUEQ4blZ6Y3JoYmgzbw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — Conroe is in Texas, not NJ, PA, or FL, matches Rule 9",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "5581f78bce8898a4618e6f85953fba35141765d9",
-      "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPbVBYSDQwU3N2akc2eU1nMUZyZ0tHMHpJMTFQekVKdzdRODU2VGpwdXV6U0o5akNqSXU1MFdBVmZpVml1aXFkZzBiTmFkOEtvZ0gxaGhYT2hVMi1GLTFvYXQ5azRlbFJzZFJZRzhkaExCZHFKVHc0Vy1HOHI5eFlFWGZ4OFBYT2tEZ2cw?oc=5",
-      "title": "Palm Beach County zoning commission votes against AI data center 'Project Tango' - WLRN",
-      "content_html": "Palm Beach County zoning commission votes against AI data center 'Project Tango' WLRN",
-      "content_text": "Palm Beach County zoning commission votes against AI data center 'Project Tango' WLRN",
-      "summary": "Palm Beach County zoning commission votes against AI data center 'Project Tango' WLRN",
-      "date_published": "2026-07-02T20:35:00.000Z",
-      "date_modified": "2026-07-03T10:36:47.384Z",
-      "image": "https://picsum.photos/seed/rm0ju0/640/360",
-      "author": {
-        "name": "Google News Palm Beach County FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPbVBYSDQwU3N2akc2eU1nMUZyZ0tHMHpJMTFQekVKdzdRODU2VGpwdXV6U0o5akNqSXU1MFdBVmZpVml1aXFkZzBiTmFkOEtvZ0gxaGhYT2hVMi1GLTFvYXQ5azRlbFJzZFJZRzhkaExCZHFKVHc0Vy1HOHI5eFlFWGZ4OFBYT2tEZ2cw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline 'votes against' indicates opposition to development, which matches Rule 3.",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "7c36f9e27d226cf269e37e4a7ecfa1dd24e78e7f",
-      "url": "https://news.google.com/rss/articles/CBMixgJBVV95cUxNcGNqUWRZdG1IZ1F6MFZueTdRZ282WXdPYUE1N1FBeWk0MW9jS0EzU0thT1NEQU16TlRjdjI0ZmpSTXdVbEZJc2FwRVo2LVhldnhrbmFLMi1rUHhKZFZOUGlUQjZUYjdLLXhpQldGdXBLYXdvSVU3MGVDaV9Cd2V3TXg1QUZ2X1JuMWU5ZmtERlFRNkg3aEQxTmhjTlJoVzZ1dk9HQXh1SUNKM3BwSzYySEY5T3JUTUJwNDkzN3V4ejZHR2lsdUwwQ18zckszRHJhLTQtX1JUZlNwaTc0dTYxQzBYbC1VWWJsRUxvLVlMQWg3TmZMdjduN05DYV9RcmwwZ2lGeHMxcEFpRmVPOGdnalZHdVg4ZC1OcXA5R0Q4OHJiVzI5TDZRQjA2UGE1TVRZNW5IeTBSaEZwYXBaWk5nOGNNZElyQQ?oc=5",
-      "title": "Licensable picture: Tara W. Duhy, attorney representing WPB Logistics addressed the Palm Beach County zoning commission during its meeting at the - reutersconnect.com",
-      "content_html": "Licensable picture: Tara W. Duhy, attorney representing WPB Logistics addressed the Palm Beach County zoning commission during its meeting at the reutersconnect.com",
-      "content_text": "Licensable picture: Tara W. Duhy, attorney representing WPB Logistics addressed the Palm Beach County zoning commission during its meeting at the reutersconnect.com",
-      "summary": "Licensable picture: Tara W. Duhy, attorney representing WPB Logistics addressed the Palm Beach County zoning commission during its meeting at the reutersconnect.com",
-      "date_published": "2026-07-02T18:59:00.000Z",
-      "date_modified": "2026-07-09T10:58:33.071Z",
-      "image": "https://picsum.photos/seed/1v6ea1/640/360",
-      "author": {
-        "name": "Google News Palm Beach County FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMixgJBVV95cUxNcGNqUWRZdG1IZ1F6MFZueTdRZ282WXdPYUE1N1FBeWk0MW9jS0EzU0thT1NEQU16TlRjdjI0ZmpSTXdVbEZJc2FwRVo2LVhldnhrbmFLMi1rUHhKZFZOUGlUQjZUYjdLLXhpQldGdXBLYXdvSVU3MGVDaV9Cd2V3TXg1QUZ2X1JuMWU5ZmtERlFRNkg3aEQxTmhjTlJoVzZ1dk9HQXh1SUNKM3BwSzYySEY5T3JUTUJwNDkzN3V4ejZHR2lsdUwwQ18zckszRHJhLTQtX1JUZlNwaTc0dTYxQzBYbC1VWWJsRUxvLVlMQWg3TmZMdjduN05DYV9RcmwwZ2lGeHMxcEFpRmVPOGdnalZHdVg4ZC1OcXA5R0Q4OHJiVzI5TDZRQjA2UGE1TVRZNW5IeTBSaEZwYXBaWk5nOGNNZElyQQ?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
     }
   ]
 }
