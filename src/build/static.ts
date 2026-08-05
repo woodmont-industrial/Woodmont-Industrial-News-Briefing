@@ -363,6 +363,26 @@ export async function buildStaticRSS(): Promise<void> {
                 return item;
             }
 
+            // CATEGORY STUB (2026-08-05): publisher section/index pages ship as a bare category label,
+            // e.g. "Industrial - Real Estate NJ" (no body, week-stale, just the site's Industrial
+            // landing page). After stripping the trailing " - Publisher" suffix, reject ONLY when the
+            // remaining title is EXACTLY a single generic category term from this tiny allowlist. The
+            // list is evidence-based (only "industrial" has been observed as a real index page) and
+            // deliberately excludes speculative terms (logistics/warehouse/property/etc.) until proven.
+            // Not a length rule and not a general Real Estate NJ exclusion — a legitimate headline is
+            // never just the word "industrial".
+            const CATEGORY_STUB_ALLOWLIST = new Set(['industrial']);
+            // Strip the LAST " - Publisher" segment by splitting on the spaced dash, so a hyphenated
+            // publisher name ("RE-NJ") is removed as a whole (a plain [^-] regex would stop at its
+            // internal hyphen).
+            const stubParts = (item.title || '').split(/\s+[-–—]\s+/);
+            const strippedTitle = (stubParts.length > 1 ? stubParts.slice(0, -1).join(' - ') : (item.title || '')).trim().toLowerCase();
+            if (CATEGORY_STUB_ALLOWLIST.has(strippedTitle)) {
+                item.category = 'exclude';
+                (item as any)._classificationReason = 'SCRAPE_ARTIFACT_CATEGORY_STUB';
+                return item;
+            }
+
             // Hard property-type gate (regexes in shared/region-data.ts so
             // newsletter-filters.ts uses the same set). Office / residential /
             // retail / hospitality / self-storage articles with SF signals
