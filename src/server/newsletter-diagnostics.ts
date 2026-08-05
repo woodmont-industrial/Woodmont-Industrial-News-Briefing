@@ -127,6 +127,7 @@ export interface DiagnosticPayload {
         windowDays: number;
     };
     quality?: NewsletterQuality;
+    logicImpact?: LogicImpact;
     dcPolicy?: {
         nationalScaleAllowed: Array<{ id: string; title: string; dollarsB: number | null; mw: number | null }>;
         unknownLocationAllowed: Array<{ id: string; title: string; unresolvedLocationTokens: string[] }>;
@@ -180,6 +181,69 @@ export interface NewsletterQuality {
     supply: 'Rich' | 'Normal' | 'Thin';                    // Supply Conditions this run
     penalties: QualityPenalty[];
     notes: string[];
+}
+
+// =============================================================================
+// LOGIC-IMPACT COUNTERS (2026-08-05) — DIAGNOSTICS-ONLY OBSERVABILITY.
+// Per-send counts of how often each hardening rule ACTED. Nothing here influences
+// routing, selection, scoring, dedup, or email output — the record* functions only
+// increment counters and append an audit note. A module singleton accumulates across
+// the send (reset at send start via resetLogicImpact); toJSON() snapshots it. The CSV
+// consumes the numeric counts only; the JSON keeps a short audit list for traceability.
+//   • nearDuplicatesSuppressed        — losers removed by same-send near-title dedup
+//   • falseLeaksPrevented             — items with excluded-region evidence whose leak was
+//                                       suppressed by an explicit exception (routedClean = a
+//                                       correctly-routed in-region deal; mixedComparison = a
+//                                       genuine mixed-region macro/policy comparison)
+//   • peopleRescued                   — Relevant items moved into People by the rescue pass
+//   • crossDayPoolRepeatsSuppressed    — previously-sent records removed from the FULL loaded
+//                                       candidate pool by cross-day dedup, BEFORE any region,
+//                                       property-type, section, or selection filtering. This is a
+//                                       dedup-WORKLOAD metric (load-stage volume), NOT a count of
+//                                       duplicate articles that would otherwise have shipped.
+// =============================================================================
+export interface LogicImpactAudit { id: string; title: string; kind: string; reason?: string; }
+export interface LogicImpact {
+    nearDuplicatesSuppressed: number;
+    falseLeaksPrevented: { total: number; routedClean: number; mixedComparison: number };
+    peopleRescued: number;
+    crossDayPoolRepeatsSuppressed: number;
+    audit: LogicImpactAudit[];
+}
+function freshLogicImpact(): LogicImpact {
+    return {
+        nearDuplicatesSuppressed: 0,
+        falseLeaksPrevented: { total: 0, routedClean: 0, mixedComparison: 0 },
+        peopleRescued: 0,
+        crossDayPoolRepeatsSuppressed: 0,
+        audit: [],
+    };
+}
+let _logicImpact: LogicImpact = freshLogicImpact();
+const LOGIC_AUDIT_CAP = 100;
+function pushLogicAudit(e: LogicImpactAudit): void { if (_logicImpact.audit.length < LOGIC_AUDIT_CAP) _logicImpact.audit.push(e); }
+const auditId = (it: any) => it?.id || it?.link || it?.url || '';
+const auditTitle = (it: any) => (it?.title || '').slice(0, 120);
+/** Reset the per-send accumulator. Called once at the start of each send. */
+export function resetLogicImpact(): void { _logicImpact = freshLogicImpact(); }
+/** Snapshot of the accumulator (referenced by DiagnosticContext.toJSON). */
+export function getLogicImpact(): LogicImpact { return _logicImpact; }
+export function recordNearDuplicateSuppressed(loser: any): void {
+    _logicImpact.nearDuplicatesSuppressed++;
+    pushLogicAudit({ id: auditId(loser), title: auditTitle(loser), kind: 'near_duplicate_suppressed' });
+}
+export function recordFalseLeakPrevented(item: any, reason: 'routedClean' | 'mixedComparison'): void {
+    _logicImpact.falseLeaksPrevented.total++;
+    _logicImpact.falseLeaksPrevented[reason]++;
+    pushLogicAudit({ id: auditId(item), title: auditTitle(item), kind: 'false_leak_prevented', reason });
+}
+export function recordPeopleRescued(item: any): void {
+    _logicImpact.peopleRescued++;
+    pushLogicAudit({ id: auditId(item), title: auditTitle(item), kind: 'people_rescued' });
+}
+export function recordCrossDayPoolRepeatSuppressed(item: any, reason: string): void {
+    _logicImpact.crossDayPoolRepeatsSuppressed++;
+    pushLogicAudit({ id: auditId(item), title: auditTitle(item), kind: 'cross_day_pool_repeat_suppressed', reason });
 }
 
 // Section fill weights — sum to 30. Transactions valued highest (real deals).
@@ -384,7 +448,13 @@ export function computeNewsletterScore(
         for (const it of (selected[section] || [])) {
             const text = itemText(it);
             const routedClean = opts.regionOk ? opts.regionOk(it) : false;
-            if (isRegionLeak(it, section, routedClean) || NON_RE_JUNK_RX.test(text)) {
+            const leaked = isRegionLeak(it, section, routedClean);
+            // OBSERVABILITY (no behavior change): an item carrying excluded-region evidence whose
+            // leak was suppressed by an explicit exception (routing verdict or mixed-region rule).
+            if (!leaked && EXCLUDED_REGION_RX.test(text)) {
+                recordFalseLeakPrevented(it, routedClean ? 'routedClean' : 'mixedComparison');
+            }
+            if (leaked || NON_RE_JUNK_RX.test(text)) {
                 penalties.push({ type: 'leak', points: PENALTY.leak, detail: `Off-target / non-RE content shipped: ${label(it)}` });
             } else if (regionScoreOf(it) < 1 && !INDUSTRIAL_SIGNAL_RX.test(text)) {
                 penalties.push({ type: 'weak_item', points: PENALTY.weak, detail: `Borderline / off-topic: ${label(it)}` });
@@ -617,6 +687,7 @@ export class DiagnosticContext {
             perFeedBySection: Object.fromEntries(this.perFeed),
             weekInReview: this.weekInReview,
             ...(this.quality ? { quality: this.quality } : {}),
+            logicImpact: getLogicImpact(),
             ...(this.dcPolicy ? { dcPolicy: this.dcPolicy } : {}),
         };
     }

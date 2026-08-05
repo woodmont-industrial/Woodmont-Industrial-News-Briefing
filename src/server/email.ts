@@ -20,7 +20,7 @@ import {
     loadSentArticles, loadSentSignatures, saveSentArticles,
     loadSentTitleKeys, normalizeTitleKey
 } from './newsletter-filters.js';
-import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section } from './newsletter-diagnostics.js';
+import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
 
 // ---------------------------------------------------------------------------
@@ -391,6 +391,7 @@ export async function sendWeeklyNewsletterGoth(): Promise<boolean> {
 export async function sendDailyNewsletterWork(): Promise<boolean> {
     try {
         console.log('📧 Preparing Work daily briefing (boss preferred style + strict filters)...');
+        resetLogicImpact(); // start-of-send: zero the diagnostics-only logic-impact counters
         const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
         const tracer = getActiveTracer();
@@ -416,11 +417,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentTitleKeys = loadSentTitleKeys(docsDir);
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
-            if (sentArticleIds.has(id)) return false;
+            if (sentArticleIds.has(id)) { recordCrossDayPoolRepeatSuppressed(a, 'sent_id'); return false; }
             if (sentSigSet.size > 0) {
                 const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
+                    recordCrossDayPoolRepeatSuppressed(a, 'sent_signature');
                     return false;
                 }
             }
@@ -430,6 +432,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const tk = normalizeTitleKey(a.title || '');
                 if (tk.length >= 25 && sentTitleKeys.has(tk)) {
                     console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
+                    recordCrossDayPoolRepeatSuppressed(a, 'sent_title');
                     return false;
                 }
             }
@@ -1493,6 +1496,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             });
             if (moved.length) {
                 people = [...people, ...moved];
+                moved.forEach(m => recordPeopleRescued(m)); // observability only (diagnostics counter)
                 console.log(`👥 Second People rescue moved ${moved.length} Relevant→People: ${moved.map(m => (m.title || '').slice(0, 48)).join(' || ')}`);
             }
         }

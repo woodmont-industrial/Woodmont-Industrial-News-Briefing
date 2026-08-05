@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
-import { normTitle, titlesSimilar } from './newsletter-diagnostics.js';
+import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { dcPolicyVerdict, dcDollarsB, dcMW, nonTargetTokens } from '../shared/dc-policy.js';
 import {
@@ -816,6 +816,7 @@ export function dedupeByNearTitle(items: NormalizedItem[], scoreFn: (a: Normaliz
             };
             const winner = better(i, j), loser = winner === i ? j : i;
             removed.add(loser);
+            recordNearDuplicateSuppressed(items[loser]); // observability only (diagnostics counter)
             if (removedIds) { const lid = items[loser].id || items[loser].link; if (lid) removedIds.add(lid); }
             console.log(`🔁 Near-title dedup [${label}] removed: "${(items[loser].title || '').slice(0, 55)}" (kept "${(items[winner].title || '').slice(0, 40)}")`);
             if (winner === j) break; // i was dropped; move to next i
