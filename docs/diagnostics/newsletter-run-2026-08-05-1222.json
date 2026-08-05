@@ -1,17 +1,18 @@
 {
-  "runId": "2026-06-24-1534",
-  "generatedAt": "2026-06-24T15:34:53.055Z",
+  "runId": "2026-08-05-1222",
+  "generatedAt": "2026-08-05T12:22:07.381Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 229,
-      "inWindow": 7,
-      "regionPass": 7,
+      "loaded": 269,
+      "inWindow": 2,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 4,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
+      "supplyCandidates": 88,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -35,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 4,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -49,16 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 229,
-      "inWindow": 5,
-      "regionPass": 4,
+      "loaded": 269,
+      "inWindow": 4,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 0,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -79,14 +81,13 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -94,7 +95,52 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 229,
+      "loaded": 269,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 0,
+      "supplyCandidates": 5,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "people": {
+      "loaded": 269,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -102,6 +148,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
+      "supplyCandidates": 3,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -131,58 +178,71 @@
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
         "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "people": {
-      "loaded": 229,
-      "inWindow": 0,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 0,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
-  "perFeedBySection": {},
+  "perFeedBySection": {
+    "Google News ROI-NJ Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Industrial Land": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News PA CRE People": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 1
+      }
+    }
+  },
   "weekInReview": {
     "totalCandidates": 0,
     "afterAgeFilter": 0,
@@ -191,25 +251,34 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 81,
-    "outOf10": 8.1,
-    "grade": "B",
-    "itemCount": 7,
+    "score": 71,
+    "outOf10": 7.1,
+    "grade": "C",
+    "itemCount": 5,
     "breakdown": {
-      "coverage": 24,
-      "freshness": 18,
+      "coverage": 14,
+      "freshness": 11.9,
       "regional": 25,
       "relevanceIntegrity": 20
     },
-    "penalties": [
-      {
-        "type": "duplicate_in_send",
-        "points": 6,
-        "detail": "Repeats another item in this send: \"Advocates push for moratorium on data center dev\""
-      }
-    ],
+    "age": {
+      "fresh": 0,
+      "deep": 7,
+      "reserve": 1
+    },
+    "delivery": {
+      "score": 100,
+      "grade": "A"
+    },
+    "supply": "Rich",
+    "penalties": [],
     "notes": [
-      "Empty sections: people"
+      "Empty sections (supply existed — selection gap): transactions, availabilities"
     ]
+  },
+  "dcPolicy": {
+    "rejectedOutOfRegion": [],
+    "nationalScaleAllowed": [],
+    "unknownLocationAllowed": []
   }
 }
