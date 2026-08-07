@@ -50,3 +50,26 @@ This is a dedup **workload** metric (load-stage volume — typically 100+/day on
 It is **NOT** a count of duplicate articles that would otherwise have shipped. A candidate-stage or
 selection-stage "would-have-shipped" duplicate-impact metric is intentionally **not** included yet;
 revisit only if a dashboard needs it. (Dashboard tooltip must carry this same distinction.)
+
+## Dual-score fields (2026-08-07, additive) — three independent signals
+The existing `score`/`grade` are the **operational** Content Quality, UNCHANGED (also mirrored as
+`operational_score`/`operational_grade`). Two additive signals are emitted alongside them:
+
+- **`editorial_quality_score` / `editorial_grade`** — controllable editorial quality. Coverage is
+  re-weighted over CONTROLLABLE sections; every content penalty (leak, duplicate, weak, broken,
+  cross-day) is retained. Formula: `clamp( editorialCoverage + freshness + regional +
+  relevanceIntegrity − contentPenalties )`, where
+  `editorialCoverage = 30 · filledWeight / controllableWeight` (weights: relevant 8, transactions 10,
+  availabilities 6, people 6). **Conservative calibration:** only `NO_FRESH_SUPPLY` sections are
+  excluded from the denominator; `QUALITY_REJECTED` and `SELECTION_GAP` both stay in and penalize.
+- **`coverage_supply_score`** — `round(100 · filledWeight / 30)`, the % of section coverage-weight
+  filled. A supply/fill gauge, not letter-graded.
+- **`{relevant,transactions,availabilities,people}_supply_status`** ∈ FILLED / NO_FRESH_SUPPLY /
+  QUALITY_REJECTED / SELECTION_GAP, from the funnel (selected / inWindow / sectionPass).
+
+**Known limitation (conservative on purpose):** the funnel cannot distinguish
+`QUALITY_REJECTED_NO_VIABLE_CANDIDATE` (gates correctly rejected everything) from
+`QUALITY_REJECTED_BUT_ELIGIBLE` (an over-strict gate dropped a viable item), because both surface as
+`sectionPass == 0`. v1 therefore treats QUALITY_REJECTED as controllable (penalized), rather than
+inflating the editorial score. Distinguishing the two would need new section-rule instrumentation
+(out of scope for this commit).

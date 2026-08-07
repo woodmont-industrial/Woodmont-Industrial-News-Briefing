@@ -181,7 +181,20 @@ export interface NewsletterQuality {
     supply: 'Rich' | 'Normal' | 'Thin';                    // Supply Conditions this run
     penalties: QualityPenalty[];
     notes: string[];
+    // DUAL-SCORE (2026-08-07) — ADDITIVE observability. `score`/`grade` above are the UNCHANGED
+    // operational Content Quality (mirrored here as operationalScore/Grade for the dashboard).
+    // editorialQualityScore excludes uncontrollable supply shortages; coverageSupplyScore is a
+    // separate section-fill gauge. See computeNewsletterScore for the exact formula.
+    operationalScore: number;
+    operationalGrade: string;
+    editorialQualityScore: number;
+    editorialGrade: string;
+    coverageSupplyScore: number;                 // 0-100, % of section coverage-weight filled
+    supplyStatus: Record<Section, SupplyStatus>; // per-section: why it was/wasn't filled
 }
+
+// Per-section supply classification from the diagnostic funnel (selected/inWindow/sectionPass).
+export type SupplyStatus = 'FILLED' | 'NO_FRESH_SUPPLY' | 'QUALITY_REJECTED' | 'SELECTION_GAP';
 
 // =============================================================================
 // LOGIC-IMPACT COUNTERS (2026-08-05) — DIAGNOSTICS-ONLY OBSERVABILITY.
@@ -508,8 +521,40 @@ export function computeNewsletterScore(
     if (excusedSections.length) notes.push(`Excused — no market supply: ${excusedSections.join(', ')}`);
     if (itemCount === 0) notes.push('No items selected — empty send');
 
+    // ---- DUAL-SCORE (2026-08-07) — ADDITIVE ONLY. The operational `score`/`grade` above are NOT
+    // touched. Editorial Quality re-weights coverage over CONTROLLABLE sections and keeps every
+    // content penalty; Coverage/Supply is a separate section-fill gauge. CONSERVATIVE calibration:
+    // only NO_FRESH_SUPPLY (zero fresh candidates in-window) is excused from the editorial coverage
+    // denominator. QUALITY_REJECTED and SELECTION_GAP BOTH stay in the denominator and penalize —
+    // because the funnel (sectionPass==0) cannot distinguish "correctly rejected, no viable eligible
+    // candidate" from an over-strict gate that dropped a viable one, so we do not forgive it in v1.
+    const supplyStatusOf = (s: Section): SupplyStatus => {
+        const sec = payload.sections[s];
+        if ((sec?.selected ?? 0) > 0) return 'FILLED';
+        if ((sec?.inWindow ?? 0) === 0) return 'NO_FRESH_SUPPLY';
+        if ((sec?.sectionPass ?? 0) === 0) return 'QUALITY_REJECTED';
+        return 'SELECTION_GAP';
+    };
+    const supplyStatus = {
+        relevant: supplyStatusOf('relevant'), transactions: supplyStatusOf('transactions'),
+        availabilities: supplyStatusOf('availabilities'), people: supplyStatusOf('people'),
+    } as Record<Section, SupplyStatus>;
+    let filledWeight = 0, ctrlWeight = 0;
+    for (const s of order) {
+        const st = supplyStatus[s];
+        if (st === 'FILLED') { filledWeight += COVERAGE_WEIGHTS[s]; ctrlWeight += COVERAGE_WEIGHTS[s]; }
+        else if (st === 'SELECTION_GAP' || st === 'QUALITY_REJECTED') { ctrlWeight += COVERAGE_WEIGHTS[s]; }
+        // NO_FRESH_SUPPLY: excluded from both numerator and denominator (uncontrollable).
+    }
+    const editorialCoverage = ctrlWeight > 0 ? 30 * (filledWeight / ctrlWeight) : 30;
+    const editorialQualityScore = Math.max(0, Math.min(100, Math.round(editorialCoverage + freshness + regional + relevanceIntegrity - contentPenaltyTotal)));
+    const coverageSupplyScore = Math.max(0, Math.min(100, Math.round(100 * filledWeight / 30)));
+
     return {
         score, outOf10: round1(score / 10), grade, itemCount,
+        operationalScore: score, operationalGrade: grade,
+        editorialQualityScore, editorialGrade: gradeOf(editorialQualityScore),
+        coverageSupplyScore, supplyStatus,
         breakdown: {
             coverage: round1(coverage),
             freshness: round1(freshness),
