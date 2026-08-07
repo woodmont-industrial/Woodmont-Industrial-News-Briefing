@@ -1518,6 +1518,22 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             if (r.dc.unknownLocationAllowed.length) console.log(`🛰️  DC-policy unknown-location kept: ${r.dc.unknownLocationAllowed.map(x => x.title.slice(0, 45)).join(' | ')}`);
         }
 
+        // POST-BACKFILL NEAR-TITLE SWEEP (2026-08-07): the early near-title pass (line ~557) runs
+        // BEFORE the backfill/refill cascade, so near-title duplicates introduced BY backfill are never
+        // presented to it (the 2026-08-07 Berks County pair: both copies admitted via backfill from
+        // unlisted publishers, into the FINAL selected arrays). Re-run the SAME dedup on the final
+        // sections — after the last refill, People rescue, and DC-policy pass — now with the real
+        // scoreArticle for the survivor tiebreak. This is a final-selection-dedup correctness fix:
+        // it keeps the scored selected set consistent (removing a false duplicate_in_send penalty),
+        // records the deal once in sent-articles, and guarantees a duplicate can't render even when
+        // both copies fall inside a section's render cap. Reuses isNearTitleDuplicate unchanged
+        // (titlesSimilar + no location/metric conflict) — no threshold, survivor-ordering, or scorer
+        // change. Does NOT address cross-source event-level pairs (Bridgewater) — out of scope.
+        relevant = dedupeByNearTitle(relevant, scoreArticle, 'relevant');
+        transactions = dedupeByNearTitle(transactions, scoreArticle, 'transactions');
+        availabilities = dedupeByNearTitle(availabilities, scoreArticle, 'availabilities');
+        people = dedupeByNearTitle(people, scoreArticle, 'people');
+
         // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
         // SELECTED item came from, by section — so we can see which feeds actually produce
         // transactions vs people vs relevant (feed-health.json has fetch/keep, but not by
