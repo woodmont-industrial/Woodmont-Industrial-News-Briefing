@@ -77,3 +77,32 @@ Validate no legitimate NJ/PA/FL item loses its region evidence.
 **Dependency.** **Hold `'joins'`** (do NOT add it to `PEOPLE_ACTION_KEYWORDS`) until
 this region-evidence bug is fixed — otherwise `'joins'` re-admits the publisher-NJ
 Gutman daily.
+
+---
+
+## TICKET-4 — Scorer vs renderer render-cap alignment (read-only investigation)
+
+**Status:** open · **Area:** scorer (`src/server/newsletter-diagnostics.ts`) vs renderer (`src/server/newsletter-work.ts` `renderSection` → `slice(0, 6)`) · **Priority:** medium · **Opened:** 2026-08-07
+
+**Question.** Are any quality penalties or score components computed from *selected* items
+that can never appear in the *rendered* email because of the per-section render cap
+(`renderSection` renders only `items.slice(0, 6)`; availabilities/relevant/transactions/
+people each cap at 6)?
+
+**Evidence.** 2026-08-07: the final Relevant selected array held 8 items incl. two Berks
+County copies at positions 6 and 7. The scorer evaluated BOTH and applied
+`duplicate_in_send = -6`, but `renderSection`'s `slice(0, 6)` capped out position 7, so
+recipients saw one Berks copy. The `-6` penalty therefore reflected a duplicate that was
+never in the email. (Commit 60e8f4f's post-backfill dedup removes the duplicate from
+selection, which fixes THIS case, but the general scorer/renderer mismatch remains.)
+
+**Audit at least:** `duplicate_in_send`, `weak_item`, `leak`, `broken_item`, freshness,
+regional score, and coverage/item-count effects — comparing (a) the pre-cap selected
+arrays the scorer sees, (b) the rendered `slice(0, 6)` arrays, and (c) sent-articles
+persistence (which records the full selected set, not the rendered slice).
+
+**Do NOT assume the fix is "score `slice(0, 6)`".** First determine whether any downstream
+behavior *intentionally* depends on the full selected set (e.g. sent-articles cross-day
+dedup state, supply-evidence counts, backfill accounting). Read-only investigation only —
+no scorer change until that dependency question is answered. Keep separate from the
+post-backfill dedup (Workstream #2, shipped 60e8f4f).
