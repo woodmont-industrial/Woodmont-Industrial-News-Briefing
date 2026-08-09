@@ -36,9 +36,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class — the article focuses on private detention centers and prisons (CoreCivic, Geo Group), which are not the target industrial asset types (warehouses, logistics, manufacturing), matching Rule 5",
+      "_woodmontReason": "Wrong Asset Class — the article focuses on private prisons and detention centers, which are not the target industrial asset class (warehouses, distribution, manufacturing), matches Rule 5.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -69,7 +69,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -104,8 +104,8 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Major industrial portfolio transaction ($628M) meeting the national/macro relevance criteria and deal threshold (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Major industrial capital markets transaction ($628M, 53 warehouses) qualifies as clearly relevant macro/national news and exceeds the deal threshold (Rule: APPROVE criteria all met).",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -135,10 +135,44 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Deal threshold not met — the transaction is $17M and 73,000 SF, failing both the $25M price and 100K SF size requirements.",
       "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
+    },
+    {
+      "id": "1b01c14238d33583929180bfbf0404517c3170c2",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE8tLVFpX2p4N3dGYnE5M0dObVFQTVk4MG1TT3ZyRFY2bFZiQkRMOW1qXzl3SU5lOUhIaTRJcFJVbDRCOHM0aTV3QTRYd0Y1SS1LTVBIaW5sLW9pTTh5OWVXaU1qei04dUpHYVhPZExmWmdoWDNfdzIyWmVzVnZ3RGc?oc=5",
+      "title": "TPG AG, Redfearn Capital Acquire Industrial Portfolio for $628M - Commercial Observer",
+      "content_html": "TPG AG, Redfearn Capital Acquire Industrial Portfolio for $628M Commercial Observer",
+      "content_text": "TPG AG, Redfearn Capital Acquire Industrial Portfolio for $628M Commercial Observer",
+      "summary": "TPG AG, Redfearn Capital Acquire Industrial Portfolio for $628M Commercial Observer",
+      "date_published": "2026-08-07T11:00:42.000Z",
+      "date_modified": "2026-08-09T23:39:30.955Z",
+      "image": "https://picsum.photos/seed/r7w31n/640/360",
+      "author": {
+        "name": "Google News Commercial Observer"
+      },
+      "_source": {
+        "name": "Google News Commercial Observer",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE8tLVFpX2p4N3dGYnE5M0dObVFQTVk4MG1TT3ZyRFY2bFZiQkRMOW1qXzl3SU5lOUhIaTRJcFJVbDRCOHM0aTV3QTRYd0Y1SS1LTVBIaW5sLW9pTTh5OWVXaU1qei04dUpHYVhPZExmWmdoWDNfdzIyWmVzVnZ3RGc?oc=5",
+        "feedName": "Google News Commercial Observer"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "B",
+      "_woodmontApprove": true,
+      "_woodmontReason": "Major industrial portfolio transaction ($628M) qualifies as clearly relevant macro/national capital markets news meeting the $25M threshold (Rule: APPROVE criteria all met).",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -155,23 +189,22 @@
         "name": "Google News Manufacturing NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Manufacturing NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPWXJia3dCTFlrWUVUby0yNk1JUm0yc2xRS284MEtPWVBHYVM2TjBIU1lHRlB2X0FhSmZEdVJBaDZmYThIVnYzWmZ0bF9MR0hIVlJVdjFaLV8xcGZxYkxQckNvMmJkcEZWcXVvTUxocUJDdUdLMDNZRkVHZjhXTDFvZGJhNU1zRmNBMGdmYmloeU5JTVJvYUE0VW8xRk9yaWlhQVJ5UzBvMVZBZzhGZVdubQ?oc=5",
-        "feedName": "Google News Manufacturing NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at expansion, target region + relevant macro (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real NJ industrial transaction at pharmaceutical manufacturing facility, target region + above threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq"
     },
@@ -202,10 +235,10 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — 'data center pipeline' and 'backlog hits $28.9B' is a neutral report but the framing is about a company's data center business, matches Rule 3 anti-data-center editorial framing",
-      "_woodmontConfidence": 70,
+      "_woodmontReason": "Anti-data-center framing — article mentions 'data center pipeline' and 'backlog hits $28.9B' but is framed as a Jacobs' company update, matches Rule 3 anti-data-center editorial framing",
+      "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq"
     },
     {
@@ -237,8 +270,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong Asset Class — the article focuses on converting an industrial lot into soccer fields and a fitness facility, which is recreational development and not industrial real estate.",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Wrong asset class — the article concerns a proposed development for soccer fields and a fitness facility, which are not industrial assets (Rule 5)",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -270,7 +303,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Target region (PA) industrial real estate news regarding a new distribution center opening, fits asset class and geography requirements.",
+      "_woodmontReason": "Target region (PA) industrial facility opening; regional distribution centers for national chains typically exceed the 50K SF soft floor threshold (Rule: APPROVE criteria met).",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -303,7 +336,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-Data-Center Framing — the headline 'Why Florida is pushing back against hyperscale development' indicates opposition to development and editorial tone, which violates Rule 3.",
+      "_woodmontReason": "Anti-Data-Center Framing — the headline 'Why Florida is pushing back against hyperscale development' signals opposition and backlash, which violates Rule 3.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -369,8 +402,8 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Target region (NJ) industrial transaction meeting size threshold (125,000 sq. ft. > 100,000 SF) and freshness criteria (published 3 days ago).",
-      "_woodmontConfidence": 100,
+      "_woodmontReason": "Target region (Edison, NJ) industrial transaction meeting size threshold (125,000 sq. ft. > 100,000 sq. ft.) and freshness (published 3 days ago), matches APPROVE criteria.",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -435,7 +468,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Pro-development data center coverage in target region (PA) involving AWS and a major power plant, acceptable under Rule 3",
+      "_woodmontReason": "Pro-development data center coverage in target region Pennsylvania involving significant infrastructure (4.5GW), allowed under Rule 3 and APPROVE criteria.",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -501,8 +534,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "General corporate earnings news for a diversified brokerage firm, not specific to industrial real estate assets, transactions, or market trends (Rule: APPROVE criteria - Primary subject is industrial real estate)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "The article focuses on a commercial real estate services firm's general corporate earnings rather than industrial real estate assets, transactions, or industrial-specific market trends, failing the 'Primary subject is industrial real estate' criteria.",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -534,7 +567,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant macro capital markets news; $215M credit facility for Zenith IOS (Industrial Outdoor Storage) meets asset class and size thresholds, and is within the 7-day freshness window.",
+      "_woodmontReason": "Macro/national capital markets news regarding a $215M credit facility for Zenith IOS (Industrial Outdoor Storage), meeting the deal threshold and asset class criteria (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -565,7 +598,7 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Sensitized event — mass shooting at Pulse nightclub is not the event here, but the framing is still a sensitive event (Rule: SENSITIVE EVENT)",
       "_woodmontConfidence": 80,
@@ -1029,8 +1062,8 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Target region (FL) transaction meeting thresholds ($99M / 338K SF) for an industrial and office park, fits approval criteria.",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Target region (FL) transaction above threshold ($99M / 338K SF) and within freshness window (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1062,7 +1095,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 224,000 SF (above 100K SF threshold) in Exit 8A, target region and freshness criteria met (Rule: APPROVE criteria all met).",
+      "_woodmontReason": "Real NJ industrial transaction at 224,000 SF, meeting the 100K SF threshold and target region criteria (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1095,9 +1128,9 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "NJ industrial transaction meeting the 50K SF soft floor for acquisitions (72K SF), within the target region and date range (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 90,
-      "_woodmontClassifier": "cerebras"
+      "_woodmontReason": "Real NJ industrial transaction at 72K SF, target region + above threshold (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq"
     },
     {
       "id": "752117b2d6bb0bd354178a0468b92b7b9376632f",
@@ -1311,16 +1344,15 @@
         "name": "Google News Monmouth County NJ"
       },
       "_source": {
-        "name": "Google News Monmouth County NJ",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPXzlwdURXdkNvQXVlMlY0ZEVEY2VUNDhseWFVSEVCUXdkOEE2Tk9oVHBaZC1tbGRyMGFDZk1NUVg3Mk5aSllHRlZPVkdBVFBOZmtyanVsVzU5WElDcnh0cUhKbklUZnh2N253TU9Hd1VpRnlfeUs2Sng0NXdWZU5udEtZQjdod0dETkM5akozM0lYNjVjbEF1cTNOOVozRGoyZmZIbEhTQlZ4YnJ1Zkw1SFdXcXY2eVEzSnZhWHhyeFBObDNWNkY5bC1GZVRGN2VBSC1UNERnOWJOYXZ1YUx2RU9leWk?oc=5",
-        "feedName": "Google News Monmouth County NJ"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "NJ"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -1358,7 +1390,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -1756,9 +1788,9 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "People in adjacent roles — Logistics Plus is a logistics company, but the story is about being a top internship employer, not tied to industrial; matches Judgment Call (adjacent industries, people in adjacent roles)",
-      "_woodmontConfidence": 80,
-      "_woodmontClassifier": "groq"
+      "_woodmontReason": "Article is stale — published July 30, 2026, which is more than 7 days from today's date of August 9, 2026 (Rule 11).",
+      "_woodmontConfidence": 100,
+      "_woodmontClassifier": "cerebras"
     },
     {
       "id": "d239d7816c798f1cbd7950c43532f48b032f673e",
@@ -1954,7 +1986,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is stale (published July 30, 2026, which is older than 7 days from today's date of August 9, 2026) and concerns HR awards rather than industrial real estate (Rule 11 & Approve Criteria).",
+      "_woodmontReason": "Article is stale — published July 30, 2026, which is more than 7 days from today's date (Aug 9, 2026), matches Rule 11.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -1987,7 +2019,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is stale — published on July 30, 2026, which is more than 7 days from today's date (August 9, 2026), matches Rule 11.",
+      "_woodmontReason": "Article is stale — published on July 30, 2026, which is 10 days prior to the current date of August 9, 2026, exceeding the 7-day limit (Rule 11).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -2251,7 +2283,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "International location — the address is in Saint-Aignan-Grandlieu, France, which is outside the target regions of NJ, PA, and FL (Rule 10).",
+      "_woodmontReason": "International location — the property is in Saint-Aignan-Grandlieu, France, which is outside the US target regions (NJ, PA, FL), matching Rule 10.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -2581,7 +2613,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "International location — the address '16 Rue De La Mouchetière, 45140 Ingré' is in France, which violates Rule 10.",
+      "_woodmontReason": "International location — the address '16 Rue De La Mouchetière, 45140 Ingré' is in France, which is outside the target US regions (NJ, PA, FL), matches Rule 10.",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -2878,7 +2910,7 @@
       "_classificationReason": "PEOPLE_BODY_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is older than 7 days (published July 28, 2026, today is August 7, 2026), matches Rule 11.",
+      "_woodmontReason": "Article is older than 7 days (published July 28, today is August 9), matches Rule 11",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -2911,7 +2943,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is stale — published July 28, 2026, which is more than 7 days from today's date of August 7, 2026, violating Rule 11.",
+      "_woodmontReason": "The article was published on July 28, 2026, which is older than 7 days from today's date (August 9, 2026), violating Rule 11 (STALE).",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -4127,8 +4159,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
@@ -6229,16 +6261,15 @@
         "name": "Google News Commercial Observer"
       },
       "_source": {
-        "name": "Google News Commercial Observer",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQWHpHdzYwV2IzVFRvV1ByaUxYTHVYaEQ0cm5TX2wzMHVMQWxDMm5FeXI5RGRoMnRmUzg4Y1RaVEdqMngwRWxiWFpET1dpYjYyU3JTMUltZmZVS3NmamF0VkhBcEdrS0ZreFV5UDlBM2V4Nk1wUmUyWlRvWElEQ0l0V1ZkdDRTR05lN1FRZUhRODVCckpCaWtGcmlNbw?oc=5",
-        "feedName": "Google News Commercial Observer"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -6329,16 +6360,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE82djAxQ0pSZ19VQVhzazZjU1ZKVmpDVFBTQlpoV0ZHLTQ3TXoxVndpdDdqeG55TU9pdU9PbnpIeVV2VUVyT285NFNQTkU3ZWRsSFpLbENad2VjTHJXRTFBbnpyNWQ1bk9vdmF5N1ZsZ0M?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -8360,39 +8390,6 @@
       "_woodmontApprove": false,
       "_woodmontReason": "Transaction value of $20.3 million is below the $25 million minimum threshold, and square footage is not provided to qualify via the 100,000 SF size threshold.",
       "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "8cdd2790701dd3a6cad15f1fad396b032fe10236",
-      "url": "https://www.bisnow.com/national/news/data-center-development/blue-owl-launching-data-center-infrastructure-venture-135369",
-      "title": "Blue Owl Launches Data Center Infrastructure Venture",
-      "content_html": "Blue Owl Capital is launching a new venture that will develop, own and operate fiber networks in an effort to capitalize on the data center boom. Funds managed by Blue Owl announced the creation of Kirkwood Infrastructure Group to carry out the development...",
-      "content_text": "Blue Owl Capital is launching a new venture that will develop, own and operate fiber networks in an effort to capitalize on the data center boom. Funds managed by Blue Owl announced the creation of Kirkwood Infrastructure Group to carry out the development...",
-      "summary": "Blue Owl Capital is launching a new venture that will develop, own and operate fiber networks in an effort to capitalize on the data center boom. Funds managed by Blue Owl announced the creation of Ki...",
-      "date_published": "2026-07-09T19:53:43.000Z",
-      "date_modified": "2026-07-12T15:53:40.600Z",
-      "image": "https://picsum.photos/seed/gz5044/640/360",
-      "author": {
-        "name": "molly.armbrister@bisnow.com"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/national/news/data-center-development/blue-owl-launching-data-center-infrastructure-venture-135369",
-        "feedName": "bisnow.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Wrong Asset Class — the article focuses on fiber networks and telecommunications infrastructure rather than industrial real estate assets like warehouses, distribution centers, or manufacturing facilities (Rule 5).",
-      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     }
   ]
