@@ -517,9 +517,11 @@ export function computeNewsletterScore(
         : 'Normal';
 
     const notes: string[] = [];
-    if (emptySections.length) notes.push(`Empty sections (supply existed — selection gap): ${emptySections.join(', ')}`);
-    if (excusedSections.length) notes.push(`Excused — no market supply: ${excusedSections.join(', ')}`);
     if (itemCount === 0) notes.push('No items selected — empty send');
+    // NOTE: the human-readable empty-section notes are emitted BELOW, after `supplyStatus` is
+    // computed, so they derive from the SAME fresh-supply classification and can never contradict it
+    // (see the note-generation block after supplyStatus). The `emptySections`/`excusedSections`
+    // buckets above feed COVERAGE SCORING ONLY and are intentionally left untouched.
 
     // ---- DUAL-SCORE (2026-08-07) — ADDITIVE ONLY. The operational `score`/`grade` above are NOT
     // touched. Editorial Quality re-weights coverage over CONTROLLABLE sections and keeps every
@@ -549,6 +551,22 @@ export function computeNewsletterScore(
     const editorialCoverage = ctrlWeight > 0 ? 30 * (filledWeight / ctrlWeight) : 30;
     const editorialQualityScore = Math.max(0, Math.min(100, Math.round(editorialCoverage + freshness + regional + relevanceIntegrity - contentPenaltyTotal)));
     const coverageSupplyScore = Math.max(0, Math.min(100, Math.round(100 * filledWeight / 30)));
+
+    // Human-readable empty-section notes (2026-08-10) — derived from the SAME `supplyStatus`
+    // classification (keyed on inWindow/sectionPass), so a note can never contradict supplyStatus.
+    // This is a DIFFERENT pool concept from the coverage-scoring excusal above
+    // (`emptySections`/`excusedSections`, keyed on `supplyCandidates` = the full 90-day/reserve pool).
+    // The two intentionally answer different questions and are BOTH correct:
+    //   • coverage scoring asks "was ANY candidate available to have filled this section?" (pool)
+    //   • this note asks "was there FRESH in-window supply this cycle?" (freshness)
+    // e.g. a weekend People section with stale reserve candidates but zero fresh items is
+    // NO_FRESH_SUPPLY here (accurate) yet still CHARGED by coverage (supplyCandidates > 0) — not a
+    // contradiction once the note says "no fresh in-window supply" instead of "selection gap".
+    const emptyBySupply: Record<Exclude<SupplyStatus, 'FILLED'>, Section[]> = { NO_FRESH_SUPPLY: [], QUALITY_REJECTED: [], SELECTION_GAP: [] };
+    for (const s of order) { const st = supplyStatus[s]; if (st !== 'FILLED') emptyBySupply[st].push(s); }
+    if (emptyBySupply.SELECTION_GAP.length) notes.push(`Empty — fresh supply present but not selected (selection gap): ${emptyBySupply.SELECTION_GAP.join(', ')}`);
+    if (emptyBySupply.QUALITY_REJECTED.length) notes.push(`Empty — fresh supply rejected by section gates (quality): ${emptyBySupply.QUALITY_REJECTED.join(', ')}`);
+    if (emptyBySupply.NO_FRESH_SUPPLY.length) notes.push(`Empty — no fresh in-window supply (NO_FRESH_SUPPLY): ${emptyBySupply.NO_FRESH_SUPPLY.join(', ')}`);
 
     return {
         score, outOf10: round1(score / 10), grade, itemCount,
