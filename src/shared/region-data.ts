@@ -365,6 +365,37 @@ export const INDUSTRIAL_PROPERTY_KEYWORDS = [
 ];
 
 /**
+ * Carceral-USE asset guard (2026-08-10). Detention / corrections is a distinct asset class,
+ * NOT industrial/logistics — even when the story literally says "warehouse" (the 2026 wave of
+ * ICE/DHS converting warehouses into detention/holding facilities, and private-prison operators).
+ *
+ * Answers "is the underlying property/use detention/corrections?" — NOT "is ICE involved?".
+ * Therefore it targets explicit carceral USE only. It deliberately does NOT block:
+ *   - the involved agency (ICE / DHS / immigration) — a genuine NJ/PA/FL warehouse deal with a
+ *     politically sensitive buyer/tenant must still pass;
+ *   - a private-prison operator's NAME alone (CoreCivic / GEO Group) — the corpus showed every
+ *     such article ALSO carried explicit carceral-use terms, so name-only matching is unnecessary
+ *     and would wrongly catch a bare "CoreCivic buys a warehouse" industrial transaction;
+ *   - bare "prison" / "corrections" / "immigration" as unqualified substrings — those produce
+ *     lexical false positives ("faces prison", "market corrections", EB-5 "immigration").
+ *
+ * The stormwater civil-engineering sense of "detention" (detention basin/pond on an industrial
+ * site) is explicitly spared. Confirmed against 2055 historical articles: 7 true carceral hits,
+ * 0 civil-engineering false positives.
+ */
+export function isCarceralAsset(text: string): boolean {
+    const lower = text.toLowerCase();
+    // Explicit carceral-use terminology (word-boundaried). No bare agency/entity names.
+    if (/\b(detainment|detainees?|immigrant\s+jail|immigration\s+detention|private\s+prisons?|correctional\s+facilit(?:y|ies)|inmates?|holding\s+facilit(?:y|ies))\b/.test(lower)) return true;
+    // Bare "detention" is carceral EXCEPT the civil-engineering stormwater sense, which is common
+    // on legitimate industrial sites ("stormwater detention basin", "on-site detention pond").
+    if (/\bdetention\b/.test(lower)
+        && !/\bdetention\s+(basin|pond|tank|vault|system|area)\b/.test(lower)
+        && !/\b(storm-?water|water|on-?site)\s+detention\b/.test(lower)) return true;
+    return false;
+}
+
+/**
  * Unified industrial content gate — shared by frontend (static.ts) and newsletter (email.ts).
  * Returns TRUE if the article is about industrial/logistics/manufacturing/supply-chain
  * or general CRE macro trends (interest rates, cap rates, etc.).
@@ -386,6 +417,10 @@ export function isStrictlyIndustrial(text: string): boolean {
     //  - Scraped pagination/index pages: e.g. "Industrial – Page 360 - Real Estate NJ".
     if (/\b(sloths?|animal (?:rescue|welfare|cruelty|shelter|sanctuary|abuse)|wildlife|\bzoo\b|menagerie|rescued animals?)\b/i.test(lower)) return false;
     if (/[-–—]\s*page\s+\d+\b/i.test(lower)) return false;
+    //  - Carceral asset class: detention/corrections is NOT industrial even with a "warehouse"
+    //    mention (ICE/DHS warehouse→detention conversions, private-prison operators). Runs before
+    //    the warehouse exception so the token can't override the real asset use. See isCarceralAsset.
+    if (isCarceralAsset(lower)) return false;
 
     // OFFICE-LED primary-subject guard (2026-07-24). If OFFICE is the primary asset of a
     // lease/expansion/footprint story AND there is NO strong industrial asset keyword, reject —
