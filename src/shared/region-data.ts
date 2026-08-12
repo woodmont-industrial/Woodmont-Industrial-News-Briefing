@@ -250,11 +250,19 @@ export const OFFICE_TRANSACTION_RE = /\b(office\s+(lease|space|building|tower|ma
 //   - "office to/for <size>"                  (… Miami Office to 45K SF)
 //   - "office expands/expansion"              (office expands to 60K SF)
 //   - "office lease for <size>"               (office lease for 30,000 SF)
-// Deliberately NARROW: it targets office-as-subject, NOT a bare "office" mention, so an
+//   - "<verb> … at/to/into the … office <asset>"  (… takes 25K SF at the 15 CityPlace office
+//     development) — office as the DESTINATION asset. Added 2026-08-12: this is how
+//     "Greenberg Traurig Takes 25K SF at Related Ross Dev … office development" leaked into
+//     Relevant; the description names the destination as an "office development", which the
+//     office-led lease phrasings above didn't cover.
+// Deliberately NARROW: it targets office-as-subject/destination, NOT a bare "office" mention, so an
 // industrial/warehouse property that merely CONTAINS office area is not matched here. The
-// caller pairs this with a strong-industrial-asset guard (office component inside a warehouse
-// still qualifies).
-export const OFFICE_LED_RE = /\b(?:office\s+footprint|office\s+(?:to|for)\s+(?:about\s+|nearly\s+|approximately\s+)?\d|office\s+expand(?:s|ed|ing|sion)?|office\s+lease\s+for)\b/i;
+// caller (isStrictlyIndustrial:433 — the sole consumer) pairs this with a BROAD strong-industrial
+// guard (bare warehouse/industrial/logistics/manufacturing/distribution), so an "industrial and
+// office park", a manufacturing/logistics HQ, or an office component inside a warehouse all still
+// qualify. Verified on 2055 historical articles: catches the Greenberg Traurig office lease; keeps
+// the CIP "industrial and office park" (Lyons Business Park) and the HQ-manufacturing series.
+export const OFFICE_LED_RE = /\b(?:office\s+footprint|office\s+(?:to|for)\s+(?:about\s+|nearly\s+|approximately\s+)?\d|office\s+expand(?:s|ed|ing|sion)?|office\s+lease\s+for|(?:at|to|into|within|inside)\s+(?:the\s+)?[\w'.,\- ]{0,40}?office\s+(?:development|building|tower|complex|campus|park))\b/i;
 export const RESIDENTIAL_TRANSACTION_RE = /\b(apartment|multifamily|condo(minium)?|residential\s+(building|tower|complex)|single[ -]family|townhome|student\s+housing|senior\s+living|assisted\s+living|homebuilding|homebuilder|home\s+builder)\b/i;
 export const RETAIL_TRANSACTION_RE = /\b(retail\s+(lease|space|center|building)|shopping\s+center|strip\s+mall|outlet\s+mall|restaurant\s+(lease|space)|storefront|showroom\s+lease|fashion\s+designer)\b/i;
 export const HOSPITALITY_TRANSACTION_RE = /\b(hotel\s+(lease|sale|deal|acquisition)|hospitality|resort|motel|airbnb|short[ -]term\s+rental)\b/i;

@@ -33,4 +33,21 @@ keep('flex space with office', 'NAI Keystone lists 43K SF commercial flex with o
 keep('plain warehouse deal, no office', 'NorthBridge grabs 81,000 sq. ft. shallow-bay industrial complex in Rockaway');
 keep('macro industrial market piece', 'Industrial vacancy tightens as warehouse demand outpaces office in Q2');
 
+// ---- Office-as-DESTINATION-asset (2026-08-12 R2 broadening of OFFICE_LED_RE) ----
+// "<verb> … at/to/into the … office <asset>" — office as the destination the tenant occupies.
+rej('Greenberg Traurig at office development (confirmed 2026-08-11)',
+    'Law Firm Greenberg Traurig Takes 25K SF at Related Ross Dev in West Palm. The firm signed a 10-year lease to occupy about 25,000 square feet at the 15 CityPlace office development, which remains under construction.');
+rej('HQ into an office tower', 'Related Ross Lands Wells Fargo HQ; the bank will move into the new West Palm Beach office tower under a long-term lease');
+rej('leases into office building', 'Accounting firm leases 40,000 square feet into the downtown office building');
+
+// ---- Must STILL be KEPT despite office-destination phrasing (broad strong-industrial guard) ----
+keep('CIP industrial-and-office park (Lyons Business Park, shipped correctly)',
+    'CIP Real Estate Buys Broward Campus for $99M. CIP Real Estate has paid $99 million for an industrial and office park in Broward County, Fla. Called Lyons Business Park, the property includes about 10 buildings totaling 338,000 square feet.');
+keep('warehouse located at an office park (guard protects)',
+    'Denholtz leases 95,000 SF warehouse at the Meadowlands office park campus with dock-high loading');
+keep('logistics HQ-operations (no office term; stays industrial)',
+    'DSV Global Transport and Logistics plans Mesa, Arizona, headquarters operations at a new 300,000 SF distribution center');
+keep('manufacturing HQ (no office term)',
+    'CesiumAstro expands Bee Cave, Texas, headquarters-manufacturing operations');
+
 console.log(`\nAll office-leak tests passed (${pass} checks).`);
