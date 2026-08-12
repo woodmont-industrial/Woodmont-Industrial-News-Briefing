@@ -1339,6 +1339,14 @@
         'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
         'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
       };
+      // Mirrors src/shared/publisher-name.ts getPublisherName (keep in sync).
+      const looksLikeDomain = (s) => s.length <= 60 && !/\s/.test(s) && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(s);
+      const domainPublisher = (domain) => {
+        const host = domain.toLowerCase().replace(/^www\./, '');
+        if (host === 'news.google.com') return 'Google News';
+        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
+        return host;
+      };
       const getPublisherName = (article) => {
         if (!article) return 'Source';
         const title = article.title || article.t || '';
@@ -1346,6 +1354,7 @@
         if (segs.length >= 2) {
           const last = segs[segs.length - 1].trim();
           if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
+          if (looksLikeDomain(last)) return domainPublisher(last);
         }
         const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
         const url = (article.url || article.link || article.u || '').toLowerCase();
@@ -1355,8 +1364,8 @@
           const stripped = sf.replace(/^google news\s+/i, '').trim();
           return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
         }
+        if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
         if (article._source && article._source.name) return article._source.name;
-        if (sf === 'news.google.com') return 'Google News';
         return article.source || article.s || 'Source';
       };
 
