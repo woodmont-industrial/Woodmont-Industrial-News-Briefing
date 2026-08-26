@@ -893,6 +893,109 @@ export function regenerateQualityCsv(docsDir: string): void {
 }
 
 // =============================================================================
+// DAILY LOGIC-IMPACT CSV (additive observability, mirrors quality-scores.csv)
+// =============================================================================
+// One row per production send, derived ENTIRELY from the finalized diagnostics
+// object (no independent recomputation). Append-only with runId dedup so a retry
+// of the same send replaces its row instead of duplicating it. Build-stage columns
+// (tag/roundup/category-stub/office/out-of-region/listing counts, ingest totals,
+// commit SHAs, notes) are NOT captured in send diagnostics and are left BLANK —
+// same as the hand-authored historical rows. Has NO effect on selection, routing,
+// scoring, dedup, delivery, or email HTML — it only writes a CSV after the send.
+
+export const DAILY_LOGIC_IMPACT_COLUMNS = [
+    'date', 'run_id', 'logic_version_sha', 'production_commit_sha',
+    'articles_ingested', 'articles_shipped', 'total_excluded',
+    'tag_artifacts_blocked', 'roundups_blocked', 'category_stubs_blocked',
+    'office_items_blocked', 'out_of_region_rejected', 'dc_policy_rejected',
+    'listing_events_rerouted', 'people_items_rescued', 'near_duplicates_suppressed',
+    'cross_day_pool_repeats_suppressed', 'false_leak_penalties_prevented', 'penalty_total',
+    'score', 'grade', 'coverage_score', 'freshness_score', 'supply_condition',
+    'relevant_count', 'transactions_count', 'availabilities_count', 'people_count',
+    'operational_score', 'operational_grade', 'editorial_quality_score', 'editorial_grade',
+    'coverage_supply_score', 'relevant_supply_status', 'transactions_supply_status',
+    'availabilities_supply_status', 'people_supply_status', 'notes',
+] as const;
+
+function dliEscape(v: string): string {
+    return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+
+/** Build the 38-field row for a send from its finalized diagnostics object. */
+export function buildDailyLogicImpactRow(diag: any): Record<string, string> {
+    const q = diag.quality || {};
+    const li = diag.logicImpact || {};
+    const dc = diag.dcPolicy || {};
+    const s = diag.sections || {};
+    const ss = q.supplyStatus || {};
+    const bd = q.breakdown || {};
+    const runId: string = diag.runId || '';
+    const date = runId.slice(0, 10);
+    const flpRaw = li.falseLeaksPrevented;
+    const falseLeak = (flpRaw && typeof flpRaw === 'object') ? flpRaw.total : flpRaw;
+    const penaltyTotal = (q.penalties || []).reduce((a: number, p: any) => a + (p.points || 0), 0);
+    const sel = (k: string) => (s[k] && s[k].selected != null) ? s[k].selected : '';
+    const blank = ''; // genuinely not captured in send diagnostics (build-stage / manual)
+    const v: Record<string, any> = {
+        date, run_id: runId, logic_version_sha: blank, production_commit_sha: blank,
+        articles_ingested: (s.relevant && s.relevant.loaded != null) ? s.relevant.loaded : blank,
+        articles_shipped: q.itemCount ?? blank,
+        total_excluded: blank, tag_artifacts_blocked: blank, roundups_blocked: blank,
+        category_stubs_blocked: blank, office_items_blocked: blank, out_of_region_rejected: blank,
+        dc_policy_rejected: Array.isArray(dc.rejectedOutOfRegion) ? dc.rejectedOutOfRegion.length : blank,
+        listing_events_rerouted: blank,
+        people_items_rescued: li.peopleRescued ?? blank,
+        near_duplicates_suppressed: li.nearDuplicatesSuppressed ?? blank,
+        cross_day_pool_repeats_suppressed: li.crossDayPoolRepeatsSuppressed ?? blank,
+        false_leak_penalties_prevented: falseLeak ?? blank,
+        penalty_total: penaltyTotal,
+        score: q.score ?? blank, grade: q.grade ?? blank,
+        coverage_score: bd.coverage ?? blank, freshness_score: bd.freshness ?? blank,
+        supply_condition: q.supply ?? blank,
+        relevant_count: sel('relevant'), transactions_count: sel('transactions'),
+        availabilities_count: sel('availabilities'), people_count: sel('people'),
+        operational_score: q.operationalScore ?? blank, operational_grade: q.operationalGrade ?? blank,
+        editorial_quality_score: q.editorialQualityScore ?? blank, editorial_grade: q.editorialGrade ?? blank,
+        coverage_supply_score: q.coverageSupplyScore ?? blank,
+        relevant_supply_status: ss.relevant ?? blank, transactions_supply_status: ss.transactions ?? blank,
+        availabilities_supply_status: ss.availabilities ?? blank, people_supply_status: ss.people ?? blank,
+        notes: blank,
+    };
+    const out: Record<string, string> = {};
+    for (const c of DAILY_LOGIC_IMPACT_COLUMNS) out[c] = String(v[c] ?? '');
+    return out;
+}
+
+/**
+ * Append this send's logic-impact row to docs/daily-logic-impact.csv. Preserves all
+ * existing rows verbatim; replaces (does not duplicate) any row with the same runId so
+ * retries are idempotent. Header/schema held stable. No-op if runId is missing.
+ */
+export function writeDailyLogicImpact(docsDir: string, diag: any): void {
+    const runId: string = diag && diag.runId ? diag.runId : '';
+    if (!runId) return;
+    const file = path.join(docsDir, 'daily-logic-impact.csv');
+    const header = DAILY_LOGIC_IMPACT_COLUMNS.join(',');
+    const row = buildDailyLogicImpactRow(diag);
+    const newLine = DAILY_LOGIC_IMPACT_COLUMNS.map(c => dliEscape(row[c])).join(',');
+
+    // Preserve existing data rows byte-for-byte (they include hand-authored + build-stage
+    // values the pipeline cannot reproduce). date & run_id are cols 1-2 and never contain
+    // commas/quotes, so a plain split is a safe key extractor for dedup + sort.
+    let rows: string[] = [];
+    try {
+        if (fs.existsSync(file)) {
+            const lines = fs.readFileSync(file, 'utf-8').split(/\r?\n/).filter(l => l.length > 0);
+            if (lines.length > 1) rows = lines.slice(1);
+        }
+    } catch { /* start fresh on unreadable file */ }
+    rows = rows.filter(l => l.split(',')[1] !== runId);   // runId dedup (retry-safe)
+    rows.push(newLine);
+    rows.sort((a, b) => { const da = a.split(',')[0], db = b.split(',')[0]; return da < db ? -1 : da > db ? 1 : 0; });
+    fs.writeFileSync(file, [header, ...rows].join('\n') + '\n', 'utf-8');
+}
+
+// =============================================================================
 // LEGACY HELPERS (kept for compatibility with existing call sites)
 // =============================================================================
 

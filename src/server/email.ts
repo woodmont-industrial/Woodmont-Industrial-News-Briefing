@@ -20,7 +20,7 @@ import {
     loadSentArticles, loadSentSignatures, saveSentArticles,
     loadSentTitleKeys, normalizeTitleKey
 } from './newsletter-filters.js';
-import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
+import { DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
 
 // ---------------------------------------------------------------------------
@@ -1639,6 +1639,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         try {
             writeNewsletterDiagnostics(docsDir, diag.toJSON());
             console.log(`📊 Diagnostics written: docs/diagnostics/latest.json`);
+            // Additive observability: append this send's row to daily-logic-impact.csv from the
+            // SAME finalized diagnostics object. Isolated in its own try so a CSV hiccup can never
+            // affect the send. No effect on selection/routing/scoring/dedup/delivery/HTML.
+            try {
+                writeDailyLogicImpact(docsDir, diag.toJSON());
+                console.log(`📊 Logic-impact row appended: docs/daily-logic-impact.csv`);
+            } catch (e) {
+                console.warn('⚠️ Failed to append daily-logic-impact row:', (e as Error).message);
+            }
         } catch (e) {
             console.warn('⚠️ Failed to write diagnostics:', (e as Error).message);
         }
