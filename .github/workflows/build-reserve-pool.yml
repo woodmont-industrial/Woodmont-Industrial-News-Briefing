@@ -21,7 +21,7 @@ name: Build Reserve Pool
 
 on:
   schedule:
-    - cron: '0 3 * * *'   # 11 PM EDT / 10 PM EST
+    - cron: '55 2 * * *'   # 11 PM EDT / 10 PM EST (shifted -5min off the top of the hour)
   workflow_dispatch:       # manual run only — never repository_dispatch
 
 # Concurrency guard: cancel any in-flight reserve build if a newer one starts
