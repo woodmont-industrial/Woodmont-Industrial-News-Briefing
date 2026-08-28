@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-28T12:56:42.203Z",
+  "updatedAt": "2026-08-28T13:58:59.774Z",
   "history": [
     {
       "date": "2026-05-11",
@@ -2133,24 +2133,24 @@
     },
     {
       "date": "2026-08-28",
-      "runId": "2026-08-28-1256",
-      "score": 75,
-      "outOf10": 7.5,
+      "runId": "2026-08-28-1358",
+      "score": 72,
+      "outOf10": 7.2,
       "grade": "C",
-      "itemCount": 8,
+      "itemCount": 6,
       "breakdown": {
         "coverage": 24,
-        "freshness": 15.4,
-        "regional": 18.8,
+        "freshness": 11.4,
+        "regional": 22.5,
         "relevanceIntegrity": 20
       },
       "age": {
-        "fresh": 5,
-        "deep": 2,
-        "reserve": 3
+        "fresh": 1,
+        "deep": 5,
+        "reserve": 4
       },
       "delivery": {
-        "score": 100,
+        "score": 91,
         "grade": "A"
       },
       "supply": "Rich",
@@ -2158,6 +2158,18 @@
         {
           "type": "repeat_cross_day",
           "points": 3
+        },
+        {
+          "type": "repeat_cross_day",
+          "points": 3
+        },
+        {
+          "type": "late_delivery",
+          "points": 4
+        },
+        {
+          "type": "manual_send",
+          "points": 5
         }
       ]
     }
