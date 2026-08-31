@@ -1603,13 +1603,14 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // appended to docs/quality-scores.json (the trendline data source).
         try {
             const recentSigs = loadSentSignatures(docsDir); // prior-day deal signatures (last 14d)
-            // Delivery timing vs the 8:30 AM ET target. Read the wall-clock in
-            // America/New_York (handles EDT/EST automatically) and measure minutes past
-            // 8:30 local. `manual` = a human/gh dispatch fired this send (the scheduled
-            // cron dropped); the workflow_run auto-recovery counts as automatic.
+            // Delivery timing vs the 7:30 AM ET target (2026-08-31: moved up from
+            // 8:30). Read the wall-clock in America/New_York (handles EDT/EST
+            // automatically) and measure minutes past 7:30 local. `manual` = a
+            // human/gh dispatch fired this send (the scheduled cron dropped); the
+            // workflow_run auto-recovery counts as automatic.
             const nowUtc = new Date();
             const nyNow = new Date(nowUtc.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-            const nyTarget = new Date(nyNow); nyTarget.setHours(8, 30, 0, 0);
+            const nyTarget = new Date(nyNow); nyTarget.setHours(7, 30, 0, 0);
             const lateMinutes = Math.round((nyNow.getTime() - nyTarget.getTime()) / 60000);
             const triggerEvent = process.env.TRIGGER_EVENT || process.env.GITHUB_EVENT_NAME || '';
             const quality = computeNewsletterScore(

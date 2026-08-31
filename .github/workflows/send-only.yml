@@ -6,22 +6,19 @@ name: "Send: Newsletter Only"
 
 on:
   schedule:
-    # TARGET: ~8:30 AM ET delivery. GitHub delays scheduled crons ~2-4h, so the
-    # cron fires EARLY at 10:00 UTC; +~2.5h typical lag => ~12:30 UTC = 8:30 AM EDT.
-    # (Setting the cron literally to 8:30 ET would push delivery to ~11am-noon.)
-    # This is NOT exact/"sharp" — GitHub drift gives a ~8:00-9:30 ET window. For a
-    # true 8:30:00 send, use an external scheduler -> repository_dispatch (fires
-    # with no lag; this workflow already accepts types: [send-newsletter]).
-    # DST: cron is fixed UTC. When ET returns to EST (Nov 2026) bump +1h to 11:00
-    # UTC so delivery stays ~8:30 ET.
-    # Build pipeline fires 08:00-09:00 UTC (newsletter-pipeline.yml) — lands first.
-    # 2026-06-25: bumped 10:00 -> 10:30 UTC. The 10:00 cron delivered 8:13 AM EDT
-    # (only ~2h lag that day) — too early. 10:30 UTC + ~2h lag => ~12:30 UTC = 8:30
-    # AM EDT, so it no longer lands before 8:30.
-    - cron: '25 10 * * 1-5'
-    - cron: '40 10 * * 1-5'
-    - cron: '55 10 * * 1-5'
-    - cron: '10 11 * * 1-5'
+    # TARGET: ~7:30 AM ET delivery (2026-08-31: moved up from 8:30 per user request).
+    # 7:30 AM EDT = 11:30 UTC. GitHub delays scheduled crons (~2h typical when
+    # healthy), so the crons fire EARLY at 09:25-10:10 UTC; +~2h lag => ~11:30 UTC.
+    # This is NOT exact/"sharp" — GitHub drift decides actual arrival. For a true
+    # 7:30:00 send, use an external scheduler -> repository_dispatch (fires with
+    # no lag; this workflow already accepts types: [send-newsletter]).
+    # DST: cron is fixed UTC. When ET returns to EST (Nov 2026) bump +1h to
+    # 10:25-11:10 UTC so delivery stays ~7:30 ET.
+    # Build pipeline fires 06:55-07:55 UTC (newsletter-pipeline.yml) — lands first.
+    - cron: '25 9 * * 1-5'
+    - cron: '40 9 * * 1-5'
+    - cron: '55 9 * * 1-5'
+    - cron: '10 10 * * 1-5'
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:
@@ -67,18 +64,18 @@ jobs:
               console.log('Force send — bypassing dedup');
               return;
             }
-            // Auto-recovery timing gate. The build completes in the MORNING (~08-09 UTC)
+            // Auto-recovery timing gate. The build completes in the MORNING (~07-08 UTC)
             // on a normal day, so firing the send on build-completion would deliver hours
-            // before the 8:30 AM ET (12:30 UTC) target. Only let the workflow_run path send
-            // once we're in the delivery window (>= 11:30 UTC). The days the scheduled cron
+            // before the 7:30 AM ET (11:30 UTC) target. Only let the workflow_run path send
+            // once we're in the delivery window (>= 10:30 UTC). The days the scheduled cron
             // actually drops are laggy days where GitHub also delays the build (2026-07-06:
             // build ran 11:58-12:52 UTC), so on those days the build finishes late enough
             // for this gate to pass and recover the send. On normal days it defers to the cron.
             if (context.eventName === 'workflow_run') {
               const nowMin = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
-              if (nowMin < 11 * 60 + 30) {
+              if (nowMin < 10 * 60 + 30) {
                 core.setOutput('skip', 'true');
-                console.log('Auto-recovery fired before 11:30 UTC delivery window — deferring to the scheduled cron.');
+                console.log('Auto-recovery fired before 10:30 UTC delivery window — deferring to the scheduled cron.');
                 return;
               }
               console.log('Auto-recovery in delivery window — will send if not already sent today.');

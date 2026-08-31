@@ -268,7 +268,7 @@ const TIER_WEIGHTS: Record<keyof SectionFunnel['tierFill'], number> = {
     tier1_24h: 1.0, tier2_48h_72h: 0.85, tier3_30d_deep: 0.5, tier4_reserve: 0.3, tier5_manual_include: 0.7,
 };
 const PENALTY = { broken: 8, dupInSend: 6, repeatCrossDay: 3, weak: 3, leak: 12, manualSend: 5 };
-// Delivery-timing config. Target is 8:30 AM ET; a 30-min grace absorbs GitHub's
+// Delivery-timing config. Target is 7:30 AM ET (2026-08-31, was 8:30); a 30-min grace absorbs GitHub's
 // normal cron lag, then -1 per 15 min late, capped so timing can't tank a
 // content-perfect send on its own.
 const TIMING = { graceMinutes: 30, minutesPerPoint: 15, lateCap: 10 };
