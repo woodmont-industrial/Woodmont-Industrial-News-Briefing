@@ -23,6 +23,7 @@
 //   oursDir: snapshot of this run's outputs;  treeDir: worktree currently at
 //   origin/main. Merged results are written into treeDir.
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 const [oursDir, treeDir] = process.argv.slice(2);
@@ -30,6 +31,14 @@ if (!oursDir || !treeDir) { console.error('usage: merge-send-state.mjs <oursDir>
 
 const readIf = (p) => { try { return fs.readFileSync(p, 'utf-8'); } catch { return null; } };
 const writeTree = (rel, content) => fs.writeFileSync(path.join(treeDir, rel), content);
+
+// HARD-FAILURE policy (2026-08-31 review): if either side of a cumulative
+// state file is malformed/unmergeable, do NOT guess and do NOT overwrite
+// origin's copy with an unverified snapshot — preserve diagnostic copies,
+// emit a GitHub Actions error, and exit nonzero so the caller
+// (commit-send-state.sh) aborts without committing or pushing anything.
+let failures = 0;
+const diagDir = path.join(process.env.RUNNER_TEMP || os.tmpdir(), 'send-state-merge-failure');
 
 function mergePair(rel, mergeFn) {
     const ours = readIf(path.join(oursDir, rel));
@@ -40,10 +49,16 @@ function mergePair(rel, mergeFn) {
         writeTree(rel, mergeFn(ours, theirs));
         console.log(`merged ${rel}`);
     } catch (e) {
-        // A merge failure must never lose THIS run's dedup state — fall back to
-        // ours (the pre-review whole-file behavior) rather than aborting.
-        console.log(`merge failed for ${rel} (${e.message}) — falling back to this run's version`);
-        writeTree(rel, ours);
+        failures++;
+        const base = path.basename(rel);
+        let saved = '';
+        try {
+            fs.mkdirSync(diagDir, { recursive: true });
+            fs.writeFileSync(path.join(diagDir, `${base}.ours`), ours);
+            fs.writeFileSync(path.join(diagDir, `${base}.origin`), theirs);
+            saved = ` Diagnostic copies: ${diagDir}${path.sep}${base}.{ours,origin}`;
+        } catch { /* diagnostics are best-effort */ }
+        console.log(`::error::Semantic merge of ${rel} FAILED (${e.message}). Neither side will be written — origin's copy stays untouched and nothing will be committed.${saved}`);
     }
 }
 
@@ -82,3 +97,8 @@ const mergeCsv = (ours, theirs) => {
 };
 mergePair('docs/quality-scores.csv', mergeCsv);
 mergePair('docs/daily-logic-impact.csv', mergeCsv);
+
+if (failures > 0) {
+    console.log(`::error::${failures} cumulative state file(s) could not be merged — aborting the send-state commit (exit 1).`);
+    process.exit(1);
+}

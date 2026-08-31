@@ -178,6 +178,27 @@ echo "$qjson" | grep -q "\"updatedAt\": \"${TODAY}T12:00:00Z\""; check "quality-
 git -C "$WORK/w6/origin.git" show main:docs/sent-articles.json | grep -q '"entry-C"'
 check "sent-articles union holds in this world too" $?
 
+echo "== 6b. NEGATIVE: corrupt competing state -> fail RED, do not clobber =="
+make_world "$WORK/w6b"
+send_run_writes "$WORK/w6b/cloneA"
+# Racer pushes a MALFORMED sent-articles.json (truncated JSON) plus a valid feed.
+printf '{ "sent": [ { "id": "entry-C", "sentAt"' > "$WORK/w6b/cloneB/docs/sent-articles.json"
+echo '{"items":["newer-build"]}' > "$WORK/w6b/cloneB/docs/feed.json"
+git -C "$WORK/w6b/cloneB" add -A && git -C "$WORK/w6b/cloneB" commit -qm "racer: corrupt state" && git -C "$WORK/w6b/cloneB" push -q
+CORRUPT="$(origin_sent_json "$WORK/w6b")"
+echo "--- BEFORE: corrupt competing sent-articles.json on origin:"
+echo "$CORRUPT" | sed 's/^/    /'
+out="$(cd "$WORK/w6b/cloneA" && bash "$SCRIPT" "msg" 2>&1)"; rc=$?
+[ $rc -ne 0 ]; check "script exits NONZERO on unmergeable competing state (job goes red)" $?
+echo "$out" | grep -q '::error::'; check "emits a GitHub Actions ::error:: annotation" $?
+echo "$out" | grep -q 'Diagnostic copies:'; check "preserves diagnostic copies of both sides" $?
+AFTER="$(origin_sent_json "$WORK/w6b")"
+[ "$AFTER" = "$CORRUPT" ]; check "origin's copy is UNTOUCHED (not overwritten by our snapshot)" $?
+[ "$(git -C "$WORK/w6b/origin.git" rev-list --count main)" = "2" ]
+check "no commit was pushed (origin still seed + racer only)" $?
+echo "--- AFTER: origin sent-articles.json (unchanged):"
+echo "$AFTER" | sed 's/^/    /'
+
 echo ""
 echo "$PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ]

@@ -64,7 +64,13 @@ restore_run_state() {
         [ -d "$SNAP/ours/$d" ] && { mkdir -p "$d"; cp -rf "$SNAP/ours/$d/." "$d/"; }
     done
     # 2. Shared/cumulative files: semantic merge (union of keyed records).
-    node "$HERE/merge-send-state.mjs" "$SNAP/ours" "."
+    #    HARD FAILURE: if either side is malformed/unmergeable, the helper
+    #    exits nonzero — abort WITHOUT committing or pushing, leaving origin
+    #    untouched (never overwrite origin with an unverified snapshot).
+    if ! node "$HERE/merge-send-state.mjs" "$SNAP/ours" "."; then
+        echo "::error::Send-state semantic merge failed — aborting without pushing. Origin/main is untouched; this run's outputs are preserved in the merge-failure diagnostic copies. The send-state is NOT recorded: resolve the corrupt file and re-record manually."
+        exit 1
+    fi
     # 3. feed.json: origin-wins — deliberately NOT restored.
     return 0
 }
