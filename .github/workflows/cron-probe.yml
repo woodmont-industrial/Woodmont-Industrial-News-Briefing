@@ -6,9 +6,11 @@ name: Cron Latency Probe
 # cron time and run creation is pure GitHub scheduling lag (not build time,
 # not queue-for-runner — created_at vs intended is the scheduling number).
 #
-# Intended: 22:00 UTC daily = 6:00 PM EDT. Off-peak evening slot, deliberately
+# Intended: 22:07 UTC daily = 6:07 PM EDT. Off-peak evening slot, deliberately
 # far from the morning pipeline, to test whether this repo's crons are
-# deprioritized across the board or only at busy hours.
+# deprioritized across the board or only at busy hours. The minute is
+# deliberately OFF-PATTERN (:07, not :00) — :00 is itself a high-contention
+# schedule minute platform-wide and would confound the measurement.
 #
 # Interpretation:
 #   on time (< ~15 min late)  -> repo crons CAN fire on time; morning delays
@@ -22,7 +24,7 @@ name: Cron Latency Probe
 
 on:
   schedule:
-    - cron: '0 22 * * *'
+    - cron: '7 22 * * *'
   workflow_dispatch: # manual fire for sanity-checking the delay math only
 
 permissions: {}
@@ -36,20 +38,20 @@ jobs:
         run: |
           NOW_EPOCH=$(date -u +%s)
           NOW_STR=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
-          # Intended fire time: today 22:00 UTC — if we're before 22:00 UTC
-          # right now, the event that fired us belongs to yesterday's 22:00.
-          TARGET_EPOCH=$(date -u -d "$(date -u +%Y-%m-%d) 22:00:00" +%s)
+          # Intended fire time: today 22:07 UTC — if we're before 22:07 UTC
+          # right now, the event that fired us belongs to yesterday's 22:07.
+          TARGET_EPOCH=$(date -u -d "$(date -u +%Y-%m-%d) 22:07:00" +%s)
           if [ "$NOW_EPOCH" -lt "$TARGET_EPOCH" ]; then
             TARGET_EPOCH=$((TARGET_EPOCH - 86400))
           fi
           DELAY_MIN=$(( (NOW_EPOCH - TARGET_EPOCH) / 60 ))
           echo "event:            ${{ github.event_name }} (${{ github.event.schedule }})"
-          echo "intended (UTC):   22:00"
+          echo "intended (UTC):   22:07"
           echo "actual   (UTC):   $NOW_STR"
           echo "delay:            ${DELAY_MIN} min"
           {
             echo "## Cron Latency Probe"
             echo "| intended | actual | delay |"
             echo "|----------|--------|-------|"
-            echo "| 22:00 UTC (6:00 PM EDT) | $NOW_STR | **${DELAY_MIN} min** |"
+            echo "| 22:07 UTC (6:07 PM EDT) | $NOW_STR | **${DELAY_MIN} min** |"
           } >> "$GITHUB_STEP_SUMMARY"
