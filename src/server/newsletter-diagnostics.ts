@@ -484,7 +484,7 @@ export function computeNewsletterScore(
         const overGrace = Math.max(0, opts.timing.lateMinutes - TIMING.graceMinutes);
         if (overGrace > 0) {
             const pts = Math.min(TIMING.lateCap, Math.ceil(overGrace / TIMING.minutesPerPoint));
-            penalties.push({ type: 'late_delivery', points: pts, detail: `Delivered ~${opts.timing.lateMinutes} min past the 8:30 AM ET target` });
+            penalties.push({ type: 'late_delivery', points: pts, detail: `Delivered ~${opts.timing.lateMinutes} min past the 7:30 AM ET target` });
         }
         if (opts.timing.manual) {
             penalties.push({ type: 'manual_send', points: PENALTY.manualSend, detail: 'Sent by manual dispatch — the scheduled automation did not self-deliver' });
