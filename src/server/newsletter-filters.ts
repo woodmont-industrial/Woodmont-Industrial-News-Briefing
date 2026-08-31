@@ -998,7 +998,15 @@ export function clearIncludedArticles(docsDir: string): void {
 // =====================================================================
 
 interface SentEntry { id: string; sentAt: string; sigs?: string[]; titleKey?: string }
-interface SentArticlesData { sent: SentEntry[] }
+interface SentArticlesData {
+    sent: SentEntry[];
+    // Date (UTC YYYY-MM-DD) of the most recent successful send, stamped on EVERY
+    // send — including one composed entirely of previously-seen article ids, which
+    // appends no new `sent` entries. The workflow dedup guard reads this first;
+    // per-entry `sentAt` alone cannot prove "sent today" on an all-backfill day
+    // (2026-08-31 audit finding: that gap let every later trigger re-send).
+    lastSendDate?: string;
+}
 
 /**
  * Normalize a headline for cross-day title dedup: strip the trailing " - Publisher"
@@ -1122,9 +1130,11 @@ export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string;
             ...(item.titleKey ? { titleKey: item.titleKey } : {}),
         }));
 
-    const updated: SentArticlesData = { sent: [...pruned, ...newEntries] };
+    // lastSendDate is stamped unconditionally: it is the send-happened marker,
+    // independent of whether any article id was new. See SentArticlesData.
+    const updated: SentArticlesData = { sent: [...pruned, ...newEntries], lastSendDate: today };
     fs.writeFileSync(sentPath, JSON.stringify(updated, null, 2) + '\n', 'utf-8');
-    console.log(`💾 Saved ${newEntries.length} new sent-article entries (total: ${updated.sent.length})`);
+    console.log(`💾 Saved ${newEntries.length} new sent-article entries (total: ${updated.sent.length}, lastSendDate: ${today})`);
 }
 
 export function sortByDealThenDate(a: NormalizedItem, b: NormalizedItem): number {
