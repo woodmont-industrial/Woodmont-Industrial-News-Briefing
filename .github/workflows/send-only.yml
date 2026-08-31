@@ -64,21 +64,34 @@ jobs:
               console.log('Force send — bypassing dedup');
               return;
             }
-            // Auto-recovery timing gate. The build completes in the MORNING (~07-08 UTC)
-            // on a normal day, so firing the send on build-completion would deliver hours
-            // before the 7:30 AM ET (11:30 UTC) target. Only let the workflow_run path send
-            // once we're in the delivery window (>= 10:30 UTC). The days the scheduled cron
-            // actually drops are laggy days where GitHub also delays the build (2026-07-06:
-            // build ran 11:58-12:52 UTC), so on those days the build finishes late enough
-            // for this gate to pass and recover the send. On normal days it defers to the cron.
-            if (context.eventName === 'workflow_run') {
-              const nowMin = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
-              if (nowMin < 10 * 60 + 30) {
+            // ---- Delivery floor + weekday gate (AUTOMATED triggers only) ----
+            // Applies to `schedule` and `workflow_run`: never send on a weekend, never
+            // send before 7:15 AM America/New_York (target delivery ~7:30 AM ET).
+            // NY wall-clock, not fixed UTC => DST-proof (replaces the old 10:30 UTC
+            // workflow_run-only gate, which was 1h early, silently consumed the
+            // recovery event when the build finished early — the "dead zone" — and
+            // needed a manual November bump nobody would remember).
+            // Deliberate triggers (workflow_dispatch, repository_dispatch — e.g. an
+            // external scheduler firing at the intended minute, or a human recovery)
+            // BYPASS the floor but still respect the sent-today dedup below.
+            // Interplay: if GitHub cron lag ever normalizes, the 09:25-10:10 UTC
+            // crons arrive before the floor and skip; the watchdog then dispatches
+            // at >=7:30 ET (newsletter-watchdog.yml auto-dispatch, 2026-08-31).
+            const ny = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const nyMinutes = ny.getHours() * 60 + ny.getMinutes();
+            const FLOOR = 7 * 60 + 15; // 7:15 AM ET
+            if (context.eventName === 'schedule' || context.eventName === 'workflow_run') {
+              if (ny.getDay() === 0 || ny.getDay() === 6) {
                 core.setOutput('skip', 'true');
-                console.log('Auto-recovery fired before 10:30 UTC delivery window — deferring to the scheduled cron.');
+                console.log('Weekend in America/New_York — no automated send.');
                 return;
               }
-              console.log('Auto-recovery in delivery window — will send if not already sent today.');
+              if (nyMinutes < FLOOR) {
+                core.setOutput('skip', 'true');
+                console.log(`Before the 7:15 AM ET delivery floor (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — deferring to a later trigger or the watchdog.`);
+                return;
+              }
+              console.log('Inside the delivery window — will send if not already sent today.');
             }
             try {
               const file = await github.rest.repos.getContent({
@@ -88,7 +101,11 @@ jobs:
               });
               const content = JSON.parse(Buffer.from(file.data.content, 'base64').toString());
               const today = new Date().toISOString().split('T')[0];
-              const sentToday = (content.sent || []).some(s => s.sentAt === today);
+              // lastSendDate is stamped on EVERY successful send; the per-entry scan
+              // alone misses a send composed entirely of previously-seen ids
+              // (2026-08-31 audit finding 3 — that gap allowed same-day re-sends).
+              const sentToday = content.lastSendDate === today
+                || (content.sent || []).some(s => s.sentAt === today);
               if (sentToday) {
                 core.setOutput('skip', 'true');
                 console.log('Already sent today — skipping');
@@ -141,25 +158,14 @@ jobs:
 
       - name: Commit sent-articles
         if: steps.dedup.outputs.skip != 'true'
+        # Delegated to a script so the race behavior is unit-testable. The script
+        # exits nonzero if the sent-state cannot reach origin/main — that MUST
+        # fail the job loudly: the email already went out, and unrecorded state
+        # means later triggers duplicate-send (2026-08-31 audit findings 1-2).
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # quality-scores.{json,csv} are written by writeQualityHistory() during the
-          # send; stage them so the Power BI trendline (quality-scores.csv) updates
-          # each send. Without this the score lands only in docs/diagnostics/.
-          # daily-logic-impact.csv is written by writeDailyLogicImpact() the same way.
-          git add docs/sent-articles.json docs/feed.json docs/included-articles.json docs/diagnostics/ docs/quality-scores.json docs/quality-scores.csv docs/daily-logic-impact.csv
-          # -A so archive retention (deletions of >90-day snapshots) is committed too.
-          git add -A docs/newsletter-archive/
-          if git diff --staged --quiet; then
-            echo "No changes"
-          else
-            git commit -m "📧 Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')"
-            for i in 1 2 3; do
-              if git push; then echo "Push OK"; break; fi
-              git fetch origin main && git rebase origin/main --strategy-option=ours || { git rebase --abort; git pull --no-rebase -X ours || true; }
-            done
-          fi
+          bash .github/scripts/commit-send-state.sh
 
       # Also save today's top articles for Friday Week-in-Review
       - name: Save daily top articles

@@ -38,7 +38,10 @@ jobs:
               });
               const content = JSON.parse(Buffer.from(file.data.content, 'base64').toString());
               const today = new Date().toISOString().split('T')[0];
-              const sentToday = (content.sent || []).some(s => s.sentAt === today);
+              // Same dedup semantics as send-only.yml: lastSendDate covers sends
+              // with zero new article ids (2026-08-31 audit finding 3).
+              const sentToday = content.lastSendDate === today
+                || (content.sent || []).some(s => s.sentAt === today);
               if (sentToday) {
                 console.log('✅ Newsletter already sent today (confirmed in sent-articles.json).');
                 return;
@@ -63,6 +66,31 @@ jobs:
               }
             } catch { /* workflow might not exist */ }
 
-            // Newsletter didn't send today — ALERT ONLY
-            console.log('🚨 Newsletter did NOT send today!');
-            core.warning('Newsletter did NOT send today. Please trigger send-only.yml manually.');
+            // Newsletter didn't send today — AUTO-DISPATCH the send (2026-08-31:
+            // was warn-only, which nobody sees in time; this workflow already held
+            // actions:write). Closes the "dead zone": if the send crons are dropped
+            // while the build completed BEFORE the delivery floor, the consumed
+            // workflow_run recovery event never comes back — this is the backstop.
+            // Guards, both on the America/New_York wall clock so they survive DST:
+            //   - never dispatch on a weekend
+            //   - never dispatch before 7:30 AM ET (when EST returns in Nov, the
+            //     fixed-UTC crons drift to 6:30/7:00/7:30 AM ET — without this
+            //     guard the first two checks would fire an early send all winter)
+            // The dispatched run still passes through send-only.yml's own dedup.
+            const ny = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            if (ny.getDay() === 0 || ny.getDay() === 6) {
+              console.log('Weekend in America/New_York — watchdog stands down.');
+              return;
+            }
+            if (ny.getHours() * 60 + ny.getMinutes() < 7 * 60 + 30) {
+              console.log('Before 7:30 AM ET — too early to declare a miss; standing down until the next check.');
+              return;
+            }
+            console.log('🚨 Newsletter did NOT send today — auto-dispatching send-only.yml');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'send-only.yml',
+              ref: 'main'
+            });
+            core.notice('Newsletter had not sent by ' + ny.toTimeString().slice(0, 5) + ' ET — watchdog auto-dispatched send-only.yml.');
