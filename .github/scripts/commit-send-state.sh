@@ -14,10 +14,16 @@
 #      failed pushes still exited 0 — job green, state lost.
 # Strategy here: no rebase at all. Snapshot this run's output files, and on
 # push rejection rebuild the commit from scratch on the new origin tip
-# (fetch → reset --hard → restore snapshot → re-commit). The run's state
-# files always win for the paths below; that is intentional — sent-articles
-# is only ever written by the send (serialized by the concurrency group), and
-# a racing build's feed.json is superseded minutes later by the next build.
+# (fetch → reset --hard → restore run state → re-commit), with PER-FILE
+# policy so a competing commit's legitimate state is never lost
+# (2026-08-31 race-safety review):
+#   semantic merge (merge-send-state.mjs): sent-articles.json (union by id,
+#     lastSendDate = ours), quality-scores.{json,csv},
+#     daily-logic-impact.csv (union of keyed rows, ours win on same key)
+#   ours-wins overlay: diagnostics/, newsletter-archive/,
+#     included-articles.json (send-owned; nothing else writes them)
+#   origin-wins: feed.json (a racing fresh build outranks this run's
+#     enriched copy; the next build supersedes either within hours)
 # Known minor trade-off: archive-retention DELETIONS are not re-applied on
 # the rebuild path (resurrected files are re-pruned by the next send).
 set -u
@@ -45,6 +51,23 @@ for p in "${STATE_FILES[@]}" "${STATE_DIRS[@]}"; do
     [ -e "$p" ] && EXISTING+=("$p")
 done
 tar -cf "$SNAP/state.tar" "${EXISTING[@]}"
+mkdir -p "$SNAP/ours"
+tar -xf "$SNAP/state.tar" -C "$SNAP/ours"
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+restore_run_state() {
+    # Working tree is at origin/main; $SNAP/ours holds this run's outputs.
+    # 1. Send-owned paths: ours-wins overlay (per-file copy, no deletes, so a
+    #    competing commit's independent additions under the same dirs survive).
+    [ -f "$SNAP/ours/docs/included-articles.json" ] && cp -f "$SNAP/ours/docs/included-articles.json" docs/included-articles.json
+    for d in docs/diagnostics docs/newsletter-archive; do
+        [ -d "$SNAP/ours/$d" ] && { mkdir -p "$d"; cp -rf "$SNAP/ours/$d/." "$d/"; }
+    done
+    # 2. Shared/cumulative files: semantic merge (union of keyed records).
+    node "$HERE/merge-send-state.mjs" "$SNAP/ours" "."
+    # 3. feed.json: origin-wins — deliberately NOT restored.
+    return 0
+}
 
 stage
 if git diff --staged --quiet; then
@@ -61,7 +84,7 @@ for i in $(seq 1 "$ATTEMPTS"); do
     echo "Push rejected (attempt $i/$ATTEMPTS) — rebuilding commit on fresh origin/main"
     git fetch origin main
     git reset --hard origin/main
-    tar -xf "$SNAP/state.tar"
+    restore_run_state
     stage
     if git diff --staged --quiet; then
         # Origin already has content-identical state (e.g. an earlier push
