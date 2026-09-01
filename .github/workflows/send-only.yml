@@ -201,23 +201,14 @@ jobs:
           git add docs/weekly-top-articles.json
           git diff --staged --quiet || git commit -m "📊 Daily top articles - $(date -u +'%Y-%m-%d')" && git push || true
 
-      # Update pipeline status on the website (no email, no webhook)
+      # Update pipeline status on the website (no email, no webhook).
+      # articleCount comes from the archive meta this run wrote — the exact
+      # sent-HTML count — NOT from sent-articles.json, whose today-stamped rows
+      # are a dedup superset/subset (2026-09-01: 5 shipped showed as 7).
       - name: Update pipeline status
         if: steps.dedup.outputs.skip != 'true'
         run: |
-          ARTICLE_COUNT=$(node -e "const s=JSON.parse(require('fs').readFileSync('docs/sent-articles.json','utf-8'));const t=s.sent.filter(x=>x.sentAt===new Date().toISOString().split('T')[0]).length;console.log(t)")
-          node -e "
-          const fs = require('fs');
-          const status = {
-            lastSent: new Date().toISOString(),
-            date: new Date().toISOString().split('T')[0],
-            articleCount: ${ARTICLE_COUNT},
-            status: 'success',
-            runId: '${{ github.run_id }}',
-            runUrl: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-          };
-          fs.writeFileSync('docs/pipeline-status.json', JSON.stringify(status, null, 2));
-          "
+          node .github/scripts/update-pipeline-status.mjs
           git add docs/pipeline-status.json
           git diff --staged --quiet || git commit --amend --no-edit && git push --force-with-lease || true
 
