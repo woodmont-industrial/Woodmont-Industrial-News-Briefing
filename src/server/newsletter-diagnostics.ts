@@ -191,6 +191,13 @@ export interface NewsletterQuality {
     editorialGrade: string;
     coverageSupplyScore: number;                 // 0-100, % of section coverage-weight filled
     supplyStatus: Record<Section, SupplyStatus>; // per-section: why it was/wasn't filled
+    // TELEMETRY-ONLY (2026-09-02): section-fill gauge derived purely from the
+    // finalized supplyStatus above. Complements `supply`, which measures
+    // 30d+reserve market presence and reads Rich even on one-section days
+    // (e.g. 2026-09-02: Rich with only Relevant filled). Feeds NOTHING —
+    // no scoring, no excusal logic, no CSV schema; JSON consumers only.
+    sectionsFilled: number;                                  // 0-4 sections FILLED
+    sectionSupplyCondition: 'FULL' | 'PARTIAL' | 'SPARSE';   // 4/4 · 2-3/4 · 0-1/4
 }
 
 // Per-section supply classification from the diagnostic funnel (selected/inWindow/sectionPass).
@@ -568,11 +575,17 @@ export function computeNewsletterScore(
     if (emptyBySupply.QUALITY_REJECTED.length) notes.push(`Empty — fresh supply rejected by section gates (quality): ${emptyBySupply.QUALITY_REJECTED.join(', ')}`);
     if (emptyBySupply.NO_FRESH_SUPPLY.length) notes.push(`Empty — no fresh in-window supply (NO_FRESH_SUPPLY): ${emptyBySupply.NO_FRESH_SUPPLY.join(', ')}`);
 
+    // Telemetry-only section-fill gauge (see NewsletterQuality) — derived from
+    // the finalized supplyStatus, used by nothing downstream.
+    const sectionsFilled = order.filter(s => supplyStatus[s] === 'FILLED').length;
+    const sectionSupplyCondition: 'FULL' | 'PARTIAL' | 'SPARSE' =
+        sectionsFilled === 4 ? 'FULL' : sectionsFilled >= 2 ? 'PARTIAL' : 'SPARSE';
+
     return {
         score, outOf10: round1(score / 10), grade, itemCount,
         operationalScore: score, operationalGrade: grade,
         editorialQualityScore, editorialGrade: gradeOf(editorialQualityScore),
-        coverageSupplyScore, supplyStatus,
+        coverageSupplyScore, supplyStatus, sectionsFilled, sectionSupplyCondition,
         breakdown: {
             coverage: round1(coverage),
             freshness: round1(freshness),

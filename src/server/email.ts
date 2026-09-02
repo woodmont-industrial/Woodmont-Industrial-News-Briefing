@@ -1708,6 +1708,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 grade: dq?.grade ?? null,
                 deliveryScore: dq?.delivery?.score ?? null,
                 supplyCondition: dq?.supply ?? null,
+                // Telemetry-only (2026-09-02): section-fill gauge beside the
+                // market-presence gauge above — FULL 4/4 / PARTIAL 2-3 / SPARSE 0-1.
+                sectionSupplyCondition: dq?.sectionSupplyCondition ?? null,
+                sectionsFilled: dq?.sectionsFilled ?? null,
                 triggerEvent: process.env.TRIGGER_EVENT || process.env.GITHUB_EVENT_NAME || '',
                 isFriday,
                 subject,
