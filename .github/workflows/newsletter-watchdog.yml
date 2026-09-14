@@ -2,13 +2,21 @@ name: Newsletter Watchdog
 
 on:
   schedule:
-    # 2026-08-31: shifted -1h for the new ~7:30 AM ET delivery target.
-    # Check at 7:30 AM EDT (11:30 UTC) — pipeline should be done by now
-    - cron: '30 11 * * 1-5'
-    # Check again at 8:00 AM EDT (12:00 UTC)
-    - cron: '0 12 * * 1-5'
-    # Final check at 8:30 AM EDT (12:30 UTC) — last resort before boss arrives
-    - cron: '30 12 * * 1-5'
+    # ET WALL-CLOCK schedule (timezone-aware; Actions handles EDT/EST itself).
+    # 2026-09-14: converted from fixed UTC (11:30/12:00/12:30Z). This removes a
+    # real winter hazard: those fixed times would have become 6:30/7:00/7:30 AM
+    # EST once ET left daylight time, i.e. the first two checks would have run
+    # BEFORE the 7:30 AM ET delivery target and declared a miss every morning.
+    # The job's own >= 7:30 AM ET guard is the second layer, not the only one.
+    # Check at 7:30 AM ET — pipeline should be done by now
+    - cron: '30 7 * * 1-5'
+      timezone: "America/New_York"
+    # Check again at 8:00 AM ET
+    - cron: '0 8 * * 1-5'
+      timezone: "America/New_York"
+    # Final check at 8:30 AM ET — last resort before the team is reading
+    - cron: '30 8 * * 1-5'
+      timezone: "America/New_York"
   workflow_dispatch: # Allow manual trigger
 
 permissions:

@@ -6,19 +6,26 @@ name: "Send: Newsletter Only"
 
 on:
   schedule:
-    # TARGET: ~7:30 AM ET delivery (2026-08-31: moved up from 8:30 per user request).
-    # 7:30 AM EDT = 11:30 UTC. GitHub delays scheduled crons (~2h typical when
-    # healthy), so the crons fire EARLY at 09:25-10:10 UTC; +~2h lag => ~11:30 UTC.
-    # This is NOT exact/"sharp" — GitHub drift decides actual arrival. For a true
-    # 7:30:00 send, use an external scheduler -> repository_dispatch (fires with
-    # no lag; this workflow already accepts types: [send-newsletter]).
-    # DST: cron is fixed UTC. When ET returns to EST (Nov 2026) bump +1h to
-    # 10:25-11:10 UTC so delivery stays ~7:30 ET.
-    # Build pipeline fires 06:55-07:55 UTC (newsletter-pipeline.yml) — lands first.
-    - cron: '25 9 * * 1-5'
-    - cron: '40 9 * * 1-5'
-    - cron: '55 9 * * 1-5'
-    - cron: '10 10 * * 1-5'
+    # ET WALL-CLOCK schedule (timezone-aware; Actions handles EDT/EST itself).
+    # 2026-09-14: converted from fixed UTC (09:25-10:10Z) to the identical ET
+    # local times. No seasonal cron edit is needed any more — the old fixed-UTC
+    # schedule would have drifted an hour earlier once ET returned to EST.
+    #
+    # TARGET: ~7:30 AM ET delivery (2026-08-31: moved up from 8:30).
+    # These crons fire EARLY on purpose (~05:25-06:10 ET): GitHub delivers
+    # `schedule` events hours late for this repo, so the early fire plus drift
+    # is what lands near the target. Arrival is NOT sharp — GitHub decides it.
+    # For a punctual send use an external scheduler -> repository_dispatch
+    # (no lag; this workflow already accepts types: [send-newsletter]).
+    # The build pipeline fires earlier still (~02:55-03:55 ET) so it lands first.
+    - cron: '25 5 * * 1-5'
+      timezone: "America/New_York"
+    - cron: '40 5 * * 1-5'
+      timezone: "America/New_York"
+    - cron: '55 5 * * 1-5'
+      timezone: "America/New_York"
+    - cron: '10 6 * * 1-5'
+      timezone: "America/New_York"
   repository_dispatch:
     types: [send-newsletter]
   workflow_dispatch:

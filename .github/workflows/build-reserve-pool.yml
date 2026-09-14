@@ -21,7 +21,12 @@ name: Build Reserve Pool
 
 on:
   schedule:
-    - cron: '55 2 * * *'   # 11 PM EDT / 10 PM EST (shifted -5min off the top of the hour)
+    # ET WALL-CLOCK (timezone-aware; Actions handles EDT/EST itself).
+    # 2026-09-14: converted from fixed 02:55 UTC to the identical ET local time,
+    # so it stays at 10:55 PM ET year-round instead of shifting with DST.
+    # :55 keeps it off the top of the hour.
+    - cron: '55 22 * * *'
+      timezone: "America/New_York"
   workflow_dispatch:       # manual run only — never repository_dispatch
 
 # Concurrency guard: cancel any in-flight reserve build if a newer one starts

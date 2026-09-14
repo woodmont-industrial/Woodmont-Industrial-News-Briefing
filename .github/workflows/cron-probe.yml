@@ -6,11 +6,15 @@ name: Cron Latency Probe
 # cron time and run creation is pure GitHub scheduling lag (not build time,
 # not queue-for-runner — created_at vs intended is the scheduling number).
 #
-# Intended: 22:07 UTC daily = 6:07 PM EDT. Off-peak evening slot, deliberately
-# far from the morning pipeline, to test whether this repo's crons are
+# Intended: 18:07 America/New_York daily (timezone-aware; 2026-09-14 converted
+# from the equivalent fixed 22:07 UTC). Off-peak evening slot, deliberately far
+# from the morning pipeline, to test whether this repo's crons are
 # deprioritized across the board or only at busy hours. The minute is
 # deliberately OFF-PATTERN (:07, not :00) — :00 is itself a high-contention
 # schedule minute platform-wide and would confound the measurement.
+# NOTE: the delay math below computes its target in America/New_York too. Both
+# must move together — an ET-anchored cron measured against a hardcoded UTC
+# target would report a bogus 60-minute error for the whole EST half of the year.
 #
 # Interpretation:
 #   on time (< ~15 min late)  -> repo crons CAN fire on time; morning delays
@@ -24,7 +28,8 @@ name: Cron Latency Probe
 
 on:
   schedule:
-    - cron: '7 22 * * *'
+    - cron: '7 18 * * *'
+      timezone: "America/New_York"
   workflow_dispatch: # manual fire for sanity-checking the delay math only
 
 permissions: {}
@@ -38,20 +43,24 @@ jobs:
         run: |
           NOW_EPOCH=$(date -u +%s)
           NOW_STR=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
-          # Intended fire time: today 22:07 UTC — if we're before 22:07 UTC
-          # right now, the event that fired us belongs to yesterday's 22:07.
-          TARGET_EPOCH=$(date -u -d "$(date -u +%Y-%m-%d) 22:07:00" +%s)
+          # Intended fire time: today 18:07 America/New_York (matches the
+          # timezone-aware cron above). Computed in ET rather than fixed UTC so
+          # the measurement stays correct on both sides of the DST boundary.
+          # If that instant is still in the future, the event that fired us
+          # belongs to yesterday's 18:07 ET.
+          TARGET_EPOCH=$(TZ=America/New_York date -d "$(TZ=America/New_York date +%Y-%m-%d) 18:07:00" +%s)
           if [ "$NOW_EPOCH" -lt "$TARGET_EPOCH" ]; then
             TARGET_EPOCH=$((TARGET_EPOCH - 86400))
           fi
           DELAY_MIN=$(( (NOW_EPOCH - TARGET_EPOCH) / 60 ))
+          TARGET_STR=$(TZ=America/New_York date -d "@$TARGET_EPOCH" +'%Y-%m-%d %H:%M %Z')
           echo "event:            ${{ github.event_name }} (${{ github.event.schedule }})"
-          echo "intended (UTC):   22:07"
+          echo "intended (ET):    18:07  -> $TARGET_STR"
           echo "actual   (UTC):   $NOW_STR"
           echo "delay:            ${DELAY_MIN} min"
           {
             echo "## Cron Latency Probe"
             echo "| intended | actual | delay |"
             echo "|----------|--------|-------|"
-            echo "| 22:07 UTC (6:07 PM EDT) | $NOW_STR | **${DELAY_MIN} min** |"
+            echo "| $TARGET_STR (18:07 ET) | $NOW_STR | **${DELAY_MIN} min** |"
           } >> "$GITHUB_STEP_SUMMARY"
