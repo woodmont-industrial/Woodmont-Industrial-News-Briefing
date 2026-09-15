@@ -4,6 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Raw Articles — Woodmont Industrial</title>
+  <!-- ADMIN-ONLY GUARD (2026-09-15). raw.html is a curation console: it picks,
+       includes, removes and clears articles and surfaces GitHub sync states
+       ("Session token required", "picks ready"). It is not a reader surface.
+       This runs BEFORE React/Babel load, so no curation UI or sync code ever
+       executes for a static visitor. Mirrors index.html's IS_STATIC definition
+       (hostname !== 'localhost') so the two can never disagree. Uses
+       location.replace so the back button doesn't bounce the reader. -->
+  <script>
+    (function () {
+      var IS_STATIC = window.location.hostname !== 'localhost';
+      if (IS_STATIC) { window.location.replace('index.html'); }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
