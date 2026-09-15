@@ -135,12 +135,17 @@
               {stats.filtered} of {stats.total} articles • Updated {stats.updated}
             </div>
               <div className="flex gap-2">
+              {/* ADMIN-ONLY (2026-09-15): raw.html is a curation surface (pick /
+                  include / remove / clear + GitHub sync states). Hidden from the
+                  static reader nav; raw.html also self-redirects off localhost. */}
+              {!IS_STATIC && (
               <a
                   href="raw.html"
                   className="px-4 py-2 rounded-xl font-medium transition-all bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900 no-underline"
               >
                   📋 Raw
               </a>
+              )}
               <button
                   onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
@@ -408,6 +413,13 @@
 
               {/* Action Buttons — +/- prominent, everything else under ⋯ */}
               <div className="track-menu-container relative flex items-center gap-1.5">
+                {/* ADMIN-ONLY (2026-09-15): +/- mutate the CENTRAL newsletter via
+                    GitHub (included/excluded-articles.json) and require a PAT.
+                    Hidden in the static production UI so ordinary readers are
+                    never shown a control that edits everyone's briefing or
+                    prompts for a token. Functions are preserved for localhost. */}
+                {!IS_STATIC && (
+                  <>
                 {/* Add to Newsletter */}
                 <button
                   onClick={(e) => {
@@ -433,6 +445,8 @@
                 >
                   &minus;
                 </button>
+                  </>
+                )}
 
                 {/* More menu: Track / Raw / Ignore */}
                 <div className="relative">
@@ -1033,7 +1047,9 @@
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
-                  Settings {!ghToken && <span className="ml-1 w-2 h-2 bg-amber-400 rounded-full inline-block"></span>}
+                  {/* The amber "action needed" dot means "no PAT connected" — meaningless
+                      (and un-actionable) for static readers, so it is admin-only too. */}
+                  Settings {!IS_STATIC && !ghToken && <span className="ml-1 w-2 h-2 bg-amber-400 rounded-full inline-block"></span>}
                 </button>
               </div>
 
@@ -1212,6 +1228,11 @@
                       </div>
                     )}
                   </div>
+                  {/* ADMIN-ONLY (2026-09-15): the PAT block is hidden in the static
+                      production UI. An Industrial reader must never be asked to mint
+                      a GitHub token with Contents:Read-and-write on this repo.
+                      Preserved verbatim for localhost/admin use. */}
+                  {!IS_STATIC && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       GitHub Token
@@ -1256,15 +1277,18 @@
                       )}
                     </div>
                   </div>
-                  {tokenWarning && (
+                  )}
+                  {!IS_STATIC && tokenWarning && (
                     <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-3 text-xs text-amber-800 dark:text-amber-200">
                       GitHub token missing for this session. Paste your token and click Connect to enable repo sync actions.
                     </div>
                   )}
+                  {!IS_STATIC && (
                   <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3 text-xs text-slate-500 dark:text-slate-400">
                     <p className="font-medium text-slate-600 dark:text-slate-300 mb-1">How it works:</p>
                     <p>When you click "Ignore" or make raw-feed picks, repo sync runs only if a token is connected in this tab. Reloading the page clears the token, and you must paste it again for that session.</p>
                   </div>
+                  )}
                 </div>
               )}
 
@@ -2357,10 +2381,15 @@
       const handleIgnoreArticle = useCallback((article, reason) => {
         if (addIgnoredArticle(article, reason)) {
           setIgnoredArticles(getIgnoredArticles());
-          // Sync to GitHub excluded-articles.json so server-side newsletters also exclude it
-          const articleId = article.id || article.link || article.title;
-          const articleUrl = article.link || article.url || '';
-          syncExcludeToGitHub(articleId, articleUrl, article.title);
+          // Repo-wide exclude is ADMIN-ONLY (2026-09-15). In the static production
+          // UI, Ignore stays strictly personal: it hides the article for this reader
+          // and never touches excluded-articles.json. (It was already inert without
+          // a PAT; this makes it explicit so no call is even attempted.)
+          if (!IS_STATIC) {
+            const articleId = article.id || article.link || article.title;
+            const articleUrl = article.link || article.url || '';
+            syncExcludeToGitHub(articleId, articleUrl, article.title);
+          }
         }
       }, []);
 
@@ -2379,6 +2408,7 @@
 
       // Add article directly to next newsletter (syncs to included-articles.json on GitHub)
       const handleAddToNewsletter = useCallback(async (article) => {
+        if (IS_STATIC) return;   // admin-only; button is not rendered in static UI
         const id = article.id || article.link;
         const pickData = {
           t: article.title || '', u: article.link || '', s: article.source || article.publisher || '',
@@ -2397,6 +2427,7 @@
 
       // Remove article from next newsletter (syncs to excluded-articles.json on GitHub)
       const handleRemoveFromNewsletter = useCallback(async (article) => {
+        if (IS_STATIC) return;   // admin-only; button is not rendered in static UI
         const articleId = article.id || article.link || article.title;
         const articleUrl = article.link || article.url || '';
         const result = await syncExcludeToGitHub(articleId, articleUrl, article.title);
