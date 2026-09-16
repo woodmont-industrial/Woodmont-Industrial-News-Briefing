@@ -48,7 +48,9 @@
     "source": "Bisnow",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-09-16 — endpoint permanently gone: /rss-feed/new-jersey returns a deterministic 404 (verified 3x), as do the nj / newjersey / trailing-slash variants, while national|philadelphia|south-florida on the same pattern return 200. Bisnow no longer publishes an NJ market feed. NOT replaced: /rss-feed/new-york is a different, non-target market (3 of 24 items NJ/PA/FL). NJ coverage remains via Google News Bisnow Industrial (58/100 items NJ/PA/FL) and Bisnow Philadelphia (21/24 NJ/PA/FL)."
   },
   {
     "url": "https://www.bisnow.com/rss-feed/philadelphia",
@@ -2225,7 +2227,9 @@
     "source": "NJBIZ",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-09-16 — endpoint permanently gone: deterministic 404, as are /people-on-the-move/feed/, /tag/people-on-the-move/feed/ and /category/people/feed/. No working NJBIZ people category feed exists. Personnel coverage remains via Google News NJBIZ People. SEPARATE FINDING (not actioned here): njbiz.com/feed/ is healthy (200, 25 items, 8 within 24h, 23 NJ/PA/FL) but disabled — worth its own decision."
   },
   {
     "url": "https://www.roi-nj.com/category/tracking/feed/",

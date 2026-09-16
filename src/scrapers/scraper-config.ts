@@ -321,8 +321,18 @@ export function getScraperConfig(domain: string): ScraperDomainConfig | undefine
 // 2026-07-01: scrapers consistently failing (403 / bot-block / timeout) AND already
 // covered by working Google News `site:` RSS proxies — skip them so the build doesn't
 // waste time on doomed fetches. Reversible: remove a name to re-enable its scraper.
+// 2026-09-16: Bisnow added. All four of its scrape targets (/national/news,
+// /new-jersey/news, /philadelphia/news, /south-florida/news) return a
+// DETERMINISTIC 404 — identical 10,976-byte error page on 3 consecutive probes
+// each, responding in 20-200ms, so this is neither transient nor anti-bot
+// throttling; those article index paths simply no longer exist. The axios pass
+// therefore always fails, the Playwright fallback then burns the scraper's
+// timeout budget (~288s observed) and returns 0 articles every build. It is
+// also self-classified "supplementary (RSS already works)", and the Bisnow RSS
+// feeds for national/philadelphia/south-florida are healthy (200, 23-24 items
+// each). Disabling removes a guaranteed-failing job with no supply loss.
 const DISABLED_SCRAPERS = new Set([
-    'JLL', 'Bloomberg', 'LoopNet', 'NJBIZ', 'REJournals', 'South FL Business Journal', 'WSJ',
+    'Bisnow', 'JLL', 'Bloomberg', 'LoopNet', 'NJBIZ', 'REJournals', 'South FL Business Journal', 'WSJ',
 ]);
 
 /**
