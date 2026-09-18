@@ -1,0 +1,96 @@
+{
+  "_comment": "PUBLIC DATA ONLY. Geographic classification inputs for the Capital Markets Preview sandbox. Contains no Woodmont, competitor, ownership, recipient, pricing or operational information. Boundaries here are either stakeholder-stated rules or public county names verified against the U.S. Census county list; nothing in this file is inferred.",
+  "_version": 1,
+  "_updated": "2026-09-18",
+  "_sources": [
+    "Stakeholder-supplied classification (2026-09-18): the NJ Turnpike Exit 6 rule and latitude, and the PA, FL and NY county tiers recorded below.",
+    "U.S. Census Bureau 2020 Place-to-County relationship files and 2026 Gazetteer — used only to VERIFY that every county name below exists and is spelled canonically, not to choose which counties belong to a tier."
+  ],
+  "_tiers": {
+    "TARGET": "Core market. Lowest deal-size thresholds.",
+    "BROADER": "Secondary market. Higher thresholds.",
+    "UNMAPPED": "Recognized as in-state but NOT assigned a tier. Held, never silently treated as national or as target. Applies to FL counties outside the target and broader lists; NJ has no UNMAPPED municipalities.",
+    "NATIONAL": "Outside the covered states entirely."
+  },
+  "states": {
+    "NJ": {
+      "method": "latitude-with-fallback",
+      "rule": "north of NJ Turnpike Exit 6",
+      "exit6Latitude": 40.096,
+      "appliesTo": "TARGET",
+      "notes": "A NJ municipality whose Census internal-point latitude is >= exit6Latitude is TARGET; every other NJ municipality is BROADER. No NJ municipality is left UNMAPPED. Municipalities with a null latitude in capital-markets-places.json fall back to BROADER. The latitude is a straight-line proxy for the Exit 6 boundary, so municipalities straddling the line may need manual correction - use overrides below.",
+      "targetCounties": [],
+      "broaderCounties": [],
+      "fallbackTier": "BROADER",
+      "overrides": {},
+      "_overridesNote": "Manual per-municipality corrections near the boundary. Key is \"Municipality|County\" exactly as it appears in capital-markets-places.json; value is \"TARGET\" or \"BROADER\". An override always wins over the latitude rule. Empty until a specific municipality is corrected. Example: \"Hamilton|Mercer\": \"TARGET\"."
+    },
+    "PA": {
+      "method": "county",
+      "targetCounties": [
+        "Berks",
+        "Lehigh",
+        "Northampton"
+      ],
+      "broaderCounties": [
+        "Bucks",
+        "Chester",
+        "Delaware",
+        "Montgomery",
+        "Philadelphia",
+        "Dauphin",
+        "Lebanon",
+        "Cumberland",
+        "Franklin",
+        "Lancaster",
+        "York",
+        "Perry",
+        "Adams"
+      ]
+    },
+    "FL": {
+      "method": "county",
+      "targetCounties": [
+        "Miami-Dade",
+        "Broward",
+        "Palm Beach"
+      ],
+      "broaderCounties": [
+        "Pasco",
+        "Polk",
+        "Lake",
+        "Seminole",
+        "Brevard",
+        "Pinellas",
+        "Hillsborough",
+        "Orange",
+        "Osceola",
+        "Indian River",
+        "Manatee",
+        "Hardee",
+        "Okeechobee",
+        "St. Lucie",
+        "Sarasota",
+        "DeSoto",
+        "Highlands",
+        "Martin",
+        "Charlotte",
+        "Glades",
+        "Lee",
+        "Hendry",
+        "Collier",
+        "Monroe"
+      ],
+      "_derivation": "BUSINESS-RULE INTERPRETATION, not an FDOT-defined market. This broader county set is a Woodmont/Jacob reading of the FDOT county map identifying the south-of-boundary region. FDOT does not publish this list or define these counties as a market, so it must not be cited as an FDOT standard. Florida counties outside both lists remain UNMAPPED."
+    },
+    "NY": {
+      "method": "county",
+      "targetCounties": [],
+      "broaderCounties": [
+        "Nassau",
+        "Suffolk",
+        "Rockland"
+      ]
+    }
+  }
+}
