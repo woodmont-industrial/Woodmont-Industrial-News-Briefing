@@ -1277,7 +1277,7 @@
       );
     };
 
-    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
+    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading, cmAsOfDate, setCmAsOfDate, cmLookback, setCmLookback }) => {
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -1734,10 +1734,40 @@
                     onChange={(e) => setTheme(e.target.value)}
                   >
                     <option value="work">Work (Clean & Professional)</option>
+                    <option value="capital-markets">Capital Markets Preview</option>
                     <option value="default">Default (Colorful)</option>
                     <option value="goth">Executive Dark</option>
                   </select>
                 </div>
+
+                {/* Capital Markets sandbox controls — preview-only (2026-09-18) */}
+                {theme === 'capital-markets' && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-slate-600 dark:text-slate-400">As-of:</label>
+                      <input
+                        type="date"
+                        value={cmAsOfDate}
+                        onChange={(e) => setCmAsOfDate(e.target.value)}
+                        className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm outline-none text-slate-900 dark:text-white"
+                        title="Simulate a past date using articles already loaded in this page"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-slate-600 dark:text-slate-400">Lookback:</label>
+                      <select
+                        className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm outline-none text-slate-900 dark:text-white"
+                        value={cmLookback}
+                        onChange={(e) => setCmLookback(e.target.value)}
+                      >
+                        <option value="24">24 hours</option>
+                        <option value="72">72 hours</option>
+                        <option value="168">7 days</option>
+                        <option value="720">30 days</option>
+                      </select>
+                    </div>
+                  </>
+                )}
 
                 <button
                   onClick={onGenerate}
@@ -1784,7 +1814,14 @@
                     >
                       📄 Download PDF
                     </button>
-                    {!IS_STATIC && (
+                    {theme === 'capital-markets' && (
+                      <span className="px-3 py-2 rounded-lg text-sm font-bold bg-amber-100 text-amber-800 border-2 border-amber-400">
+                        PREVIEW ONLY — NOT PRODUCTION
+                      </span>
+                    )}
+                    {/* Send Email is withheld for the Capital Markets sandbox: it is a
+                        preview profile and must never reach the production send path. */}
+                    {!IS_STATIC && theme !== 'capital-markets' && (
                     <button
                       onClick={onSendEmail}
                       disabled={emailLoading}
@@ -2277,6 +2314,9 @@
       const [newsletterGenerated, setNewsletterGenerated] = useState(false);
       const [newsletterTimeframe, setNewsletterTimeframe] = useState("1");
       const [newsletterTheme, setNewsletterTheme] = useState("work");
+      // Capital Markets Preview sandbox controls (2026-09-18). Preview-only.
+      const [cmAsOfDate, setCmAsOfDate] = useState(() => new Date().toISOString().slice(0, 10));
+      const [cmLookback, setCmLookback] = useState("24");
       const [newsletterRecipients, setNewsletterRecipients] = useState("");
       const [refreshLoading, setRefreshLoading] = useState(false);
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
@@ -2832,6 +2872,250 @@
       };
 
       // Work theme newsletter builder - mirrors newsletter-work.ts buildWorkBriefing() exactly
+    // =====================================================================
+    // CAPITAL MARKETS PREVIEW (sandbox, 2026-09-18) — PREVIEW ONLY
+    // =====================================================================
+    // A separate client-side newsletter profile built on top of the articles
+    // ALREADY loaded by this page. No network fetch, no feed.json or
+    // sent-articles.json mutation, no email path. Does not modify
+    // buildWorkNewsletterHTML() or any production behaviour.
+    //
+    // GEOGRAPHY: four states — TARGET | BROADER | NATIONAL | UNMAPPED.
+    // An unmapped location NEVER falls through to NATIONAL. NATIONAL is
+    // reached only by explicit evidence (a named non-target US market, or
+    // explicit nationwide framing). Everything else is UNMAPPED and is routed
+    // to diagnostics for review, never admitted under a guessed threshold.
+    const CM_GEO = {
+      // --- explicit from stakeholder requirements -----------------------
+      TARGET: [
+        'miami-dade', 'miami dade',        // Miami-Dade County = TARGET (stated)
+        'broward',                          // Broward County = TARGET (stated)
+        'palm beach',                       // Palm Beach County = TARGET (stated)
+        'miami',                            // city of Miami lies within Miami-Dade (containment, not a boundary guess)
+      ],
+      BROADER: [
+        'long island',                      // Long Island = BROADER (stated)
+        'nassau county', 'suffolk county',  // only via explicit county naming (stated caveat)
+        'rockland',                         // Rockland County = BROADER (stated)
+      ],
+      // Explicit non-target US markets / nationwide framing => NATIONAL.
+      NATIONAL: [
+        'nationwide', 'across the u.s.', 'across the us', 'national industrial',
+        'u.s. industrial', 'us industrial', 'california', 'texas', 'dallas', 'houston',
+        'phoenix', 'atlanta', 'chicago', 'inland empire', 'seattle', 'denver', 'nevada',
+        'las vegas', 'ohio', 'indiana', 'georgia', 'arizona', 'tennessee', 'carolina',
+      ],
+      // Locations we KNOW are in scope but whose tier is undefined until the
+      // maps arrive. Matching one of these forces UNMAPPED (never NATIONAL).
+      PENDING_MAP: [
+        'new jersey', 'newark', 'edison', 'elizabeth', 'carteret', 'piscataway',
+        'secaucus', 'meadowlands', 'perth amboy', 'bayonne', 'linden', 'exit 8a',
+        'middlesex', 'bergen', 'hudson county', 'morris county', 'union county',
+        'pennsylvania', 'lehigh valley', 'allentown', 'bethlehem', 'philadelphia',
+        'bucks county', 'scranton', 'harrisburg', 'lancaster',
+        'florida', 'tampa', 'orlando', 'jacksonville', 'doral', 'hialeah', 'medley',
+        'fort lauderdale', 'pompano', 'sarasota', 'fort myers', 'naples', 'lakeland',
+      ],
+      _pendingMapping: [
+        'NJ: north-of-Exit-6 boundary (undefined — awaiting map)',
+        'PA: Lehigh Valley / METRO / CPA split (undefined — awaiting map)',
+        'FL: broader county set beyond Miami-Dade/Broward/Palm Beach (undefined)',
+        'Municipality -> county table for FL TARGET counties (undefined)',
+      ],
+    };
+
+    // Returns { tier: 'TARGET'|'BROADER'|'NATIONAL'|'UNMAPPED', matched, basis }
+    const cmMarketTier = (text) => {
+      const t = (text || '').toLowerCase();
+      const hit = list => (list || []).find(k => t.includes(k)) || null;
+      let m = hit(CM_GEO.TARGET);
+      if (m) return { tier: 'TARGET', matched: m, basis: 'explicit stakeholder mapping' };
+      m = hit(CM_GEO.BROADER);
+      if (m) return { tier: 'BROADER', matched: m, basis: 'explicit stakeholder mapping' };
+      m = hit(CM_GEO.PENDING_MAP);
+      if (m) return { tier: 'UNMAPPED', matched: m, basis: 'in-scope region, tier awaiting supplied map' };
+      m = hit(CM_GEO.NATIONAL);
+      if (m) return { tier: 'NATIONAL', matched: m, basis: 'explicit non-target market / nationwide framing' };
+      return { tier: 'UNMAPPED', matched: null, basis: 'no recognisable geography' };
+    };
+
+    // --- magnitude extraction (title + description + summary) ------------
+    const cmText = (a) => `${a.title || ''} ${a.description || ''} ${a.summary || ''}`;
+    const cmDollars = (text) => {
+      const t = (text || '').replace(/,/g, '');
+      let best = 0;
+      for (const m of t.matchAll(/\$\s?([\d.]+)\s*(billion|bn|b\b|million|mm|m\b|k\b)?/gi)) {
+        const n = parseFloat(m[1]); if (isNaN(n)) continue;
+        const u = (m[2] || '').toLowerCase();
+        const v = /^b/.test(u) ? n * 1e9 : /^m/.test(u) ? n * 1e6 : /^k/.test(u) ? n * 1e3 : n;
+        if (v > best) best = v;
+      }
+      return best;
+    };
+    const cmSquareFeet = (text) => {
+      const t = (text || '').replace(/,/g, '');
+      let best = 0;
+      for (const m of t.matchAll(/([\d.]+)\s*(million|m\b|k\b)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf\b|s\.f\.|msf\b)/gi)) {
+        const n = parseFloat(m[1]); if (isNaN(n)) continue;
+        const u = (m[2] || '').toLowerCase();
+        const v = /million|^m$/.test(u) ? n * 1e6 : /^k$/.test(u) ? n * 1e3 : n;
+        if (v > best) best = v;
+      }
+      for (const m of t.matchAll(/([\d.]+)\s*msf\b/gi)) { const v = parseFloat(m[1]) * 1e6; if (v > best) best = v; }
+      return best;
+    };
+
+    // Jacob's thresholds — unchanged.
+    const CM_THRESHOLDS = {
+      sale:  { TARGET: 10e6,  BROADER: 100e6,  NATIONAL: 500e6 },
+      lease: { TARGET: 15000, BROADER: 100000, NATIONAL: 250000 },
+      constructionBroader: 500000,
+    };
+
+    const CM_RX = {
+      sale: /\b(sells?|sold|sale|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|recapitaliz\w+|refinanc\w+)\b/i,
+      lease: /\b(leases?|leased|leasing|signs? a\b|inks? a\b|subleases?|renew\w+|takes? \d[\d,.]* ?(?:square|sq|sf))\b/i,
+      availability: /\b(available|availabilit\w+|for lease|now leasing|on the market|listed for lease|offering memorandum)\b/i,
+      construction: /\b(break(?:s|ing)? ground|groundbreaking|construction start|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|completion|completes?|completed|delivers?|delivered)\b/i,
+      industrial: /\b(industrial|warehouse|distribution cent\w+|logistics|cold storage|manufactur\w+|fulfillment|data ?cent\w+)\b/i,
+      municipal: /\b(planning board|zoning board|ordinance|rezon\w+|site plan|entitlement\w*|moratorium|variance|redevelopment plan|data ?cent\w+ (?:regulation|rules|restrictions|ordinance))\b/i,
+      lowValue: /\b(obsolete|brokerage assignment|named exclusive (?:agent|broker)|hires? \w+ as broker|tapped to market|assignment to market|ribbon[- ]cutting|golf outing|charity|awards?\b|honou?ree|best places to work|top \d+ (?:brokers|agents|firms)|rankings?\b|webinar|podcast|conference|summit|networking|people on the move|promoted to|joins? as|named (?:president|ceo|cfo|partner|director))\b/i,
+    };
+
+    // --- D. Positive-inclusion market intelligence ------------------------
+    // An item enters Relevant Market Intelligence ONLY on an explicit material
+    // signal. "Contains an industrial keyword" is NOT sufficient.
+    const CM_INTEL_SIGNALS = [
+      ['market-fundamentals', /\b(vacancy rate|vacancy|absorption|net absorption|rent growth|asking rents|rental rates|deliveries|construction pipeline|supply pipeline|demand (?:for|remains|returns|jumps)|occupanc\w+)\b/i],
+      ['capital-trend', /\b(cap rates?|cmbs|debt markets?|lending|capital markets?|valuations?|pricing trends?|investment volume|dry powder|fundrais\w+)\b/i],
+      ['institutional-strategy', /\b(joint venture|\bjv\b|fund (?:close[sd]?|raises?|launch\w*)|raises? \$[\d.]+|platform acquisition|portfolio strategy|allocat\w+ to industrial|enters? the \w+ market|expands? (?:its )?(?:industrial )?portfolio)\b/i],
+      ['tenant-expansion', /\b(expansion|expands? (?:manufacturing|operations|distribution)|new (?:plant|factory|manufacturing facility)|opens? (?:a )?(?:new )?(?:plant|facility|distribution cent\w+)|adds? \d[\d,.]* jobs|relocat\w+ headquarters)\b/i],
+      ['legislation-regulation', /\b(legislation|law|bill|statute|regulat\w+|executive order|tax credit|incentive program|policy|state(?:wide)? (?:rules|limits|restrictions))\b/i],
+      ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|utility|substation|transmission|interconnection|energy demand|power (?:constraints?|shortage))\b/i],
+      ['data-center-intel', /\b(data ?cent\w+)\b.*\b(pipeline|demand|capacity|market|investment|moratorium|regulation|backlash|development boom|vacancy)\b/i],
+    ];
+    const cmIntelSignal = (text) => {
+      for (const [label, rx] of CM_INTEL_SIGNALS) if (rx.test(text)) return label;
+      return null;
+    };
+
+    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION' };
+
+    /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
+    const cmClassify = (a) => {
+      const text = cmText(a);
+      const { tier, matched, basis } = cmMarketTier(text);
+      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})`;
+      const dollars = cmDollars(text), sf = cmSquareFeet(text);
+      const isInd = CM_RX.industrial.test(text);
+
+      if (CM_RX.municipal.test(text)) {
+        return { section: 'municipal', tier, code: null, magnitude: null, reason: `municipal/entitlement keyword; ${geo}` };
+      }
+      if (CM_RX.lowValue.test(text)) {
+        return { section: null, tier, code: CM_REJECT.LOW_VALUE_INTEL, magnitude: null,
+                 reason: `LOW_VALUE_INTEL: "${(text.match(CM_RX.lowValue) || [''])[0]}"` };
+      }
+      // --- B. Construction --------------------------------------------
+      if (CM_RX.construction.test(text)) {
+        if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
+        if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
+        if (tier === 'BROADER') {
+          if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >=500,000 SF, none stated; ${geo}` };
+          if (sf >= CM_THRESHOLDS.constructionBroader) return { section: 'construction', tier, code: null, magnitude: sf, reason: `BROADER construction ${sf.toLocaleString()} SF >= 500,000; ${geo}` };
+          return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: BROADER construction ${sf.toLocaleString()} SF < 500,000` };
+        }
+        if (tier === 'NATIONAL') return { section: null, tier, code: CM_REJECT.NATIONAL_CONSTRUCTION, magnitude: sf, reason: 'NATIONAL_CONSTRUCTION: no national construction rule requested — excluded for now' };
+        return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: construction in an unmapped location — diagnostic/review only; ${geo}` };
+      }
+      // --- C. Sales ----------------------------------------------------
+      if (CM_RX.sale.test(text)) {
+        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
+        if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
+        const need = CM_THRESHOLDS.sale[tier];
+        if (dollars >= need) return { section: 'sales', tier, code: null, magnitude: dollars, reason: `sale $${(dollars / 1e6).toFixed(1)}M >= $${need / 1e6}M (${tier}); ${geo}` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: dollars, reason: `BELOW_THRESHOLD: sale $${(dollars / 1e6).toFixed(1)}M < $${need / 1e6}M (${tier})` };
+      }
+      // --- C. Availability / Lease -------------------------------------
+      const isAvail = CM_RX.availability.test(text) && !CM_RX.lease.test(text);
+      if (isAvail || CM_RX.lease.test(text)) {
+        const sect = isAvail ? 'availabilities' : 'leases';
+        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
+        if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
+        const need = CM_THRESHOLDS.lease[tier];
+        if (sf >= need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF >= ${need.toLocaleString()} (${tier}); ${geo}` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF < ${need.toLocaleString()} (${tier})` };
+      }
+      // --- D. Market intelligence (positive inclusion only) -------------
+      const signal = cmIntelSignal(text);
+      if (signal && isInd) return { section: 'intel', tier, code: null, magnitude: null, reason: `intel signal: ${signal}; ${geo}` };
+      if (signal && !isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null, reason: `NOT_INDUSTRIAL: ${signal} signal without industrial/data-center context` };
+      return { section: null, tier, code: CM_REJECT.NO_SIGNAL, magnitude: null, reason: 'NO_SIGNAL: no deal, lease, construction, municipal or material-intelligence signal' };
+    };
+
+    /** Runs the profile over already-loaded articles. No network I/O. */
+    const cmBuildSections = (articles, asOfDate, lookbackHours) => {
+      const asOf = asOfDate ? new Date(asOfDate + 'T23:59:59') : new Date();
+      const cutoff = new Date(asOf.getTime() - lookbackHours * 3600 * 1000);
+      const inWindow = [];
+      for (const a of articles || []) {
+        const d = new Date(a.pubDate || a.fetchedAt || 0);
+        if (d >= cutoff && d <= asOf) inWindow.push(a);
+      }
+      const buckets = { sales: [], leases: [], availabilities: [], construction: [], intel: [], municipal: [] };
+      const rejected = [];
+      const telemetry = { MISSING_PRICE: 0, MISSING_SF: 0, BELOW_THRESHOLD: 0, UNMAPPED_GEO: 0, LOW_VALUE_INTEL: 0, NO_SIGNAL: 0, NOT_INDUSTRIAL: 0, NATIONAL_CONSTRUCTION: 0 };
+      const tiers = { TARGET: 0, BROADER: 0, NATIONAL: 0, UNMAPPED: 0 };
+      for (const a of inWindow) {
+        const c = cmClassify(a);
+        tiers[c.tier] = (tiers[c.tier] || 0) + 1;
+        if (c.section) buckets[c.section].push({ ...a, _cm: c });
+        else { rejected.push({ ...a, _cm: c }); if (c.code) telemetry[c.code] = (telemetry[c.code] || 0) + 1; }
+      }
+      const byMag = (x, y) => (y._cm.magnitude || 0) - (x._cm.magnitude || 0);
+      Object.keys(buckets).forEach(k => buckets[k].sort(byMag));
+      return { buckets, rejected, inWindow, telemetry, tiers, asOf, cutoff };
+    };
+
+    const buildCapitalMarketsNewsletterHTML = (articles, opts) => {
+      const o = opts || {};
+      const lookbackHours = o.lookbackHours || 24;
+      const { buckets, telemetry, tiers, rejected, asOf } = cmBuildSections(articles, o.asOfDate, lookbackHours);
+      const isFriday = asOf.getDay() === 5;
+      const dateStr = asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const row = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
+          <a href="${esc(it.link)}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
+          <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(it._cm.tier)} · ${esc(it._cm.reason)}</div>
+        </li>`;
+      const section = (title, items, note) => !items.length ? '' : `
+        <h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">${esc(title)}</h2>
+        ${note ? `<p style="font-size:11px;color:#64748b;margin:0 0 8px;">${note}</p>` : ''}
+        <ul style="padding-left:18px;margin:0;">${items.map(row).join('')}</ul>`;
+      const diag = `<div style="margin-top:24px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#475569;">
+        <strong>Diagnostics</strong> — tiers: TARGET ${tiers.TARGET} · BROADER ${tiers.BROADER} · NATIONAL ${tiers.NATIONAL} · <strong>UNMAPPED ${tiers.UNMAPPED}</strong><br/>
+        rejections: MISSING_PRICE ${telemetry.MISSING_PRICE} · MISSING_SF ${telemetry.MISSING_SF} · BELOW_THRESHOLD ${telemetry.BELOW_THRESHOLD} · UNMAPPED_GEO ${telemetry.UNMAPPED_GEO} · LOW_VALUE_INTEL ${telemetry.LOW_VALUE_INTEL} · NO_SIGNAL ${telemetry.NO_SIGNAL} (total rejected ${rejected.length})<br/>
+        UNMAPPED candidates are held for review — never admitted under a guessed threshold. Boundaries still needed: ${esc(CM_GEO._pendingMapping.join(' | '))}
+      </div>`;
+      const banner = `<div style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:10px;border-radius:6px;font-weight:700;text-align:center;margin-bottom:16px;">
+        PREVIEW ONLY — NOT PRODUCTION</div>`;
+      const friday = isFriday ? section('Week in Review — Top 5 Industrial Market Highlights',
+        [...buckets.sales, ...buckets.leases, ...buckets.construction].slice(0, 5)) : '';
+      return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
+        ${banner}
+        <h1 style="font-size:20px;color:#0B223F;margin:0 0 2px;">Woodmont Capital Markets Preview</h1>
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">${esc(dateStr)} · lookback ${lookbackHours}h · sandbox</div>
+        ${section('Sales Transactions', buckets.sales)}
+        ${section('Lease Transactions', buckets.leases)}
+        ${section('Availabilities', buckets.availabilities)}
+        ${section('Construction Updates', buckets.construction)}
+        ${section('Relevant Market Intelligence', buckets.intel)}
+        ${section('Municipal / Entitlement Watch', buckets.municipal, 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.')}
+        ${friday}
+        ${diag}
+      </div>`;
+    };
+
       const buildWorkNewsletterHTML = (articles, days) => {
         const now = new Date();
         const isFriday = now.getDay() === 5;
@@ -3077,7 +3361,14 @@
 
             // Use selected theme (work is default)
             let html;
-            if (newsletterTheme === 'work') {
+            if (newsletterTheme === 'capital-markets') {
+              // Sandbox profile. Uses only already-loaded articles; no fetch,
+              // no feed/sent-state mutation, no email path.
+              html = buildCapitalMarketsNewsletterHTML(recentArticles, {
+                asOfDate: cmAsOfDate || null,
+                lookbackHours: parseInt(cmLookback, 10) || 24,
+              });
+            } else if (newsletterTheme === 'work') {
               html = buildWorkNewsletterHTML(recentArticles, days);
             } else if (newsletterTheme === 'goth') {
               html = buildGothNewsletterHTML(recentArticles, days);
@@ -3099,7 +3390,7 @@
         } finally {
           setLoading(false);
         }
-      }, [newsletterTimeframe, newsletterTheme, items]);
+      }, [newsletterTimeframe, newsletterTheme, items, cmAsOfDate, cmLookback]);
 
       const clearNewsletter = useCallback(() => {
         setNewsletterHTML('');
@@ -3427,6 +3718,10 @@
               setShowFeedHealth={setShowFeedHealth}
               onFetchFeedHealth={fetchFeedHealth}
               feedHealthLoading={feedHealthLoading}
+              cmAsOfDate={cmAsOfDate}
+              setCmAsOfDate={setCmAsOfDate}
+              cmLookback={cmLookback}
+              setCmLookback={setCmLookback}
               />
             ) : (
               <AdminPanel
