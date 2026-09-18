@@ -1277,7 +1277,7 @@
       );
     };
 
-    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading, cmAsOfDate, setCmAsOfDate, cmLookback, setCmLookback }) => {
+    const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading, cmAsOfDate, setCmAsOfDate, cmLookback, setCmLookback, cmWatchlist, setCmWatchlist }) => {
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -1765,6 +1765,44 @@
                         <option value="168">7 days</option>
                         <option value="720">30 days</option>
                       </select>
+                    </div>
+                    {/* Competitor watchlist — browser-local only. FileReader
+                        parses in memory; nothing is uploaded, stored or logged. */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-slate-600 dark:text-slate-400">Watchlist:</label>
+                      <input
+                        type="file"
+                        accept=".csv,text/csv"
+                        onChange={(e) => {
+                          const f = e.target.files && e.target.files[0];
+                          if (!f) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            try {
+                              const rows = cmParseCSV(String(ev.target.result || ''));
+                              setCmWatchlist(rows);   // memory only — never persisted
+                            } catch (err) {
+                              // Deliberately does not log file contents.
+                              console.warn('Watchlist parse failed (contents not logged)');
+                              setCmWatchlist(null);
+                            }
+                          };
+                          reader.readAsText(f);
+                        }}
+                        className="text-xs text-slate-600 dark:text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-200"
+                        title="CSV stays in this browser tab only — not uploaded, not stored, cleared on refresh"
+                      />
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {cmWatchlist && cmWatchlist.length
+                          ? `${cmWatchlist.length} companies loaded (memory only)`
+                          : 'No competitor watchlist loaded'}
+                      </span>
+                      {cmWatchlist && cmWatchlist.length > 0 && (
+                        <button
+                          onClick={() => setCmWatchlist(null)}
+                          className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-600 rounded"
+                        >Clear</button>
+                      )}
                     </div>
                   </>
                 )}
@@ -2317,6 +2355,10 @@
       // Capital Markets Preview sandbox controls (2026-09-18). Preview-only.
       const [cmAsOfDate, setCmAsOfDate] = useState(() => new Date().toISOString().slice(0, 10));
       const [cmLookback, setCmLookback] = useState("24");
+      // Competitor watchlist: component memory ONLY. Never persisted to
+      // localStorage/sessionStorage/IndexedDB, never uploaded, never logged.
+      // Cleared on refresh by design.
+      const [cmWatchlist, setCmWatchlist] = useState(null);
       const [newsletterRecipients, setNewsletterRecipients] = useState("");
       const [refreshLoading, setRefreshLoading] = useState(false);
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
@@ -2999,7 +3041,7 @@
       return null;
     };
 
-    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION' };
+    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION', PROPERTY_SPECIFIC: 'PROPERTY_SPECIFIC' };
 
     /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
     const cmClassify = (a) => {
@@ -3047,7 +3089,22 @@
         return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF < ${need.toLocaleString()} (${tier})` };
       }
       // --- D. Market intelligence (positive inclusion only) -------------
+      // GUARD: every deal-shaped path above RETURNS, so an article rejected for
+      // UNMAPPED_GEO / MISSING_PRICE / MISSING_SF / BELOW_THRESHOLD can never
+      // fall through to here. This second guard covers property/deal-specific
+      // items that did not trip those regexes: they must not enter Market
+      // Intelligence just for carrying an industrial keyword. Genuinely
+      // national/thematic intelligence is still eligible without mapped geo.
       const signal = cmIntelSignal(text);
+      const propertySpecific = /\b\d+[\d,-]*\s+[A-Z][A-Za-z.]*\s+(?:st|street|ave|avenue|rd|road|blvd|drive|dr|way|lane|ln|pkwy|parkway|highway|route|rt)\b/i.test(text)
+        || /\$\s?[\d.]+\s*(?:million|billion|m|b)\b/i.test(text)
+        || /\b\d[\d,]*\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft|sf)\b/i.test(text);
+      const thematic = signal === 'market-fundamentals' || signal === 'capital-trend'
+        || signal === 'legislation-regulation' || signal === 'power-infrastructure';
+      if (signal && isInd && propertySpecific && !thematic) {
+        return { section: null, tier, code: CM_REJECT.PROPERTY_SPECIFIC, magnitude: null,
+                 reason: `PROPERTY_SPECIFIC: deal/property-specific item cannot enter Market Intelligence via an industrial keyword (signal: ${signal})` };
+      }
       if (signal && isInd) return { section: 'intel', tier, code: null, magnitude: null, reason: `intel signal: ${signal}; ${geo}` };
       if (signal && !isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null, reason: `NOT_INDUSTRIAL: ${signal} signal without industrial/data-center context` };
       return { section: null, tier, code: CM_REJECT.NO_SIGNAL, magnitude: null, reason: 'NO_SIGNAL: no deal, lease, construction, municipal or material-intelligence signal' };
@@ -3077,10 +3134,166 @@
       return { buckets, rejected, inWindow, telemetry, tiers, asOf, cutoff };
     };
 
+    // ---------------------------------------------------------------------
+    // INSTITUTIONAL COMPETITOR WATCH (browser-local, 2026-09-18)
+    // ---------------------------------------------------------------------
+    // The watchlist is uploaded by the user in-browser via FileReader, held in
+    // React component memory ONLY, and is never written to localStorage /
+    // sessionStorage / IndexedDB, never fetched/XHR'd anywhere, never synced to
+    // GitHub, and never logged. It disappears on refresh. Nothing from it is
+    // committed to this repository.
+    const CM_CSV_COLUMNS = ['Company Name', 'Secondary Type', 'City', 'State / Country',
+      'NNJ Search SF', 'NNJ Search Properties', 'Portfolio SF', 'Website', 'Website Domain'];
+
+    // Minimal RFC4180-ish parser (handles quoted fields and embedded commas).
+    const cmParseCSV = (text) => {
+      const rows = []; let row = [], field = '', q = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (q) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') q = false;
+          else field += c;
+        } else if (c === '"') q = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+        else if (c !== '\r') field += c;
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      if (!rows.length) return [];
+      const hdr = rows[0].map(h => h.trim());
+      return rows.slice(1).filter(r => r.some(v => (v || '').trim()))
+        .map(r => Object.fromEntries(hdr.map((h, i) => [h, (r[i] || '').trim()])));
+    };
+
+    // Generic tokens that may NEVER stand alone as a company match.
+    const CM_GENERIC = new Set(['matrix', 'bridge', 'center', 'centre', 'link', 'core', 'summit',
+      'pinnacle', 'gateway', 'liberty', 'national', 'american', 'united', 'first', 'prime',
+      'capital', 'industrial', 'logistics', 'properties', 'property', 'realty', 'real', 'estate',
+      'group', 'partners', 'partner', 'development', 'developers', 'management', 'equities',
+      'trust', 'holdings', 'ventures', 'advisors', 'company', 'companies', 'associates',
+      'enterprises', 'investments', 'investment', 'acquisitions', 'north', 'south', 'east', 'west']);
+
+    const cmNormalizeCompany = (name) => (name || '')
+      .toLowerCase()
+      .replace(/[.,]/g, ' ')
+      .replace(/\b(inc|llc|l\.l\.c|lp|l\.p|llp|corp|corporation|co|ltd|plc|reit|trust|the)\b/g, ' ')
+      .replace(/[^a-z0-9& ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    /** Safe aliases for a company. Never invents a generic short name. */
+    const cmCompanyAliases = (rawName) => {
+      const full = cmNormalizeCompany(rawName);
+      if (!full) return [];
+      const words = full.split(' ');
+      const out = [full];
+      // A shortened alias is allowed only when the full name has 3+ words and
+      // the shortened form is still distinctive (not generic-only).
+      if (words.length >= 3) {
+        const short = words.slice(0, 2).join(' ');
+        const distinctive = words.slice(0, 2).some(w => !CM_GENERIC.has(w) && w.length >= 4);
+        if (distinctive && short !== full) out.push(short);
+      }
+      // A single-word name must itself be distinctive to be usable at all.
+      if (words.length === 1 && (CM_GENERIC.has(words[0]) || words[0].length < 5)) return [];
+      // Names made entirely of generic CRE words ("Bridge Industrial", "Link
+      // Logistics Real Estate") are real firms, so dropping them would silently
+      // lose major competitors. They stay matchable on the FULL name only —
+      // never on a shortened alias — and cmCompetitorWatch flags each such hit
+      // for human verification rather than asserting the attribution.
+      if (words.every(w => CM_GENERIC.has(w))) return [full];
+      return [...new Set(out)];
+    };
+
+    const CM_MATERIAL_EVENTS = [
+      ['acquisition/disposition', /\b(acquir\w+|acquisition|dispos\w+|divest\w+)\b/i],
+      ['sale/purchase', /\b(sells?|sold|sale of|purchas\w+|buys?|bought|trades? for)\b/i],
+      ['equity stake/investment', /\b(takes? (?:a )?(?:minority |majority )?stake|acquires? (?:a )?stake|equity stake|invests? in|investment in)\b/i],
+      ['lease/tenant move', /\b(leases?|leased|leasing|signs? a\b|inks? a\b|tenant|subleases?|relocat\w+|takes? \d)\b/i],
+      // NOTE: bare nouns "developer"/"development" are deliberately NOT matched —
+      // "Data Center Developer" is a description, not an event.
+      ['development/groundbreaking', /\b(break(?:s|ing)? ground|groundbreaking|develops?|developing|redevelop\w*|new project|proposes?|plans? (?:a )?(?:new )?(?:warehouse|facility|campus|park))\b/i],
+      ['construction completion/delivery', /\b(completes?|completed|completion|delivers?|delivered|delivery|tops? out|topping out)\b/i],
+      ['land purchase', /\b(land (?:purchase|acquisition|deal|site)|acquires? \d+[\d.]* acres?|buys? \d+[\d.]* acres?)\b/i],
+      ['financing/refinancing', /\b(financ\w+|refinanc\w+|\bloan\b|mortgage|credit facility|debt placement)\b/i],
+      ['JV/joint venture', /\b(joint venture|\bjv\b|partners? with|partnership with)\b/i],
+      ['fund/capital raise', /\b(fund (?:close[sd]?|raises?|launch\w*)|raises? \$[\d.]+|closes? (?:on )?\$[\d.]+|capital raise)\b/i],
+      ['expansion', /\b(expands?|expansion|grows? (?:its )?(?:portfolio|footprint)|adds? to (?:its )?portfolio)\b/i],
+      ['zoning/entitlement/site-plan', /\b(zoning|rezon\w+|entitlement\w*|site plan|planning board|variance|approval|approved)\b/i],
+      ['data-center/industrial announcement', /\b(data ?cent\w+|distribution cent\w+|logistics (?:facility|campus)|manufacturing (?:plant|facility))\b/i],
+    ];
+    // Explicitly non-material — never surfaced even with a company match.
+    const CM_NON_MATERIAL = /\b(conference|summit\b|panel|keynote|speaks? at|appearance|awards?\b|honou?ree|ranking|named to|best places to work|webinar|podcast|interview|op-?ed|commentary|sponsors?\b|exclusive (?:agent|broker)|brokerage assignment|tapped to market|hires? \w+ as broker)\b/i;
+
+    const cmMaterialEvent = (text) => {
+      if (CM_NON_MATERIAL.test(text)) return null;
+      for (const [label, rx] of CM_MATERIAL_EVENTS) if (rx.test(text)) return label;
+      return null;
+    };
+
+    /** Build the Competitor Watch section. ADDITIVE ONLY — it never promotes an
+     *  article into Sales/Leases/Availabilities/Construction and never bypasses
+     *  Jacob's calibrated market/threshold rules. */
+    const cmCompetitorWatch = (articles, watchlist) => {
+      const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
+                     rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
+                     ambiguousNameMatches: 0, companiesMatched: 0 };
+      if (!watchlist || !watchlist.length) return { items: [], diag };
+      const companies = [];
+      for (const r of watchlist) {
+        const name = r['Company Name'] || '';
+        if (!name) continue;
+        diag.companiesLoaded++;
+        const domain = (r['Website Domain'] || '').toLowerCase().replace(/^www\./, '').trim();
+        if (domain) diag.withDomains++;
+        const aliases = cmCompanyAliases(name);
+        if (!aliases.length) { diag.rejectedGenericName++; continue; }
+        // All-generic wording means a name match alone may be coincidental prose.
+        const ambiguous = cmNormalizeCompany(name).split(' ').every(w => CM_GENERIC.has(w));
+        companies.push({ name, type: r['Secondary Type'] || '', city: r['City'] || '',
+                         state: r['State / Country'] || '', domain, aliases, ambiguous });
+      }
+      const matchedNames = new Set();
+      const items = [];
+      // Syndicated copies of the same story appear under multiple sources;
+      // surface each story once so the section is not padded with duplicates.
+      const seenTitles = new Set();
+      for (const a of articles || []) {
+        const tkey = String(a.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 45);
+        if (tkey.length >= 20 && seenTitles.has(tkey)) continue;
+        const text = cmText(a);
+        const lower = text.toLowerCase();
+        const url = (a.link || '').toLowerCase();
+        for (const c of companies) {
+          const aliasHit = c.aliases.find(al => new RegExp(`\\b${al.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(lower));
+          const domainHit = c.domain && (url.includes(c.domain) || lower.includes(c.domain));
+          if (!aliasHit && !domainHit) continue;
+          diag.mentionsFound++;
+          const event = cmMaterialEvent(text);
+          if (!event) { diag.rejectedNoMaterialEvent++; continue; }
+          diag.accepted++;
+          matchedNames.add(c.name);
+          if (tkey.length >= 20) seenTitles.add(tkey);
+          if (c.ambiguous && !domainHit) diag.ambiguousNameMatches++;
+          items.push({ ...a, _cw: { company: c.name, type: c.type, event,
+            verify: !!(c.ambiguous && !domainHit),
+            reason: aliasHit ? `name match "${aliasHit}"` : `website-domain match "${c.domain}"`,
+            supportedByDomain: !!domainHit } });
+          break; // one attribution per article
+        }
+      }
+      diag.companiesMatched = matchedNames.size;
+      return { items, diag };
+    };
+
     const buildCapitalMarketsNewsletterHTML = (articles, opts) => {
       const o = opts || {};
       const lookbackHours = o.lookbackHours || 24;
-      const { buckets, telemetry, tiers, rejected, asOf } = cmBuildSections(articles, o.asOfDate, lookbackHours);
+      const { buckets, telemetry, tiers, rejected, inWindow, asOf } = cmBuildSections(articles, o.asOfDate, lookbackHours);
+      // Competitor Watch is ADDITIVE: it runs over the same in-window articles
+      // but cannot promote anything into Sales/Leases/Availabilities/Construction.
+      const cw = cmCompetitorWatch(inWindow, o.watchlist);
       const isFriday = asOf.getDay() === 5;
       const dateStr = asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -3099,6 +3312,29 @@
       </div>`;
       const banner = `<div style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:10px;border-radius:6px;font-weight:700;text-align:center;margin-bottom:16px;">
         PREVIEW ONLY — NOT PRODUCTION</div>`;
+      // Institutional Competitor Watch — requires BOTH a watchlist company match
+      // AND a material industrial/CRE event. Never affects other sections.
+      const cwRow = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
+          <a href="${esc(it.link)}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
+          <div style="font-size:11px;color:#64748b;margin-top:2px;">
+            <strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · event: ${esc(it._cw.event)} · ${esc(it._cw.reason)}${it._cw.supportedByDomain ? ' (domain-supported)' : ''}${it._cw.verify ? ' · <strong style="color:#b45309;">generic name — verify</strong>' : ''} · source: ${esc(it.source || 'n/a')}
+          </div>
+        </li>`;
+      const cwDiag = `<div style="font-size:11px;color:#64748b;margin:6px 0 8px;">
+        ${cw.diag.companiesLoaded} companies loaded · ${cw.diag.withDomains} with website domains ·
+        ${cw.diag.companiesMatched} companies matched · ${cw.diag.accepted} material articles<br/>
+        mentions found ${cw.diag.mentionsFound} · accepted ${cw.diag.accepted} ·
+        rejected (no material event) ${cw.diag.rejectedNoMaterialEvent} ·
+        rejected (ambiguous/generic name) ${cw.diag.rejectedGenericName} ·
+        flagged for verification ${cw.diag.ambiguousNameMatches}
+      </div>`;
+      const cwSection = !o.watchlist || !o.watchlist.length
+        ? `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
+           <p style="font-size:12px;color:#64748b;margin:0;">No competitor watchlist loaded.</p>`
+        : `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
+           ${cwDiag}
+           ${cw.items.length ? `<ul style="padding-left:18px;margin:0;">${cw.items.map(cwRow).join('')}</ul>`
+             : '<p style="font-size:12px;color:#64748b;margin:0;">No material competitor activity in this window.</p>'}`;
       const friday = isFriday ? section('Week in Review — Top 5 Industrial Market Highlights',
         [...buckets.sales, ...buckets.leases, ...buckets.construction].slice(0, 5)) : '';
       return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
@@ -3111,6 +3347,7 @@
         ${section('Construction Updates', buckets.construction)}
         ${section('Relevant Market Intelligence', buckets.intel)}
         ${section('Municipal / Entitlement Watch', buckets.municipal, 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.')}
+        ${cwSection}
         ${friday}
         ${diag}
       </div>`;
@@ -3367,6 +3604,7 @@
               html = buildCapitalMarketsNewsletterHTML(recentArticles, {
                 asOfDate: cmAsOfDate || null,
                 lookbackHours: parseInt(cmLookback, 10) || 24,
+                watchlist: cmWatchlist,
               });
             } else if (newsletterTheme === 'work') {
               html = buildWorkNewsletterHTML(recentArticles, days);
@@ -3390,7 +3628,7 @@
         } finally {
           setLoading(false);
         }
-      }, [newsletterTimeframe, newsletterTheme, items, cmAsOfDate, cmLookback]);
+      }, [newsletterTimeframe, newsletterTheme, items, cmAsOfDate, cmLookback, cmWatchlist]);
 
       const clearNewsletter = useCallback(() => {
         setNewsletterHTML('');
@@ -3722,6 +3960,8 @@
               setCmAsOfDate={setCmAsOfDate}
               cmLookback={cmLookback}
               setCmLookback={setCmLookback}
+              cmWatchlist={cmWatchlist}
+              setCmWatchlist={setCmWatchlist}
               />
             ) : (
               <AdminPanel
