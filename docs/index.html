@@ -3206,6 +3206,36 @@
       return [...new Set(out)];
     };
 
+    /** Words that commonly precede a company name in a headline and are NOT part
+     *  of it. Anything capitalized and outside this list sitting immediately
+     *  before a matched name is treated as part of a LONGER entity name. */
+    const CM_NAME_PREFIX_OK = new Set(['a','an','the','at','by','for','from','in','into','of','on','to','with',
+      'and','as','via','near','owner','developer','landlord','investor','firm','buyer','seller','tenant',
+      'giant','group','company','partner','client','affiliate','unit','subsidiary','venture','sponsor',
+      'says','said','buys','sells','leases','acquires','adds','plans','breaks','completes','announces',
+      'new','former','local','global','national','industrial','logistics','warehouse','office','retail',
+      'report','exclusive','update','why','how','what','when','where','after','before','amid','over']);
+
+    /** True when `alias` occurs in `text` as a standalone entity name — i.e. at
+     *  least one occurrence is NOT the tail of a longer proper name. Guards
+     *  against attributing "SL Green Realty" (a different REIT) to a watchlist
+     *  entry for "Green Realty LLC". */
+    const cmStandaloneNameHit = (text, alias) => {
+      const rx = new RegExp(`\\b${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
+      let m;
+      while ((m = rx.exec(text)) !== null) {
+        const pm = text.slice(0, m.index).match(/([A-Za-z&.'\u2019-]+) $/);
+        if (!pm) return true;                           // starts a phrase — safe
+        const tok = pm[1].replace(/[.'\u2019-]/g, '');
+        if (!tok) return true;
+        if (!/^[A-Z]/.test(tok)) return true;           // lowercase — not a name part
+        if (CM_NAME_PREFIX_OK.has(tok.toLowerCase())) return true;
+        // Capitalized unexpected token directly before the name: very likely a
+        // longer entity. Keep scanning for a clean standalone occurrence.
+      }
+      return false;
+    };
+
     const CM_MATERIAL_EVENTS = [
       ['acquisition/disposition', /\b(acquir\w+|acquisition|dispos\w+|divest\w+)\b/i],
       ['sale/purchase', /\b(sells?|sold|sale of|purchas\w+|buys?|bought|trades? for)\b/i],
@@ -3238,7 +3268,8 @@
     const cmCompetitorWatch = (articles, watchlist) => {
       const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
                      rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
-                     ambiguousNameMatches: 0, companiesMatched: 0 };
+                     ambiguousNameMatches: 0, rejectedLongerEntity: 0,
+                     duplicatesCollapsed: 0, familyNarrowed: 0, companiesMatched: 0 };
       if (!watchlist || !watchlist.length) return { items: [], diag };
       const companies = [];
       for (const r of watchlist) {
@@ -3261,27 +3292,45 @@
       const seenTitles = new Set();
       for (const a of articles || []) {
         const tkey = String(a.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 45);
-        if (tkey.length >= 20 && seenTitles.has(tkey)) continue;
+        if (tkey.length >= 20 && seenTitles.has(tkey)) { diag.duplicatesCollapsed++; continue; }
         const text = cmText(a);
         const lower = text.toLowerCase();
         const url = (a.link || '').toLowerCase();
+        // Collect EVERY company the article evidence supports, then attribute to
+        // the most specific one. Entities in the same name family (Brookfield
+        // Corporation / Brookfield Asset Management / Brookfield Property Group)
+        // must not collapse onto whichever happens to be first in the CSV.
+        const cands = [];
         for (const c of companies) {
-          const aliasHit = c.aliases.find(al => new RegExp(`\\b${al.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(lower));
+          const aliasHit = c.aliases.find(al => cmStandaloneNameHit(text, al));
+          // A name that only appears as the tail of a longer entity is a wrong
+          // attribution ("SL Green Realty" is not "Green Realty LLC").
+          const aliasNearMiss = !aliasHit && c.aliases.some(al => new RegExp(`\\b${al.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(lower));
+          if (aliasNearMiss) diag.rejectedLongerEntity++;
           const domainHit = c.domain && (url.includes(c.domain) || lower.includes(c.domain));
           if (!aliasHit && !domainHit) continue;
-          diag.mentionsFound++;
-          const event = cmMaterialEvent(text);
-          if (!event) { diag.rejectedNoMaterialEvent++; continue; }
-          diag.accepted++;
-          matchedNames.add(c.name);
-          if (tkey.length >= 20) seenTitles.add(tkey);
-          if (c.ambiguous && !domainHit) diag.ambiguousNameMatches++;
-          items.push({ ...a, _cw: { company: c.name, type: c.type, event,
-            verify: !!(c.ambiguous && !domainHit),
-            reason: aliasHit ? `name match "${aliasHit}"` : `website-domain match "${c.domain}"`,
-            supportedByDomain: !!domainHit } });
-          break; // one attribution per article
+          cands.push({ c, aliasHit, domainHit });
         }
+        if (!cands.length) continue;
+        diag.mentionsFound += cands.length;
+        const event = cmMaterialEvent(text);
+        if (!event) { diag.rejectedNoMaterialEvent += cands.length; continue; }
+        // Most specific wins: a domain match is hard evidence; otherwise the
+        // longest matched name wins, since "Brookfield Asset Management" in the
+        // text is stronger evidence than the bare token "Brookfield".
+        cands.sort((x, y) => (Number(!!y.domainHit) - Number(!!x.domainHit))
+          || ((y.aliasHit || '').length - (x.aliasHit || '').length));
+        const { c, aliasHit, domainHit } = cands[0];
+        if (cands.length > 1) diag.familyNarrowed++;
+        diag.accepted++;
+        matchedNames.add(c.name);
+        if (tkey.length >= 20) seenTitles.add(tkey);
+        if (c.ambiguous && !domainHit) diag.ambiguousNameMatches++;
+        items.push({ ...a, _cw: { company: c.name, type: c.type, event,
+          verify: !!(c.ambiguous && !domainHit),
+          reason: domainHit ? `website-domain match "${c.domain}"` : `name match "${aliasHit}"`,
+          supportedByDomain: !!domainHit,
+          alsoConsidered: cands.slice(1, 4).map(x => x.c.name) } });
       }
       diag.companiesMatched = matchedNames.size;
       return { items, diag };
@@ -3326,7 +3375,10 @@
         mentions found ${cw.diag.mentionsFound} · accepted ${cw.diag.accepted} ·
         rejected (no material event) ${cw.diag.rejectedNoMaterialEvent} ·
         rejected (ambiguous/generic name) ${cw.diag.rejectedGenericName} ·
-        flagged for verification ${cw.diag.ambiguousNameMatches}
+        flagged for verification ${cw.diag.ambiguousNameMatches} ·
+        rejected (name belongs to a longer entity) ${cw.diag.rejectedLongerEntity} ·
+        syndicated duplicates collapsed ${cw.diag.duplicatesCollapsed} ·
+        narrowed to most-specific entity ${cw.diag.familyNarrowed}
       </div>`;
       const cwSection = !o.watchlist || !o.watchlist.length
         ? `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
