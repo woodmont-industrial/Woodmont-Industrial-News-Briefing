@@ -3240,7 +3240,9 @@
       ['acquisition/disposition', /\b(acquir\w+|acquisition|dispos\w+|divest\w+)\b/i],
       ['sale/purchase', /\b(sells?|sold|sale of|purchas\w+|buys?|bought|trades? for)\b/i],
       ['equity stake/investment', /\b(takes? (?:a )?(?:minority |majority )?stake|acquires? (?:a )?stake|equity stake|invests? in|investment in)\b/i],
-      ['lease/tenant move', /\b(leases?|leased|leasing|signs? a\b|inks? a\b|tenant|subleases?|relocat\w+|takes? \d)\b/i],
+      // A bare "tenant" is NOT an event — "comments on tenant demand" is market
+      // commentary. A leasing event requires an actual leasing ACTION.
+      ['lease/tenant move', /\b(signs? (?:a |an )?(?:new |long-term )?(?:\d[\d,.]*k? (?:sf|square[- ]f\w+) )?lease|inks? (?:a |an )?(?:new )?lease|leases?|leased|leasing|renews? (?:its |a )?lease|lease renewal|relocat\w+|subleases?|expands? (?:its )?occupancy|takes? \d[\d,.]*k?\s*(?:sf|square[- ]f\w+)|tenant (?:signs?|inks?|takes?|relocat\w+|expands?))\b/i],
       // NOTE: bare nouns "developer"/"development" are deliberately NOT matched —
       // "Data Center Developer" is a description, not an event.
       ['development/groundbreaking', /\b(break(?:s|ing)? ground|groundbreaking|develops?|developing|redevelop\w*|new project|proposes?|plans? (?:a )?(?:new )?(?:warehouse|facility|campus|park))\b/i],
@@ -3251,7 +3253,10 @@
       ['fund/capital raise', /\b(fund (?:close[sd]?|raises?|launch\w*)|raises? \$[\d.]+|closes? (?:on )?\$[\d.]+|capital raise)\b/i],
       ['expansion', /\b(expands?|expansion|grows? (?:its )?(?:portfolio|footprint)|adds? to (?:its )?portfolio)\b/i],
       ['zoning/entitlement/site-plan', /\b(zoning|rezon\w+|entitlement\w*|site plan|planning board|variance|approval|approved)\b/i],
-      ['data-center/industrial announcement', /\b(data ?cent\w+|distribution cent\w+|logistics (?:facility|campus)|manufacturing (?:plant|facility))\b/i],
+      // Naming a facility type is NOT an event. An action verb must appear near
+      // the facility noun, so "discusses the data center market" is rejected
+      // while "breaks ground on a data center campus" is accepted.
+      ['data-center/industrial announcement', /(?:\b(?:announc\w+|unveils?|plans?|planned|develops?|developing|break(?:s|ing)? ground|opens?|opening|expands?|invests?|acquires?|launch\w+|receives? approval|wins approval|delivers?|completes?)\b[^.!?]{0,80}\b(?:data ?cent\w+|distribution cent\w+|logistics (?:facility|campus|cent\w+)|manufacturing (?:plant|facility)|fulfillment cent\w+)\b|\b(?:data ?cent\w+|distribution cent\w+|logistics (?:facility|campus|cent\w+)|manufacturing (?:plant|facility)|fulfillment cent\w+)\b[^.!?]{0,80}\b(?:announc\w+|unveils?|plans?|develops?|developing|break(?:s|ing)? ground|opens?|opening|expands?|invests?|acquires?|launch\w+|receives? approval|wins approval)\b)/i],
     ];
     // Explicitly non-material — never surfaced even with a company match.
     const CM_NON_MATERIAL = /\b(conference|summit\b|panel|keynote|speaks? at|appearance|awards?\b|honou?ree|ranking|named to|best places to work|webinar|podcast|interview|op-?ed|commentary|sponsors?\b|exclusive (?:agent|broker)|brokerage assignment|tapped to market|hires? \w+ as broker)\b/i;
@@ -3264,12 +3269,18 @@
 
     /** Build the Competitor Watch section. ADDITIVE ONLY — it never promotes an
      *  article into Sales/Leases/Availabilities/Construction and never bypasses
-     *  Jacob's calibrated market/threshold rules. */
+     *  the calibrated market/threshold rules.
+     *
+     *  Attribution runs in two passes. Pass 1 evaluates EVERY article copy on
+     *  its own evidence. Pass 2 groups syndicated copies of the same story and
+     *  keeps the STRONGEST attribution, so a weaker copy encountered first can
+     *  never suppress a later copy that names the company more precisely. */
     const cmCompetitorWatch = (articles, watchlist) => {
       const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
                      rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
                      ambiguousNameMatches: 0, rejectedLongerEntity: 0,
-                     duplicatesCollapsed: 0, familyNarrowed: 0, companiesMatched: 0 };
+                     duplicatesCollapsed: 0, familyNarrowed: 0, familyAmbiguous: 0,
+                     companiesMatched: 0 };
       if (!watchlist || !watchlist.length) return { items: [], diag };
       const companies = [];
       for (const r of watchlist) {
@@ -3282,24 +3293,27 @@
         if (!aliases.length) { diag.rejectedGenericName++; continue; }
         // All-generic wording means a name match alone may be coincidental prose.
         const ambiguous = cmNormalizeCompany(name).split(' ').every(w => CM_GENERIC.has(w));
+        const norm = cmNormalizeCompany(name);
         companies.push({ name, type: r['Secondary Type'] || '', city: r['City'] || '',
-                         state: r['State / Country'] || '', domain, aliases, ambiguous });
+                         state: r['State / Country'] || '', domain, aliases, ambiguous,
+                         norm, family: norm.split(' ')[0] || '' });
       }
-      const matchedNames = new Set();
-      const items = [];
-      // Syndicated copies of the same story appear under multiple sources;
-      // surface each story once so the section is not padded with duplicates.
-      const seenTitles = new Set();
+      // Generic name-family index: any brand token shared by 2+ watchlist
+      // entries (Brookfield Corporation / Asset Management / Property Group).
+      // Nothing here is company-specific.
+      const familyIndex = new Map();
+      for (const c of companies) {
+        if (!c.family) continue;
+        if (!familyIndex.has(c.family)) familyIndex.set(c.family, []);
+        familyIndex.get(c.family).push(c);
+      }
+
+      // ---- Pass 1: evaluate every copy independently -------------------------
+      const attributions = [];
       for (const a of articles || []) {
-        const tkey = String(a.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 45);
-        if (tkey.length >= 20 && seenTitles.has(tkey)) { diag.duplicatesCollapsed++; continue; }
         const text = cmText(a);
         const lower = text.toLowerCase();
         const url = (a.link || '').toLowerCase();
-        // Collect EVERY company the article evidence supports, then attribute to
-        // the most specific one. Entities in the same name family (Brookfield
-        // Corporation / Brookfield Asset Management / Brookfield Property Group)
-        // must not collapse onto whichever happens to be first in the CSV.
         const cands = [];
         for (const c of companies) {
           const aliasHit = c.aliases.find(al => cmStandaloneNameHit(text, al));
@@ -3311,27 +3325,100 @@
           if (!aliasHit && !domainHit) continue;
           cands.push({ c, aliasHit, domainHit });
         }
+        // A bare family brand shared by 2+ watchlist entries is matchable even
+        // when no single entry reduces to that token. Requires a distinctive,
+        // non-generic brand word, checked with the longer-entity guard.
+        for (const [key, members] of familyIndex) {
+          if (members.length < 2 || CM_GENERIC.has(key) || key.length < 5) continue;
+          if (cands.some(x => x.c.family === key)) continue;
+          if (!cmStandaloneNameHit(text, key)) continue;
+          cands.push({ c: members[0], aliasHit: key, domainHit: false });
+        }
         if (!cands.length) continue;
         diag.mentionsFound += cands.length;
         const event = cmMaterialEvent(text);
         if (!event) { diag.rejectedNoMaterialEvent += cands.length; continue; }
-        // Most specific wins: a domain match is hard evidence; otherwise the
+        // Most specific wins: domain evidence is hard proof; otherwise the
         // longest matched name wins, since "Brookfield Asset Management" in the
         // text is stronger evidence than the bare token "Brookfield".
+        // Domain evidence first; between two domain matches the longer (more
+        // specific) domain wins, so bam.brookfield.com beats brookfield.com
+        // rather than losing on a tie-break to a longer matched name.
         cands.sort((x, y) => (Number(!!y.domainHit) - Number(!!x.domainHit))
+          || (x.domainHit && y.domainHit
+                ? (y.c.domain || '').length - (x.c.domain || '').length : 0)
           || ((y.aliasHit || '').length - (x.aliasHit || '').length));
-        const { c, aliasHit, domainHit } = cands[0];
+        const best = cands[0];
+        const { c, aliasHit, domainHit } = best;
         if (cands.length > 1) diag.familyNarrowed++;
-        diag.accepted++;
-        matchedNames.add(c.name);
-        if (tkey.length >= 20) seenTitles.add(tkey);
-        if (c.ambiguous && !domainHit) diag.ambiguousNameMatches++;
-        items.push({ ...a, _cw: { company: c.name, type: c.type, event,
-          verify: !!(c.ambiguous && !domainHit),
-          reason: domainHit ? `website-domain match "${c.domain}"` : `name match "${aliasHit}"`,
+
+        // Family ambiguity: the article names only a bare brand token that two
+        // or more watchlist entities share, with no domain to disambiguate.
+        // Do not assert one legal entity — surface the family and list them.
+        const siblings = familyIndex.get(c.family) || [];
+        const bareFamily = !domainHit && !!aliasHit &&
+          cmNormalizeCompany(aliasHit) === c.family && siblings.length > 1;
+        const familyLabel = bareFamily
+          ? aliasHit.replace(/\b\w/g, ch => ch.toUpperCase()) : null;
+        if (bareFamily) diag.familyAmbiguous++;
+
+        // Attribution strength, used to pick a winner among syndicated copies:
+        //   3 = website-domain evidence
+        //   2 = specific multi-word company name
+        //   1 = single-token but unambiguous company name
+        //   0 = bare family brand, or an all-generic name
+        const strength = domainHit ? 3
+          : bareFamily || c.ambiguous ? 0
+          : (aliasHit || '').includes(' ') ? 2 : 1;
+
+        attributions.push({
+          article: a,
+          tkey: String(a.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 45),
+          strength,
+          aliasLen: (aliasHit || '').length,
+          company: bareFamily ? familyLabel : c.name,
+          entity: c,
+          event,
+          verify: bareFamily || !!(c.ambiguous && !domainHit),
+          familyMatch: bareFamily,
+          reason: domainHit ? `website-domain match "${c.domain}"`
+            : bareFamily ? `family brand "${aliasHit}" — exact entity not stated`
+            : `name match "${aliasHit}"`,
           supportedByDomain: !!domainHit,
-          alsoConsidered: cands.slice(1, 4).map(x => x.c.name) } });
+          alsoConsidered: bareFamily
+            ? siblings.map(s => s.name)
+            : cands.slice(1, 4).map(x => x.c.name),
+        });
       }
+
+      // ---- Pass 2: collapse syndicated copies, keeping the strongest ---------
+      const byStory = new Map();
+      const loose = [];
+      for (const at of attributions) {
+        if (at.tkey.length < 20) { loose.push(at); continue; }
+        const prev = byStory.get(at.tkey);
+        if (!prev) { byStory.set(at.tkey, at); continue; }
+        diag.duplicatesCollapsed++;
+        // Strongest evidence wins regardless of encounter order.
+        if (at.strength > prev.strength ||
+           (at.strength === prev.strength && at.aliasLen > prev.aliasLen)) {
+          byStory.set(at.tkey, at);
+        }
+      }
+      const kept = [...byStory.values(), ...loose];
+      const matchedNames = new Set();
+      const items = kept.map(at => {
+        matchedNames.add(at.company);
+        if (at.verify && !at.familyMatch) diag.ambiguousNameMatches++;
+        diag.accepted++;
+        return { ...at.article, _cw: { company: at.company,
+          // On an unresolved family match the specific entity's type would be
+          // an unsupported claim, so it is withheld.
+          type: at.familyMatch ? '' : at.entity.type,
+          event: at.event, verify: at.verify, familyMatch: at.familyMatch,
+          reason: at.reason, supportedByDomain: at.supportedByDomain,
+          alsoConsidered: at.alsoConsidered } };
+      });
       diag.companiesMatched = matchedNames.size;
       return { items, diag };
     };
@@ -3366,7 +3453,7 @@
       const cwRow = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
           <a href="${esc(it.link)}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
           <div style="font-size:11px;color:#64748b;margin-top:2px;">
-            <strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · event: ${esc(it._cw.event)} · ${esc(it._cw.reason)}${it._cw.supportedByDomain ? ' (domain-supported)' : ''}${it._cw.verify ? ' · <strong style="color:#b45309;">generic name — verify</strong>' : ''} · source: ${esc(it.source || 'n/a')}
+            <strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · event: ${esc(it._cw.event)} · ${esc(it._cw.reason)}${it._cw.supportedByDomain ? ' (domain-supported)' : ''}${it._cw.familyMatch ? ' · <strong style="color:#b45309;">family match — verify</strong>' : it._cw.verify ? ' · <strong style="color:#b45309;">generic name — verify</strong>' : ''}${it._cw.alsoConsidered && it._cw.alsoConsidered.length ? `<br/>possible entities: ${esc(it._cw.alsoConsidered.join(', '))}` : ''} · source: ${esc(it.source || 'n/a')}
           </div>
         </li>`;
       const cwDiag = `<div style="font-size:11px;color:#64748b;margin:6px 0 8px;">
@@ -3378,7 +3465,8 @@
         flagged for verification ${cw.diag.ambiguousNameMatches} ·
         rejected (name belongs to a longer entity) ${cw.diag.rejectedLongerEntity} ·
         syndicated duplicates collapsed ${cw.diag.duplicatesCollapsed} ·
-        narrowed to most-specific entity ${cw.diag.familyNarrowed}
+        narrowed to most-specific entity ${cw.diag.familyNarrowed} ·
+        family-ambiguous (verify) ${cw.diag.familyAmbiguous}
       </div>`;
       const cwSection = !o.watchlist || !o.watchlist.length
         ? `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
