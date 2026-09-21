@@ -2927,59 +2927,315 @@
     // reached only by explicit evidence (a named non-target US market, or
     // explicit nationwide framing). Everything else is UNMAPPED and is routed
     // to diagnostics for review, never admitted under a guessed threshold.
+    // ---- PUBLIC geography reference data (same-origin, lazily loaded) -----
+    // capital-markets-geography.json and capital-markets-places.json are PUBLIC
+    // reference data published alongside this page: stakeholder county tiers
+    // plus a Census-derived municipality -> county lookup. Reading them is a
+    // same-origin fetch of our own GitHub Pages assets. It is NOT an external
+    // news fetch and it transmits nothing: no body, no query string, no
+    // credentials. The private competitor watchlist is unrelated to this and
+    // still never leaves the browser.
+    const CM_GEO_FILES = ['capital-markets-geography.json', 'capital-markets-places.json'];
+    const cmGeo = { status: 'idle', geography: null, index: null, error: null };
+
+    // Tokens allowed to appear lowercase inside a multi-word proper name.
+    const CM_CONNECTORS = new Set(['of', 'the', 'on', 'upon', 'at', 'by', 'and']);
+
+    /** Build the lookup index once, from the two public files. */
+    const cmBuildGeoIndex = (geography, places) => {
+      const byName = new Map();          // lowercase place name -> entries
+      const countyByState = new Map();   // state -> Map(lowercase county -> canonical)
+      let maxWords = 1;
+      for (const [st, d] of Object.entries(places.states || {})) {
+        const cmap = new Map();
+        d.counties.forEach(c => cmap.set(c.toLowerCase(), c));
+        countyByState.set(st, cmap);
+        for (const r of d.places) {
+          const name = r[0], ci = r[1], lat = r[2], lon = r[3], type = r[4];
+          const county = d.counties[Array.isArray(ci) ? ci[0] : ci];
+          const key = name.toLowerCase();
+          maxWords = Math.max(maxWords, key.split(' ').length);
+          if (!byName.has(key)) byName.set(key, []);
+          byName.get(key).push({ state: st, name, county, lat, lon, type });
+        }
+      }
+      // Derived: a NJ county whose municipalities ALL fall on one side of the
+      // Exit 6 line can be resolved from the county alone. Mixed counties
+      // cannot, and stay unresolved until a municipality is named. This is
+      // derived from the data, not an asserted boundary.
+      const njCounty = new Map();
+      const njCfg = geography.states.NJ || {};
+      const njPlaces = places.states.NJ || { places: [], counties: [] };
+      const buckets = new Map();
+      for (const r of njPlaces.places) {
+        const county = njPlaces.counties[Array.isArray(r[1]) ? r[1][0] : r[1]];
+        const lat = r[2];
+        const tier = (lat === null || lat === undefined)
+          ? (njCfg.fallbackTier || 'BROADER')
+          : (lat > njCfg.exit6Latitude ? 'TARGET' : (njCfg.fallbackTier || 'BROADER'));
+        if (!buckets.has(county)) buckets.set(county, new Set());
+        buckets.get(county).add(tier);
+      }
+      for (const entry of buckets) {
+        if (entry[1].size === 1) njCounty.set(entry[0], [...entry[1]][0]);
+      }
+      return { byName, countyByState, njCounty, maxWords };
+    };
+
+    /** Lazy same-origin load. Safe to call repeatedly; loads at most once. */
+    const cmLoadGeography = async () => {
+      if (cmGeo.status === 'ready' || cmGeo.status === 'loading') return cmGeo;
+      cmGeo.status = 'loading';
+      try {
+        const parts = await Promise.all(CM_GEO_FILES.map(f =>
+          fetch(f, { credentials: 'omit' }).then(r => {
+            if (!r.ok) throw new Error(f + ': HTTP ' + r.status);
+            return r.json();
+          })));
+        cmGeo.geography = parts[0];
+        cmGeo.index = cmBuildGeoIndex(parts[0], parts[1]);
+        cmGeo.status = 'ready';
+        cmGeo.error = null;
+      } catch (e) {
+        // Failure is SAFE: every article then resolves UNMAPPED, so nothing is
+        // admitted under a guessed geography.
+        cmGeo.status = 'error';
+        cmGeo.error = String((e && e.message) || e);
+      }
+      return cmGeo;
+    };
+
     const CM_GEO = {
-      // --- explicit from stakeholder requirements -----------------------
-      TARGET: [
-        'miami-dade', 'miami dade',        // Miami-Dade County = TARGET (stated)
-        'broward',                          // Broward County = TARGET (stated)
-        'palm beach',                       // Palm Beach County = TARGET (stated)
-        'miami',                            // city of Miami lies within Miami-Dade (containment, not a boundary guess)
-      ],
-      BROADER: [
-        'long island',                      // Long Island = BROADER (stated)
-        'nassau county', 'suffolk county',  // only via explicit county naming (stated caveat)
-        'rockland',                         // Rockland County = BROADER (stated)
-      ],
       // Explicit non-target US markets / nationwide framing => NATIONAL.
+      // TARGET / BROADER are NO LONGER keyword lists: they resolve
+      // deterministically from the public county + municipality data above.
       NATIONAL: [
         'nationwide', 'across the u.s.', 'across the us', 'national industrial',
         'u.s. industrial', 'us industrial', 'california', 'texas', 'dallas', 'houston',
         'phoenix', 'atlanta', 'chicago', 'inland empire', 'seattle', 'denver', 'nevada',
         'las vegas', 'ohio', 'indiana', 'georgia', 'arizona', 'tennessee', 'carolina',
       ],
-      // Locations we KNOW are in scope but whose tier is undefined until the
-      // maps arrive. Matching one of these forces UNMAPPED (never NATIONAL).
-      PENDING_MAP: [
-        'new jersey', 'newark', 'edison', 'elizabeth', 'carteret', 'piscataway',
-        'secaucus', 'meadowlands', 'perth amboy', 'bayonne', 'linden', 'exit 8a',
-        'middlesex', 'bergen', 'hudson county', 'morris county', 'union county',
-        'pennsylvania', 'lehigh valley', 'allentown', 'bethlehem', 'philadelphia',
-        'bucks county', 'scranton', 'harrisburg', 'lancaster',
-        'florida', 'tampa', 'orlando', 'jacksonville', 'doral', 'hialeah', 'medley',
-        'fort lauderdale', 'pompano', 'sarasota', 'fort myers', 'naples', 'lakeland',
-      ],
-      _pendingMapping: [
-        'NJ: north-of-Exit-6 boundary (undefined — awaiting map)',
-        'PA: Lehigh Valley / METRO / CPA split (undefined — awaiting map)',
-        'FL: broader county set beyond Miami-Dade/Broward/Palm Beach (undefined)',
-        'Municipality -> county table for FL TARGET counties (undefined)',
-      ],
+    };
+
+    // Headlines are Title Case, so "capitalised" proves nothing on its own:
+    // "Fund Bets Industrial" would match the CDP named Gap. When the text names
+    // no state, a municipality must therefore carry extra evidence — either a
+    // locational preposition immediately before it, or a distinctive multi-word
+    // name — and statistical areas (CDPs, townships) never qualify alone.
+    const CM_LOC_CUES = new Set(['in', 'at', 'near', 'outside', 'throughout', 'to']);
+    const CM_SOLID_CLASS = new Set(['c', 'b', 'p', 'v']);
+
+    // Municipality class ranking. When two municipalities in one state share a
+    // name, the more prominent class wins: Reading city (Berks) outranks
+    // Reading township (Adams).
+    const CM_CLASS_RANK = { c: 6, b: 5, p: 4, v: 3, t: 2, u: 1, d: 0 };
+
+    // US states OUTSIDE our four. Naming one is explicit evidence of a
+    // non-target market, and must stop a bare municipality name from resolving
+    // (there is a Dallas, PA — an article about Dallas, Texas is not about it).
+    const CM_OTHER_STATES = ['alabama','alaska','arizona','arkansas','california','colorado',
+      'connecticut','delaware','georgia','hawaii','idaho','illinois','indiana','iowa','kansas',
+      'kentucky','louisiana','maine','maryland','massachusetts','michigan','minnesota',
+      'mississippi','missouri','montana','nebraska','nevada','new hampshire','new mexico',
+      'north carolina','north dakota','ohio','oklahoma','oregon','rhode island','south carolina',
+      'south dakota','tennessee','texas','utah','vermont','virginia','washington','west virginia',
+      'wisconsin','wyoming'];
+
+    // State evidence. Full names always count; bare two-letter abbreviations
+    // count only in "City, ST" form, since "PA" and "NY" appear in other contexts.
+    const CM_STATE_FULL = [['NJ', /\bnew jersey\b/i], ['PA', /\bpennsylvania\b/i],
+                           ['FL', /\bflorida\b/i], ['NY', /\bnew york\b/i]];
+    // Whole-phrase containment, no regex escaping needed.
+    const padHas = (text, phrase) => (' ' + text.toLowerCase().replace(/[^a-z]+/g, ' ') + ' ')
+      .includes(' ' + phrase.toLowerCase().replace(/[^a-z]+/g, ' ').trim() + ' ');
+
+    const cmStatesIn = (text) => {
+      const out = new Set();
+      for (const pair of CM_STATE_FULL) if (pair[1].test(text)) out.add(pair[0]);
+      for (const m of text.matchAll(/,\s*(NJ|PA|FL|NY)\b/g)) out.add(m[1]);
+      return out;
+    };
+
+    /** Tier for one resolved municipality, per the geography file's own rules. */
+    const cmTierForPlace = (e) => {
+      const cfg = (cmGeo.geography.states || {})[e.state];
+      if (!cfg) return { tier: 'UNMAPPED', basis: e.state + ' is not a mapped state' };
+      if (String(cfg.method || '').indexOf('latitude') === 0) {
+        const ov = (cfg.overrides || {})[e.name + '|' + e.county];
+        if (ov) return { tier: ov, basis: 'manual override for ' + e.name + ', ' + e.county + ' County' };
+        const fb = cfg.fallbackTier || 'UNMAPPED';
+        if (e.lat === null || e.lat === undefined)
+          return { tier: fb, basis: e.name + ' has no coordinate; fallback ' + fb };
+        const north = e.lat > cfg.exit6Latitude;
+        return { tier: north ? 'TARGET' : fb,
+                 basis: e.name + ' lat ' + e.lat + (north ? ' > ' : ' <= ') + 'Exit 6 ' + cfg.exit6Latitude };
+      }
+      if ((cfg.targetCounties || []).includes(e.county))
+        return { tier: 'TARGET', basis: e.name + ' is in ' + e.county + ' County (TARGET)' };
+      if ((cfg.broaderCounties || []).includes(e.county))
+        return { tier: 'BROADER', basis: e.name + ' is in ' + e.county + ' County (BROADER)' };
+      return { tier: 'UNMAPPED', basis: e.county + ' County is outside the mapped tiers' };
+    };
+
+    /** Tier for an explicitly named county. */
+    const cmTierForCounty = (st, county) => {
+      const cfg = (cmGeo.geography.states || {})[st];
+      if (!cfg) return null;
+      if ((cfg.targetCounties || []).includes(county))
+        return { tier: 'TARGET', basis: county + ' County, ' + st + ' is TARGET' };
+      if ((cfg.broaderCounties || []).includes(county))
+        return { tier: 'BROADER', basis: county + ' County, ' + st + ' is BROADER' };
+      if (String(cfg.method || '').indexOf('latitude') === 0) {
+        // NJ has no county tiers; use one only when every municipality in that
+        // county falls on the same side of the line.
+        const derived = cmGeo.index.njCounty.get(county);
+        if (derived) return { tier: derived, basis: county + ' County, NJ lies entirely '
+          + (derived === 'TARGET' ? 'north' : 'south') + ' of Exit 6' };
+        return { tier: 'UNMAPPED',
+          basis: county + ' County, NJ straddles the Exit 6 line - needs a municipality' };
+      }
+      return { tier: 'UNMAPPED', basis: county + ' County, ' + st + ' is outside the mapped tiers' };
+    };
+
+    /** Scan text for place names, longest match first, proper nouns only. */
+    const cmScanPlaces = (text) => {
+      const idx = cmGeo.index, out = [];
+      const toks = [...text.matchAll(/[A-Za-z][A-Za-z.'’-]*/g)].map(m => ({ w: m[0], i: m.index }));
+      for (let i = 0; i < toks.length; i++) {
+        for (let n = Math.min(idx.maxWords, toks.length - i); n >= 1; n--) {
+          const slice = toks.slice(i, i + n);
+          const key = slice.map(t => t.w).join(' ').toLowerCase();
+          const hits = idx.byName.get(key);
+          if (!hits) continue;
+          // Require a proper noun so "sunrise" or "orange" as ordinary words do
+          // not resolve to Sunrise FL or Orange NJ.
+          if (!slice.every(t => /^[A-Z]/.test(t.w) || CM_CONNECTORS.has(t.w.toLowerCase()))) continue;
+          out.push({ key, phrase: slice.map(t => t.w).join(' '), hits, words: n,
+                     prev: i > 0 ? toks[i - 1].w.toLowerCase() : '' });
+          i += n - 1;
+          break;
+        }
+      }
+      return out;
+    };
+
+    /** Scan text for "<Name> County", plus Miami-Dade written without "County". */
+    const cmScanCounties = (text) => {
+      const out = [];
+      for (const m of text.matchAll(/\b([A-Z][A-Za-z.'’-]*(?:\s+[A-Z][A-Za-z.'’-]*){0,2})\s+Count(?:y|ies)\b/g)) {
+        const name = m[1].trim();
+        for (const pair of cmGeo.index.countyByState) {
+          const canon = pair[1].get(name.toLowerCase());
+          if (canon) out.push({ state: pair[0], county: canon, phrase: name + ' County' });
+        }
+      }
+      for (const m of text.matchAll(/\bMiami[- ]Dade\b/gi))
+        out.push({ state: 'FL', county: 'Miami-Dade', phrase: m[0] });
+      return out;
+    };
+
+    /**
+     * Deterministic geography resolution.
+     * Priority: explicit county -> municipality corroborated by state ->
+     * unambiguous municipality (the NJ latitude rule is applied whenever the
+     * resolved municipality is in NJ) -> NATIONAL keywords -> UNMAPPED.
+     * Vague phrasing such as "South Florida" never resolves on its own.
+     */
+    const cmResolveGeography = (text) => {
+      if (cmGeo.status !== 'ready')
+        return { tier: 'UNMAPPED', matched: null,
+                 basis: 'geography reference not loaded (' + cmGeo.status + ')' };
+      const states = cmStatesIn(text);
+      let countyFallback = null;
+
+      // 1. explicit county
+      const counties = cmScanCounties(text);
+      let pref = counties.filter(c => states.size === 0 || states.has(c.state));
+      if (pref.length > 1) {
+        // "Nassau County" exists in both NY and FL. With no state named, claim a
+        // market only when exactly ONE interpretation is in a configured tier;
+        // two configured matches would be genuinely ambiguous.
+        const mapped = pref.filter(c => {
+          const r = cmTierForCounty(c.state, c.county);
+          return r && r.tier !== 'UNMAPPED';
+        });
+        if (mapped.length === 1) pref = mapped;
+      }
+      const cPick = (pref.length ? pref : counties)[0];
+      if (cPick) {
+        const r = cmTierForCounty(cPick.state, cPick.county);
+        if (r && r.tier !== 'UNMAPPED')
+          return { tier: r.tier, matched: cPick.phrase, basis: 'explicit county - ' + r.basis };
+        if (r) countyFallback = { tier: 'UNMAPPED', matched: cPick.phrase, basis: r.basis };
+      }
+
+      // 1b. stakeholder-stated region (e.g. Long Island), when one is configured
+      for (const st of Object.keys(cmGeo.geography.states || {})) {
+        for (const rg of (cmGeo.geography.states[st].regions || [])) {
+          if (states.size > 0 && !states.has(st)) continue;
+          if (padHas(text, rg.name)) return { tier: rg.tier, matched: rg.name,
+            basis: 'stated region ' + rg.name + ' (' + (rg.counties || []).join(', ') + ')' };
+        }
+      }
+
+      // An out-of-scope state named with none of ours present is an explicit
+      // non-target market. Stop here so a same-named municipality in PA/NJ/NY/FL
+      // cannot claim it.
+      if (states.size === 0) {
+        const padded = ' ' + text.toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
+        const other = CM_OTHER_STATES.find(s => padded.includes(' ' + s + ' '));
+        if (other) return { tier: 'NATIONAL', matched: other,
+          basis: 'explicit out-of-scope state (' + other + ')' };
+      }
+
+      // 2/3. municipality, preferring state-corroborated, longer, higher-class names
+      const scored = [];
+      for (const p of cmScanPlaces(text)) {
+        for (const e of p.hits) {
+          const corroborated = states.has(e.state);
+          if (states.size > 0 && !corroborated) continue;        // contradicted by the stated state
+          if (p.hits.length > 1 && !corroborated) continue;      // same name in 2+ states: needs evidence
+          if (!corroborated) {
+            // No state named anywhere: demand real locational evidence.
+            if (!CM_SOLID_CLASS.has(e.type)) continue;           // CDP / township: not on its own
+            if (p.words < 2 && !CM_LOC_CUES.has(p.prev)) continue; // single word needs "in <Place>"
+          }
+          scored.push({ p, e, corroborated,
+            isStateName: CM_STATE_FULL.some(sf => sf[1].test(p.phrase) && p.phrase.length <= 12),
+            rank: (corroborated ? 1000 : 0) + p.words * 100 + (CM_CLASS_RANK[e.type] || 0) });
+        }
+      }
+      // "Hempstead, New York": the phrase "New York" is also a city name, but
+      // here it is the state qualifier. Any genuine municipality outranks it.
+      scored.sort((a, b) => (Number(a.isStateName) - Number(b.isStateName)) || (b.rank - a.rank));
+      if (scored.length) {
+        const top = scored[0];
+        const r = cmTierForPlace(top.e);
+        return { tier: r.tier, matched: top.p.phrase,
+                 basis: (top.corroborated ? 'municipality + state' : 'unambiguous municipality')
+                        + ' - ' + r.basis };
+      }
+      if (countyFallback) return countyFallback;
+
+      // 4. explicit non-target / nationwide framing
+      const lower = text.toLowerCase();
+      // Only when NO in-scope state is named. Otherwise "Central Florida
+      // properties sell to a Denver buyer" would be tiered NATIONAL on the
+      // buyer's home city, which misdescribes a Florida deal.
+      const nat = states.size === 0 ? CM_GEO.NATIONAL.find(k => lower.includes(k)) : null;
+      if (nat) return { tier: 'NATIONAL', matched: nat,
+                        basis: 'explicit non-target market / nationwide framing' };
+
+      // 5. nothing resolvable. A state name alone, or vague phrasing such as
+      // "South Florida", is deliberately NOT enough to assign a market.
+      if (states.size)
+        return { tier: 'UNMAPPED', matched: [...states][0],
+                 basis: 'state named but no county or municipality evidence' };
+      return { tier: 'UNMAPPED', matched: null, basis: 'no recognisable geography' };
     };
 
     // Returns { tier: 'TARGET'|'BROADER'|'NATIONAL'|'UNMAPPED', matched, basis }
-    const cmMarketTier = (text) => {
-      const t = (text || '').toLowerCase();
-      const hit = list => (list || []).find(k => t.includes(k)) || null;
-      let m = hit(CM_GEO.TARGET);
-      if (m) return { tier: 'TARGET', matched: m, basis: 'explicit stakeholder mapping' };
-      m = hit(CM_GEO.BROADER);
-      if (m) return { tier: 'BROADER', matched: m, basis: 'explicit stakeholder mapping' };
-      m = hit(CM_GEO.PENDING_MAP);
-      if (m) return { tier: 'UNMAPPED', matched: m, basis: 'in-scope region, tier awaiting supplied map' };
-      m = hit(CM_GEO.NATIONAL);
-      if (m) return { tier: 'NATIONAL', matched: m, basis: 'explicit non-target market / nationwide framing' };
-      return { tier: 'UNMAPPED', matched: null, basis: 'no recognisable geography' };
-    };
+    const cmMarketTier = (text) => cmResolveGeography(text || '');
 
     // --- magnitude extraction (title + description + summary) ------------
     const cmText = (a) => `${a.title || ''} ${a.description || ''} ${a.summary || ''}`;
@@ -3444,7 +3700,10 @@
       const diag = `<div style="margin-top:24px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#475569;">
         <strong>Diagnostics</strong> — tiers: TARGET ${tiers.TARGET} · BROADER ${tiers.BROADER} · NATIONAL ${tiers.NATIONAL} · <strong>UNMAPPED ${tiers.UNMAPPED}</strong><br/>
         rejections: MISSING_PRICE ${telemetry.MISSING_PRICE} · MISSING_SF ${telemetry.MISSING_SF} · BELOW_THRESHOLD ${telemetry.BELOW_THRESHOLD} · UNMAPPED_GEO ${telemetry.UNMAPPED_GEO} · LOW_VALUE_INTEL ${telemetry.LOW_VALUE_INTEL} · NO_SIGNAL ${telemetry.NO_SIGNAL} (total rejected ${rejected.length})<br/>
-        UNMAPPED candidates are held for review — never admitted under a guessed threshold. Boundaries still needed: ${esc(CM_GEO._pendingMapping.join(' | '))}
+        UNMAPPED candidates are held for review — never admitted under a guessed threshold.<br/>
+        geography reference: ${cmGeo.status === 'ready'
+          ? `loaded — NJ Exit 6 lat ${cmGeo.geography.states.NJ.exit6Latitude}, PA ${cmGeo.geography.states.PA.targetCounties.length} target/${cmGeo.geography.states.PA.broaderCounties.length} broader, FL ${cmGeo.geography.states.FL.targetCounties.length} target/${cmGeo.geography.states.FL.broaderCounties.length} broader, NY ${cmGeo.geography.states.NY.broaderCounties.length} broader`
+          : `NOT LOADED (${esc(cmGeo.status)}${cmGeo.error ? ': ' + esc(cmGeo.error) : ''}) — every article resolves UNMAPPED`}
       </div>`;
       const banner = `<div style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:10px;border-radius:6px;font-weight:700;text-align:center;margin-bottom:16px;">
         PREVIEW ONLY — NOT PRODUCTION</div>`;
@@ -3739,8 +3998,13 @@
             // Use selected theme (work is default)
             let html;
             if (newsletterTheme === 'capital-markets') {
-              // Sandbox profile. Uses only already-loaded articles; no fetch,
-              // no feed/sent-state mutation, no email path.
+              // Sandbox profile. Uses only already-loaded articles; no external
+              // news fetch, no feed/sent-state mutation, no email path.
+              // LAZY: the public geography reference loads here - only when
+              // Capital Markets Preview is actually generated - and only once.
+              // It is a same-origin read of our own published JSON. If it fails,
+              // every article resolves UNMAPPED, which is the safe outcome.
+              await cmLoadGeography();
               html = buildCapitalMarketsNewsletterHTML(recentArticles, {
                 asOfDate: cmAsOfDate || null,
                 lookbackHours: parseInt(cmLookback, 10) || 24,
