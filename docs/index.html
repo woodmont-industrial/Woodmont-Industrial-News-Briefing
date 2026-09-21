@@ -1548,24 +1548,25 @@
     /**
      * Resolve an article's region.
      * Returns 'NJ' | 'PA' | 'FL' | 'NON_TARGET' | null.
+     *
+     * Order matters. Explicit geography in the TEXT is checked before the
+     * item's own region metadata, because metadata describes where an article
+     * was sourced or filed, while the text describes where the deal actually
+     * is. If a future pipeline stamps region: 'NJ' on "Carteret-based supplier
+     * takes 126K SF in California", the California in the text must win -
+     * otherwise metadata would silently mask an out-of-market deal.
+     * Metadata is still authoritative whenever the text says nothing usable.
      */
     const resolveRegion = (item, textOverride) => {
-      // 1. explicit metadata already on the item
-      const metaRaw = item && (item.region ||
-        (Array.isArray(item.regions) ? item.regions[0] : item.regions) ||
-        item.marketRegion || item.market_region);
-      const meta = normalizeRegionValue(metaRaw);
-      if (meta) return meta;
-
       const text = textOverride !== undefined && textOverride !== null
         ? textOverride
         : [item && item.title, item && item.description,
            item && item.content_text, item && item.summary].filter(Boolean).join(' ');
       const padded = regionPad(text);
 
-      // 2a. explicit STATE mentions. A non-target state wins outright: it is the
-      // deal location, and it must override both a weak feed hint and an
-      // in-target city mention such as "Carteret-based".
+      // 1a. explicit STATE mentions. A non-target state wins outright: it is
+      // the deal location, and must override metadata, a weak feed hint and an
+      // in-target city mention alike.
       const statesFound = new Set();
       for (const [name, abbr] of Object.entries(US_STATE_NAMES)) {
         if (regionHas(padded, name)) statesFound.add(abbr);
@@ -1579,13 +1580,13 @@
       if (nonTargetStates.length) return 'NON_TARGET';
       if (targetStates.length === 1) return targetStates[0];
 
-      // 2b. explicit non-target CITY (e.g. "Milpitas Industrial Portfolio",
-      // which names no state at all).
+      // 1b. explicit non-target CITY ("Milpitas Industrial Portfolio", which
+      // names no state at all).
       for (const c of REGION_NON_TARGET_CITIES) {
         if (regionHas(padded, c)) return 'NON_TARGET';
       }
 
-      // 2c. in-target city, when it is not ambiguous across states
+      // 1c. an in-target city, when it is unambiguous across states.
       const cityHits = new Set();
       let ambiguousHit = false;
       for (const st of REGION_TARGETS) {
@@ -1597,13 +1598,21 @@
       }
       if (cityHits.size === 1) return [...cityHits][0];
 
-      // 3. weak feed/source hint. Only reached when the text did not settle it,
-      // and only when the label names exactly one target state. This is what
-      // turns "industrial building in Lodi trades" on the RE-NJ feed into NJ
-      // without letting an "NJ/PA/FL" feed label label anything.
+      // 2. item metadata. Reached only when the text identified no explicit
+      // state and no unambiguous market, so metadata cannot mask a conflict.
+      const metaRaw = item && (item.region ||
+        (Array.isArray(item.regions) ? item.regions[0] : item.regions) ||
+        item.marketRegion || item.market_region);
+      const meta = normalizeRegionValue(metaRaw);
+      if (meta) return meta;
+
+      // 3. weak feed/source hint, used only to disambiguate, and only when the
+      // label names exactly one target state. This is what turns "industrial
+      // building in Lodi trades" on the RE-NJ feed into NJ, while an
+      // "NJ/PA/FL" label names three states and is ignored.
       const hint = regionFeedHint(item);
       if (hint && (ambiguousHit || cityHits.size > 1)) return hint;
-      if (hint && targetStates.length === 0 && cityHits.size === 0) return hint;
+      if (hint && cityHits.size === 0) return hint;
 
       if (cityHits.size > 1) return null;   // conflicting in-target cities
       return null;
