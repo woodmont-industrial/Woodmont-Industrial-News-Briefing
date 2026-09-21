@@ -18,7 +18,7 @@
   <div id="root"></div>
 
   <script type="text/babel" data-type="module">
-    const { useState, useEffect, useMemo, useCallback } = React;
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
     const regions = ["All", "NJ", "PA", "FL"];
     const IS_STATIC = window.location.hostname !== 'localhost';
@@ -1277,7 +1277,159 @@
       );
     };
 
+    // ---- SHARED newsletter helpers (module scope) -------------------------
+    // These were previously scoped INSIDE NewsletterPreview while the three
+    // builders (buildNewsletterHTML / buildGothNewsletterHTML /
+    // buildWorkNewsletterHTML) live inside App - so every builder threw
+    // "ReferenceError: escapeHtml is not defined" the moment it ran. They are
+    // pure functions with no component state, so module scope is their correct
+    // home and both components now share ONE definition.
+
+    // Publisher / journal name extraction. Mirrors src/shared/publisher-name.ts
+    // so SPA labels match what the newsletter shows. Three strategies:
+    //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
+    //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
+    //   3. Strip "Google News " prefix from feed names
+
+    // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
+    // 3 newsletter preview builders below. Without these, an RSS title with an
+    // injected script tag (angle-bracket-script ... angle-bracket-slash-script)
+    // would render verbatim into the SPA preview DOM and execute. The SPA
+    // is plain JS in a browser → XSS is real here (not just theoretical
+    // like in the email path where clients sanitize).
+    const HTML_ESCAPE_MAP = {
+      '&': '&amp;', '<': '&lt;', '>': '&gt;',
+      '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;'
+    };
+    const escapeHtml = (text) => {
+      if (text === null || text === undefined) return '';
+      return String(text).replace(/[&<>"'`\/]/g, ch => HTML_ESCAPE_MAP[ch] || ch);
+    };
+    const escapeAttr = escapeHtml;
+    const safeUrl = (url) => {
+      if (!url) return '#';
+      const s = String(url).trim();
+      if (!s) return '#';
+      if (/^\s*(javascript|data|vbscript|file):/i.test(s)) return '#';
+      try {
+        const u = new URL(s);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? s : '#';
+      } catch { return '#'; }
+    };
+
+    // ---- Sentence segmentation (shared) -----------------------------------
+    // The previous splitter was /[^.!?]+[.!?]+/g with a decimal-point guard. It
+    // still broke on abbreviations: "Updated 6,500 sq. ft. industrial building
+    // in Lodi trades for $1.2 million." truncated to "Updated 6,500 sq. ft."
+    // Intl.Segmenter applies ICU sentence-break rules, which handle "sq. ft.",
+    // "Inc.", "St." and decimals correctly. It is available in every current
+    // browser; the fallback below covers older engines (Safari < 14.1).
+    const SENTENCE_ABBREV = [
+      'sq', 'ft', 'sq.ft', 'approx', 'est', 'no', 'vol', 'dept', 'div',
+      'inc', 'llc', 'ltd', 'co', 'corp', 'lp', 'llp', 'plc',
+      'st', 'ave', 'blvd', 'rd', 'dr', 'ln', 'ct', 'hwy', 'pkwy', 'ste', 'fl',
+      'mr', 'mrs', 'ms', 'jr', 'sr', 'prof', 'gov', 'sen', 'rep',
+      'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+      'u.s', 'u.k', 'e.g', 'i.e', 'etc', 'vs', 'al',
+    ];
+
+    /**
+     * Split text into sentences, keeping trailing punctuation and spacing.
+     * Returns [] for empty input. Never splits inside a decimal number, a
+     * percentage, or a known abbreviation.
+     */
+    const splitSentences = (text) => {
+      const s = String(text == null ? '' : text);
+      if (!s.trim()) return [];
+      if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+        try {
+          const seg = new Intl.Segmenter('en', { granularity: 'sentence' });
+          const out = [];
+          for (const part of seg.segment(s)) if (part.segment) out.push(part.segment);
+          if (out.length) return out;
+        } catch (e) { /* fall through to the manual splitter */ }
+      }
+      // Fallback: mask the dots that must NOT end a sentence, split, unmask.
+      const DOT = '\u0001';  // sentinel; never a raw control byte in source
+      let masked = s.replace(/(\d)\.(\d)/g, '$1' + DOT + '$2');          // 1.2M, 23.5%
+      for (const ab of SENTENCE_ABBREV) {
+        const esc = ab.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        masked = masked.replace(new RegExp('(^|[\\s(])(' + esc + ')\\.', 'gi'),
+                                (m, pre, word) => pre + word + DOT);
+      }
+      const parts = masked.match(/[^.!?]+[.!?]+[\s]*|[^.!?]+$/g) || [masked];
+      return parts.map(p => p.split(DOT).join('.')).filter(p => p.trim());
+    };
+
+    /** First `n` sentences, joined, trimmed. Falls back to the raw text. */
+    const firstSentences = (text, n) => {
+      const parts = splitSentences(text);
+      if (!parts.length) return String(text == null ? '' : text).trim();
+      return parts.slice(0, n).join('').trim();
+    };
+
+    const PUBLISHER_DOMAIN_MAP = {
+      're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
+      'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
+      'lvb.com': 'Lehigh Valley Business', 'philly.com': 'Philly.com',
+      'sun-sentinel.com': 'Sun Sentinel', 'miamiherald.com': 'Miami Herald',
+      'tampabay.com': 'Tampa Bay Times', 'jacksonville.com': 'The Florida Times-Union',
+      'globest.com': 'GlobeSt', 'bisnow.com': 'Bisnow', 'commercialobserver.com': 'Commercial Observer',
+      'costar.com': 'CoStar', 'connectcre.com': 'Connect CRE', 'rebusinessonline.com': 'REBusiness Online',
+      'commercialsearch.com': 'CommercialSearch', 'commercialcafe.com': 'CommercialCafe', 'credaily.com': 'CRE Daily',
+      'cpexecutive.com': 'CPE', 'therealdeal.com': 'The Real Deal',
+      'naiop.org': 'NAIOP', 'supplychaindive.com': 'Supply Chain Dive', 'supplychainbrain.com': 'SupplyChainBrain',
+      'mhlnews.com': 'MHL News', 'areadevelopment.com': 'Area Development', 'bizjournals.com': 'The Business Journals',
+      'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
+      'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
+    };
+    // Mirrors src/shared/publisher-name.ts getPublisherName (keep in sync).
+    const looksLikeDomain = (s) => s.length <= 60 && !/\s/.test(s) && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(s);
+    const domainPublisher = (domain) => {
+      const host = domain.toLowerCase().replace(/^www\./, '');
+      if (host === 'news.google.com') return 'Google News';
+      for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
+      return host;
+    };
+    const getPublisherName = (article) => {
+      if (!article) return 'Source';
+      const title = article.title || article.t || '';
+      const segs = title.split(/\s+[-–—|]\s+/);
+      if (segs.length >= 2) {
+        const last = segs[segs.length - 1].trim();
+        if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
+        if (looksLikeDomain(last)) return domainPublisher(last);
+      }
+      const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
+      const url = (article.url || article.link || article.u || '').toLowerCase();
+      const hay = sf + ' ' + url;
+      for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
+      if (/^google news\b/i.test(sf)) {
+        const stripped = sf.replace(/^google news\s+/i, '').trim();
+        return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
+      }
+      if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
+      if (article._source && article._source.name) return article._source.name;
+      return article.source || article.s || 'Source';
+    };
+
     const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
+      // Item 7: bring the Feed Health panel into view once it has rendered.
+      // Opening it previously mounted the panel below the fold, so it looked
+      // like nothing happened. Scroll only - feed-health generation untouched.
+      const feedHealthRef = useRef(null);
+      useEffect(() => {
+        if (!showFeedHealth || !feedHealthReport) return;
+        // rAF so the scroll runs AFTER the panel has actually been painted.
+        const id = requestAnimationFrame(() => {
+          const el = feedHealthRef.current;
+          if (el && typeof el.scrollIntoView === "function") {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+        return () => cancelAnimationFrame(id);
+      }, [showFeedHealth, feedHealthReport]);
+
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -1292,82 +1444,6 @@
       const [articleFeedback, setArticleFeedback] = useState({}); // {articleId: {action: 'approved'|'rejected', reason: null|string}}
       const [showRejectMenu, setShowRejectMenu] = useState(null); // articleId of currently shown reject menu
 
-      // Publisher / journal name extraction. Mirrors src/shared/publisher-name.ts
-      // so SPA labels match what the newsletter shows. Three strategies:
-      //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
-      //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
-      //   3. Strip "Google News " prefix from feed names
-
-      // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
-      // 3 newsletter preview builders below. Without these, an RSS title with an
-      // injected script tag (angle-bracket-script ... angle-bracket-slash-script)
-      // would render verbatim into the SPA preview DOM and execute. The SPA
-      // is plain JS in a browser → XSS is real here (not just theoretical
-      // like in the email path where clients sanitize).
-      const HTML_ESCAPE_MAP = {
-        '&': '&amp;', '<': '&lt;', '>': '&gt;',
-        '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;'
-      };
-      const escapeHtml = (text) => {
-        if (text === null || text === undefined) return '';
-        return String(text).replace(/[&<>"'`\/]/g, ch => HTML_ESCAPE_MAP[ch] || ch);
-      };
-      const escapeAttr = escapeHtml;
-      const safeUrl = (url) => {
-        if (!url) return '#';
-        const s = String(url).trim();
-        if (!s) return '#';
-        if (/^\s*(javascript|data|vbscript|file):/i.test(s)) return '#';
-        try {
-          const u = new URL(s);
-          return (u.protocol === 'http:' || u.protocol === 'https:') ? s : '#';
-        } catch { return '#'; }
-      };
-
-      const PUBLISHER_DOMAIN_MAP = {
-        're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
-        'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
-        'lvb.com': 'Lehigh Valley Business', 'philly.com': 'Philly.com',
-        'sun-sentinel.com': 'Sun Sentinel', 'miamiherald.com': 'Miami Herald',
-        'tampabay.com': 'Tampa Bay Times', 'jacksonville.com': 'The Florida Times-Union',
-        'globest.com': 'GlobeSt', 'bisnow.com': 'Bisnow', 'commercialobserver.com': 'Commercial Observer',
-        'costar.com': 'CoStar', 'connectcre.com': 'Connect CRE', 'rebusinessonline.com': 'REBusiness Online',
-        'commercialsearch.com': 'CommercialSearch', 'commercialcafe.com': 'CommercialCafe', 'credaily.com': 'CRE Daily',
-        'cpexecutive.com': 'CPE', 'therealdeal.com': 'The Real Deal',
-        'naiop.org': 'NAIOP', 'supplychaindive.com': 'Supply Chain Dive', 'supplychainbrain.com': 'SupplyChainBrain',
-        'mhlnews.com': 'MHL News', 'areadevelopment.com': 'Area Development', 'bizjournals.com': 'The Business Journals',
-        'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
-        'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
-      };
-      // Mirrors src/shared/publisher-name.ts getPublisherName (keep in sync).
-      const looksLikeDomain = (s) => s.length <= 60 && !/\s/.test(s) && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(s);
-      const domainPublisher = (domain) => {
-        const host = domain.toLowerCase().replace(/^www\./, '');
-        if (host === 'news.google.com') return 'Google News';
-        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
-        return host;
-      };
-      const getPublisherName = (article) => {
-        if (!article) return 'Source';
-        const title = article.title || article.t || '';
-        const segs = title.split(/\s+[-–—|]\s+/);
-        if (segs.length >= 2) {
-          const last = segs[segs.length - 1].trim();
-          if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
-          if (looksLikeDomain(last)) return domainPublisher(last);
-        }
-        const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
-        const url = (article.url || article.link || article.u || '').toLowerCase();
-        const hay = sf + ' ' + url;
-        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
-        if (/^google news\b/i.test(sf)) {
-          const stripped = sf.replace(/^google news\s+/i, '').trim();
-          return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
-        }
-        if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
-        if (article._source && article._source.name) return article._source.name;
-        return article.source || article.s || 'Source';
-      };
 
       // Region detection from title/description text
       const detectRegion = useCallback((text) => {
@@ -1474,8 +1550,13 @@
         let filtered = previewArticles;
 
         // Region filter: only NJ, PA, FL
+        // Region filter FAILS CLOSED: only an explicitly detected NJ / PA / FL
+        // region passes. region === null means 'we could not tell', which is NOT
+        // evidence of being in-region - it previously passed, so Milpitas CA and
+        // Lexington KY survived the filter. Unknown is NOT relabelled as NJ/PA/FL;
+        // it is simply excluded while the filter is on.
         if (filters.region) {
-          filtered = filtered.filter(a => a.region === 'NJ' || a.region === 'PA' || a.region === 'FL' || a.region === null);
+          filtered = filtered.filter(a => a.region === 'NJ' || a.region === 'PA' || a.region === 'FL');
         }
 
         // Industrial filter
@@ -1495,9 +1576,15 @@
         }
 
         // Group by category
-        const groups = { relevant: [], transactions: [], availabilities: [], people: [] };
+        // Category routing FAILS CLOSED. Previously any unrecognised category -
+        // including 'exclude' - was silently promoted into Relevant. Now:
+        //   'exclude'        -> dropped entirely
+        //   unknown/missing  -> a separate `unknown` diagnostic bucket, never Relevant
+        const groups = { relevant: [], transactions: [], availabilities: [], people: [], unknown: [] };
         for (const a of filtered) {
-          const cat = groups[a.category] ? a.category : 'relevant';
+          if (a.category === 'exclude') continue;
+          const cat = Object.prototype.hasOwnProperty.call(groups, a.category) && a.category !== 'unknown'
+            ? a.category : 'unknown';
           groups[cat].push(a);
         }
 
@@ -1847,9 +1934,11 @@
 
                 {/* Section summary bar */}
                 <div className="flex flex-wrap gap-3 mb-4 text-sm">
-                  {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                  {['relevant', 'transactions', 'availabilities', 'people', 'unknown'].map(cat => {
                     const items = (filteredGrouped[cat] || []).filter(a => !removedIds.has(a.id));
-                    const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    const label = cat === 'unknown'
+                      ? 'Uncategorized (diagnostic — not sent as Relevant)'
+                      : cat.charAt(0).toUpperCase() + cat.slice(1);
                     return (
                       <span key={cat} className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">
                         {label} ({items.length})
@@ -1892,12 +1981,14 @@
 
               {/* Article sections */}
               <div className="p-6 max-h-[600px] overflow-y-auto">
-                {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                {['relevant', 'transactions', 'availabilities', 'people', 'unknown'].map(cat => {
                   const allInCat = filteredGrouped[cat] || [];
                   const activeArticles = allInCat.filter(a => !removedIds.has(a.id));
                   const removedArticles = allInCat.filter(a => removedIds.has(a.id));
                   if (allInCat.length === 0) return null;
-                  const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    const label = cat === 'unknown'
+                      ? 'Uncategorized (diagnostic — not sent as Relevant)'
+                      : cat.charAt(0).toUpperCase() + cat.slice(1);
 
                   return (
                     <div key={cat} className="mb-6 last:mb-0">
@@ -2195,7 +2286,7 @@
             </div>
 
             {/* RSS Feed Health */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
+            <div ref={feedHealthRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">RSS Feed Health</h3>
@@ -2269,7 +2360,7 @@
       const [category, setCategory] = useState("");
       const [source, setSource] = useState("");
       const [sort, setSort] = useState("newest");
-      const [timeframe, setTimeframe] = useState(""); // Show all articles by default
+      const [timeframe, setTimeframe] = useState("1"); // 24h default: Header chip, selector and query all agree
       const [lastUpdated, setLastUpdated] = useState("");
       const [viewMode, setViewMode] = useState("articles");
       const [theme, setTheme] = useState("light");
@@ -2892,7 +2983,13 @@
           const title = item.title || 'Untitled';
           const url = item.link || '#';
           const source = item.source || '';
-          const sourceName = getSourceName(source, url);
+          // PARITY: the shared getPublisherName resolver, which recovers the real
+          // publisher from a Google News feed label ("Google News RE-NJ" ->
+          // "Real Estate NJ") via the trailing-dash title pattern and the domain
+          // map. getSourceName only strips a domain, so it displayed the FEED
+          // label as though it were the publisher. Display-only: item is not mutated.
+          const publisher = getPublisherName(item);
+          const sourceName = publisher || getSourceName(source, url);
           const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
           // Big deal badge
@@ -2911,25 +3008,32 @@
           let description = '';
           const rawDesc = (item.description || item.content_text || item.summary || '').trim();
           if (rawDesc && rawDesc.length > 10) {
-            // Protect decimal points in numbers ($3.15M, 23.5M) so they don't get
-            // treated as sentence breaks. Replace `digit.digit` with `digit\u0000digit`,
-            // split sentences, then restore the dot.
-            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
-            const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
-            if (sentences && sentences.length > 0) {
-              description = sentences.slice(0, maxSentences).join('').trim();
-            } else {
-              description = rawDesc;
-            }
+            // PARITY: shared Intl.Segmenter splitter (see splitSentences).
+            // The old inline regex truncated "6,500 sq. ft. building ..." at "ft.".
+            description = firstSentences(rawDesc, maxSentences);
             if (description.length > charLimit) {
               description = description.substring(0, charLimit - 3).replace(/\s+\S*$/, '') + '...';
             }
           }
 
-          // Use description as display text if available, otherwise title
-          let displayText = description || title;
-          if (displayText.length > 450) {
-            displayText = displayText.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+          // PARITY with src/server/newsletter-work.ts: the title is ALWAYS
+          // shown. The description SUPPLEMENTS it, and only when it adds new
+          // information (<60% word overlap). Previously this was
+          // `description || title`, which REPLACED the headline with the RSS
+          // blurb - the single biggest visible drift from production.
+          const titleSafe = escapeHtml(title);
+          const descSafe = escapeHtml(description);
+          let displayText = titleSafe;
+          if (description && description.length > 20) {
+            const titleWords = new Set(title.toLowerCase().split(/\s+/));
+            const descWords = description.toLowerCase().split(/\s+/);
+            const overlap = descWords.filter(x => titleWords.has(x)).length / descWords.length;
+            if (overlap < 0.6) {
+              displayText = `${titleSafe} — <span style="color: #555;">${descSafe}</span>`;
+            }
+          }
+          if (displayText.length > 500) {
+            displayText = displayText.substring(0, 497).replace(/\s+\S*$/, '') + '...';
           }
 
           // Action links
@@ -2951,7 +3055,7 @@
           const safeShareHref = /^mailto:/i.test(shareUrl) ? shareUrl : safeUrl(shareUrl);
           const safeIgnoreHref = safeUrl(ignoreUrl);
           return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${escapeHtml(displayText)}${dealBadge} — <a href="${escapeAttr(safeSourceHref)}" style="color: #2563eb; text-decoration: underline;" rel="noopener noreferrer">${escapeHtml(sourceName)}</a>${paywalled}
+            ${displayText}${dealBadge} — <a href="${escapeAttr(safeSourceHref)}" style="color: #2563eb; text-decoration: underline;" rel="noopener noreferrer">${escapeHtml(sourceName)}</a>${paywalled}
             <br><span style="font-size: 11px;"><a href="${escapeAttr(safeTrackHref)}" style="color: #2563eb; text-decoration: none;">[Track]</a> <a href="${escapeAttr(safeShareHref)}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${escapeAttr(safeIgnoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
           </li>`;
         };
