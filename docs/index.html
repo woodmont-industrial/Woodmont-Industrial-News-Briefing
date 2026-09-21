@@ -1507,6 +1507,29 @@
     // Names that exist in more than one state (Lodi NJ / Lodi CA / Lodi OH).
     // These never resolve on their own — they need a state in the text or a
     // single-state feed hint.
+    // Counties, corridors and sub-regions ported from the legacy detectRegion so
+    // nothing is lost when that permissive fallback is removed. ONLY names that
+    // are effectively unique to one of the three states are listed: Montgomery,
+    // Chester, Delaware, Middlesex, Essex, Union, Warren, Somerset, Mercer and
+    // Cumberland counties all exist in several states, so they are deliberately
+    // omitted rather than guessed at.
+    const REGION_AREAS = {
+      NJ: ['bergen county', 'hudson county', 'passaic county', 'monmouth county',
+        'ocean county', 'burlington county', 'cape may county', 'atlantic county',
+        'hunterdon county', 'new jersey turnpike', 'nj turnpike', 'north jersey',
+        'south jersey', 'central jersey', 'newark bay', 'raritan valley',
+        'route 1 corridor', 'exit 8a', 'exit 12', 'i-95 corridor nj'],
+      PA: ['philadelphia', 'bucks county', 'lehigh county', 'northampton county',
+        'berks county', 'dauphin county', 'lackawanna county', 'luzerne county',
+        'schuylkill county', 'lancaster county', 'pa turnpike',
+        'pennsylvania turnpike', 'i-78 corridor', 'greater philadelphia'],
+      FL: ['miami-dade county', 'miami dade county', 'broward county', 'broward',
+        'palm beach county', 'duval county', 'pinellas county', 'collier county',
+        'sarasota county', 'manatee county', 'brevard county', 'seminole county',
+        'south florida', 'central florida', 'north florida', 'i-4 corridor',
+        'pompano', 'treasure coast', 'space coast'],
+    };
+
     const REGION_AMBIGUOUS_CITIES = new Set(['lodi', 'franklin', 'salem', 'springfield',
       'clinton', 'washington', 'madison', 'jackson', 'newton', 'milford', 'oxford',
       'georgetown', 'fairfield', 'greenwich', 'hamilton', 'union', 'orange',
@@ -1605,6 +1628,9 @@
         if (regionHas(padded, name)) return REGION_TARGETS.includes(abbr) ? abbr : 'NON_TARGET';
       }
       for (const c of REGION_NON_TARGET_CITIES) if (regionHas(padded, c)) return 'NON_TARGET';
+      for (const st of REGION_TARGETS) {
+        for (const a of REGION_AREAS[st]) if (regionHas(padded, a)) return st;
+      }
       const hits = new Set();
       for (const st of REGION_TARGETS) {
         for (const c of REGION_CITIES[st]) {
@@ -1642,6 +1668,9 @@
         else if (Object.values(US_STATE_NAMES).includes(ab)) nonTarget = true;
       }
       for (const c of REGION_NON_TARGET_CITIES) if (regionHas(padded, c)) nonTarget = true;
+      for (const st of REGION_TARGETS) {
+        for (const a of REGION_AREAS[st]) if (regionHas(padded, a)) targets.add(st);
+      }
       for (const st of REGION_TARGETS) {
         for (const c of REGION_CITIES[st]) {
           if (!regionHas(padded, c)) continue;
@@ -1733,18 +1762,11 @@
       const [showRejectMenu, setShowRejectMenu] = useState(null); // articleId of currently shown reject menu
 
 
-      // Region detection from title/description text
-      const detectRegion = useCallback((text) => {
-        if (!text) return null;
-        const t = text.toLowerCase();
-        // NJ indicators
-        if (/\b(new jersey|newark|jersey city|edison|elizabeth|secaucus|cranbury|east brunswick|carteret|linden|woodbridge|parsippany|meadowlands|bergen|passaic|middlesex|monmouth|somerset|morris county|i-95 corridor nj|exit \d+ turnpike|nj turnpike|route 1 corridor)\b/.test(t)) return 'NJ';
-        // PA indicators
-        if (/\b(pennsylvania|philadelphia|lehigh valley|allentown|bethlehem|easton|harrisburg|lancaster|bucks county|montgomery county|chester county|delaware county|king of prussia|i-78 corridor|pa turnpike|lehigh county)\b/.test(t)) return 'PA';
-        // FL indicators
-        if (/\b(florida|miami|fort lauderdale|hialeah|doral|pompano|palm beach|broward|miami-dade|orlando|tampa|jacksonville|south florida|central florida|i-4 corridor|homestead|medley|opa-locka|coral springs)\b/.test(t)) return 'FL';
-        return null;
-      }, []);
+      // NOTE: the legacy detectRegion lived here. It matched a bare state or city
+      // name anywhere in the text and returned a region, which made it a permissive
+      // fallback that undid resolveRegion's deliberate nulls. Its unambiguous
+      // county/corridor terms now live in REGION_AREAS; resolveRegion is the single
+      // source of truth. Do not reintroduce a bare-keyword fallback here.
 
       // Simple industrial relevance check
       const isLikelyIndustrial = useCallback((text) => {
@@ -1792,10 +1814,13 @@
             const title = item.title || 'Untitled';
             const description = item.content_text || item.content_html || item.summary || '';
             const combinedText = title + ' ' + description;
-            // Layered resolution: item metadata -> explicit text geography ->
-            // weak single-state feed hint. detectRegion remains the text layer
-            // fallback inside resolveRegion callers below.
-            const region = resolveRegion(item, combinedText) || detectRegion(combinedText);
+            // resolveRegion is AUTHORITATIVE. The old detectRegion is no longer
+            // chained after it: that fallback resurrected exactly the nulls this
+            // resolver returns on purpose. An article naming Florida and
+            // Massachusetts with no locative relation is genuinely unresolved, and
+            // detectRegion would have called it FL on the bare word 'florida'.
+            // Its unambiguous county/corridor terms are ported into REGION_AREAS.
+            const region = resolveRegion(item, combinedText);
             const industrial = isLikelyIndustrial(combinedText);
 
             return {
@@ -1832,7 +1857,7 @@
         } finally {
           setArticlePanelLoading(false);
         }
-      }, [timeframe, detectRegion, isLikelyIndustrial]);
+      }, [timeframe, isLikelyIndustrial]);
 
       // Apply filters and compute grouped/filtered articles
       const filteredGrouped = useMemo(() => {
