@@ -3330,7 +3330,10 @@
       // C. SALES = an actual ownership transaction. Financing, refinancing,
       // loans, CMBS and recapitalisations are NOT sales; they may still qualify
       // for Relevant Market Intelligence under the positive-inclusion rules.
-      sale: /\b(sells?|sold|sale of|sale to|for sale|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|trades? hands|changes? hands|disposition|divests?|divested)\b/i,
+      // NOTE: "for sale" is deliberately ABSENT. A property being offered is
+      // not a completed ownership transfer. It is not routed to Availabilities
+      // either - no stakeholder rule covers investment-sale listings yet.
+      sale: /\b(sells?|sold|sale of|sale to|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|trades? hands|changes? hands|disposition|divests?|divested)\b/i,
       financing: /\b(refinanc\w+|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
       lease: /\b(leases?|leased|leasing|signs? a\b|inks? a\b|subleases?|renew\w+|takes? \d[\d,.]* ?(?:square|sq|sf))\b/i,
       availability: /\b(available|availabilit\w+|for lease|now leasing|on the market|listed for lease|offering memorandum)\b/i,
@@ -3384,7 +3387,7 @@
         if (tier === 'BROADER') {
           if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >500,000 SF, none stated; ${geo}` };
           if (sf > CM_THRESHOLDS.constructionBroader) return { section: 'construction', tier, code: null, magnitude: sf, reason: `BROADER construction ${sf.toLocaleString()} SF > 500,000; ${geo}` };
-          return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: BROADER construction ${sf.toLocaleString()} SF < 500,000` };
+          return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: BROADER construction ${sf.toLocaleString()} SF does not exceed 500,000 (<=)` };
         }
         if (tier === 'NATIONAL') return { section: null, tier, code: CM_REJECT.NATIONAL_CONSTRUCTION, magnitude: sf, reason: 'NATIONAL_CONSTRUCTION: no national construction rule requested — excluded for now' };
         return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: construction in an unmapped location — diagnostic/review only; ${geo}` };
@@ -3404,7 +3407,7 @@
         if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
         const need = CM_THRESHOLDS.sale[tier];
         if (dollars > need) return { section: 'sales', tier, code: null, magnitude: dollars, reason: `sale $${(dollars / 1e6).toFixed(1)}M > $${need / 1e6}M (${tier}); ${geo}` };
-        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: dollars, reason: `BELOW_THRESHOLD: sale $${(dollars / 1e6).toFixed(1)}M < $${need / 1e6}M (${tier})` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: dollars, reason: `BELOW_THRESHOLD: sale $${(dollars / 1e6).toFixed(1)}M does not exceed $${need / 1e6}M (<=, ${tier})` };
       }
       // --- C. Availability / Lease -------------------------------------
       const isAvail = CM_RX.availability.test(text) && !CM_RX.lease.test(text);
@@ -3414,7 +3417,7 @@
         if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
         const need = CM_THRESHOLDS.lease[tier];
         if (sf > need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}); ${geo}` };
-        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF < ${need.toLocaleString()} (${tier})` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF does not exceed ${need.toLocaleString()} (<=, ${tier})` };
       }
       // --- D. Market intelligence (positive inclusion only) -------------
       // GUARD: every deal-shaped path above RETURNS, so an article rejected for
