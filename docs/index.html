@@ -1413,6 +1413,202 @@
       return article.source || article.s || 'Source';
     };
 
+    // ---- Region resolution (shared, layered) -------------------------------
+    // Priority:
+    //   1. explicit region metadata already on the feed item
+    //   2. explicit geography in title/description
+    //   3. a weak feed/source hint, used ONLY to disambiguate
+    //   4. otherwise null
+    //
+    // Rule that matters: an explicit NON-TARGET location in the text beats a
+    // weak feed hint AND beats an in-target city mention, because the deal
+    // location is what we cover. "Carteret-based supplier takes 126K SF in
+    // California" is a California deal, not an NJ one, even though it arrived
+    // on an NJ feed and names an NJ borough.
+    //
+    // Only 'NJ' | 'PA' | 'FL' are accepted as in-market. Everything else
+    // resolves to 'NON_TARGET' (explicitly out of market) or null (unknown).
+    // The NJ/PA/FL filter passes ONLY the three target values, so neither
+    // NON_TARGET nor null leaks through — the fail-closed rule is unchanged.
+    const REGION_TARGETS = ['NJ', 'PA', 'FL'];
+
+    const US_STATE_NAMES = {
+      alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
+      colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
+      hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
+      kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD',
+      massachusetts: 'MA', michigan: 'MI', minnesota: 'MN', mississippi: 'MS',
+      missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV',
+      'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+      'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH', oklahoma: 'OK',
+      oregon: 'OR', pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+      'south dakota': 'SD', tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT',
+      virginia: 'VA', washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI',
+      wyoming: 'WY',
+    };
+
+    // Municipalities that identify a state on their own. Deliberately limited to
+    // names that are unambiguous in practice; anything genuinely shared between
+    // states goes in REGION_AMBIGUOUS_CITIES instead.
+    const REGION_CITIES = {
+      NJ: ['newark', 'jersey city', 'elizabeth', 'edison', 'carteret', 'piscataway',
+        'secaucus', 'perth amboy', 'bayonne', 'linden', 'kearny', 'teterboro',
+        'moonachie', 'carlstadt', 'ridgefield park', 'north bergen', 'woodbridge',
+        'south brunswick', 'north brunswick', 'cranbury', 'monroe township',
+        'robbinsville', 'mount olive', 'mahwah', 'totowa', 'wayne', 'paterson',
+        'passaic', 'hoboken', 'bridgewater', 'branchburg', 'somerset', 'raritan',
+        'bound brook', 'burlington township', 'florence township', 'pennsauken',
+        'cherry hill', 'vineland', 'millville', 'swedesboro', 'logan township',
+        'west deptford', 'mount laurel', 'moorestown', 'gloucester township',
+        'meadowlands', 'exit 8a', 'port newark', 'elizabethport'],
+      PA: ['allentown', 'bethlehem', 'easton', 'reading', 'lehigh valley',
+        'bristol township', 'breinigsville', 'fogelsville', 'macungie',
+        'hazleton', 'wilkes-barre', 'scranton', 'pittston', 'jenkins township',
+        'york', 'carlisle', 'mechanicsburg', 'harrisburg', 'middletown',
+        'chambersburg', 'lancaster', 'ephrata', 'denver borough', 'exton',
+        'king of prussia', 'bensalem', 'falls township', 'upper macungie'],
+      FL: ['miami', 'miami-dade', 'miami dade', 'medley', 'doral', 'hialeah',
+        'opa-locka', 'opa locka', 'miami gardens', 'miami lakes', 'sweetwater',
+        'fort lauderdale', 'pompano beach', 'deerfield beach', 'davie',
+        'sunrise', 'miramar', 'pembroke pines', 'coral springs', 'plantation',
+        'west palm beach', 'palm beach', 'riviera beach', 'boca raton',
+        'delray beach', 'jupiter', 'boynton beach', 'homestead', 'hialeah gardens',
+        'tampa', 'orlando', 'jacksonville', 'lakeland', 'ocala', 'naples',
+        'fort myers', 'sarasota', 'st. petersburg', 'saint petersburg'],
+    };
+
+    // Well-known out-of-market municipalities. Used so an article that names a
+    // non-target CITY but no state ("Milpitas Industrial Portfolio") still
+    // resolves as explicitly out of market rather than as unknown.
+    const REGION_NON_TARGET_CITIES = [
+      'milpitas', 'fremont ca', 'san jose', 'san francisco', 'oakland', 'hayward',
+      'tracy', 'stockton', 'fontana', 'ontario ca', 'riverside', 'moreno valley',
+      'rancho cucamonga', 'inland empire', 'los angeles', 'long beach', 'vernon ca',
+      'commerce ca', 'san diego', 'sacramento', 'las vegas', 'reno', 'phoenix',
+      'tucson', 'goodyear', 'tolleson', 'dallas', 'fort worth', 'houston',
+      'san antonio', 'austin', 'el paso', 'laredo', 'atlanta', 'savannah',
+      'charlotte', 'greensboro', 'raleigh', 'nashville', 'memphis', 'louisville',
+      'lexington ky', 'cincinnati', 'columbus oh', 'cleveland', 'toledo',
+      'indianapolis', 'chicago', 'joliet', 'elwood', 'milwaukee', 'minneapolis',
+      'kansas city', 'st. louis', 'saint louis', 'denver', 'salt lake city',
+      'seattle', 'tacoma', 'portland or', 'boise', 'baltimore', 'sparrows point',
+      'richmond va', 'norfolk', 'boston', 'worcester', 'hartford', 'providence',
+      // NY metro. These sit next door to the NJ market and arrive on NJ feeds,
+      // so without them an RE-NJ feed hint mislabels a Staten Island or Brooklyn
+      // deal as New Jersey.
+      'staten island', 'brooklyn', 'queens', 'bronx', 'manhattan', 'long island city',
+      'long island', 'yonkers', 'new rochelle', 'mount vernon', 'westchester',
+      'hempstead', 'melville', 'ronkonkoma', 'islandia', 'bay shore', 'nassau county',
+      'suffolk county', 'rockland county', 'orangeburg ny', 'nanuet',
+      // DE / MD corridor that also shows up on NJ and PA feeds.
+      'wilmington de', 'new castle de', 'newark de', 'elkton md', 'perryville md',
+    ];
+
+    // Names that exist in more than one state (Lodi NJ / Lodi CA / Lodi OH).
+    // These never resolve on their own — they need a state in the text or a
+    // single-state feed hint.
+    const REGION_AMBIGUOUS_CITIES = new Set(['lodi', 'franklin', 'salem', 'springfield',
+      'clinton', 'washington', 'madison', 'jackson', 'newton', 'milford', 'oxford',
+      'georgetown', 'fairfield', 'greenwich', 'hamilton', 'union', 'orange',
+      'columbia', 'aurora', 'dover', 'middletown', 'bristol', 'lancaster', 'york',
+      'reading', 'denver', 'manchester', 'plymouth', 'chester', 'auburn']);
+
+    const regionPad = (text) => ' ' + String(text || '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+    const regionHas = (padded, phrase) =>
+      padded.includes(' ' + phrase.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ');
+
+    /** Normalize any pre-existing region value to NJ/PA/FL, or null. */
+    const normalizeRegionValue = (v) => {
+      if (!v) return null;
+      const s = String(v).trim().toUpperCase();
+      if (REGION_TARGETS.includes(s)) return s;
+      const byName = US_STATE_NAMES[String(v).trim().toLowerCase()];
+      if (byName && REGION_TARGETS.includes(byName)) return byName;
+      if (byName) return 'NON_TARGET';
+      return null;
+    };
+
+    /** A feed/source label naming exactly ONE target state is a weak hint. */
+    const regionFeedHint = (item) => {
+      const label = [
+        item && item.feedName,
+        item && item._source && item._source.feedName,
+        item && item.author && (typeof item.author === 'string' ? item.author : item.author.name),
+        item && item.source,
+      ].filter(Boolean).join(' ');
+      if (!label) return null;
+      const up = label.toUpperCase();
+      const found = REGION_TARGETS.filter(st =>
+        new RegExp('(^|[^A-Z])' + st + '([^A-Z]|$)').test(up));
+      // "NJ/PA/FL" names three states and tells us nothing.
+      return found.length === 1 ? found[0] : null;
+    };
+
+    /**
+     * Resolve an article's region.
+     * Returns 'NJ' | 'PA' | 'FL' | 'NON_TARGET' | null.
+     */
+    const resolveRegion = (item, textOverride) => {
+      // 1. explicit metadata already on the item
+      const metaRaw = item && (item.region ||
+        (Array.isArray(item.regions) ? item.regions[0] : item.regions) ||
+        item.marketRegion || item.market_region);
+      const meta = normalizeRegionValue(metaRaw);
+      if (meta) return meta;
+
+      const text = textOverride !== undefined && textOverride !== null
+        ? textOverride
+        : [item && item.title, item && item.description,
+           item && item.content_text, item && item.summary].filter(Boolean).join(' ');
+      const padded = regionPad(text);
+
+      // 2a. explicit STATE mentions. A non-target state wins outright: it is the
+      // deal location, and it must override both a weak feed hint and an
+      // in-target city mention such as "Carteret-based".
+      const statesFound = new Set();
+      for (const [name, abbr] of Object.entries(US_STATE_NAMES)) {
+        if (regionHas(padded, name)) statesFound.add(abbr);
+      }
+      for (const m of String(text || '').matchAll(/,\s*([A-Z]{2})\b/g)) {
+        const ab = m[1];
+        if (Object.values(US_STATE_NAMES).includes(ab)) statesFound.add(ab);
+      }
+      const nonTargetStates = [...statesFound].filter(s => !REGION_TARGETS.includes(s));
+      const targetStates = [...statesFound].filter(s => REGION_TARGETS.includes(s));
+      if (nonTargetStates.length) return 'NON_TARGET';
+      if (targetStates.length === 1) return targetStates[0];
+
+      // 2b. explicit non-target CITY (e.g. "Milpitas Industrial Portfolio",
+      // which names no state at all).
+      for (const c of REGION_NON_TARGET_CITIES) {
+        if (regionHas(padded, c)) return 'NON_TARGET';
+      }
+
+      // 2c. in-target city, when it is not ambiguous across states
+      const cityHits = new Set();
+      let ambiguousHit = false;
+      for (const st of REGION_TARGETS) {
+        for (const c of REGION_CITIES[st]) {
+          if (!regionHas(padded, c)) continue;
+          if (REGION_AMBIGUOUS_CITIES.has(c)) { ambiguousHit = true; continue; }
+          cityHits.add(st);
+        }
+      }
+      if (cityHits.size === 1) return [...cityHits][0];
+
+      // 3. weak feed/source hint. Only reached when the text did not settle it,
+      // and only when the label names exactly one target state. This is what
+      // turns "industrial building in Lodi trades" on the RE-NJ feed into NJ
+      // without letting an "NJ/PA/FL" feed label label anything.
+      const hint = regionFeedHint(item);
+      if (hint && (ambiguousHit || cityHits.size > 1)) return hint;
+      if (hint && targetStates.length === 0 && cityHits.size === 0) return hint;
+
+      if (cityHits.size > 1) return null;   // conflicting in-target cities
+      return null;
+    };
+
     const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
       // Item 7: bring the Feed Health panel into view once it has rendered.
       // Opening it previously mounted the panel below the fold, so it looked
@@ -1504,7 +1700,10 @@
             const title = item.title || 'Untitled';
             const description = item.content_text || item.content_html || item.summary || '';
             const combinedText = title + ' ' + description;
-            const region = detectRegion(combinedText);
+            // Layered resolution: item metadata -> explicit text geography ->
+            // weak single-state feed hint. detectRegion remains the text layer
+            // fallback inside resolveRegion callers below.
+            const region = resolveRegion(item, combinedText) || detectRegion(combinedText);
             const industrial = isLikelyIndustrial(combinedText);
 
             return {
