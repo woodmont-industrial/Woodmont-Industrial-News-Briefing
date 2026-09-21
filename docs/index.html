@@ -1391,26 +1391,45 @@
       for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
       return host;
     };
+    // Canonical casing for a resolved name. The trailing-title path returns the
+    // publisher exactly as the headline wrote it, so the same outlet could render
+    // as both "GlobeSt" and "Globest" depending on the article. Fold any
+    // case-insensitive match back onto the domain map's spelling so one publisher
+    // always reads the same way everywhere.
+    const PUBLISHER_CANONICAL = (() => {
+      const m = new Map();
+      for (const v of Object.values(PUBLISHER_DOMAIN_MAP)) m.set(v.toLowerCase(), v);
+      return m;
+    })();
+    const canonicalPublisher = (name) => {
+      const s = String(name || '').trim();
+      return PUBLISHER_CANONICAL.get(s.toLowerCase()) || s;
+    };
+
     const getPublisherName = (article) => {
       if (!article) return 'Source';
       const title = article.title || article.t || '';
       const segs = title.split(/\s+[-–—|]\s+/);
       if (segs.length >= 2) {
         const last = segs[segs.length - 1].trim();
-        if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
+        if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return canonicalPublisher(last);
         if (looksLikeDomain(last)) return domainPublisher(last);
       }
       const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
       const url = (article.url || article.link || article.u || '').toLowerCase();
       const hay = sf + ' ' + url;
       for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
-      if (/^google news\b/i.test(sf)) {
-        const stripped = sf.replace(/^google news\s+/i, '').trim();
-        return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
-      }
+      // A feed LABEL is not a publisher. "Google News Manufacturing NJ/PA/FL"
+      // was title-cased into "Manufacturing NJ/PA/FL" and shown as a masthead.
+      // When the real publisher cannot be recovered from the trailing-title
+      // pattern, the domain map or the URL, say "Google News" - an honest
+      // aggregator name - rather than dressing up an internal label.
+      if (/^google news\b/i.test(sf)) return 'Google News';
       if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
-      if (article._source && article._source.name) return article._source.name;
-      return article.source || article.s || 'Source';
+      const rawLabel = (article._source && article._source.name) || article.source || article.s || '';
+      if (/google news/i.test(rawLabel)) return 'Google News';
+      if (looksLikeDomain(rawLabel)) return domainPublisher(rawLabel);
+      return canonicalPublisher(rawLabel) || 'Source';
     };
 
     // ---- Region resolution (shared, layered) -------------------------------
@@ -1728,6 +1747,111 @@
       if (hint) return hint;
 
       return null;
+    };
+
+    // ---- Shared newsletter preparation (all three themes) ------------------
+    // Every theme must receive the SAME eligible, cleaned articles. Previously
+    // generateNewsletter handed recentArticles straight to each builder, so the
+    // themes could and did disagree on eligibility, publisher and description.
+
+    /**
+     * Display-only publisher cleanup for a description.
+     * Feed descriptions often end with the source appended as bare words:
+     *   "Galvanize Acquires 302K SF Milpitas Industrial Portfolio Bisnow"
+     * Strip that trailing token ONLY when it matches the resolved publisher, so
+     * ordinary words that merely resemble a source are left alone. Never
+     * mutates item.description / item.title / canonical feed data - the caller
+     * uses the returned string for presentation only.
+     */
+    const cleanTrailingPublisher = (text, publisher) => {
+      let out = String(text == null ? '' : text).trim();
+      if (!publisher) return out;
+      const variants = new Set();
+      const add = (v) => { const s = String(v || '').trim(); if (s) variants.add(s); };
+      add(publisher);
+      add(publisher.replace(/\s+/g, ''));              // "Real Estate NJ" -> "RealEstateNJ"
+      add(publisher.replace(/[^A-Za-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim());
+      // Strip repeatedly: "... Portfolio Bisnow - Bisnow" happens.
+      for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        for (const v of variants) {
+          // optional separator, the publisher, optional trailing punctuation
+          const rx = new RegExp('[\\s\\-\\u2013\\u2014|:,]*' +
+            v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s.\\-\\u2013\\u2014|]*$', 'i');
+          const next = out.replace(rx, '').trim();
+          if (next !== out && next.length) { out = next; changed = true; }
+        }
+        if (!changed) break;
+      }
+      return out;
+    };
+
+    // Categories that describe a specific local property or deal. These must
+    // carry target geography. National market intelligence does NOT live here:
+    // 'relevant' is deliberately allowed to run without a region, because the
+    // corpus intentionally carries national macro ("Data center construction
+    // hits record", "CalSTRS adds $5B in CRE commitments"). Those stories are
+    // governed by category and by the explicit out-of-market test below, not by
+    // requiring an NJ/PA/FL region they will never have.
+    const NEWSLETTER_LOCAL_CATEGORIES = new Set(['transactions', 'availabilities']);
+    const NEWSLETTER_TARGETS = ['NJ', 'PA', 'FL'];
+
+    /** True when the text explicitly names out-of-market geography, ignoring
+     *  party-origin mentions ("Boston-based") which are never decisive. */
+    // NOTE: a mentionsNonTargetGeography() helper lived here and vetoed any
+    // article whose text named an out-of-market place. It dropped legitimate
+    // in-market stories on the buyer's home city ("Central Florida ... to Denver
+    // firm") and on adjacent geography ("Port of New York, New Jersey").
+    // resolveRegion already resolves location ROLE; do not re-add a blanket scan.
+
+    /**
+     * The single eligibility + cleaning pass every theme shares.
+     * Returns { articles, dropped, counts }. Input order is preserved.
+     *
+     * Deliberately NOT done here: timeframe filtering and server exclusions,
+     * which already happened upstream in generateNewsletter - this function
+     * receives the post-timeframe, post-exclusion list and must not re-filter
+     * or re-order it.
+     */
+    const prepareNewsletterArticles = (articles) => {
+      const kept = [], dropped = [];
+      const counts = { input: 0, kept: 0, excludedCategory: 0, outOfMarket: 0, localWithoutGeography: 0 };
+      for (const a of articles || []) {
+        counts.input++;
+        const cat = (a && a.category) || 'relevant';
+        if (cat === 'exclude') {
+          counts.excludedCategory++; dropped.push({ article: a, reason: 'EXCLUDED_CATEGORY' }); continue;
+        }
+        const text = [a && a.title, a && a.description, a && a.content_text, a && a.summary]
+          .filter(Boolean).join(' ');
+        const region = resolveRegion(a, text);
+
+        // resolveRegion is authoritative here too. It already did relation-aware
+        // classification: it knows "Denver firm" is the buyer and "Central
+        // Florida" is the property, and that "Port of New York, New Jersey" is
+        // an NJ story. Re-scanning the whole text for any non-target place after
+        // that would throw away exactly what the relation analysis established.
+        if (region === 'NON_TARGET') {
+          counts.outOfMarket++; dropped.push({ article: a, reason: 'OUT_OF_MARKET', region }); continue;
+        }
+
+        // A local property/deal story must be in a target market.
+        if (NEWSLETTER_LOCAL_CATEGORIES.has(cat) && !NEWSLETTER_TARGETS.includes(region)) {
+          counts.localWithoutGeography++;
+          dropped.push({ article: a, reason: 'LOCAL_DEAL_WITHOUT_TARGET_GEOGRAPHY', region });
+          continue;
+        }
+
+        const publisher = getPublisherName(a) || 'Google News';
+        const rawDesc = (a.description || a.content_text || a.summary || '').trim();
+        counts.kept++;
+        kept.push(Object.assign({}, a, {
+          _region: region,
+          _publisher: publisher,
+          _cleanDescription: cleanTrailingPublisher(rawDesc, publisher),
+        }));
+      }
+      return { articles: kept, dropped, counts };
     };
 
     const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
@@ -3042,22 +3166,26 @@
         const buildDesc = (item, category) => {
           const maxSent = (category === 'relevant' || category === 'people') ? 3 : 2;
           const charLim = (category === 'relevant' || category === 'people') ? 450 : 280;
-          const raw = (item.description || item.content_text || item.summary || '').trim();
+          const raw = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (!raw || raw.length < 10) return '';
           // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
-          const safeRaw = raw.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
-          const sentences = safeRaw.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
-          let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
+          // Shared segmentation (Intl.Segmenter, abbreviation-aware). The old
+          // __DOT_MARKER regex split "6,500 sq. ft. building" at "ft.".
+          let out = firstSentences(raw, maxSent);
           if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
           return out;
         };
 
         const renderArticle = (item, category) => {
-          const region = item.regions?.[0] || 'US';
+          // Prefer the region resolveRegion actually determined; the live feed
+          // carries no regions[] field, so this badge used to always read 'US'.
+          const region = item._region || item.regions?.[0] || 'US';
           const title = item.title || 'Untitled';
+          // Cleanup already happened in prepareNewsletterArticles, before
+          // segmentation - no second pass needed here.
           const desc = buildDesc(item, category);
           const whyItMatters = relevanceContext[category] || relevanceContext.relevant;
-          const source = item.source || 'Industry News';
+          const source = item._publisher || getPublisherName(item) || 'Google News';
 
           return `<div class="article-card">
             <div class="article-title-header">
@@ -3172,12 +3300,12 @@
           const cat = item.category || 'relevant';
           const maxSent = (cat === 'relevant' || cat === 'people') ? 3 : 2;
           const charLim = (cat === 'relevant' || cat === 'people') ? 450 : 280;
-          const raw = (item.description || item.content_text || item.summary || '').trim();
+          const raw = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (!raw || raw.length < 10) return '';
           // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
-          const safeRaw = raw.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
-          const sentences = safeRaw.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
-          let out = sentences ? sentences.slice(0, maxSent).join('').trim() : raw;
+          // Shared segmentation (Intl.Segmenter, abbreviation-aware). The old
+          // __DOT_MARKER regex split "6,500 sq. ft. building" at "ft.".
+          let out = firstSentences(raw, maxSent);
           if (out.length > charLim) out = out.substring(0, charLim - 3).replace(/\s+\S*$/, '') + '...';
           return out;
         };
@@ -3185,7 +3313,9 @@
         const formatBullet = (item) => {
           const title = item.title || 'Untitled';
           const url = item.link || '#';
-          const source = item.source || 'Industry News';
+          const source = item._publisher || getPublisherName(item) || 'Google News';
+          // Cleanup already happened in prepareNewsletterArticles, before
+          // segmentation - no second pass needed here.
           const desc = buildDescGoth(item);
 
           const safeHref = safeUrl(url);
@@ -3322,7 +3452,7 @@
           const maxSentences = (cat === 'relevant' || cat === 'people') ? 3 : 2;
           const charLimit = (cat === 'relevant' || cat === 'people') ? 450 : 280;
           let description = '';
-          const rawDesc = (item.description || item.content_text || item.summary || '').trim();
+          const rawDesc = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (rawDesc && rawDesc.length > 10) {
             // PARITY: shared Intl.Segmenter splitter (see splitSentences).
             // The old inline regex truncated "6,500 sq. ft. building ..." at "ft.".
@@ -3496,13 +3626,20 @@
             console.log(`[Newsletter] Final: ${recentArticles.length} articles for newsletter`, recentArticles.map(a => `[${a.category}] ${(a.title||'').substring(0,50)}`));
 
             // Use selected theme (work is default)
+            // ONE shared eligibility + cleaning pass before theme dispatch, so
+            // every theme receives identical articles. Timeframe filtering and
+            // server exclusions already happened above; this does not re-filter
+            // or re-order them.
+            const prepared = prepareNewsletterArticles(recentArticles);
+            console.log('[Newsletter] eligibility:', JSON.stringify(prepared.counts));
+            const themeArticles = prepared.articles;
             let html;
             if (newsletterTheme === 'work') {
-              html = buildWorkNewsletterHTML(recentArticles, days);
+              html = buildWorkNewsletterHTML(themeArticles, days);
             } else if (newsletterTheme === 'goth') {
-              html = buildGothNewsletterHTML(recentArticles, days);
+              html = buildGothNewsletterHTML(themeArticles, days);
             } else {
-              html = buildNewsletterHTML(recentArticles, days);
+              html = buildNewsletterHTML(themeArticles, days);
             }
             setNewsletterHTML(html);
             setNewsletterGenerated(true);
