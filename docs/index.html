@@ -1798,8 +1798,11 @@
 
     /** True when the text explicitly names out-of-market geography, ignoring
      *  party-origin mentions ("Boston-based") which are never decisive. */
-    const mentionsNonTargetGeography = (text) =>
-      regionScan(regionMaskOrigins(text)).nonTarget === true;
+    // NOTE: a mentionsNonTargetGeography() helper lived here and vetoed any
+    // article whose text named an out-of-market place. It dropped legitimate
+    // in-market stories on the buyer's home city ("Central Florida ... to Denver
+    // firm") and on adjacent geography ("Port of New York, New Jersey").
+    // resolveRegion already resolves location ROLE; do not re-add a blanket scan.
 
     /**
      * The single eligibility + cleaning pass every theme shares.
@@ -1823,11 +1826,12 @@
           .filter(Boolean).join(' ');
         const region = resolveRegion(a, text);
 
-        // Fail closed on anything explicitly out of market, in EVERY category.
-        // This covers both a resolved NON_TARGET (Milpitas, Lexington KY) and
-        // the unresolved-but-conflicted case the resolver returns null for
-        // (target and non-target geography with no locative relation).
-        if (region === 'NON_TARGET' || mentionsNonTargetGeography(text)) {
+        // resolveRegion is authoritative here too. It already did relation-aware
+        // classification: it knows "Denver firm" is the buyer and "Central
+        // Florida" is the property, and that "Port of New York, New Jersey" is
+        // an NJ story. Re-scanning the whole text for any non-target place after
+        // that would throw away exactly what the relation analysis established.
+        if (region === 'NON_TARGET') {
           counts.outOfMarket++; dropped.push({ article: a, reason: 'OUT_OF_MARKET', region }); continue;
         }
 
@@ -3162,7 +3166,7 @@
         const buildDesc = (item, category) => {
           const maxSent = (category === 'relevant' || category === 'people') ? 3 : 2;
           const charLim = (category === 'relevant' || category === 'people') ? 450 : 280;
-          const raw = (item.description || item.content_text || item.summary || '').trim();
+          const raw = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (!raw || raw.length < 10) return '';
           // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
           // Shared segmentation (Intl.Segmenter, abbreviation-aware). The old
@@ -3173,9 +3177,13 @@
         };
 
         const renderArticle = (item, category) => {
-          const region = item.regions?.[0] || 'US';
+          // Prefer the region resolveRegion actually determined; the live feed
+          // carries no regions[] field, so this badge used to always read 'US'.
+          const region = item._region || item.regions?.[0] || 'US';
           const title = item.title || 'Untitled';
-          const desc = cleanTrailingPublisher(buildDesc(item, category), item._publisher || getPublisherName(item));
+          // Cleanup already happened in prepareNewsletterArticles, before
+          // segmentation - no second pass needed here.
+          const desc = buildDesc(item, category);
           const whyItMatters = relevanceContext[category] || relevanceContext.relevant;
           const source = item._publisher || getPublisherName(item) || 'Google News';
 
@@ -3292,7 +3300,7 @@
           const cat = item.category || 'relevant';
           const maxSent = (cat === 'relevant' || cat === 'people') ? 3 : 2;
           const charLim = (cat === 'relevant' || cat === 'people') ? 450 : 280;
-          const raw = (item.description || item.content_text || item.summary || '').trim();
+          const raw = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (!raw || raw.length < 10) return '';
           // Protect decimal points in numbers ($3.15M, 23.5M) from being treated as sentence breaks.
           // Shared segmentation (Intl.Segmenter, abbreviation-aware). The old
@@ -3306,7 +3314,9 @@
           const title = item.title || 'Untitled';
           const url = item.link || '#';
           const source = item._publisher || getPublisherName(item) || 'Google News';
-          const desc = cleanTrailingPublisher(buildDescGoth(item), item._publisher || getPublisherName(item));
+          // Cleanup already happened in prepareNewsletterArticles, before
+          // segmentation - no second pass needed here.
+          const desc = buildDescGoth(item);
 
           const safeHref = safeUrl(url);
           return `<li style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e8e8e8; list-style: none;">
@@ -3442,7 +3452,7 @@
           const maxSentences = (cat === 'relevant' || cat === 'people') ? 3 : 2;
           const charLimit = (cat === 'relevant' || cat === 'people') ? 450 : 280;
           let description = '';
-          const rawDesc = (item.description || item.content_text || item.summary || '').trim();
+          const rawDesc = (item._cleanDescription ?? item.description ?? item.content_text ?? item.summary ?? '').trim();
           if (rawDesc && rawDesc.length > 10) {
             // PARITY: shared Intl.Segmenter splitter (see splitSentences).
             // The old inline regex truncated "6,500 sq. ft. building ..." at "ft.".
