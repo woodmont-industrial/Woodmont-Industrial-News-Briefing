@@ -72,6 +72,17 @@ jobs:
               console.log('force_build=true — bypassing dedup gate');
               return;
             }
+            // The EXTERNAL SCHEDULER is the primary clock (dev-docs/EXTERNAL-SCHEDULER.md):
+            // repository_dispatch build-feed at 6:15 AM ET is the authoritative refresh the
+            // 7:30 send reads. It must NOT be suppressed by the 2-hour staleness gate below,
+            // or a lagged cron build landing at ~5:00-6:14 ET would silently cancel it and
+            // the send would go out on older content - making the external clock primary in
+            // name only. Scheduled builds keep the staleness gate.
+            if (context.eventName === 'repository_dispatch') {
+              core.setOutput('skip', 'false');
+              console.log('repository_dispatch (external scheduler) — authoritative build, staleness gate not applied');
+              return;
+            }
             // Skip if this pipeline already succeeded today (avoid redundant builds)
             try {
               const runs = await github.rest.actions.listWorkflowRuns({

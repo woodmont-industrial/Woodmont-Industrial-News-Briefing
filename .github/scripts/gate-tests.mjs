@@ -196,4 +196,100 @@ const todayOf = (iso) => iso.split('T')[0];
     check('watchdog: weekend (manual run) -> stands down', r.dispatches.length === 0);
 }
 
+
+// ================= EXTERNAL SCHEDULER CONTRACT =================
+// The external clock (Power Automate / cron-job.org / any HTTPS caller) is the
+// PRIMARY timing source: repository_dispatch `build-feed` at 6:15 AM ET and
+// `send-newsletter` at 7:30 AM ET. GitHub's own schedule crons, the
+// workflow_run chain and the watchdog remain in place as FALLBACK layers.
+//
+// The contract these tests lock down:
+//   1. a 7:30 external send delivers when nothing has been sent yet
+//   2. a second external send the same day is a no-op
+//   3. every FALLBACK layer stands down once the external send has landed
+//   4. those fallbacks still fire when the external send never arrives
+// Together 2 + 3 are what make "external primary + GitHub fallback" safe:
+// adding the external clock cannot produce a duplicate send.
+{
+    const MON_615AM_EDT = '2026-08-31T10:15:00Z';  // 6:15 AM ET — external BUILD slot
+    const MON_730AM_EDT = '2026-08-31T11:30:00Z';  // 7:30 AM ET — external SEND slot
+    const MON_1015AM_EDT = '2026-08-31T14:15:00Z'; // 10:15 AM ET — a late, lagged GitHub cron
+    const SENT_TODAY = { sent: [], lastSendDate: todayOf(MON_730AM_EDT) };
+
+    // (1) external send at 7:30 sends if unsent
+    let r = await runScript(sendGate, { nowUtc: MON_730AM_EDT, eventName: 'repository_dispatch', sentFile: EMPTY });
+    check('external 7:30 ET repository_dispatch, unsent -> SENDS', r.skip === 'false');
+
+    // The 6:15 build slot must not be able to deliver early. A deliberate
+    // trigger bypasses the floor, but the build fires `build-feed` on a
+    // DIFFERENT workflow, and the workflow_run it produces is an automated
+    // trigger — so the 7:15 floor still holds it.
+    r = await runScript(sendGate, { nowUtc: MON_615AM_EDT, eventName: 'workflow_run', sentFile: EMPTY });
+    check('6:15 ET build completion -> workflow_run held by the 7:15 floor (no early send)', r.skip === 'true');
+
+    // (2) external send after an existing successful send skips
+    r = await runScript(sendGate, { nowUtc: MON_730AM_EDT, eventName: 'repository_dispatch', sentFile: SENT_TODAY });
+    check('external send after a successful send -> SKIPS (external retry is safe)', r.skip === 'true');
+
+    // (3) late workflow_run after an external send skips
+    r = await runScript(sendGate, { nowUtc: MON_1015AM_EDT, eventName: 'workflow_run', sentFile: SENT_TODAY });
+    check('late workflow_run after external send -> SKIPS', r.skip === 'true');
+
+    // (4) late scheduled send after an external send skips
+    r = await runScript(sendGate, { nowUtc: MON_1015AM_EDT, eventName: 'schedule', sentFile: SENT_TODAY });
+    check('late lagged cron after external send -> SKIPS', r.skip === 'true');
+
+    // (5) watchdog after an external send does nothing
+    r = await runScript(watchdog, { nowUtc: MON_1015AM_EDT, eventName: 'schedule', sentFile: SENT_TODAY });
+    check('watchdog after external send -> no dispatch', r.dispatches.length === 0);
+
+    // The fallbacks must still cover a MISSED external send — otherwise moving
+    // to an external clock would trade one single point of failure for another.
+    r = await runScript(sendGate, { nowUtc: MON_1015AM_EDT, eventName: 'schedule', sentFile: EMPTY });
+    check('fallback intact: lagged cron with no external send -> still sends', r.skip === 'false');
+    r = await runScript(watchdog, { nowUtc: MON_1015AM_EDT, eventName: 'schedule', sentFile: EMPTY });
+    check('fallback intact: watchdog with no external send -> dispatches', r.dispatches.length === 1);
+
+    // Legacy per-entry state must suppress the fallbacks too, not just lastSendDate.
+    const LEGACY = { sent: [{ id: 'x', sentAt: todayOf(MON_730AM_EDT) }] };
+    r = await runScript(sendGate, { nowUtc: MON_1015AM_EDT, eventName: 'schedule', sentFile: LEGACY });
+    check('legacy sentAt state also suppresses a late cron', r.skip === 'true');
+
+    // A weekend external dispatch is a deliberate act by a human or a
+    // misconfigured scheduler, and is NOT weekend-gated — only automated
+    // triggers are. Documented in EXTERNAL-SCHEDULER.md, not a bug: the
+    // external caller is responsible for firing on weekdays only.
+    r = await runScript(sendGate, { nowUtc: SAT_9AM_EDT, eventName: 'repository_dispatch', sentFile: EMPTY });
+    check('weekend repository_dispatch is deliberate -> proceeds (documented; caller must gate weekends)', r.skip === 'false');
+}
+// ================= BUILD GATE: external dispatch is authoritative =================
+// newsletter-pipeline.yml skips when a build succeeded < 2h ago. That gate must
+// NOT suppress the 6:15 AM ET external build, or a lagged cron build landing at
+// ~5:00-6:14 ET would silently cancel it and the 7:30 send would use older
+// content - making the external clock primary in name only.
+{
+    const buildGate = extractScript('.github/workflows/newsletter-pipeline.yml', 0);
+    const recentSuccess = { data: { workflow_runs: [
+        { id: 999, created_at: '2026-08-31T09:40:00Z', status: 'success' } ] } };
+    async function runBuildGate(eventName) {
+        const core = { outputs: {}, setOutput(k, v) { this.outputs[k] = v; },
+                       notice() {}, warning() {} };
+        const github = { rest: { actions: {
+            async listWorkflowRuns() { return recentSuccess; },
+            async createWorkflowDispatch() {} },
+            repos: { async getContent() { const e = new Error('Not Found'); e.status = 404; throw e; } } } };
+        const context = { eventName, runId: 1, repo: { owner: 'woodmont-industrial', repo: 'test' } };
+        const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+        const rendered = buildGate.replaceAll('${{ inputs.force_build }}', 'false');
+        const fn = new AsyncFunction('context', 'core', 'github', 'Date', 'console', rendered);
+        // 10:15Z = 6:15 AM ET, 35 minutes after the 09:40Z 'recent' build
+        await fn(context, core, github, frozenDateClass('2026-08-31T10:15:00Z'), { log: () => {} });
+        return core.outputs.skip;
+    }
+    check('build: scheduled run with a build 35 min ago -> staleness gate SKIPS (unchanged)',
+          await runBuildGate('schedule') === 'true');
+    check('build: external repository_dispatch with a build 35 min ago -> RUNS anyway',
+          await runBuildGate('repository_dispatch') === 'false');
+}
+
 console.log(`\n${pass} checks passed`);
