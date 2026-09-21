@@ -1406,17 +1406,47 @@
       return PUBLISHER_CANONICAL.get(s.toLowerCase()) || s;
     };
 
+    // Trailing phrases that are ordinary headline tails, not mastheads. Guards
+    // the lowercase path below so "... says report" never becomes a publisher.
+    const NOT_A_PUBLISHER_TAIL = new Set(['report', 'reports', 'video', 'photos', 'opinion',
+      'exclusive', 'analysis', 'update', 'updated', 'more', 'live', 'watch', 'podcast',
+      'sources say', 'report says', 'sources', 'study', 'survey', 'op ed', 'explainer']);
+
+    /** A short, masthead-shaped lowercase token such as "citybiz" or "patch".
+     *  Deliberately narrow: 1-3 words, no sentence punctuation, not an ordinary
+     *  headline tail. Only consulted for Google News items, where the
+     *  "Title - publisher" separator is a reliable structural signal. */
+    const plausibleLowercasePublisher = (s) => {
+      const t = String(s || '').trim();
+      if (t.length < 3 || t.length > 30) return false;
+      if (NOT_A_PUBLISHER_TAIL.has(t.toLowerCase())) return false;
+      if (/[.!?,;:]$/.test(t)) return false;
+      const words = t.split(/\s+/);
+      if (words.length > 3) return false;
+      return /^[a-z0-9][a-z0-9&'’.-]*(?:\s+[a-z0-9&'’.-]+){0,2}$/.test(t);
+    };
+
     const getPublisherName = (article) => {
       if (!article) return 'Source';
       const title = article.title || article.t || '';
+      // Source label and URL are needed before the trailing-title check so the
+      // lowercase path below can be restricted to Google News items.
+      const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
+      const url = (article.url || article.link || article.u || '').toLowerCase();
+      const isAggregated = /^google news\b/i.test(sf) || /news\.google\.com/.test(url)
+        || /google news/i.test((article._source && article._source.name) || article.source || '');
       const segs = title.split(/\s+[-–—|]\s+/);
       if (segs.length >= 2) {
         const last = segs[segs.length - 1].trim();
         if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return canonicalPublisher(last);
+        // Domains keep using the domain resolver, before any lowercase guess.
         if (looksLikeDomain(last)) return domainPublisher(last);
+        // Google News titles carry an explicit "Title - publisher" separator, so a
+        // short lowercase tail there is a masthead ("citybiz"), not prose. Plain
+        // publisher titles get no such treatment: a lowercase phrase ending an
+        // ordinary headline must never be promoted to a publisher.
+        if (isAggregated && plausibleLowercasePublisher(last)) return canonicalPublisher(last);
       }
-      const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
-      const url = (article.url || article.link || article.u || '').toLowerCase();
       const hay = sf + ' ' + url;
       for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
       // A feed LABEL is not a publisher. "Google News Manufacturing NJ/PA/FL"
@@ -1937,6 +1967,13 @@
             const sourceName = getPublisherName(item) || authorName || 'Unknown';
             const title = item.title || 'Untitled';
             const description = item.content_text || item.content_html || item.summary || '';
+            // Feed descriptions often end with the source appended as bare words
+            // ("... L&B ROI-NJ", "... north of Tampa CoStar"). Strip that tail for
+            // DISPLAY only, and only when it matches the resolved publisher, so a
+            // publisher named mid-sentence is preserved. The feed item is not
+            // mutated - `description` above stays the canonical text and is what
+            // region/industrial classification below continues to read.
+            const displayDescription = cleanTrailingPublisher(description, sourceName);
             const combinedText = title + ' ' + description;
             // resolveRegion is AUTHORITATIVE. The old detectRegion is no longer
             // chained after it: that fallback resurrected exactly the nulls this
@@ -1951,7 +1988,7 @@
               id: item.id,
               title,
               url: item.url || '',
-              description: description.substring(0, 200),
+              description: displayDescription.substring(0, 200),
               source: sourceName,
               category: item.category || 'relevant',
               pubDate: item.date_published || '',
