@@ -18,7 +18,7 @@
   <div id="root"></div>
 
   <script type="text/babel" data-type="module">
-    const { useState, useEffect, useMemo, useCallback } = React;
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
     const regions = ["All", "NJ", "PA", "FL"];
     const IS_STATIC = window.location.hostname !== 'localhost';
@@ -1277,7 +1277,476 @@
       );
     };
 
+    // ---- SHARED newsletter helpers (module scope) -------------------------
+    // These were previously scoped INSIDE NewsletterPreview while the three
+    // builders (buildNewsletterHTML / buildGothNewsletterHTML /
+    // buildWorkNewsletterHTML) live inside App - so every builder threw
+    // "ReferenceError: escapeHtml is not defined" the moment it ran. They are
+    // pure functions with no component state, so module scope is their correct
+    // home and both components now share ONE definition.
+
+    // Publisher / journal name extraction. Mirrors src/shared/publisher-name.ts
+    // so SPA labels match what the newsletter shows. Three strategies:
+    //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
+    //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
+    //   3. Strip "Google News " prefix from feed names
+
+    // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
+    // 3 newsletter preview builders below. Without these, an RSS title with an
+    // injected script tag (angle-bracket-script ... angle-bracket-slash-script)
+    // would render verbatim into the SPA preview DOM and execute. The SPA
+    // is plain JS in a browser → XSS is real here (not just theoretical
+    // like in the email path where clients sanitize).
+    const HTML_ESCAPE_MAP = {
+      '&': '&amp;', '<': '&lt;', '>': '&gt;',
+      '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;'
+    };
+    const escapeHtml = (text) => {
+      if (text === null || text === undefined) return '';
+      return String(text).replace(/[&<>"'`\/]/g, ch => HTML_ESCAPE_MAP[ch] || ch);
+    };
+    const escapeAttr = escapeHtml;
+    const safeUrl = (url) => {
+      if (!url) return '#';
+      const s = String(url).trim();
+      if (!s) return '#';
+      if (/^\s*(javascript|data|vbscript|file):/i.test(s)) return '#';
+      try {
+        const u = new URL(s);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? s : '#';
+      } catch { return '#'; }
+    };
+
+    // ---- Sentence segmentation (shared) -----------------------------------
+    // The previous splitter was /[^.!?]+[.!?]+/g with a decimal-point guard. It
+    // still broke on abbreviations: "Updated 6,500 sq. ft. industrial building
+    // in Lodi trades for $1.2 million." truncated to "Updated 6,500 sq. ft."
+    // Intl.Segmenter applies ICU sentence-break rules, which handle "sq. ft.",
+    // "Inc.", "St." and decimals correctly. It is available in every current
+    // browser; the fallback below covers older engines (Safari < 14.1).
+    const SENTENCE_ABBREV = [
+      'sq', 'ft', 'sq.ft', 'approx', 'est', 'no', 'vol', 'dept', 'div',
+      'inc', 'llc', 'ltd', 'co', 'corp', 'lp', 'llp', 'plc',
+      'st', 'ave', 'blvd', 'rd', 'dr', 'ln', 'ct', 'hwy', 'pkwy', 'ste', 'fl',
+      'mr', 'mrs', 'ms', 'jr', 'sr', 'prof', 'gov', 'sen', 'rep',
+      'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+      'u.s', 'u.k', 'e.g', 'i.e', 'etc', 'vs', 'al',
+    ];
+
+    /**
+     * Split text into sentences, keeping trailing punctuation and spacing.
+     * Returns [] for empty input. Never splits inside a decimal number, a
+     * percentage, or a known abbreviation.
+     */
+    const splitSentences = (text) => {
+      const s = String(text == null ? '' : text);
+      if (!s.trim()) return [];
+      if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+        try {
+          const seg = new Intl.Segmenter('en', { granularity: 'sentence' });
+          const out = [];
+          for (const part of seg.segment(s)) if (part.segment) out.push(part.segment);
+          if (out.length) return out;
+        } catch (e) { /* fall through to the manual splitter */ }
+      }
+      // Fallback: mask the dots that must NOT end a sentence, split, unmask.
+      const DOT = '\u0001';  // sentinel; never a raw control byte in source
+      let masked = s.replace(/(\d)\.(\d)/g, '$1' + DOT + '$2');          // 1.2M, 23.5%
+      for (const ab of SENTENCE_ABBREV) {
+        const esc = ab.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        masked = masked.replace(new RegExp('(^|[\\s(])(' + esc + ')\\.', 'gi'),
+                                (m, pre, word) => pre + word + DOT);
+      }
+      const parts = masked.match(/[^.!?]+[.!?]+[\s]*|[^.!?]+$/g) || [masked];
+      return parts.map(p => p.split(DOT).join('.')).filter(p => p.trim());
+    };
+
+    /** First `n` sentences, joined, trimmed. Falls back to the raw text. */
+    const firstSentences = (text, n) => {
+      const parts = splitSentences(text);
+      if (!parts.length) return String(text == null ? '' : text).trim();
+      return parts.slice(0, n).join('').trim();
+    };
+
+    const PUBLISHER_DOMAIN_MAP = {
+      're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
+      'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
+      'lvb.com': 'Lehigh Valley Business', 'philly.com': 'Philly.com',
+      'sun-sentinel.com': 'Sun Sentinel', 'miamiherald.com': 'Miami Herald',
+      'tampabay.com': 'Tampa Bay Times', 'jacksonville.com': 'The Florida Times-Union',
+      'globest.com': 'GlobeSt', 'bisnow.com': 'Bisnow', 'commercialobserver.com': 'Commercial Observer',
+      'costar.com': 'CoStar', 'connectcre.com': 'Connect CRE', 'rebusinessonline.com': 'REBusiness Online',
+      'commercialsearch.com': 'CommercialSearch', 'commercialcafe.com': 'CommercialCafe', 'credaily.com': 'CRE Daily',
+      'cpexecutive.com': 'CPE', 'therealdeal.com': 'The Real Deal',
+      'naiop.org': 'NAIOP', 'supplychaindive.com': 'Supply Chain Dive', 'supplychainbrain.com': 'SupplyChainBrain',
+      'mhlnews.com': 'MHL News', 'areadevelopment.com': 'Area Development', 'bizjournals.com': 'The Business Journals',
+      'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
+      'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
+    };
+    // Mirrors src/shared/publisher-name.ts getPublisherName (keep in sync).
+    const looksLikeDomain = (s) => s.length <= 60 && !/\s/.test(s) && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(s);
+    const domainPublisher = (domain) => {
+      const host = domain.toLowerCase().replace(/^www\./, '');
+      if (host === 'news.google.com') return 'Google News';
+      for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
+      return host;
+    };
+    const getPublisherName = (article) => {
+      if (!article) return 'Source';
+      const title = article.title || article.t || '';
+      const segs = title.split(/\s+[-–—|]\s+/);
+      if (segs.length >= 2) {
+        const last = segs[segs.length - 1].trim();
+        if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
+        if (looksLikeDomain(last)) return domainPublisher(last);
+      }
+      const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
+      const url = (article.url || article.link || article.u || '').toLowerCase();
+      const hay = sf + ' ' + url;
+      for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
+      if (/^google news\b/i.test(sf)) {
+        const stripped = sf.replace(/^google news\s+/i, '').trim();
+        return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
+      }
+      if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
+      if (article._source && article._source.name) return article._source.name;
+      return article.source || article.s || 'Source';
+    };
+
+    // ---- Region resolution (shared, layered) -------------------------------
+    // Priority:
+    //   1. explicit region metadata already on the feed item
+    //   2. explicit geography in title/description
+    //   3. a weak feed/source hint, used ONLY to disambiguate
+    //   4. otherwise null
+    //
+    // Rule that matters: an explicit NON-TARGET location in the text beats a
+    // weak feed hint AND beats an in-target city mention, because the deal
+    // location is what we cover. "Carteret-based supplier takes 126K SF in
+    // California" is a California deal, not an NJ one, even though it arrived
+    // on an NJ feed and names an NJ borough.
+    //
+    // Only 'NJ' | 'PA' | 'FL' are accepted as in-market. Everything else
+    // resolves to 'NON_TARGET' (explicitly out of market) or null (unknown).
+    // The NJ/PA/FL filter passes ONLY the three target values, so neither
+    // NON_TARGET nor null leaks through — the fail-closed rule is unchanged.
+    const REGION_TARGETS = ['NJ', 'PA', 'FL'];
+
+    const US_STATE_NAMES = {
+      alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
+      colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
+      hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
+      kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD',
+      massachusetts: 'MA', michigan: 'MI', minnesota: 'MN', mississippi: 'MS',
+      missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV',
+      'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+      'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH', oklahoma: 'OK',
+      oregon: 'OR', pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+      'south dakota': 'SD', tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT',
+      virginia: 'VA', washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI',
+      wyoming: 'WY',
+    };
+
+    // Municipalities that identify a state on their own. Deliberately limited to
+    // names that are unambiguous in practice; anything genuinely shared between
+    // states goes in REGION_AMBIGUOUS_CITIES instead.
+    const REGION_CITIES = {
+      NJ: ['newark', 'jersey city', 'elizabeth', 'edison', 'carteret', 'piscataway',
+        'secaucus', 'perth amboy', 'bayonne', 'linden', 'kearny', 'teterboro',
+        'moonachie', 'carlstadt', 'ridgefield park', 'north bergen', 'woodbridge',
+        'south brunswick', 'north brunswick', 'cranbury', 'monroe township',
+        'robbinsville', 'mount olive', 'mahwah', 'totowa', 'wayne', 'paterson',
+        'passaic', 'hoboken', 'bridgewater', 'branchburg', 'somerset', 'raritan',
+        'bound brook', 'burlington township', 'florence township', 'pennsauken',
+        'cherry hill', 'vineland', 'millville', 'swedesboro', 'logan township',
+        'west deptford', 'mount laurel', 'moorestown', 'gloucester township',
+        'meadowlands', 'exit 8a', 'port newark', 'elizabethport'],
+      PA: ['allentown', 'bethlehem', 'easton', 'reading', 'lehigh valley',
+        'bristol township', 'breinigsville', 'fogelsville', 'macungie',
+        'hazleton', 'wilkes-barre', 'scranton', 'pittston', 'jenkins township',
+        'york', 'carlisle', 'mechanicsburg', 'harrisburg', 'middletown',
+        'chambersburg', 'lancaster', 'ephrata', 'denver borough', 'exton',
+        'king of prussia', 'bensalem', 'falls township', 'upper macungie'],
+      FL: ['miami', 'miami-dade', 'miami dade', 'medley', 'doral', 'hialeah',
+        'opa-locka', 'opa locka', 'miami gardens', 'miami lakes', 'sweetwater',
+        'fort lauderdale', 'pompano beach', 'deerfield beach', 'davie',
+        'sunrise', 'miramar', 'pembroke pines', 'coral springs', 'plantation',
+        'west palm beach', 'palm beach', 'riviera beach', 'boca raton',
+        'delray beach', 'jupiter', 'boynton beach', 'homestead', 'hialeah gardens',
+        'tampa', 'orlando', 'jacksonville', 'lakeland', 'ocala', 'naples',
+        'fort myers', 'sarasota', 'st. petersburg', 'saint petersburg'],
+    };
+
+    // Well-known out-of-market municipalities. Used so an article that names a
+    // non-target CITY but no state ("Milpitas Industrial Portfolio") still
+    // resolves as explicitly out of market rather than as unknown.
+    const REGION_NON_TARGET_CITIES = [
+      'milpitas', 'fremont ca', 'san jose', 'san francisco', 'oakland', 'hayward',
+      'tracy', 'stockton', 'fontana', 'ontario ca', 'riverside', 'moreno valley',
+      'rancho cucamonga', 'inland empire', 'los angeles', 'long beach', 'vernon ca',
+      'commerce ca', 'san diego', 'sacramento', 'las vegas', 'reno', 'phoenix',
+      'tucson', 'goodyear', 'tolleson', 'dallas', 'fort worth', 'houston',
+      'san antonio', 'austin', 'el paso', 'laredo', 'atlanta', 'savannah',
+      'charlotte', 'greensboro', 'raleigh', 'nashville', 'memphis', 'louisville',
+      'lexington ky', 'cincinnati', 'columbus oh', 'cleveland', 'toledo',
+      'indianapolis', 'chicago', 'joliet', 'elwood', 'milwaukee', 'minneapolis',
+      'kansas city', 'st. louis', 'saint louis', 'denver', 'salt lake city',
+      'seattle', 'tacoma', 'portland or', 'boise', 'baltimore', 'sparrows point',
+      'richmond va', 'norfolk', 'boston', 'worcester', 'hartford', 'providence',
+      // NY metro. These sit next door to the NJ market and arrive on NJ feeds,
+      // so without them an RE-NJ feed hint mislabels a Staten Island or Brooklyn
+      // deal as New Jersey.
+      'staten island', 'brooklyn', 'queens', 'bronx', 'manhattan', 'long island city',
+      'long island', 'yonkers', 'new rochelle', 'mount vernon', 'westchester',
+      'hempstead', 'melville', 'ronkonkoma', 'islandia', 'bay shore', 'nassau county',
+      'suffolk county', 'rockland county', 'orangeburg ny', 'nanuet',
+      // DE / MD corridor that also shows up on NJ and PA feeds.
+      'wilmington de', 'new castle de', 'newark de', 'elkton md', 'perryville md',
+    ];
+
+    // Names that exist in more than one state (Lodi NJ / Lodi CA / Lodi OH).
+    // These never resolve on their own — they need a state in the text or a
+    // single-state feed hint.
+    // Counties, corridors and sub-regions ported from the legacy detectRegion so
+    // nothing is lost when that permissive fallback is removed. ONLY names that
+    // are effectively unique to one of the three states are listed: Montgomery,
+    // Chester, Delaware, Middlesex, Essex, Union, Warren, Somerset, Mercer and
+    // Cumberland counties all exist in several states, so they are deliberately
+    // omitted rather than guessed at.
+    const REGION_AREAS = {
+      NJ: ['bergen county', 'hudson county', 'passaic county', 'monmouth county',
+        'ocean county', 'burlington county', 'cape may county', 'atlantic county',
+        'hunterdon county', 'new jersey turnpike', 'nj turnpike', 'north jersey',
+        'south jersey', 'central jersey', 'newark bay', 'raritan valley',
+        'route 1 corridor', 'exit 8a', 'exit 12', 'i-95 corridor nj'],
+      PA: ['philadelphia', 'bucks county', 'lehigh county', 'northampton county',
+        'berks county', 'dauphin county', 'lackawanna county', 'luzerne county',
+        'schuylkill county', 'lancaster county', 'pa turnpike',
+        'pennsylvania turnpike', 'i-78 corridor', 'greater philadelphia'],
+      FL: ['miami-dade county', 'miami dade county', 'broward county', 'broward',
+        'palm beach county', 'duval county', 'pinellas county', 'collier county',
+        'sarasota county', 'manatee county', 'brevard county', 'seminole county',
+        'south florida', 'central florida', 'north florida', 'i-4 corridor',
+        'pompano', 'treasure coast', 'space coast'],
+    };
+
+    const REGION_AMBIGUOUS_CITIES = new Set(['lodi', 'franklin', 'salem', 'springfield',
+      'clinton', 'washington', 'madison', 'jackson', 'newton', 'milford', 'oxford',
+      'georgetown', 'fairfield', 'greenwich', 'hamilton', 'union', 'orange',
+      'columbia', 'aurora', 'dover', 'middletown', 'bristol', 'lancaster', 'york',
+      'reading', 'denver', 'manchester', 'plymouth', 'chester', 'auburn']);
+
+    const regionPad = (text) => ' ' + String(text || '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+    const regionHas = (padded, phrase) =>
+      padded.includes(' ' + phrase.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ');
+
+    /** Normalize any pre-existing region value to NJ/PA/FL, or null. */
+    const normalizeRegionValue = (v) => {
+      if (!v) return null;
+      const s = String(v).trim().toUpperCase();
+      if (REGION_TARGETS.includes(s)) return s;
+      const byName = US_STATE_NAMES[String(v).trim().toLowerCase()];
+      if (byName && REGION_TARGETS.includes(byName)) return byName;
+      if (byName) return 'NON_TARGET';
+      return null;
+    };
+
+    /** A feed/source label naming exactly ONE target state is a weak hint. */
+    const regionFeedHint = (item) => {
+      const label = [
+        item && item.feedName,
+        item && item._source && item._source.feedName,
+        item && item.author && (typeof item.author === 'string' ? item.author : item.author.name),
+        item && item.source,
+      ].filter(Boolean).join(' ');
+      if (!label) return null;
+      const up = label.toUpperCase();
+      const found = REGION_TARGETS.filter(st =>
+        new RegExp('(^|[^A-Z])' + st + '([^A-Z]|$)').test(up));
+      // "NJ/PA/FL" names three states and tells us nothing.
+      return found.length === 1 ? found[0] : null;
+    };
+
+    // ---- Relation-aware geography -----------------------------------------
+    // A place name in the text can play two very different roles:
+    //   deal location  - "industrial portfolio in Miami-Dade County"
+    //   party origin   - "the Boston-based private equity firm announced"
+    // Treating every mention alike made a Miami-Dade acquisition resolve as
+    // NON_TARGET because Boston appeared in the same sentence. Origin/HQ
+    // mentions are therefore masked out before any geography is read, and a
+    // location tied to the property or the transaction verb wins outright.
+
+    // "Boston-based", "New Jersey-based", "based in X", "headquartered in X".
+    const REGION_ORIGIN_RX = [
+      /\b([A-Za-z.'’]+(?:[\s-][A-Za-z.'’]+){0,2})[-\s]based\b/gi,
+      /\b(?:based|headquartered)\s+in\s+([A-Za-z.'’]+(?:[\s,]+[A-Za-z.'’]+){0,2})/gi,
+    ];
+
+    /** Blank out origin/HQ place names so they cannot decide the region. */
+    const regionMaskOrigins = (text) => {
+      let out = String(text || '');
+      for (const rx of REGION_ORIGIN_RX) {
+        out = out.replace(rx, (m, place) => m.replace(place, ' '.repeat(place.length)));
+      }
+      return out;
+    };
+
+    const REGION_PROPERTY_NOUN =
+      'propert(?:y|ies)|portfolio|warehouse|facilit(?:y|ies)|building|site|park|campus' +
+      '|cent(?:er|re)|plant|asset|space|industrial|logistics|distribution|flex|land';
+    const REGION_DEAL_VERB =
+      'leas\\w+|takes?|took|buys?|bought|acquir\\w+|sells?|sold|purchas\\w+|refinanc\\w+' +
+      '|develop\\w+|opens?|delivers?|breaks? ground on|trades?|signs?|renews?|expands?';
+    // A proper-noun run, optionally comma-joined, e.g. "Miami-Dade County",
+    // "Edison, NJ", "Dallas, Texas".
+    const REGION_PLACE = '([A-Z][A-Za-z.\'’-]*(?:[\\s,]+[A-Z][A-Za-z.\'’-]*){0,3})';
+
+    const REGION_DEAL_RX = [
+      // "portfolio in Miami-Dade County", "warehouse at 100 Main St, Edison, NJ"
+      new RegExp('(?:' + REGION_PROPERTY_NOUN + ')\\s+(?:in|at)\\s+' + REGION_PLACE, 'gi'),
+      // "acquires warehouse in Edison, NJ", "takes 126K SF in California"
+      new RegExp('(?:' + REGION_DEAL_VERB + ')[^.!?]{0,70}?\\s+(?:in|at)\\s+' + REGION_PLACE, 'gi'),
+      // "located in X"
+      new RegExp('located\\s+in\\s+' + REGION_PLACE, 'gi'),
+      // "Miami warehouse", "Allentown industrial park" - place used adjectivally
+      new RegExp(REGION_PLACE + '\\s+(?:' + REGION_PROPERTY_NOUN + ')', 'g'),
+      // "Edison, NJ 08817" - explicit city/state or address
+      /([A-Z][A-Za-z.'’-]*(?:\s+[A-Z][A-Za-z.'’-]*){0,2},\s*[A-Z]{2})\b/g,
+    ];
+
+    /** Geography of one short fragment: NJ | PA | FL | NON_TARGET | null. */
+    const regionGeoOf = (fragment) => {
+      const s = String(fragment || '');
+      const padded = regionPad(s);
+      for (const m of s.matchAll(/,\s*([A-Z]{2})\b/g)) {
+        const ab = m[1];
+        if (REGION_TARGETS.includes(ab)) return ab;
+        if (Object.values(US_STATE_NAMES).includes(ab)) return 'NON_TARGET';
+      }
+      for (const [name, abbr] of Object.entries(US_STATE_NAMES)) {
+        if (regionHas(padded, name)) return REGION_TARGETS.includes(abbr) ? abbr : 'NON_TARGET';
+      }
+      for (const c of REGION_NON_TARGET_CITIES) if (regionHas(padded, c)) return 'NON_TARGET';
+      for (const st of REGION_TARGETS) {
+        for (const a of REGION_AREAS[st]) if (regionHas(padded, a)) return st;
+      }
+      const hits = new Set();
+      for (const st of REGION_TARGETS) {
+        for (const c of REGION_CITIES[st]) {
+          if (!regionHas(padded, c) || REGION_AMBIGUOUS_CITIES.has(c)) continue;
+          hits.add(st);
+        }
+      }
+      return hits.size === 1 ? [...hits][0] : null;
+    };
+
+    /** The location tied to the property or the transaction, if any. */
+    const regionDealLocation = (maskedText) => {
+      for (const rx of REGION_DEAL_RX) {
+        rx.lastIndex = 0;
+        for (const m of String(maskedText || '').matchAll(rx)) {
+          const geo = regionGeoOf(m[1]);
+          if (geo) return geo;
+        }
+      }
+      return null;
+    };
+
+    /** Every explicit geography in the text, with no relation implied. */
+    const regionScan = (text) => {
+      const padded = regionPad(text);
+      const targets = new Set();
+      let nonTarget = false, ambiguous = false;
+      for (const [name, abbr] of Object.entries(US_STATE_NAMES)) {
+        if (!regionHas(padded, name)) continue;
+        if (REGION_TARGETS.includes(abbr)) targets.add(abbr); else nonTarget = true;
+      }
+      for (const m of String(text || '').matchAll(/,\s*([A-Z]{2})\b/g)) {
+        const ab = m[1];
+        if (REGION_TARGETS.includes(ab)) targets.add(ab);
+        else if (Object.values(US_STATE_NAMES).includes(ab)) nonTarget = true;
+      }
+      for (const c of REGION_NON_TARGET_CITIES) if (regionHas(padded, c)) nonTarget = true;
+      for (const st of REGION_TARGETS) {
+        for (const a of REGION_AREAS[st]) if (regionHas(padded, a)) targets.add(st);
+      }
+      for (const st of REGION_TARGETS) {
+        for (const c of REGION_CITIES[st]) {
+          if (!regionHas(padded, c)) continue;
+          if (REGION_AMBIGUOUS_CITIES.has(c)) { ambiguous = true; continue; }
+          targets.add(st);
+        }
+      }
+      return { targets, nonTarget, ambiguous };
+    };
+
+    /**
+     * Resolve an article's region.
+     * Returns 'NJ' | 'PA' | 'FL' | 'NON_TARGET' | null.
+     *
+     * Order:
+     *   0. mask origin/HQ mentions ("Boston-based") - never decisive
+     *   1. a STRONG deal-location relation (property/verb/address) wins
+     *   2. otherwise unrelated explicit geography; target AND non-target both
+     *      present with no relation -> null, because guessing either way is
+     *      wrong half the time
+     *   3. item metadata
+     *   4. weak single-state feed hint
+     *   5. null
+     *
+     * Metadata sits below the text so it can inform but never mask an
+     * explicitly out-of-market deal.
+     */
+    const resolveRegion = (item, textOverride) => {
+      const text = textOverride !== undefined && textOverride !== null
+        ? textOverride
+        : [item && item.title, item && item.description,
+           item && item.content_text, item && item.summary].filter(Boolean).join(' ');
+
+      // 0 + 1. relation-aware pass over text with origins masked out
+      const masked = regionMaskOrigins(text);
+      const dealGeo = regionDealLocation(masked);
+      if (dealGeo) return dealGeo;
+
+      // 2. no relation identified - fall back to unrelated mentions
+      const scan = regionScan(masked);
+      if (scan.nonTarget && scan.targets.size) return null;  // conflicting, unrelated
+      if (scan.nonTarget) return 'NON_TARGET';
+      if (scan.targets.size === 1) return [...scan.targets][0];
+      if (scan.targets.size > 1) return null;
+
+      // 3. item metadata, reached only when the text settled nothing
+      const metaRaw = item && (item.region ||
+        (Array.isArray(item.regions) ? item.regions[0] : item.regions) ||
+        item.marketRegion || item.market_region);
+      const meta = normalizeRegionValue(metaRaw);
+      if (meta) return meta;
+
+      // 4. weak feed/source hint, only when it names exactly one target state
+      const hint = regionFeedHint(item);
+      if (hint) return hint;
+
+      return null;
+    };
+
     const NewsletterPreview = ({ html, loading, timeframe, setTimeframe, theme, setTheme, darkMode, onGenerate, onClear, generated, newsletterRecipients, setNewsletterRecipients, onSendEmail, emailLoading, feedHealthReport, showFeedHealth, setShowFeedHealth, onFetchFeedHealth, feedHealthLoading }) => {
+      // Item 7: bring the Feed Health panel into view once it has rendered.
+      // Opening it previously mounted the panel below the fold, so it looked
+      // like nothing happened. Scroll only - feed-health generation untouched.
+      const feedHealthRef = useRef(null);
+      useEffect(() => {
+        if (!showFeedHealth || !feedHealthReport) return;
+        // rAF so the scroll runs AFTER the panel has actually been painted.
+        const id = requestAnimationFrame(() => {
+          const el = feedHealthRef.current;
+          if (el && typeof el.scrollIntoView === "function") {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+        return () => cancelAnimationFrame(id);
+      }, [showFeedHealth, feedHealthReport]);
+
       const [showTemplate, setShowTemplate] = useState(false);
       const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -1292,95 +1761,12 @@
       const [articleFeedback, setArticleFeedback] = useState({}); // {articleId: {action: 'approved'|'rejected', reason: null|string}}
       const [showRejectMenu, setShowRejectMenu] = useState(null); // articleId of currently shown reject menu
 
-      // Publisher / journal name extraction. Mirrors src/shared/publisher-name.ts
-      // so SPA labels match what the newsletter shows. Three strategies:
-      //   1. Trailing-dash in title (Google News pattern: "...- WSVN")
-      //   2. Domain map for direct sources (re-nj.com → "Real Estate NJ")
-      //   3. Strip "Google News " prefix from feed names
 
-      // HTML-escape helpers (mirror src/shared/html-escape.ts). Used by the
-      // 3 newsletter preview builders below. Without these, an RSS title with an
-      // injected script tag (angle-bracket-script ... angle-bracket-slash-script)
-      // would render verbatim into the SPA preview DOM and execute. The SPA
-      // is plain JS in a browser → XSS is real here (not just theoretical
-      // like in the email path where clients sanitize).
-      const HTML_ESCAPE_MAP = {
-        '&': '&amp;', '<': '&lt;', '>': '&gt;',
-        '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;'
-      };
-      const escapeHtml = (text) => {
-        if (text === null || text === undefined) return '';
-        return String(text).replace(/[&<>"'`\/]/g, ch => HTML_ESCAPE_MAP[ch] || ch);
-      };
-      const escapeAttr = escapeHtml;
-      const safeUrl = (url) => {
-        if (!url) return '#';
-        const s = String(url).trim();
-        if (!s) return '#';
-        if (/^\s*(javascript|data|vbscript|file):/i.test(s)) return '#';
-        try {
-          const u = new URL(s);
-          return (u.protocol === 'http:' || u.protocol === 'https:') ? s : '#';
-        } catch { return '#'; }
-      };
-
-      const PUBLISHER_DOMAIN_MAP = {
-        're-nj.com': 'Real Estate NJ', 'roi-nj.com': 'ROI-NJ', 'njbiz.com': 'NJBIZ',
-        'realestatenjmag.com': 'Real Estate NJ Magazine', 'njspotlightnews.org': 'NJ Spotlight News', 'nj.com': 'NJ.com',
-        'lvb.com': 'Lehigh Valley Business', 'philly.com': 'Philly.com',
-        'sun-sentinel.com': 'Sun Sentinel', 'miamiherald.com': 'Miami Herald',
-        'tampabay.com': 'Tampa Bay Times', 'jacksonville.com': 'The Florida Times-Union',
-        'globest.com': 'GlobeSt', 'bisnow.com': 'Bisnow', 'commercialobserver.com': 'Commercial Observer',
-        'costar.com': 'CoStar', 'connectcre.com': 'Connect CRE', 'rebusinessonline.com': 'REBusiness Online',
-        'commercialsearch.com': 'CommercialSearch', 'commercialcafe.com': 'CommercialCafe', 'credaily.com': 'CRE Daily',
-        'cpexecutive.com': 'CPE', 'therealdeal.com': 'The Real Deal',
-        'naiop.org': 'NAIOP', 'supplychaindive.com': 'Supply Chain Dive', 'supplychainbrain.com': 'SupplyChainBrain',
-        'mhlnews.com': 'MHL News', 'areadevelopment.com': 'Area Development', 'bizjournals.com': 'The Business Journals',
-        'prnewswire.com': 'PR Newswire', 'businesswire.com': 'BusinessWire',
-        'wsj.com': 'WSJ', 'bloomberg.com': 'Bloomberg', 'reuters.com': 'Reuters', 'prologis.com': 'Prologis',
-      };
-      // Mirrors src/shared/publisher-name.ts getPublisherName (keep in sync).
-      const looksLikeDomain = (s) => s.length <= 60 && !/\s/.test(s) && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+$/i.test(s);
-      const domainPublisher = (domain) => {
-        const host = domain.toLowerCase().replace(/^www\./, '');
-        if (host === 'news.google.com') return 'Google News';
-        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (host === d || host.endsWith('.' + d)) return PUBLISHER_DOMAIN_MAP[d]; }
-        return host;
-      };
-      const getPublisherName = (article) => {
-        if (!article) return 'Source';
-        const title = article.title || article.t || '';
-        const segs = title.split(/\s+[-–—|]\s+/);
-        if (segs.length >= 2) {
-          const last = segs[segs.length - 1].trim();
-          if (/^[A-Z]/.test(last) && last.length >= 2 && last.length <= 60) return last;
-          if (looksLikeDomain(last)) return domainPublisher(last);
-        }
-        const sf = ((article._source && article._source.name) || (article._source && article._source.website) || article.source || article.s || '').toLowerCase();
-        const url = (article.url || article.link || article.u || '').toLowerCase();
-        const hay = sf + ' ' + url;
-        for (const d of Object.keys(PUBLISHER_DOMAIN_MAP)) { if (hay.includes(d)) return PUBLISHER_DOMAIN_MAP[d]; }
-        if (/^google news\b/i.test(sf)) {
-          const stripped = sf.replace(/^google news\s+/i, '').trim();
-          return stripped.split(/\s+/).map(w => /^[a-z]{2,3}$/.test(w) || /^[A-Z]{2,}(-[A-Z]+)?$/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ').trim();
-        }
-        if (sf === 'news.google.com' || /news\.google\.com/.test(url)) return 'Google News';
-        if (article._source && article._source.name) return article._source.name;
-        return article.source || article.s || 'Source';
-      };
-
-      // Region detection from title/description text
-      const detectRegion = useCallback((text) => {
-        if (!text) return null;
-        const t = text.toLowerCase();
-        // NJ indicators
-        if (/\b(new jersey|newark|jersey city|edison|elizabeth|secaucus|cranbury|east brunswick|carteret|linden|woodbridge|parsippany|meadowlands|bergen|passaic|middlesex|monmouth|somerset|morris county|i-95 corridor nj|exit \d+ turnpike|nj turnpike|route 1 corridor)\b/.test(t)) return 'NJ';
-        // PA indicators
-        if (/\b(pennsylvania|philadelphia|lehigh valley|allentown|bethlehem|easton|harrisburg|lancaster|bucks county|montgomery county|chester county|delaware county|king of prussia|i-78 corridor|pa turnpike|lehigh county)\b/.test(t)) return 'PA';
-        // FL indicators
-        if (/\b(florida|miami|fort lauderdale|hialeah|doral|pompano|palm beach|broward|miami-dade|orlando|tampa|jacksonville|south florida|central florida|i-4 corridor|homestead|medley|opa-locka|coral springs)\b/.test(t)) return 'FL';
-        return null;
-      }, []);
+      // NOTE: the legacy detectRegion lived here. It matched a bare state or city
+      // name anywhere in the text and returned a region, which made it a permissive
+      // fallback that undid resolveRegion's deliberate nulls. Its unambiguous
+      // county/corridor terms now live in REGION_AREAS; resolveRegion is the single
+      // source of truth. Do not reintroduce a bare-keyword fallback here.
 
       // Simple industrial relevance check
       const isLikelyIndustrial = useCallback((text) => {
@@ -1428,7 +1814,13 @@
             const title = item.title || 'Untitled';
             const description = item.content_text || item.content_html || item.summary || '';
             const combinedText = title + ' ' + description;
-            const region = detectRegion(combinedText);
+            // resolveRegion is AUTHORITATIVE. The old detectRegion is no longer
+            // chained after it: that fallback resurrected exactly the nulls this
+            // resolver returns on purpose. An article naming Florida and
+            // Massachusetts with no locative relation is genuinely unresolved, and
+            // detectRegion would have called it FL on the bare word 'florida'.
+            // Its unambiguous county/corridor terms are ported into REGION_AREAS.
+            const region = resolveRegion(item, combinedText);
             const industrial = isLikelyIndustrial(combinedText);
 
             return {
@@ -1465,7 +1857,7 @@
         } finally {
           setArticlePanelLoading(false);
         }
-      }, [timeframe, detectRegion, isLikelyIndustrial]);
+      }, [timeframe, isLikelyIndustrial]);
 
       // Apply filters and compute grouped/filtered articles
       const filteredGrouped = useMemo(() => {
@@ -1474,8 +1866,13 @@
         let filtered = previewArticles;
 
         // Region filter: only NJ, PA, FL
+        // Region filter FAILS CLOSED: only an explicitly detected NJ / PA / FL
+        // region passes. region === null means 'we could not tell', which is NOT
+        // evidence of being in-region - it previously passed, so Milpitas CA and
+        // Lexington KY survived the filter. Unknown is NOT relabelled as NJ/PA/FL;
+        // it is simply excluded while the filter is on.
         if (filters.region) {
-          filtered = filtered.filter(a => a.region === 'NJ' || a.region === 'PA' || a.region === 'FL' || a.region === null);
+          filtered = filtered.filter(a => a.region === 'NJ' || a.region === 'PA' || a.region === 'FL');
         }
 
         // Industrial filter
@@ -1495,9 +1892,15 @@
         }
 
         // Group by category
-        const groups = { relevant: [], transactions: [], availabilities: [], people: [] };
+        // Category routing FAILS CLOSED. Previously any unrecognised category -
+        // including 'exclude' - was silently promoted into Relevant. Now:
+        //   'exclude'        -> dropped entirely
+        //   unknown/missing  -> a separate `unknown` diagnostic bucket, never Relevant
+        const groups = { relevant: [], transactions: [], availabilities: [], people: [], unknown: [] };
         for (const a of filtered) {
-          const cat = groups[a.category] ? a.category : 'relevant';
+          if (a.category === 'exclude') continue;
+          const cat = Object.prototype.hasOwnProperty.call(groups, a.category) && a.category !== 'unknown'
+            ? a.category : 'unknown';
           groups[cat].push(a);
         }
 
@@ -1847,9 +2250,11 @@
 
                 {/* Section summary bar */}
                 <div className="flex flex-wrap gap-3 mb-4 text-sm">
-                  {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                  {['relevant', 'transactions', 'availabilities', 'people', 'unknown'].map(cat => {
                     const items = (filteredGrouped[cat] || []).filter(a => !removedIds.has(a.id));
-                    const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    const label = cat === 'unknown'
+                      ? 'Uncategorized (diagnostic — not sent as Relevant)'
+                      : cat.charAt(0).toUpperCase() + cat.slice(1);
                     return (
                       <span key={cat} className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">
                         {label} ({items.length})
@@ -1892,12 +2297,14 @@
 
               {/* Article sections */}
               <div className="p-6 max-h-[600px] overflow-y-auto">
-                {['relevant', 'transactions', 'availabilities', 'people'].map(cat => {
+                {['relevant', 'transactions', 'availabilities', 'people', 'unknown'].map(cat => {
                   const allInCat = filteredGrouped[cat] || [];
                   const activeArticles = allInCat.filter(a => !removedIds.has(a.id));
                   const removedArticles = allInCat.filter(a => removedIds.has(a.id));
                   if (allInCat.length === 0) return null;
-                  const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    const label = cat === 'unknown'
+                      ? 'Uncategorized (diagnostic — not sent as Relevant)'
+                      : cat.charAt(0).toUpperCase() + cat.slice(1);
 
                   return (
                     <div key={cat} className="mb-6 last:mb-0">
@@ -2195,7 +2602,7 @@
             </div>
 
             {/* RSS Feed Health */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
+            <div ref={feedHealthRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">RSS Feed Health</h3>
@@ -2269,7 +2676,7 @@
       const [category, setCategory] = useState("");
       const [source, setSource] = useState("");
       const [sort, setSort] = useState("newest");
-      const [timeframe, setTimeframe] = useState(""); // Show all articles by default
+      const [timeframe, setTimeframe] = useState("1"); // 24h default: Header chip, selector and query all agree
       const [lastUpdated, setLastUpdated] = useState("");
       const [viewMode, setViewMode] = useState("articles");
       const [theme, setTheme] = useState("light");
@@ -2892,7 +3299,13 @@
           const title = item.title || 'Untitled';
           const url = item.link || '#';
           const source = item.source || '';
-          const sourceName = getSourceName(source, url);
+          // PARITY: the shared getPublisherName resolver, which recovers the real
+          // publisher from a Google News feed label ("Google News RE-NJ" ->
+          // "Real Estate NJ") via the trailing-dash title pattern and the domain
+          // map. getSourceName only strips a domain, so it displayed the FEED
+          // label as though it were the publisher. Display-only: item is not mutated.
+          const publisher = getPublisherName(item);
+          const sourceName = publisher || getSourceName(source, url);
           const paywalled = isPaywalled(source, url) ? ' <span style="color: #999; font-size: 11px;">(paywalled)</span>' : '';
 
           // Big deal badge
@@ -2911,25 +3324,32 @@
           let description = '';
           const rawDesc = (item.description || item.content_text || item.summary || '').trim();
           if (rawDesc && rawDesc.length > 10) {
-            // Protect decimal points in numbers ($3.15M, 23.5M) so they don't get
-            // treated as sentence breaks. Replace `digit.digit` with `digit\u0000digit`,
-            // split sentences, then restore the dot.
-            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
-            const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.split('__DOT__').join('.'));
-            if (sentences && sentences.length > 0) {
-              description = sentences.slice(0, maxSentences).join('').trim();
-            } else {
-              description = rawDesc;
-            }
+            // PARITY: shared Intl.Segmenter splitter (see splitSentences).
+            // The old inline regex truncated "6,500 sq. ft. building ..." at "ft.".
+            description = firstSentences(rawDesc, maxSentences);
             if (description.length > charLimit) {
               description = description.substring(0, charLimit - 3).replace(/\s+\S*$/, '') + '...';
             }
           }
 
-          // Use description as display text if available, otherwise title
-          let displayText = description || title;
-          if (displayText.length > 450) {
-            displayText = displayText.substring(0, 447).replace(/\s+\S*$/, '') + '...';
+          // PARITY with src/server/newsletter-work.ts: the title is ALWAYS
+          // shown. The description SUPPLEMENTS it, and only when it adds new
+          // information (<60% word overlap). Previously this was
+          // `description || title`, which REPLACED the headline with the RSS
+          // blurb - the single biggest visible drift from production.
+          const titleSafe = escapeHtml(title);
+          const descSafe = escapeHtml(description);
+          let displayText = titleSafe;
+          if (description && description.length > 20) {
+            const titleWords = new Set(title.toLowerCase().split(/\s+/));
+            const descWords = description.toLowerCase().split(/\s+/);
+            const overlap = descWords.filter(x => titleWords.has(x)).length / descWords.length;
+            if (overlap < 0.6) {
+              displayText = `${titleSafe} — <span style="color: #555;">${descSafe}</span>`;
+            }
+          }
+          if (displayText.length > 500) {
+            displayText = displayText.substring(0, 497).replace(/\s+\S*$/, '') + '...';
           }
 
           // Action links
@@ -2951,7 +3371,7 @@
           const safeShareHref = /^mailto:/i.test(shareUrl) ? shareUrl : safeUrl(shareUrl);
           const safeIgnoreHref = safeUrl(ignoreUrl);
           return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${escapeHtml(displayText)}${dealBadge} — <a href="${escapeAttr(safeSourceHref)}" style="color: #2563eb; text-decoration: underline;" rel="noopener noreferrer">${escapeHtml(sourceName)}</a>${paywalled}
+            ${displayText}${dealBadge} — <a href="${escapeAttr(safeSourceHref)}" style="color: #2563eb; text-decoration: underline;" rel="noopener noreferrer">${escapeHtml(sourceName)}</a>${paywalled}
             <br><span style="font-size: 11px;"><a href="${escapeAttr(safeTrackHref)}" style="color: #2563eb; text-decoration: none;">[Track]</a> <a href="${escapeAttr(safeShareHref)}" style="color: #6366f1; text-decoration: none;">[Share]</a> <a href="${escapeAttr(safeIgnoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a></span>
           </li>`;
         };
