@@ -3136,59 +3136,72 @@
 
     /**
      * Deterministic geography resolution.
-     * Priority: explicit county -> municipality corroborated by state ->
-     * unambiguous municipality (the NJ latitude rule is applied whenever the
-     * resolved municipality is in NJ) -> NATIONAL keywords -> UNMAPPED.
-     * Vague phrasing such as "South Florida" never resolves on its own.
+     *
+     * Collects EVERY location the text supports, then chooses one tier:
+     *   all TARGET                     -> TARGET
+     *   any BROADER (with or without TARGET) -> BROADER   (stricter threshold)
+     *   explicit national / out-of-scope state with none of ours -> NATIONAL
+     *   TARGET plus unresolved material geography -> BROADER (conservative)
+     *   New Jersey named but nothing resolvable   -> BROADER (conservative)
+     *   otherwise                      -> UNMAPPED
+     *
+     * The conservative choices never LOWER a threshold: BROADER demands more
+     * than TARGET, so a portfolio can never sneak in under the easier bar.
+     * Returns provenance so the UI can separate exact from conservative calls.
      */
     const cmResolveGeography = (text) => {
       if (cmGeo.status !== 'ready')
-        return { tier: 'UNMAPPED', matched: null,
+        return { tier: 'UNMAPPED', matched: null, provenance: 'NOT_LOADED', locations: [],
                  basis: 'geography reference not loaded (' + cmGeo.status + ')' };
       const states = cmStatesIn(text);
-      let countyFallback = null;
+      const locations = [];
+      const add = (label, state, county, tier, basis) => {
+        if (locations.some(l => l.label === label)) return;
+        locations.push({ label, state, county, tier, basis });
+      };
+      let sawUnresolvedCounty = false;
 
-      // 1. explicit county
+      // 1. explicit counties (all of them, not just the first)
       const counties = cmScanCounties(text);
       let pref = counties.filter(c => states.size === 0 || states.has(c.state));
       if (pref.length > 1) {
         // "Nassau County" exists in both NY and FL. With no state named, claim a
-        // market only when exactly ONE interpretation is in a configured tier;
-        // two configured matches would be genuinely ambiguous.
-        const mapped = pref.filter(c => {
-          const r = cmTierForCounty(c.state, c.county);
-          return r && r.tier !== 'UNMAPPED';
-        });
-        if (mapped.length === 1) pref = mapped;
+        // market only when exactly ONE interpretation is in a configured tier.
+        const byPhrase = new Map();
+        for (const c of pref) {
+          if (!byPhrase.has(c.phrase)) byPhrase.set(c.phrase, []);
+          byPhrase.get(c.phrase).push(c);
+        }
+        const keep = [];
+        for (const group of byPhrase.values()) {
+          if (group.length === 1) { keep.push(group[0]); continue; }
+          const mapped = group.filter(c => {
+            const r = cmTierForCounty(c.state, c.county);
+            return r && r.tier !== 'UNMAPPED';
+          });
+          if (mapped.length === 1) keep.push(mapped[0]);
+          else sawUnresolvedCounty = true;      // genuinely ambiguous
+        }
+        pref = keep;
       }
-      const cPick = (pref.length ? pref : counties)[0];
-      if (cPick) {
-        const r = cmTierForCounty(cPick.state, cPick.county);
-        if (r && r.tier !== 'UNMAPPED')
-          return { tier: r.tier, matched: cPick.phrase, basis: 'explicit county - ' + r.basis };
-        if (r) countyFallback = { tier: 'UNMAPPED', matched: cPick.phrase, basis: r.basis };
+      for (const c of (pref.length ? pref : counties)) {
+        const r = cmTierForCounty(c.state, c.county);
+        if (!r) continue;
+        if (r.tier === 'UNMAPPED') { sawUnresolvedCounty = true; continue; }
+        add(c.phrase, c.state, c.county, r.tier, 'explicit county - ' + r.basis);
       }
 
-      // 1b. stakeholder-stated region (e.g. Long Island), when one is configured
+      // 1b. stakeholder-stated regions (e.g. Long Island)
       for (const st of Object.keys(cmGeo.geography.states || {})) {
         for (const rg of (cmGeo.geography.states[st].regions || [])) {
           if (states.size > 0 && !states.has(st)) continue;
-          if (padHas(text, rg.name)) return { tier: rg.tier, matched: rg.name,
-            basis: 'stated region ' + rg.name + ' (' + (rg.counties || []).join(', ') + ')' };
+          if (padHas(text, rg.name))
+            add(rg.name, st, (rg.counties || []).join('/'), rg.tier,
+                'stated region ' + rg.name + ' (' + (rg.counties || []).join(', ') + ')');
         }
       }
 
-      // An out-of-scope state named with none of ours present is an explicit
-      // non-target market. Stop here so a same-named municipality in PA/NJ/NY/FL
-      // cannot claim it.
-      if (states.size === 0) {
-        const padded = ' ' + text.toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
-        const other = CM_OTHER_STATES.find(s => padded.includes(' ' + s + ' '));
-        if (other) return { tier: 'NATIONAL', matched: other,
-          basis: 'explicit out-of-scope state (' + other + ')' };
-      }
-
-      // 2/3. municipality, preferring state-corroborated, longer, higher-class names
+      // 2/3. municipalities
       const scored = [];
       for (const p of cmScanPlaces(text)) {
         for (const e of p.hits) {
@@ -3208,30 +3221,73 @@
       // "Hempstead, New York": the phrase "New York" is also a city name, but
       // here it is the state qualifier. Any genuine municipality outranks it.
       scored.sort((a, b) => (Number(a.isStateName) - Number(b.isStateName)) || (b.rank - a.rank));
-      if (scored.length) {
-        const top = scored[0];
-        const r = cmTierForPlace(top.e);
-        return { tier: r.tier, matched: top.p.phrase,
-                 basis: (top.corroborated ? 'municipality + state' : 'unambiguous municipality')
-                        + ' - ' + r.basis };
+      const realPlaces = scored.filter(s => !s.isStateName);
+      for (const s of (realPlaces.length ? realPlaces : scored)) {
+        const r = cmTierForPlace(s.e);
+        if (r.tier === 'UNMAPPED') continue;
+        add(s.p.phrase, s.e.state, s.e.county, r.tier,
+            (s.corroborated ? 'municipality + state' : 'unambiguous municipality') + ' - ' + r.basis);
       }
-      if (countyFallback) return countyFallback;
 
-      // 4. explicit non-target / nationwide framing
+      // ---- choose one tier from everything found -------------------------
+      const tiers = new Set(locations.map(l => l.tier));
+      const names = locations.map(l => l.label).join(', ');
+      if (tiers.size) {
+        if (tiers.has('BROADER') && tiers.has('TARGET'))
+          return { tier: 'BROADER', matched: names, provenance: 'MULTI_MARKET', locations,
+            basis: 'multi-market portfolio (' + names + ') spans TARGET and BROADER - '
+                   + 'stricter BROADER threshold applied' };
+        if (tiers.has('BROADER'))
+          return { tier: 'BROADER', matched: names, provenance: locations.length > 1 ? 'MULTI_MARKET' : 'EXACT',
+            locations, basis: locations.length > 1
+              ? 'all resolved locations BROADER (' + names + ')' : locations[0].basis };
+        // TARGET only. If material geography went unresolved alongside it, do
+        // not hand the article the easier TARGET bar.
+        const unresolvedOther = sawUnresolvedCounty ||
+          [...states].some(st => !locations.some(l => l.state === st));
+        if (unresolvedOther)
+          return { tier: 'BROADER', matched: names, provenance: 'MULTI_MARKET_CONSERVATIVE', locations,
+            basis: 'resolved ' + names + ' (TARGET) but other material geography did not resolve - '
+                   + 'stricter BROADER threshold applied' };
+        return { tier: 'TARGET', matched: names,
+          provenance: locations.length > 1 ? 'MULTI_MARKET' : 'EXACT', locations,
+          basis: locations.length > 1 ? 'all resolved locations TARGET (' + names + ')' : locations[0].basis };
+      }
+
+      // 4. explicit out-of-scope state, only when none of ours is named
+      if (states.size === 0) {
+        const padded = ' ' + text.toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
+        const other = CM_OTHER_STATES.find(s => padded.includes(' ' + s + ' '));
+        if (other) return { tier: 'NATIONAL', matched: other, provenance: 'EXACT', locations: [],
+          basis: 'explicit out-of-scope state (' + other + ')' };
+      }
+
+      // 5. A. New Jersey named but nothing inside it resolved. Jacob's rule
+      // partitions ALL of NJ into TARGET (north of Exit 6) and BROADER (the
+      // rest), so a statewide NJ deal is certainly in one of them. BROADER is
+      // the stricter of the two, so applying it cannot admit a transaction that
+      // the real market tier would have rejected. Deliberately NJ-only: PA, FL
+      // and NY have unmapped counties, so a state-only story there could be
+      // outside the covered market entirely and must stay UNMAPPED.
+      if (states.has('NJ'))
+        return { tier: 'BROADER', matched: 'New Jersey', provenance: 'NJ_STATE_ONLY_CONSERVATIVE',
+          locations: [], basis: 'New Jersey named with no resolvable municipality or county; '
+            + 'the whole state is TARGET or BROADER, so the stricter BROADER threshold is applied' };
+
+      // 6. explicit non-target / nationwide framing
       const lower = text.toLowerCase();
-      // Only when NO in-scope state is named. Otherwise "Central Florida
-      // properties sell to a Denver buyer" would be tiered NATIONAL on the
-      // buyer's home city, which misdescribes a Florida deal.
       const nat = states.size === 0 ? CM_GEO.NATIONAL.find(k => lower.includes(k)) : null;
-      if (nat) return { tier: 'NATIONAL', matched: nat,
+      if (nat) return { tier: 'NATIONAL', matched: nat, provenance: 'EXACT', locations: [],
                         basis: 'explicit non-target market / nationwide framing' };
 
-      // 5. nothing resolvable. A state name alone, or vague phrasing such as
-      // "South Florida", is deliberately NOT enough to assign a market.
+      // 7. nothing resolvable. A PA/FL/NY state name alone, or vague phrasing
+      // such as "South Florida", is deliberately NOT enough to assign a market.
       if (states.size)
-        return { tier: 'UNMAPPED', matched: [...states][0],
-                 basis: 'state named but no county or municipality evidence' };
-      return { tier: 'UNMAPPED', matched: null, basis: 'no recognisable geography' };
+        return { tier: 'UNMAPPED', matched: [...states][0], provenance: 'NONE', locations: [],
+                 basis: 'state named but no county or municipality evidence (no state-only '
+                        + 'fallback outside New Jersey)' };
+      return { tier: 'UNMAPPED', matched: null, provenance: 'NONE', locations: [],
+               basis: 'no recognisable geography' };
     };
 
     // Returns { tier: 'TARGET'|'BROADER'|'NATIONAL'|'UNMAPPED', matched, basis }
@@ -3271,7 +3327,11 @@
     };
 
     const CM_RX = {
-      sale: /\b(sells?|sold|sale|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|recapitaliz\w+|refinanc\w+)\b/i,
+      // C. SALES = an actual ownership transaction. Financing, refinancing,
+      // loans, CMBS and recapitalisations are NOT sales; they may still qualify
+      // for Relevant Market Intelligence under the positive-inclusion rules.
+      sale: /\b(sells?|sold|sale of|sale to|for sale|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|trades? hands|changes? hands|disposition|divests?|divested)\b/i,
+      financing: /\b(refinanc\w+|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
       lease: /\b(leases?|leased|leasing|signs? a\b|inks? a\b|subleases?|renew\w+|takes? \d[\d,.]* ?(?:square|sq|sf))\b/i,
       availability: /\b(available|availabilit\w+|for lease|now leasing|on the market|listed for lease|offering memorandum)\b/i,
       construction: /\b(break(?:s|ing)? ground|groundbreaking|construction start|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|completion|completes?|completed|delivers?|delivered)\b/i,
@@ -3302,8 +3362,11 @@
     /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
     const cmClassify = (a) => {
       const text = cmText(a);
-      const { tier, matched, basis } = cmMarketTier(text);
-      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})`;
+      const { tier, matched, basis, provenance, locations } = cmMarketTier(text);
+      const provTag = (provenance && provenance !== 'EXACT') ? ` [${provenance}]` : '';
+      const locTag = (locations && locations.length > 1)
+        ? ` [locations: ${locations.map(l => l.label).join(' + ')}]` : '';
+      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}`;
       const dollars = cmDollars(text), sf = cmSquareFeet(text);
       const isInd = CM_RX.industrial.test(text);
 
@@ -3319,19 +3382,28 @@
         if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
         if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
         if (tier === 'BROADER') {
-          if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >=500,000 SF, none stated; ${geo}` };
-          if (sf >= CM_THRESHOLDS.constructionBroader) return { section: 'construction', tier, code: null, magnitude: sf, reason: `BROADER construction ${sf.toLocaleString()} SF >= 500,000; ${geo}` };
+          if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >500,000 SF, none stated; ${geo}` };
+          if (sf > CM_THRESHOLDS.constructionBroader) return { section: 'construction', tier, code: null, magnitude: sf, reason: `BROADER construction ${sf.toLocaleString()} SF > 500,000; ${geo}` };
           return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: BROADER construction ${sf.toLocaleString()} SF < 500,000` };
         }
         if (tier === 'NATIONAL') return { section: null, tier, code: CM_REJECT.NATIONAL_CONSTRUCTION, magnitude: sf, reason: 'NATIONAL_CONSTRUCTION: no national construction rule requested — excluded for now' };
         return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: construction in an unmapped location — diagnostic/review only; ${geo}` };
       }
       // --- C. Sales ----------------------------------------------------
-      if (CM_RX.sale.test(text)) {
+      // The HEADLINE decides the event type. "Owner refinances the park it
+      // acquired in 2024" is a financing story, not a sale, even though the
+      // body carries an acquisition verb.
+      const titleOnly = a.title || '';
+      // Whichever verb leads the headline defines the event: "Owner refinances
+      // the park it acquired in 2024" is a financing story, not a sale.
+      const finAt = titleOnly.search(CM_RX.financing);
+      const saleAt = titleOnly.search(CM_RX.sale);
+      const financingHeadline = finAt >= 0 && (saleAt < 0 || finAt < saleAt);
+      if (CM_RX.sale.test(text) && !financingHeadline) {
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
         if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
         const need = CM_THRESHOLDS.sale[tier];
-        if (dollars >= need) return { section: 'sales', tier, code: null, magnitude: dollars, reason: `sale $${(dollars / 1e6).toFixed(1)}M >= $${need / 1e6}M (${tier}); ${geo}` };
+        if (dollars > need) return { section: 'sales', tier, code: null, magnitude: dollars, reason: `sale $${(dollars / 1e6).toFixed(1)}M > $${need / 1e6}M (${tier}); ${geo}` };
         return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: dollars, reason: `BELOW_THRESHOLD: sale $${(dollars / 1e6).toFixed(1)}M < $${need / 1e6}M (${tier})` };
       }
       // --- C. Availability / Lease -------------------------------------
@@ -3341,7 +3413,7 @@
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
         if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
         const need = CM_THRESHOLDS.lease[tier];
-        if (sf >= need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF >= ${need.toLocaleString()} (${tier}); ${geo}` };
+        if (sf > need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}); ${geo}` };
         return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF < ${need.toLocaleString()} (${tier})` };
       }
       // --- D. Market intelligence (positive inclusion only) -------------
