@@ -701,8 +701,9 @@
       if (words.length === 1 && (CM_GENERIC.has(words[0]) || CM_GENERIC_EXTRA.includes(words[0])
           || words[0].length < 5) && !cmAcronymTokens(rawName).length) return [];
       if (cmIsGeographyOnly(full) && !cmAcronymTokens(rawName).length) return [];
-      // Names made entirely of generic CRE words ("Bridge Industrial", "Link
-      // Logistics Real Estate") are real firms, so dropping them would silently
+      // Some real firms are named entirely from generic CRE words (for example
+      // "ACME Industrial" or "Sample Logistics Real Estate"), so dropping them
+      // outright would silently
       // lose major competitors. They stay matchable on the FULL name only —
       // never on a shortened alias — and cmCompetitorWatch flags each such hit
       // for human verification rather than asserting the attribution.
@@ -722,8 +723,8 @@
 
     /** True when `alias` occurs in `text` as a standalone entity name — i.e. at
      *  least one occurrence is NOT the tail of a longer proper name. Guards
-     *  against attributing "SL Green Realty" (a different REIT) to a watchlist
-     *  entry whose shorter name is a suffix of it. */
+     *  against attributing a longer entity ("Example Green Realty", a different
+     *  firm) to a watchlist entry whose shorter name is a suffix of it. */
     const cmStandaloneNameHit = (text, alias) => {
       const rx = new RegExp(`\\b${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
       let m;
@@ -858,8 +859,8 @@
         const event = cmMaterialEvent(text);
         if (!event) { diag.rejectedNoMaterialEvent += cands.length; continue; }
         // Most specific wins: domain evidence is hard proof; otherwise the
-        // longest matched name wins, since "Brookfield Asset Management" in the
-        // text is stronger evidence than the bare token "Brookfield".
+        // longest matched name wins, since "Vertex Asset Management" in the text
+        // is stronger evidence than the bare brand token "Vertex".
         // Domain evidence first; between two domain matches the longer (more
         // specific) domain wins, so a subdomain beats its parent domain
         // rather than losing on a tie-break to a longer matched name.
@@ -1073,6 +1074,11 @@
       // shrink to 24 hours or balloon to 30 days. Previously it also only ran
       // on Fridays and concatenated whole sections in a fixed sales-first
       // order, which is not a ranking.
+      // VISIBILITY: the section renders every day in the PREVIEW so it can be
+      // exercised and reviewed on any weekday. That is a preview decision, not
+      // a delivery decision. If Week in Review ever enters production delivery,
+      // restore the original Friday-only rule at the delivery layer - the
+      // seven-day computation below stays as it is either way.
       const WIR_HOURS = 168;
       const wirSections = cmBuildSections(articles, o.asOfDate, WIR_HOURS);
       const wirWatch = cmCompetitorWatch(wirSections.inWindow, o.watchlist);
@@ -1080,7 +1086,8 @@
       // then separate items WITHIN that priority. A large TARGET lease can
       // therefore outrank a small BROADER sale.
       const WIR_WEIGHT = { sales: 100, leases: 90, construction: 85,
-                           competitor: 80, availabilities: 70, intel: 55 };
+                           competitor: 80, availabilities: 70, municipal: 65,
+                           intel: 55 };
       const WIR_TIER_BONUS = { TARGET: 30, BROADER: 12, NATIONAL: 0, UNMAPPED: 0 };
       const wirScore = (kind, item) => {
         const c = item._cm || {};
@@ -1091,8 +1098,8 @@
         return (WIR_WEIGHT[kind] || 50) + (WIR_TIER_BONUS[c.tier] || 0) + magScore;
       };
       const wirLabel = { sales: 'Sale', leases: 'Lease', availabilities: 'Availability',
-                         construction: 'Construction', intel: 'Market intelligence',
-                         competitor: 'Competitor' };
+                         construction: 'Construction', municipal: 'Municipal / entitlement',
+                         intel: 'Market intelligence', competitor: 'Competitor' };
       const wirWhy = (kind, item) => {
         const c = item._cm || {};
         const bits = [wirLabel[kind] || kind];
@@ -1103,7 +1110,10 @@
         return bits.join(' · ');
       };
       const wirCandidates = [];
-      for (const kind of ['sales', 'leases', 'availabilities', 'construction', 'intel']) {
+      // Municipal / Entitlement Watch is included: the heading promises a
+      // ranking across every section, and entitlement actions are material.
+      for (const kind of ['sales', 'leases', 'availabilities', 'construction',
+                          'municipal', 'intel']) {
         for (const it of (wirSections.buckets[kind] || [])) {
           wirCandidates.push({ kind, item: it, score: wirScore(kind, it) });
         }

@@ -14,6 +14,7 @@ const corpus = [
   { title: 'Developer breaks ground on a 600,000 square foot industrial warehouse in Vineland, New Jersey', description: '', link: 'https://example.test/c1', pubDate: day(3) },
   { title: '250,000 square feet available in Edison, New Jersey', description: '', link: 'https://example.test/a1', pubDate: day(4) },
   { title: 'Industrial vacancy rate falls again as absorption climbs', description: 'Net absorption rose across the quarter.', link: 'https://example.test/i1', pubDate: day(5) },
+  { title: 'Planning board approves a site plan for an Edison, New Jersey industrial park', description: '', link: 'https://example.test/m1', pubDate: day(6) },
   { title: 'Investor acquires Edison, New Jersey warehouse for $195 million', description: '', link: 'https://syndicated.test/s1', pubDate: day(1) },
   { title: 'Buyer acquires Edison, New Jersey warehouse for $900 million', description: '', link: 'https://example.test/old', pubDate: day(20) },
 ];
@@ -41,6 +42,18 @@ const order = shown(w168).sort((a, b) => w168.indexOf(a) - w168.indexOf(b));
 order.forEach((t, i) => h.note(`${i + 1}. ${t.slice(0, 66)}`));
 h.chk(['Sale', 'Lease', 'Construction', 'Availability'].filter(k => w168.includes(k + ' ·')).length >= 3,
   'several sections are represented, not sales-first concatenation');
+
+h.section('municipal / entitlement items are eligible for the ranking');
+// The heading promises a ranking across every section, so Municipal must be a
+// candidate - it was previously excluded from the loop entirely.
+const municipalOnly = [{ title: 'Planning board approves a site plan for an Edison, New Jersey industrial park',
+  description: '', link: 'https://example.test/m1', pubDate: day(2) }];
+const wMuni = wirOf(build(168, municipalOnly));
+h.chk(wMuni.includes('Planning board approves'), 'a municipal item reaches Week in Review');
+h.chk(/Why it matters: Municipal \/ entitlement/.test(wMuni),
+  'it is labelled "Municipal / entitlement" in the reason');
+h.chk(!/Nothing cleared the thresholds in the last seven days/.test(wMuni),
+  'a week containing only municipal news is not reported as empty');
 h.chk(w168.indexOf('Tenant leased 480,000') < w168.indexOf('Developer breaks ground'),
   'a large TARGET lease outranks a BROADER construction item');
 h.chk((w168.match(/Investor acquires Edison, New Jersey warehouse for \$195 million/g) || []).length === 1,
