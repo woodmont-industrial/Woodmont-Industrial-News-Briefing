@@ -3911,8 +3911,13 @@
       financing: /\b(refinanc\w+|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
       // Bare "leasing" is thematic language ("the industrial leasing map"),
       // not proof that a specific lease occurred. Concrete action is required.
-      lease: /\b(leases?|leased|signs? a\b|inks? a\b|subleases?|renew\w+|takes? \d[\d,.]* ?(?:square|sq|sf))\b/i,
-      availability: /\b(available|availabilit\w+|for lease|now leasing|on the market|listed for lease|offering memorandum)\b/i,
+      // A completed LEASE TRANSACTION requires a completion action. Marketing
+      // language ("for lease", "now leasing", "available") describes an
+      // AVAILABILITY - space being offered - and must never be booked as a
+      // signed deal. Note "for lease" contains the word "lease", which is why
+      // the completion pattern below never matches a bare "lease"/"leasing".
+      leaseCompleted: /\b(?:signs?|signed|inks?|inked|executes?|executed)\s+(?:a|an|the)?\s*(?:new\s+|long[- ]term\s+)?(?:\d[\d,.]*\s*(?:k\s*)?(?:sf|square[- ]f\w+)\s+)?(?:lease|sublease|renewal)\b|\bleased\b|\bre[- ]lease[sd]?\b|\brenew(?:s|ed|al|als)\b|\b(?:takes?|took)\s+(?:over\s+)?\d[\d,.]*\s*(?:k\s*)?(?:sf|square[- ]f\w+)|\bexpands?\s+(?:its\s+)?(?:occupancy|footprint\s+at)|\brelocat\w+\s+to\b|\bmoves?\s+into\b|\btenant\s+(?:signs?|signed|inks?|took|takes?)\b/i,
+      availabilityOffer: /\b(?:for\s+(?:lease|sublease)|available|availabilit\w+|now\s+leasing|listed\s+for\s+lease|on\s+the\s+market|offering\s+memorandum|space\s+available|seeking\s+tenants?|marketing\s+the\s+space)\b/i,
       construction: /\b(break(?:s|ing)? ground|groundbreaking|construction start|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|completion|completes?|completed|delivers?|delivered)\b/i,
       industrial: /\b(industrial|warehouse|distribution cent\w+|logistics|cold storage|manufactur\w+|fulfillment|data ?cent\w+)\b/i,
       municipal: /\b(planning board|zoning board|ordinance|rezon\w+|site plan|entitlement\w*|moratorium|variance|redevelopment plan|data ?cent\w+ (?:regulation|rules|restrictions|ordinance))\b/i,
@@ -3988,8 +3993,13 @@
         return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: dollars, reason: `BELOW_THRESHOLD: sale $${(dollars / 1e6).toFixed(1)}M does not exceed $${need / 1e6}M (<=, ${tier})` };
       }
       // --- C. Availability / Lease -------------------------------------
-      const isAvail = CM_RX.availability.test(text) && !CM_RX.lease.test(text);
-      if (isAvail || CM_RX.lease.test(text)) {
+      // Completion language wins; otherwise offer language makes it an
+      // Availability. Previously `for lease` matched the lease pattern, so
+      // every marketed listing was booked as a signed transaction.
+      const completedLease = CM_RX.leaseCompleted.test(text);
+      const availOffer = CM_RX.availabilityOffer.test(text);
+      const isAvail = availOffer && !completedLease;
+      if (isAvail || completedLease) {
         const sect = isAvail ? 'availabilities' : 'leases';
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
         if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
