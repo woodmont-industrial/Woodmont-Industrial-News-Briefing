@@ -1,7 +1,7 @@
 {
   "_comment": "PUBLIC DATA ONLY. Geographic classification inputs for the Capital Markets Preview sandbox. Contains no Woodmont, competitor, ownership, recipient, pricing or operational information. Boundaries here are either stakeholder-stated rules or public county names verified against the U.S. Census county list; nothing in this file is inferred.",
   "_version": 1,
-  "_updated": "2026-09-21",
+  "_updated": "2026-09-22",
   "_sources": [
     "Stakeholder-supplied classification (2026-09-18): the NJ Turnpike Exit 6 rule and latitude, and the PA, FL and NY county tiers recorded below.",
     "U.S. Census Bureau 2020 Place-to-County relationship files and 2026 Gazetteer — used only to VERIFY that every county name below exists and is spelled canonically, not to choose which counties belong to a tier."
@@ -24,7 +24,13 @@
       "fallbackTier": "BROADER",
       "overrides": {},
       "_overridesNote": "Manual per-municipality corrections near the boundary. Key is \"Municipality|County\" exactly as it appears in capital-markets-places.json; value is \"TARGET\" or \"BROADER\". An override always wins over the latitude rule and over the null-latitude fallback. Empty until a specific municipality is corrected. Example: \"Florence|Burlington\": \"TARGET\".",
-      "comparator": ">"
+      "comparator": ">",
+      "_provenance": {
+        "status": "CONTEXTUAL_ONLY",
+        "reviewedOn": "2026-09-22",
+        "basis": "An NJ image was supplied but carries no legend, so it cannot be used to derive or verify a boundary. The Exit 6 latitude below remains the stakeholder-stated rule; the image is context only.",
+        "limitation": "exit6Latitude is a straight-line proxy for a road boundary. Municipalities close to the line may be on the wrong side of it; correct those individually through \"overrides\" rather than by moving the latitude, which would silently reclassify everything."
+      }
     },
     "PA": {
       "method": "county",
@@ -47,7 +53,17 @@
         "York",
         "Perry",
         "Adams"
-      ]
+      ],
+      "_pendingConfirmation": {
+        "status": "PENDING",
+        "raisedOn": "2026-09-22",
+        "questions": [
+          "Does Berks County belong in the TARGET Lehigh Valley set, or in BROADER? It is currently TARGET alongside Lehigh and Northampton.",
+          "What is the explicit county set for Philadelphia Metro?",
+          "What is the explicit county set for the I-78 / I-81 / Central PA (CPA) corridor?"
+        ],
+        "note": "The Lee & Associates Lehigh Valley page presents its submarket boundary primarily as a map image rather than a county list, so the current county interpretation needs explicit approval rather than inference. Tiers below are unchanged until then."
+      }
     },
     "FL": {
       "method": "county",
@@ -82,7 +98,14 @@
         "Collier",
         "Monroe"
       ],
-      "_derivation": "BUSINESS-MARKET INTERPRETATION, not an FDOT-defined commercial market. This broader set encodes the stated business rule \"anything including/south of Pasco, Polk, Lake, Seminole, Brevard\" as an explicit county list, derived from public county geography. FDOT does not publish this list and does not define these counties as a market, so it must not be cited as an FDOT standard. Miami-Dade, Broward and Palm Beach are deliberately EXCLUDED from this list because they are already TARGET. Florida counties in neither list remain UNMAPPED."
+      "_derivation": "BUSINESS-MARKET INTERPRETATION, not an FDOT-defined commercial market. This broader set encodes the stated business rule \"anything including/south of Pasco, Polk, Lake, Seminole, Brevard\" as an explicit county list, derived from public county geography. FDOT does not publish this list and does not define these counties as a market, so it must not be cited as an FDOT standard. Miami-Dade, Broward and Palm Beach are deliberately EXCLUDED from this list because they are already TARGET. Florida counties in neither list remain UNMAPPED.",
+      "_provenance": {
+        "status": "CONFIRMED",
+        "confirmedBy": "repository owner",
+        "confirmedOn": "2026-09-22",
+        "basis": "Owner reviewed a Florida county map and confirmed that the existing \"Pasco / Polk / Lake / Seminole / Brevard and south\" configuration matches it. The map was reviewed by the owner, not parsed by code - this record states who confirmed it and when, not that the boundary was derived automatically.",
+        "note": "Still a Woodmont business-market interpretation, not an FDOT-defined commercial market. See _derivation."
+      }
     },
     "NY": {
       "method": "county",

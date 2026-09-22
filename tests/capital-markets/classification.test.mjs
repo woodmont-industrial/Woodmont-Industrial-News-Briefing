@@ -82,5 +82,32 @@ h.chk(typeof G.states.FL._derivation === 'string' && /BUSINESS-MARKET INTERPRETA
   'Florida set is labelled a business-market interpretation, not an FDOT standard');
 h.chk(G.states.FL.broaderCounties.length === 24, `Florida broader set has 24 counties`);
 h.chk(G.states.FL.targetCounties.length === 3, 'Florida target set has 3 counties');
+h.chk(G.states.FL._provenance && G.states.FL._provenance.status === 'CONFIRMED',
+  'Florida county set is recorded as owner-CONFIRMED, with who and when');
+h.chk(/reviewed by the owner, not parsed by code/.test(G.states.FL._provenance.basis),
+  'Florida provenance is honest that a human read the map, not the code');
+h.chk(G.states.NJ._provenance && G.states.NJ._provenance.status === 'CONTEXTUAL_ONLY',
+  'the NJ image is recorded as contextual only - it has no legend');
+h.chk(/straight-line proxy/.test(G.states.NJ._provenance.limitation),
+  'the NJ latitude proxy limitation is documented');
+h.chk(/overrides/.test(G.states.NJ._provenance.limitation),
+  'boundary corrections are documented as per-municipality overrides');
+h.chk(G.states.PA._pendingConfirmation && G.states.PA._pendingConfirmation.status === 'PENDING',
+  'PA tier questions are recorded as explicitly PENDING');
+h.chk(G.states.PA._pendingConfirmation.questions.some(q => /Berks/.test(q)),
+  'the Berks / Lehigh Valley question is on the record');
+h.chk(G.states.PA._pendingConfirmation.questions.some(q => /Philadelphia Metro/.test(q))
+   && G.states.PA._pendingConfirmation.questions.some(q => /I-78/.test(q)),
+  'the Philadelphia Metro and I-78/81/CPA questions are on the record');
+
+h.section('NJ manual overrides actually take effect');
+const njOv = CM.cmGeo.geography.states.NJ;
+const savedOv = njOv.overrides;
+njOv.overrides = { 'Brielle|Monmouth': 'BROADER' };
+h.chk(cls('Buyer acquires Brielle, New Jersey warehouse for $40 million').tier === 'BROADER',
+  'an override flips a municipality that the latitude rule placed otherwise');
+njOv.overrides = savedOv || {};
+h.chk(cls('Buyer acquires Brielle, New Jersey warehouse for $40 million').tier === 'TARGET',
+  'removing the override restores the latitude result');
 
 process.exit(h.done());
