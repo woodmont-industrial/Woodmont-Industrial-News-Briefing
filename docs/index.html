@@ -4620,6 +4620,12 @@
               const articleUrl = (item.link || item.url || '').toLowerCase();
               // Newsletter is a team product — only check team-level server excludes, not per-user ignores
               if (serverExcludedIds.has(articleId) || serverExcludedIds.has(articleUrl)) return false;
+              // Capital Markets has its own as-of date and hour-based lookback.
+              // Do not pre-trim that candidate pool with the general newsletter
+              // timeframe or a 72h/7d Capital preview can silently behave like
+              // the default 24h newsletter. cmBuildSections applies the chosen
+              // Capital window after geography and classification are ready.
+              if (newsletterTheme === 'capital-markets') return true;
               const pubDate = new Date(item.pubDate || item.fetchedAt || 0);
               return pubDate >= cutoff;
             });
