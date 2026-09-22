@@ -4431,7 +4431,8 @@
       // Competitor Watch is ADDITIVE: it runs over the same in-window articles
       // but cannot promote anything into Sales/Leases/Availabilities/Construction.
       const cw = cmCompetitorWatch(inWindow, o.watchlist);
-      const isFriday = asOf.getDay() === 5;
+      // (Week in Review is no longer Friday-gated; it runs every day from its
+      //  own independent seven-day window.)
       const dateStr = asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       const row = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
@@ -4548,8 +4549,71 @@
            ${cwDiag}
            ${cw.items.length ? `<ul style="padding-left:18px;margin:0;">${cw.items.map(cwRow).join('')}</ul>`
              : '<p style="font-size:12px;color:#64748b;margin:0;">No material competitor activity in this window.</p>'}`;
-      const friday = isFriday ? section('Week in Review — Top 5 Industrial Market Highlights',
-        [...buckets.sales, ...buckets.leases, ...buckets.construction].slice(0, 5)) : '';
+      // ---- Week in Review -------------------------------------------------
+      // Computed from an INDEPENDENT seven-day window, whatever lookback the
+      // daily preview is showing, so the weekly roundup does not silently
+      // shrink to 24 hours or balloon to 30 days. Previously it also only ran
+      // on Fridays and concatenated whole sections in a fixed sales-first
+      // order, which is not a ranking.
+      const WIR_HOURS = 168;
+      const wirSections = cmBuildSections(articles, o.asOfDate, WIR_HOURS);
+      const wirWatch = cmCompetitorWatch(wirSections.inWindow, o.watchlist);
+      // Section weights express editorial priority; magnitude and market tier
+      // then separate items WITHIN that priority. A large TARGET lease can
+      // therefore outrank a small BROADER sale.
+      const WIR_WEIGHT = { sales: 100, leases: 90, construction: 85,
+                           competitor: 80, availabilities: 70, intel: 55 };
+      const WIR_TIER_BONUS = { TARGET: 30, BROADER: 12, NATIONAL: 0, UNMAPPED: 0 };
+      const wirScore = (kind, item) => {
+        const c = item._cm || {};
+        const mag = Number(c.magnitude) || 0;
+        // log scale so $195M does not swamp 124,000 SF - they are different
+        // units and only their relative size within a section matters.
+        const magScore = mag > 0 ? Math.min(25, Math.log10(mag) * 4) : 0;
+        return (WIR_WEIGHT[kind] || 50) + (WIR_TIER_BONUS[c.tier] || 0) + magScore;
+      };
+      const wirLabel = { sales: 'Sale', leases: 'Lease', availabilities: 'Availability',
+                         construction: 'Construction', intel: 'Market intelligence',
+                         competitor: 'Competitor' };
+      const wirWhy = (kind, item) => {
+        const c = item._cm || {};
+        const bits = [wirLabel[kind] || kind];
+        if (c.tier && c.tier !== 'UNMAPPED') bits.push(c.tier + ' market');
+        if (kind === 'sales' && c.magnitude) bits.push('$' + (c.magnitude / 1e6).toFixed(1) + 'M');
+        else if (c.magnitude) bits.push(Number(c.magnitude).toLocaleString() + ' SF');
+        if (kind === 'competitor' && item._cw) bits.push('watchlist company: ' + item._cw.company);
+        return bits.join(' · ');
+      };
+      const wirCandidates = [];
+      for (const kind of ['sales', 'leases', 'availabilities', 'construction', 'intel']) {
+        for (const it of (wirSections.buckets[kind] || [])) {
+          wirCandidates.push({ kind, item: it, score: wirScore(kind, it) });
+        }
+      }
+      for (const it of (wirWatch.items || [])) {
+        wirCandidates.push({ kind: 'competitor', item: it, score: wirScore('competitor', it) });
+      }
+      // Deduplicate syndicated copies of the same story before ranking, keeping
+      // the highest-scoring copy.
+      const wirSeen = new Map();
+      for (const cand of wirCandidates.sort((a, b) => b.score - a.score)) {
+        const key = String(cand.item.title || '').toLowerCase()
+          .replace(/[^a-z0-9]/g, '').slice(0, 45);
+        if (key.length >= 20 && wirSeen.has(key)) continue;
+        if (key.length >= 20) wirSeen.set(key, cand);
+        else wirSeen.set(key + '|' + wirSeen.size, cand);
+      }
+      const wirTop = [...wirSeen.values()].slice(0, 5);
+      const wirRow = (cand) => `<li style="margin-bottom:10px;line-height:1.45;">
+          <a href="${esc(safeUrl(cand.item.link || '#'))}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(cand.item.title || 'Untitled')}</a>
+          <div style="font-size:11px;color:#64748b;margin-top:2px;">Why it matters: ${esc(wirWhy(cand.kind, cand.item))}</div>
+        </li>`;
+      const friday = `
+        <h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Week in Review — Top 5 Industrial Market Highlights</h2>
+        <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Independent 7-day window (${wirSections.inWindow.length} articles reviewed), ranked across every section — not the daily lookback.</p>
+        ${wirTop.length
+          ? `<ul style="padding-left:18px;margin:0;">${wirTop.map(wirRow).join('')}</ul>`
+          : '<p style="font-size:12px;color:#64748b;margin:0;">Nothing cleared the thresholds in the last seven days.</p>'}`;
       return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
         ${banner}
         ${emptyState}
