@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "request": {
+    "timeoutMs": 20000,
+    "maxBytes": 15728640
+  },
+  "municipalities": [
+    {
+      "id": "example-town-nj",
+      "name": "Example Township",
+      "state": "NJ",
+      "county": "Example County",
+      "sources": [
+        {
+          "id": "planning-board",
+          "type": "html",
+          "body": "Planning Board",
+          "url": "https://example.gov/planning-board/"
+        }
+      ]
+    },
+    {
+      "id": "sample-city-pa",
+      "name": "Sample City",
+      "state": "PA",
+      "sources": [
+        {
+          "id": "legistar-events",
+          "type": "legistar",
+          "body": "Planning Commission",
+          "url": "https://webapi.legistar.com/v1/example-town/events",
+          "lookbackDays": 45,
+          "eventLimit": 50,
+          "bodies": [
+            "Planning Commission"
+          ]
+        }
+      ]
+    }
+  ]
+}

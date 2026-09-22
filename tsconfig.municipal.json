@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/municipal/**/*.ts",
+    "scripts/municipal-shadow.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
