@@ -29,7 +29,7 @@ const wirOf = (html) => {
 
 h.section('Week in Review runs every day from its own 7-day window');
 h.chk(new Date(AS_OF + 'T12:00:00Z').getUTCDay() === 2, 'the as-of date is a Tuesday');
-h.chk(/Week in Review — Top 5 Industrial Market Highlights/.test(build(24)), 'renders on a non-Friday');
+h.chk(/Week in Review — Top 5 Developments/.test(build(24)), 'renders with Jacob\'s requested heading on a non-Friday');
 const w24 = wirOf(build(24)), w168 = wirOf(build(168)), w720 = wirOf(build(720));
 const shown = (w) => [...new Set(corpus.map(c => c.title))].filter(t => w.includes(t));
 h.chk(shown(w24).length === shown(w168).length && shown(w168).length === shown(w720).length,
@@ -88,5 +88,51 @@ h.chk(html.length > 1000, `30-day preview builds (${html.length} chars over ${li
 h.chk(/PREVIEW ONLY/.test(html), 'carries the PREVIEW ONLY banner');
 h.chk(/Week in Review/.test(html), 'includes Week in Review');
 h.chk(!/undefined|NaN|\[object Object\]/.test(html), 'no undefined / NaN / [object Object] in the output');
+
+h.section('same-edition dedup is conservative');
+const duplicateSale = [
+  { title: 'ACME buys Edison, New Jersey warehouse for $195 million', description: '', link: 'https://example.test/d1', pubDate: day(1) },
+  { title: 'ACME expands portfolio with $195 million Edison, New Jersey warehouse acquisition', description: '', link: 'https://example.test/d2', pubDate: day(2) },
+  { title: 'ACME buys another Edison, New Jersey warehouse for $196 million', description: '', link: 'https://example.test/d3', pubDate: day(2) },
+];
+const deduped = CM.cmBuildSections(duplicateSale, AS_OF, 168);
+h.chk(deduped.buckets.sales.length === 2, 'same amount/company/geography collapses, a different amount stays');
+h.chk(deduped.deduped.sales === 1, 'dedup diagnostics record the removed copy');
+
+const syndicatedMiami = [
+  { title: 'ACME buys Miami-Dade County warehouse portfolio for $195M', description: '', link: 'https://example.test/lp1', pubDate: day(1) },
+  { title: 'ACME expands Miami-Dade industrial portfolio with $195M acquisition', description: '', link: 'https://example.test/lp2', pubDate: day(2) },
+  { title: 'SampleCo buys two fully leased Miami warehouses for $109M', description: '', link: 'https://example.test/ar1', pubDate: day(1) },
+  { title: 'Two distribution warehouses in Miami-Dade sold for $109M', description: '', link: 'https://example.test/ar2', pubDate: day(1) },
+  { title: 'Zeta Example Holdings buys a Miami-Dade warehouse for $109M', description: '', link: 'https://example.test/vx1', pubDate: day(1) },
+];
+const syndicatedDeduped = CM.cmBuildSections(syndicatedMiami, AS_OF, 168);
+h.chk(syndicatedDeduped.buckets.sales.length === 3,
+  'county aliases and an omitted buyer still collapse two proven syndicated pairs');
+h.chk(syndicatedDeduped.buckets.sales.some(a => a.title.includes('Zeta Example Holdings')),
+  'same amount and county alone never collapse a separate single-asset deal');
+
+h.section('delivery renderer is capped and cannot look like the sandbox');
+const manySales = Array.from({ length: 8 }, (_, i) => ({
+  title: `Buyer ${i} acquires Edison, New Jersey industrial warehouse for $${30 + i} million`,
+  description: `Buyer ${i} completed an industrial acquisition in Edison.`,
+  link: `https://example.test/many-${i}`,
+  pubDate: day(1),
+}));
+const delivery = CM.buildCapitalMarketsNewsletterHTML(manySales, {
+  asOfDate: AS_OF, lookbackHours: 168, renderMode: 'delivery',
+  maxItemsPerSection: 6, includeWeekInReview: false, testBanner: true,
+});
+h.chk(/^<!DOCTYPE html>/.test(delivery), 'delivery mode emits a complete email document');
+h.chk(/TEST ONLY — DO NOT FORWARD/.test(delivery), 'canary banner is available');
+h.chk(!/PREVIEW ONLY|Diagnostics|sandbox/.test(delivery), 'delivery mode removes preview diagnostics and sandbox labels');
+h.chk(!/Week in Review/.test(delivery), 'delivery caller controls Friday-only visibility');
+h.chk(/Showing 6 of 8 qualifying items/.test(delivery), 'delivery sections are capped at six items');
+h.chk(new Set([...delivery.matchAll(/many-(\d+)/g)].map(m => m[1])).size === 6, 'only six sale items render');
+const fridayDelivery = CM.buildCapitalMarketsNewsletterHTML(corpus, {
+  asOfDate: AS_OF, lookbackHours: 168, renderMode: 'delivery', includeWeekInReview: true,
+});
+h.chk(/Week in Review — Top 5 Developments/.test(fridayDelivery), 'delivery uses the exact requested weekly heading');
+h.chk(!/TEST ONLY/.test(fridayDelivery), 'test banner is opt-in, never implicit');
 
 process.exit(h.done());

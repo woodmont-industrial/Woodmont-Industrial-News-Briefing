@@ -18,41 +18,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, '..', '..');
 const require_ = createRequire(import.meta.url);
 
-/** Evaluate the module-scope helper region of docs/index.html. */
-function loadSharedHelpers() {
-  const html = fs.readFileSync(path.join(REPO, 'docs', 'index.html'), 'utf8');
-  const start = html.indexOf('    const HTML_ESCAPE_MAP');
-  const end = html.indexOf('    const NewsletterPreview = (');
-  if (start < 0 || end < 0 || end <= start) {
-    throw new Error('shared helper region not found in docs/index.html');
-  }
-  const src = html.slice(start, end);
-  const names = ['escapeHtml', 'escapeAttr', 'safeUrl', 'firstSentences', 'splitSentences',
-    'getPublisherName', 'US_STATE_NAMES', 'REGION_TARGETS', 'REGION_CITIES', 'REGION_AREAS',
-    'REGION_NON_TARGET_CITIES', 'REGION_AMBIGUOUS_CITIES', 'regionPad', 'regionHas',
-    'regionScan', 'regionMaskOrigins', 'resolveRegion'];
-  const fn = new Function(src + '\nreturn {' + names.join(',') + '};');
-  return fn();
-}
-
-/** Geography reference data, loaded through a stubbed same-origin fetch. */
-function installGeographyFetch() {
-  const g = JSON.parse(fs.readFileSync(path.join(REPO, 'docs', 'capital-markets-geography.json'), 'utf8'));
-  const p = JSON.parse(fs.readFileSync(path.join(REPO, 'docs', 'capital-markets-places.json'), 'utf8'));
-  globalThis.fetch = async (f) => ({
-    ok: true, status: 200,
-    json: async () => (String(f).includes('geography') ? g : p),
-  });
-}
-
 /** Ready-to-use Capital Markets API with geography loaded. */
 export async function loadCapitalMarkets() {
-  installGeographyFetch();
-  const shared = loadSharedHelpers();
-  const { createCapitalMarkets } = require_(path.join(REPO, 'docs', 'js', 'capital-markets.js'));
-  const CM = createCapitalMarkets(shared);
-  await CM.cmLoadGeography();
-  return { CM, shared };
+  const { loadCapitalMarketsRuntime } = require_(path.join(REPO, 'src', 'server', 'capital-markets-runtime.cjs'));
+  return loadCapitalMarketsRuntime({ repoRoot: REPO, docsDir: path.join(REPO, 'docs') });
 }
 
 /** The live feed, shaped the way the preview consumes it. */

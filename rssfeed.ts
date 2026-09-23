@@ -190,6 +190,38 @@ async function sendNewsletterWork(): Promise<void> {
 }
 
 /**
+ * Build the Capital Markets newsletter beside production. This writes local
+ * review artifacts only; it has no email credentials or recipient path.
+ */
+async function buildCapitalMarketsShadowCmd(): Promise<void> {
+    console.log('Building Capital Markets shadow newsletter (no send)...');
+    try {
+        const { buildCapitalMarketsShadow } = await import('./src/server/capital-markets-delivery.js');
+        await buildCapitalMarketsShadow();
+        process.exit(0);
+    } catch (err) {
+        console.error('Capital Markets shadow build failed:', err);
+        process.exit(1);
+    }
+}
+
+/**
+ * Explicitly gated test-only send. It never reads the production distribution
+ * list as its destination and never writes sent-article state.
+ */
+async function sendCapitalMarketsCanaryCmd(): Promise<void> {
+    console.log('Preparing Capital Markets canary...');
+    try {
+        const { sendCapitalMarketsCanary } = await import('./src/server/capital-markets-delivery.js');
+        const success = await sendCapitalMarketsCanary();
+        process.exit(success ? 0 : 1);
+    } catch (err) {
+        console.error('Capital Markets canary blocked or failed:', err);
+        process.exit(1);
+    }
+}
+
+/**
  * Send Goth weekly newsletter (dark executive theme, 5-day recap)
  */
 async function sendWeeklyNewsletterGothCmd(): Promise<void> {
@@ -237,6 +269,12 @@ if (require.main === module) {
     } else if (args.includes('--send-newsletter-work')) {
         // Send Work newsletter (boss's preferred clean format)
         sendNewsletterWork();
+    } else if (args.includes('--build-capital-markets-shadow')) {
+        // Generate review artifacts only. Never sends email.
+        buildCapitalMarketsShadowCmd();
+    } else if (args.includes('--send-capital-markets-canary')) {
+        // Test recipients only; guarded inside capital-markets-delivery.ts.
+        sendCapitalMarketsCanaryCmd();
     } else if (args.includes('--send-weekly-newsletter-goth')) {
         // Send Goth weekly newsletter
         sendWeeklyNewsletterGothCmd();
