@@ -1,0 +1,20 @@
+{
+  "_comment": "Public presentation and rollout settings only. Never place recipients, credentials, company watchlists or private domains in this file.",
+  "title": "Capital Markets & Industrial Intelligence Briefing",
+  "subject": "Woodmont Capital Markets & Industrial Intelligence Briefing",
+  "dailyLookbackHours": 24,
+  "maxFeedAgeHours": 18,
+  "maxItemsPerSection": 6,
+  "emptySendPolicy": "HOLD",
+  "weekInReview": {
+    "enabled": true,
+    "deliveryDay": "FRIDAY",
+    "lookbackHours": 168,
+    "maxItems": 5
+  },
+  "rollout": {
+    "productionEnabled": false,
+    "requiredShadowRuns": 10,
+    "requiredCanaryApprovals": 2
+  }
+}

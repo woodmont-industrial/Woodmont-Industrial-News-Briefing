@@ -1,13 +1,15 @@
 /**
- * Capital Markets Preview - classification, geography and competitor logic.
+ * Capital Markets newsletter - classification, geography and competitor logic.
  *
  * Extracted from docs/index.html so it can be unit tested directly instead of
  * string-slicing a 5,000-line inline script. The factory takes its shared
  * dependencies explicitly, which keeps the module free of DOM and React and
  * lets tests supply stubs.
  *
- * PREVIEW ONLY. Nothing here sends email or touches the production newsletter.
- * The competitor watchlist is caller-supplied at runtime and never persisted.
+ * Preview rendering is the default. A caller may explicitly request the clean
+ * delivery renderer, but this module never sends email, chooses recipients or
+ * mutates sent-state. The competitor watchlist is caller-supplied at runtime
+ * and never persisted.
  */
 (function (global) {
   'use strict';
@@ -112,10 +114,12 @@
     // Headlines are Title Case, so "capitalised" proves nothing on its own:
     // "Fund Bets Industrial" would match the CDP named Gap. When the text names
     // no state, a municipality must therefore carry extra evidence — either a
-    // locational preposition immediately before it, or a distinctive multi-word
-    // name — and statistical areas (CDPs, townships) never qualify alone.
+    // locational preposition immediately before it or an industrial asset phrase
+    // immediately after it. A distinctive multi-word name plus an asset phrase
+    // can also corroborate a township; a bare statistical place never qualifies.
     const CM_LOC_CUES = new Set(['in', 'at', 'near', 'outside', 'throughout', 'to']);
     const CM_SOLID_CLASS = new Set(['c', 'b', 'p', 'v']);
+    const CM_ASSET_AFTER = /^(?:industrial\s+)?(?:warehouse|distribution\s+cent\w+|logistics\s+(?:campus|cent\w+|facility|park)|industrial\s+(?:site|park|building|facility)|facility|data\s*cent\w+)\b/i;
 
     // Municipality class ranking. When two municipalities in one state share a
     // name, the more prominent class wins: Reading city (Berks) outranks
@@ -203,7 +207,8 @@
           // not resolve to Sunrise FL or Orange NJ.
           if (!slice.every(t => /^[A-Z]/.test(t.w) || CM_CONNECTORS.has(t.w.toLowerCase()))) continue;
           out.push({ key, phrase: slice.map(t => t.w).join(' '), hits, words: n,
-                     prev: i > 0 ? toks[i - 1].w.toLowerCase() : '' });
+                     prev: i > 0 ? toks[i - 1].w.toLowerCase() : '',
+                     after: toks.slice(i + n, i + n + 3).map(t => t.w).join(' ') });
           i += n - 1;
           break;
         }
@@ -301,9 +306,17 @@
           if (states.size > 0 && !corroborated) continue;        // contradicted by the stated state
           if (p.hits.length > 1 && !corroborated) continue;      // same name in 2+ states: needs evidence
           if (!corroborated) {
-            // No state named anywhere: demand real locational evidence.
-            if (!CM_SOLID_CLASS.has(e.type)) continue;           // CDP / township: not on its own
-            if (p.words < 2 && !CM_LOC_CUES.has(p.prev)) continue; // single word needs "in <Place>"
+            // No state named anywhere: demand real locational evidence. A
+            // preposition can corroborate any place class ("in Aberdeen"). An
+            // asset immediately after a solid place can do the same ("Sarasota
+            // distribution center"). A non-solid class needs both a distinctive
+            // multi-word name and that asset context ("Carneys Point logistics
+            // campus"), preventing generic false matches such as "Commercial
+            // warehouse" against a township named Commercial.
+            const cueBefore = CM_LOC_CUES.has(p.prev);
+            const assetAfter = CM_ASSET_AFTER.test(p.after);
+            if (!CM_SOLID_CLASS.has(e.type) && !cueBefore && !(p.words > 1 && assetAfter)) continue;
+            if (p.words < 2 && !cueBefore && !assetAfter) continue;
           }
           scored.push({ p, e, corroborated,
             isStateName: CM_STATE_FULL.some(sf => sf[1].test(p.phrase) && p.phrase.length <= 12),
@@ -401,7 +414,7 @@
     const cmSquareFeet = (text) => {
       const t = (text || '').replace(/,/g, '');
       let best = 0;
-      for (const m of t.matchAll(/([\d.]+)\s*(million|m\b|k\b)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf\b|s\.f\.|msf\b)/gi)) {
+      for (const m of t.matchAll(/([\d.]+)\s*(million|m\b|k\b)?[-\s]*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf\b|s\.f\.|msf\b)/gi)) {
         const n = parseFloat(m[1]); if (isNaN(n)) continue;
         const u = (m[2] || '').toLowerCase();
         const v = /million|^m$/.test(u) ? n * 1e6 : /^k$/.test(u) ? n * 1e3 : n;
@@ -426,7 +439,7 @@
       // not a completed ownership transfer. It is not routed to Availabilities
       // either - no stakeholder rule covers investment-sale listings yet.
       sale: /\b(sells?|sold|sale of|sale to|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|trades? hands|changes? hands|disposition|divests?|divested)\b/i,
-      financing: /\b(refinanc\w+|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
+      financing: /\b(refinanc\w+|\brefi\b|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
       // Bare "leasing" is thematic language ("the industrial leasing map"),
       // not proof that a specific lease occurred. Concrete action is required.
       // A completed LEASE TRANSACTION requires a completion action. Marketing
@@ -434,9 +447,12 @@
       // AVAILABILITY - space being offered - and must never be booked as a
       // signed deal. Note "for lease" contains the word "lease", which is why
       // the completion pattern below never matches a bare "lease"/"leasing".
-      leaseCompleted: /\b(?:signs?|signed|inks?|inked|executes?|executed)\s+(?:a|an|the)?\s*(?:new\s+|long[- ]term\s+)?(?:\d[\d,.]*\s*(?:k\s*)?(?:sf|square[- ]f\w+)\s+)?(?:lease|sublease|renewal)\b|\bleased\b|\bre[- ]lease[sd]?\b|\brenew(?:s|ed|al|als)\b|\b(?:takes?|took)\s+(?:over\s+)?\d[\d,.]*\s*(?:k\s*)?(?:sf|square[- ]f\w+)|\bexpands?\s+(?:its\s+)?(?:occupancy|footprint\s+at)|\brelocat\w+\s+to\b|\bmoves?\s+into\b|\btenant\s+(?:signs?|signed|inks?|took|takes?)\b/i,
+      leaseCompleted: /\b(?:signs?|signed|inks?|inked|executes?|executed)\s+(?:a|an|the)?\s*(?:new\s+|long[- ]term\s+)?(?:\d[\d,.]*\s*(?:k\s*)?(?:sf|sq\.?\s*f(?:t\.?|eet)|square[- ]f\w+)\s+)?(?:lease|sublease|renewal)\b|\bleased\b|\bre[- ]lease[sd]?\b|\brenew(?:s|ed|al|als)\b|\b(?:takes?|took)\s+(?:over\s+)?\d[\d,.]*\s*(?:k\s*)?(?:sf|sq\.?\s*f(?:t\.?|eet)|square[- ]f\w+)|\bexpands?\s+(?:its\s+)?(?:occupancy|footprint\s+at)|\brelocat\w+\s+to\b|\bmoves?\s+into\b|\btenant\s+(?:signs?|signed|inks?|took|takes?)\b/i,
       availabilityOffer: /\b(?:for\s+(?:lease|sublease)|available|availabilit\w+|now\s+leasing|listed\s+for\s+lease|on\s+the\s+market|offering\s+memorandum|space\s+available|seeking\s+tenants?|marketing\s+the\s+space)\b/i,
-      construction: /\b(break(?:s|ing)? ground|groundbreaking|construction start|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|completion|completes?|completed|delivers?|delivered)\b/i,
+      // Completion verbs need an actual construction/asset object. A bare
+      // "completed" also occurs in "completed the acquisition" and previously
+      // misrouted sales into Construction Updates.
+      construction: /\b(?:break(?:s|ing)? ground|groundbreaking|construction (?:start|starts|started|completion|completes?|completed)|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|(?:completes?|completed|delivers?|delivered)\s+(?:(?:construction|work)\s+(?:of|on)\s+)?(?:a|an|the)?\s*(?:[\d,.]+\s*(?:million|m|k)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf)\s+)?(?:industrial\s+)?(?:warehouse|facility|building|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)(?!\s+(?:acquisition|purchase|sale|deal|transaction))|(?:warehouse|facility|building|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)\s+(?:construction\s+)?(?:is\s+)?(?:complete|completed|delivered))\b/i,
       industrial: /\b(industrial|warehouse|distribution cent\w+|logistics|cold storage|manufactur\w+|fulfillment|data ?cent\w+)\b/i,
       municipal: /\b(planning board|zoning board|ordinance|rezon\w+|site plan|entitlement\w*|moratorium|variance|redevelopment plan|data ?cent\w+ (?:regulation|rules|restrictions|ordinance))\b/i,
       lowValue: /\b(obsolete|brokerage assignment|named exclusive (?:agent|broker)|hires? \w+ as broker|tapped to market|assignment to market|ribbon[- ]cutting|golf outing|charity|awards?\b|honou?ree|best places to work|top \d+ (?:brokers|agents|firms)|rankings?\b|webinar|podcast|conference|summit|networking|people on the move|promoted to|joins? as|named (?:president|ceo|cfo|partner|director))\b/i,
@@ -458,6 +474,12 @@
     ];
     const cmIntelSignal = (text) => {
       for (const [label, rx] of CM_INTEL_SIGNALS) if (rx.test(text)) return label;
+      // A large industrial portfolio financing is material capital-markets
+      // intelligence even when a terse headline says only "refi". Keep this
+      // deliberately narrow: portfolio context and at least $500M are both
+      // required, so ordinary property loans do not flood the section.
+      if (CM_RX.financing.test(text) && /\bportfolio\b/i.test(text) && cmDollars(text) >= 500e6)
+        return 'capital-trend';
       return null;
     };
 
@@ -473,6 +495,21 @@
       const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}`;
       const dollars = cmDollars(text), sf = cmSquareFeet(text);
       const isInd = CM_RX.industrial.test(text);
+      // Headline event order resolves mixed stories. A sale/lease/availability
+      // headline may mention a completed building in its description; that does
+      // not turn the transaction into a construction update. Conversely,
+      // "Developer completes warehouse it acquired last year" remains
+      // Construction because the construction action leads the headline.
+      const titleOnly = a.title || '';
+      const finAt = titleOnly.search(CM_RX.financing);
+      const saleAt = titleOnly.search(CM_RX.sale);
+      const leaseAt = titleOnly.search(CM_RX.leaseCompleted);
+      const availAt = titleOnly.search(CM_RX.availabilityOffer);
+      const constructionAt = titleOnly.search(CM_RX.construction);
+      const nonConstructionAt = [finAt, saleAt, leaseAt, availAt].filter(i => i >= 0)
+        .reduce((best, i) => Math.min(best, i), Number.POSITIVE_INFINITY);
+      const constructionLeadsHeadline = constructionAt >= 0 && constructionAt < nonConstructionAt;
+      const constructionOnlyInBody = constructionAt < 0 && !Number.isFinite(nonConstructionAt);
 
       if (CM_RX.municipal.test(text)) {
         return { section: 'municipal', tier, code: null, magnitude: null, reason: `municipal/entitlement keyword; ${geo}` };
@@ -482,7 +519,7 @@
                  reason: `LOW_VALUE_INTEL: "${(text.match(CM_RX.lowValue) || [''])[0]}"` };
       }
       // --- B. Construction --------------------------------------------
-      if (CM_RX.construction.test(text)) {
+      if (CM_RX.construction.test(text) && (constructionLeadsHeadline || constructionOnlyInBody)) {
         if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
         if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
         if (tier === 'BROADER') {
@@ -497,11 +534,8 @@
       // The HEADLINE decides the event type. "Owner refinances the park it
       // acquired in 2024" is a financing story, not a sale, even though the
       // body carries an acquisition verb.
-      const titleOnly = a.title || '';
       // Whichever verb leads the headline defines the event: "Owner refinances
       // the park it acquired in 2024" is a financing story, not a sale.
-      const finAt = titleOnly.search(CM_RX.financing);
-      const saleAt = titleOnly.search(CM_RX.sale);
       const financingHeadline = finAt >= 0 && (saleAt < 0 || finAt < saleAt);
       if (CM_RX.sale.test(text) && !financingHeadline) {
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
@@ -547,9 +581,84 @@
       return { section: null, tier, code: CM_REJECT.NO_SIGNAL, magnitude: null, reason: 'NO_SIGNAL: no deal, lease, construction, municipal or material-intelligence signal' };
     };
 
+    // Conservative same-edition dedup. Exact normalized headlines collapse in
+    // every section. Sales also collapse when the amount, resolved geography,
+    // publication week and at least one distinctive token agree. The latter is
+    // intentionally sales-only: lease/SF figures repeat too often to use size
+    // as a safe cross-publisher identity signal.
+    const CM_DEDUPE_STOP = new Set(['about','after','again','against','among','another','before',
+      'building','buildings','buys','buyer','commercial','county','deal','distribution','estate',
+      'fully','industrial','logistics','million','portfolio','properties','property','purchase',
+      'purchases','real','sale','sells','sold','square','warehouse','warehouses','with',
+      'miami','dade','jersey','pennsylvania','florida','county']);
+    const cmStoryTitleKey = (title) => String(title || '')
+      .replace(/\s+[-–—|]\s+(?:the\s+)?[A-Z][A-Za-z0-9 .&'-]{1,45}$/i, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const cmDistinctiveTokens = (a) => new Set(cmText(a).toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ').split(/\s+/)
+      .filter(w => w.length >= 4 && !CM_DEDUPE_STOP.has(w)
+        && !/^\d+(?:k|m|mm|b|bn)?$/.test(w)));
+    const cmGeoFingerprint = (a) => {
+      const g = cmMarketTier(cmText(a));
+      // A county may be detected once from "Miami-Dade County" and again from
+      // "Miami-Dade" or a municipality in that county. Collapse those aliases
+      // before comparing syndicated copies.
+      const places = [...new Set((g.locations || [])
+        .map(l => `${l.state || ''}:${l.county || l.label || ''}`))].sort();
+      return places.length ? places.join('|') : `${g.tier || ''}:${g.matched || ''}`;
+    };
+    const CM_COUNT_WORD = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+      seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+    const cmAssetCount = (a) => {
+      const t = cmText(a).toLowerCase();
+      const m = t.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})\b[^.!?]{0,45}\b(?:warehouses?|buildings?|properties|assets|facilities)\b/);
+      if (!m) return 0;
+      return /^\d+$/.test(m[1]) ? Number(m[1]) : (CM_COUNT_WORD[m[1]] || 0);
+    };
+    const cmSameSaleStory = (a, b) => {
+      const ca = a._cm || {}, cb = b._cm || {};
+      if (!ca.magnitude || ca.magnitude !== cb.magnitude) return false;
+      const ga = cmGeoFingerprint(a), gb = cmGeoFingerprint(b);
+      if (!ga || ga !== gb) return false;
+      const da = new Date(a.pubDate || a.fetchedAt || 0).getTime();
+      const db = new Date(b.pubDate || b.fetchedAt || 0).getTime();
+      const gap = Number.isFinite(da) && Number.isFinite(db) ? Math.abs(da - db) : Infinity;
+      if (gap > 7 * 86400000) return false;
+      const ta = cmDistinctiveTokens(a), tb = cmDistinctiveTokens(b);
+      for (const t of ta) if (tb.has(t)) return true;
+      // Some aggregator headlines omit both buyer and seller. Exact amount +
+      // canonical county is not enough on its own, but if both headlines also
+      // state the same multi-asset count within 48 hours, that is a sufficiently
+      // narrow signature for the same sale without guessing from prose.
+      const ac = cmAssetCount(a), bc = cmAssetCount(b);
+      if (gap <= 48 * 3600000 && ac > 1 && ac === bc) return true;
+      return false;
+    };
+    const cmDedupeBucket = (items, sectionName) => {
+      const kept = [], titleKeys = new Set();
+      let removed = 0;
+      for (const item of items) {
+        const tk = cmStoryTitleKey(item.title);
+        if (tk && titleKeys.has(tk)) { removed++; continue; }
+        if (sectionName === 'sales' && kept.some(prev => cmSameSaleStory(prev, item))) {
+          removed++;
+          continue;
+        }
+        if (tk) titleKeys.add(tk);
+        kept.push(item);
+      }
+      return { items: kept, removed };
+    };
+
     /** Runs the profile over already-loaded articles. No network I/O. */
     const cmBuildSections = (articles, asOfDate, lookbackHours) => {
-      const asOf = asOfDate ? new Date(asOfDate + 'T23:59:59') : new Date();
+      // Website date pickers pass YYYY-MM-DD and intentionally mean the end of
+      // that selected day. Server delivery passes an ISO timestamp so a
+      // "24-hour" edition is a true rolling 24-hour window at send time.
+      const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(String(asOfDate || ''));
+      const asOf = asOfDate
+        ? new Date(dateOnly ? asOfDate + 'T23:59:59' : asOfDate)
+        : new Date();
       const cutoff = new Date(asOf.getTime() - lookbackHours * 3600 * 1000);
       const inWindow = [];
       for (const a of articles || []) {
@@ -566,19 +675,26 @@
         if (c.section) buckets[c.section].push({ ...a, _cm: c });
         else { rejected.push({ ...a, _cm: c }); if (c.code) telemetry[c.code] = (telemetry[c.code] || 0) + 1; }
       }
-      const byMag = (x, y) => (y._cm.magnitude || 0) - (x._cm.magnitude || 0);
-      Object.keys(buckets).forEach(k => buckets[k].sort(byMag));
-      return { buckets, rejected, inWindow, telemetry, tiers, asOf, cutoff };
+      const byMag = (x, y) => (y._cm.magnitude || 0) - (x._cm.magnitude || 0)
+        || new Date(y.pubDate || y.fetchedAt || 0) - new Date(x.pubDate || x.fetchedAt || 0);
+      const deduped = {};
+      Object.keys(buckets).forEach(k => {
+        buckets[k].sort(byMag);
+        const d = cmDedupeBucket(buckets[k], k);
+        buckets[k] = d.items;
+        deduped[k] = d.removed;
+      });
+      return { buckets, rejected, inWindow, telemetry, tiers, deduped, asOf, cutoff };
     };
 
     // ---------------------------------------------------------------------
-    // INSTITUTIONAL COMPETITOR WATCH (browser-local, 2026-09-18)
+    // INSTITUTIONAL COMPETITOR WATCH (private runtime input, 2026-09-18)
     // ---------------------------------------------------------------------
-    // The watchlist is uploaded by the user in-browser via FileReader, held in
-    // React component memory ONLY, and is never written to localStorage /
-    // sessionStorage / IndexedDB, never fetched/XHR'd anywhere, never synced to
-    // GitHub, and never logged. It disappears on refresh. Nothing from it is
-    // committed to this repository.
+    // In the website preview the watchlist is uploaded via FileReader, held in
+    // React component memory ONLY, and disappears on refresh. The server-side
+    // shadow/canary adapter may inject the same rows from a runtime secret. In
+    // both cases the list is never committed, logged, or persisted by this
+    // module.
     const CM_CSV_COLUMNS = ['Company Name', 'Secondary Type', 'City', 'State / Country',
       'NNJ Search SF', 'NNJ Search Properties', 'Portfolio SF', 'Website', 'Website Domain'];
 
@@ -946,24 +1062,62 @@
     const buildCapitalMarketsNewsletterHTML = (articles, opts) => {
       const o = opts || {};
       const lookbackHours = o.lookbackHours || 24;
-      const { buckets, telemetry, tiers, rejected, inWindow, asOf } = cmBuildSections(articles, o.asOfDate, lookbackHours);
+      const renderMode = o.renderMode === 'delivery' ? 'delivery' : 'preview';
+      const delivery = renderMode === 'delivery';
+      const maxItems = Math.max(1, Math.min(10, Number(o.maxItemsPerSection) || 6));
+      const selectionAsOf = o.asOfTime || o.asOfDate;
+      const { buckets, telemetry, tiers, rejected, inWindow, deduped, asOf } = cmBuildSections(articles, selectionAsOf, lookbackHours);
       // Competitor Watch is ADDITIVE: it runs over the same in-window articles
       // but cannot promote anything into Sales/Leases/Availabilities/Construction.
       const cw = cmCompetitorWatch(inWindow, o.watchlist);
       // (Week in Review is no longer Friday-gated; it runs every day from its
       //  own independent seven-day window.)
-      const dateStr = asOf.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const labelDate = o.asOfDate && /^\d{4}-\d{2}-\d{2}$/.test(String(o.asOfDate))
+        ? new Date(o.asOfDate + 'T12:00:00') : asOf;
+      const dateStr = labelDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      const row = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
-          <a href="${esc(it.link)}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
+      const articleUrl = it => safeUrl(it.link || it.url || '#');
+      const deliveryWhy = (kind, it) => {
+        const c = it._cm || {}, bits = [];
+        const labels = { sales: 'Sale', leases: 'Lease', availabilities: 'Availability',
+          construction: 'Construction milestone', intel: 'Market intelligence',
+          municipal: 'Municipal / entitlement' };
+        bits.push(labels[kind] || kind);
+        if (c.tier && c.tier !== 'UNMAPPED') bits.push(c.tier === 'TARGET' ? 'Target market' : c.tier === 'BROADER' ? 'Broader market' : 'National');
+        if (kind === 'sales' && c.magnitude) bits.push('$' + (c.magnitude / 1e6).toFixed(1) + 'M');
+        else if (c.magnitude) bits.push(Number(c.magnitude).toLocaleString() + ' SF');
+        return bits.join(' · ');
+      };
+      const row = (it, kind) => {
+        if (!delivery) return `<li style="margin-bottom:10px;line-height:1.45;">
+          <a href="${esc(articleUrl(it))}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
           <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(it._cm.tier)} · ${esc(it._cm.reason)}</div>
         </li>`;
-      const section = (title, items, note) => `
+        const rawDesc = String(it.description || it.summary || '').trim();
+        const desc = rawDesc && typeof firstSentences === 'function' ? firstSentences(rawDesc, 1) : rawDesc;
+        const publisher = typeof getPublisherName === 'function' ? getPublisherName(it) : (it.source || 'Source');
+        const titleWords = new Set(String(it.title || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/));
+        const descWords = String(desc || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/).filter(Boolean);
+        const overlap = descWords.length ? descWords.filter(w => titleWords.has(w)).length / descWords.length : 1;
+        const usefulDesc = desc && desc.length > 20 && overlap < 0.75 ? String(desc).slice(0, 260) : '';
+        return `<li style="margin-bottom:14px;line-height:1.45;color:#334155;">
+          <a href="${esc(articleUrl(it))}" style="color:#0B223F;font-weight:700;text-decoration:none;">${esc(it.title || 'Untitled')}</a>
+          <div style="font-size:12px;color:#475569;margin-top:3px;"><strong>${esc(deliveryWhy(kind, it))}</strong>${publisher ? ` · ${esc(publisher)}` : ''}</div>
+          ${usefulDesc ? `<div style="font-size:12px;color:#475569;margin-top:3px;">${esc(usefulDesc)}</div>` : ''}
+          <div style="font-size:11px;margin-top:3px;"><a href="${esc(articleUrl(it))}" style="color:#2563eb;">Source</a></div>
+        </li>`;
+      };
+      const section = (title, items, note, kind) => {
+        const shown = items.slice(0, maxItems);
+        const overflow = items.length > shown.length
+          ? `<p style="font-size:10px;color:#94a3b8;margin:5px 0 0;">Showing ${shown.length} of ${items.length} qualifying items.</p>` : '';
+        return `
         <h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">${esc(title)}</h2>
         ${note ? `<p style="font-size:11px;color:#64748b;margin:0 0 8px;">${note}</p>` : ''}
-        ${items.length
-          ? `<ul style="padding-left:18px;margin:0;">${items.map(row).join('')}</ul>`
+        ${shown.length
+          ? `<ul style="padding-left:18px;margin:0;">${shown.map(it => row(it, kind)).join('')}</ul>${overflow}`
           : '<p style="font-size:12px;color:#64748b;margin:0;">No qualifying items in this window.</p>'}`;
+      };
       // ---- Empty-state diagnostics ---------------------------------------
       // An empty preview is usually CORRECT - at a 24-hour lookback the feed
       // genuinely carries nothing that clears Jacob's thresholds. Without this
@@ -1011,9 +1165,22 @@
           + `${cw.diag.companiesMatched} matched &middot; ${cw.diag.accepted} material articles`
           + `<br/><span style="color:#94a3b8;">Official company sites are not yet monitored &mdash; matching runs over feed articles only.</span>`;
 
-      const emptyState = selectedCount > 0 ? '' : `
+      const feedHealth = o.feedHealth || null;
+      const staleInput = feedHealth && feedHealth.status !== 'FRESH';
+      const feedAge = feedHealth && feedHealth.ageHours != null
+        ? `${esc(feedHealth.ageHours)} hours old` : 'of unknown age';
+      const freshnessWarning = delivery || !staleInput ? '' : `
+        <div style="margin:0 0 18px;padding:12px 14px;background:#fee2e2;border:2px solid #dc2626;border-radius:6px;font-size:12px;color:#7f1d1d;">
+          <strong>STALE INPUT &mdash; do not approve or send this edition.</strong>
+          <div style="margin-top:5px;">Feed status: ${esc(feedHealth.status)} &middot; newest refresh is ${feedAge}
+          &middot; maximum allowed age is ${esc(feedHealth.maxAgeHours)} hours. Refresh the feed and rerun.</div>
+        </div>`;
+
+      const emptyState = delivery || selectedCount > 0 ? '' : `
         <div style="margin:0 0 18px;padding:12px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:12px;color:#78350f;">
-          <strong style="font-size:13px;">No items cleared the thresholds &mdash; this preview ran correctly.</strong>
+          <strong style="font-size:13px;">${staleInput
+            ? 'No items selected from a stale input feed &mdash; do not treat this as a quiet market.'
+            : 'No items cleared the thresholds &mdash; this preview ran correctly.'}</strong>
           <div style="margin-top:8px;">
             Reviewed <strong>${inWindow.length}</strong> article${inWindow.length === 1 ? '' : 's'}
             in the last ${lookbackHours >= 24 ? Math.round(lookbackHours / 24) + ' day' + (Math.round(lookbackHours / 24) === 1 ? '' : 's') : lookbackHours + ' hours'}
@@ -1021,7 +1188,7 @@
           </div>
           ${reasonRows ? `<div style="margin-top:8px;">Why candidates were rejected:</div>
             <ul style="margin:4px 0 0;padding-left:18px;">${reasonRows}</ul>` : ''}
-          <div style="margin-top:8px;">${widenHint}</div>
+          <div style="margin-top:8px;">${staleInput ? 'Refresh the feed before changing the lookback or thresholds.' : widenHint}</div>
           ${rejectedList ? `<details style="margin-top:10px;">
             <summary style="cursor:pointer;font-weight:600;">Show the ${Math.min(rejected.length, 60)} rejected candidate${rejected.length === 1 ? '' : 's'} and exact reasons</summary>
             <ul style="margin:8px 0 0;padding-left:18px;">${rejectedList}</ul>
@@ -1034,21 +1201,28 @@
       const diag = `<div style="margin-top:24px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#475569;">
         <strong>Diagnostics</strong> — tiers: TARGET ${tiers.TARGET} · BROADER ${tiers.BROADER} · NATIONAL ${tiers.NATIONAL} · <strong>UNMAPPED ${tiers.UNMAPPED}</strong><br/>
         rejections: MISSING_PRICE ${telemetry.MISSING_PRICE} · MISSING_SF ${telemetry.MISSING_SF} · BELOW_THRESHOLD ${telemetry.BELOW_THRESHOLD} · UNMAPPED_GEO ${telemetry.UNMAPPED_GEO} · LOW_VALUE_INTEL ${telemetry.LOW_VALUE_INTEL} · NO_SIGNAL ${telemetry.NO_SIGNAL} (total rejected ${rejected.length})<br/>
+        same-edition duplicates removed: ${Object.values(deduped || {}).reduce((n, v) => n + Number(v || 0), 0)}<br/>
         UNMAPPED candidates are held for review — never admitted under a guessed threshold.<br/>
         geography reference: ${cmGeo.status === 'ready'
           ? `loaded — NJ Exit 6 lat ${cmGeo.geography.states.NJ.exit6Latitude}, PA ${cmGeo.geography.states.PA.targetCounties.length} target/${cmGeo.geography.states.PA.broaderCounties.length} broader, FL ${cmGeo.geography.states.FL.targetCounties.length} target/${cmGeo.geography.states.FL.broaderCounties.length} broader, NY ${cmGeo.geography.states.NY.broaderCounties.length} broader`
           : `NOT LOADED (${esc(cmGeo.status)}${cmGeo.error ? ': ' + esc(cmGeo.error) : ''}) — every article resolves UNMAPPED`}
       </div>`;
-      const banner = `<div style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:10px;border-radius:6px;font-weight:700;text-align:center;margin-bottom:16px;">
+      const banner = delivery ? '' : `<div style="background:#fef3c7;border:2px solid #f59e0b;color:#92400e;padding:10px;border-radius:6px;font-weight:700;text-align:center;margin-bottom:16px;">
         PREVIEW ONLY — NOT PRODUCTION</div>`;
       // Institutional Competitor Watch — requires BOTH a watchlist company match
       // AND a material industrial/CRE event. Never affects other sections.
-      const cwRow = (it) => `<li style="margin-bottom:10px;line-height:1.45;">
-          <a href="${esc(it.link)}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
-          <div style="font-size:11px;color:#64748b;margin-top:2px;">
-            <strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · event: ${esc(it._cw.event)} · ${esc(it._cw.reason)}${it._cw.supportedByDomain ? ' (domain-supported)' : ''}${it._cw.familyMatch ? ' · <strong style="color:#b45309;">family match — verify</strong>' : it._cw.verify ? ' · <strong style="color:#b45309;">generic name — verify</strong>' : ''}${it._cw.alsoConsidered && it._cw.alsoConsidered.length ? `<br/>possible entities: ${esc(it._cw.alsoConsidered.join(', '))}` : ''} · source: ${esc(it.source || 'n/a')}
-          </div>
-        </li>`;
+      const cwRow = (it) => delivery
+        ? `<li style="margin-bottom:14px;line-height:1.45;color:#334155;">
+            <a href="${esc(articleUrl(it))}" style="color:#0B223F;font-weight:700;text-decoration:none;">${esc(it.title)}</a>
+            <div style="font-size:12px;color:#475569;margin-top:3px;"><strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · ${esc(it._cw.event)}${it._cw.verify ? ' · VERIFY ATTRIBUTION' : ''}</div>
+            <div style="font-size:11px;margin-top:3px;"><a href="${esc(articleUrl(it))}" style="color:#2563eb;">Source</a></div>
+          </li>`
+        : `<li style="margin-bottom:10px;line-height:1.45;">
+            <a href="${esc(articleUrl(it))}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(it.title)}</a>
+            <div style="font-size:11px;color:#64748b;margin-top:2px;">
+              <strong>${esc(it._cw.company)}</strong>${it._cw.type ? ` · ${esc(it._cw.type)}` : ''} · event: ${esc(it._cw.event)} · ${esc(it._cw.reason)}${it._cw.supportedByDomain ? ' (domain-supported)' : ''}${it._cw.familyMatch ? ' · <strong style="color:#b45309;">family match — verify</strong>' : it._cw.verify ? ' · <strong style="color:#b45309;">generic name — verify</strong>' : ''}${it._cw.alsoConsidered && it._cw.alsoConsidered.length ? `<br/>possible entities: ${esc(it._cw.alsoConsidered.join(', '))}` : ''} · source: ${esc(it.source || 'n/a')}
+            </div>
+          </li>`;
       const cwDiag = `<div style="font-size:11px;color:#64748b;margin:6px 0 8px;">
         ${cw.diag.companiesLoaded} companies loaded · ${cw.diag.withDomains} with website domains ·
         ${cw.diag.companiesMatched} companies matched · ${cw.diag.accepted} material articles<br/>
@@ -1061,12 +1235,17 @@
         narrowed to most-specific entity ${cw.diag.familyNarrowed} ·
         family-ambiguous (verify) ${cw.diag.familyAmbiguous}
       </div>`;
-      const cwSection = !o.watchlist || !o.watchlist.length
+      const cwShown = (cw.items || []).slice(0, maxItems);
+      const cwOverflow = cw.items && cw.items.length > cwShown.length
+        ? `<p style="font-size:10px;color:#94a3b8;margin:5px 0 0;">Showing ${cwShown.length} of ${cw.items.length} qualifying items.</p>` : '';
+      const cwSection = delivery && (!o.watchlist || !o.watchlist.length)
+        ? ''
+        : !o.watchlist || !o.watchlist.length
         ? `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
            <p style="font-size:12px;color:#64748b;margin:0;">No competitor watchlist loaded.</p>`
         : `<h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Institutional Competitor Watch</h2>
-           ${cwDiag}
-           ${cw.items.length ? `<ul style="padding-left:18px;margin:0;">${cw.items.map(cwRow).join('')}</ul>`
+           ${delivery ? '' : cwDiag}
+           ${cwShown.length ? `<ul style="padding-left:18px;margin:0;">${cwShown.map(cwRow).join('')}</ul>${cwOverflow}`
              : '<p style="font-size:12px;color:#64748b;margin:0;">No material competitor activity in this window.</p>'}`;
       // ---- Week in Review -------------------------------------------------
       // Computed from an INDEPENDENT seven-day window, whatever lookback the
@@ -1079,8 +1258,9 @@
       // a delivery decision. If Week in Review ever enters production delivery,
       // restore the original Friday-only rule at the delivery layer - the
       // seven-day computation below stays as it is either way.
+      const includeWeekInReview = delivery ? !!o.includeWeekInReview : o.includeWeekInReview !== false;
       const WIR_HOURS = 168;
-      const wirSections = cmBuildSections(articles, o.asOfDate, WIR_HOURS);
+      const wirSections = cmBuildSections(articles, selectionAsOf, WIR_HOURS);
       const wirWatch = cmCompetitorWatch(wirSections.inWindow, o.watchlist);
       // Section weights express editorial priority; magnitude and market tier
       // then separate items WITHIN that priority. A large TARGET lease can
@@ -1136,27 +1316,50 @@
           <a href="${esc(safeUrl(cand.item.link || '#'))}" style="color:#0B223F;font-weight:600;text-decoration:none;">${esc(cand.item.title || 'Untitled')}</a>
           <div style="font-size:11px;color:#64748b;margin-top:2px;">Why it matters: ${esc(wirWhy(cand.kind, cand.item))}</div>
         </li>`;
-      const friday = `
-        <h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Week in Review — Top 5 Industrial Market Highlights</h2>
+      const friday = !includeWeekInReview ? '' : `
+        <h2 style="font-size:15px;color:#0B223F;border-bottom:2px solid #0B223F;padding-bottom:4px;margin:22px 0 10px;">Week in Review — Top 5 Developments</h2>
         <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Independent 7-day window (${wirSections.inWindow.length} articles reviewed), ranked across every section — not the daily lookback.</p>
         ${wirTop.length
           ? `<ul style="padding-left:18px;margin:0;">${wirTop.map(wirRow).join('')}</ul>`
           : '<p style="font-size:12px;color:#64748b;margin:0;">Nothing cleared the thresholds in the last seven days.</p>'}`;
-      return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
+      const sectionsHtml = `
+        ${section('Sales Transactions', buckets.sales, '', 'sales')}
+        ${section('Lease Transactions', buckets.leases, '', 'leases')}
+        ${section('Availabilities', buckets.availabilities, '', 'availabilities')}
+        ${section('Construction Updates', buckets.construction, '', 'construction')}
+        ${section('Relevant Market Intelligence', buckets.intel, '', 'intel')}
+        ${section('Municipal / Entitlement Watch', buckets.municipal, delivery ? '' : 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.', 'municipal')}
+        ${cwSection}
+        ${friday}`;
+      if (!delivery) return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
         ${banner}
+        ${freshnessWarning}
         ${emptyState}
         <h1 style="font-size:20px;color:#0B223F;margin:0 0 2px;">Woodmont Capital Markets Preview</h1>
         <div style="font-size:12px;color:#64748b;margin-bottom:6px;">${esc(dateStr)} · lookback ${lookbackHours}h · sandbox</div>
-        ${section('Sales Transactions', buckets.sales)}
-        ${section('Lease Transactions', buckets.leases)}
-        ${section('Availabilities', buckets.availabilities)}
-        ${section('Construction Updates', buckets.construction)}
-        ${section('Relevant Market Intelligence', buckets.intel)}
-        ${section('Municipal / Entitlement Watch', buckets.municipal, 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.')}
-        ${cwSection}
-        ${friday}
+        ${sectionsHtml}
         ${diag}
       </div>`;
+
+      const newsletterTitle = String(o.newsletterTitle || 'Capital Markets & Industrial Intelligence Briefing');
+      const testBanner = o.testBanner ? `<div style="background:#7f1d1d;color:#fff;padding:11px;text-align:center;font-weight:800;letter-spacing:.4px;">
+        TEST ONLY — DO NOT FORWARD</div>` : '';
+      return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>${esc(newsletterTitle)}</title></head>
+        <body style="font-family:'Segoe UI',Tahoma,sans-serif;background:#f8fafc;margin:0;padding:24px;color:#1e293b;">
+          <div style="max-width:800px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;">
+            ${testBanner}
+            <div style="padding:24px 28px 14px;text-align:center;border-bottom:3px solid #0B223F;">
+              <img src="https://woodmont-industrial.github.io/Woodmont-Industrial-News-Briefing/assets/woodmont-logo.jpg" alt="Woodmont Industrial Partners" width="220" style="max-width:220px;height:auto;border:0;">
+              <h1 style="font-size:22px;color:#0B223F;margin:14px 0 4px;">${esc(newsletterTitle)}</h1>
+              <div style="font-size:12px;color:#64748b;">${esc(dateStr)} · ${lookbackHours}-hour qualifying window</div>
+            </div>
+            <div style="padding:6px 28px 26px;">${sectionsHtml}</div>
+            <div style="padding:16px 28px;text-align:center;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;">
+              <strong>Woodmont Industrial Partners</strong><br>Confidential &amp; Proprietary
+            </div>
+          </div>
+        </body></html>`;
     };
 
 

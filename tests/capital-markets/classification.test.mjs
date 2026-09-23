@@ -40,18 +40,44 @@ for (const [title, want] of [
   ['Distributor renews 180,000 square feet in Edison, New Jersey', 'leases'],
   ['Retailer took 120,000 SF in Edison, New Jersey', 'leases'],
   ['Tenant expands its occupancy by 150,000 square feet in Edison, New Jersey', 'leases'],
+  ['ACME Group and Sample Delivery ink 530,000 sq. ft. lease at new Carneys Point logistics campus', 'leases'],
+  ['767,000-square-foot Sarasota distribution center listed for lease', 'availabilities'],
   // completion wins when both appear
   ['Space marketed for lease in Edison, New Jersey has now been leased, 200,000 square feet', 'leases'],
 ]) h.chk(cls(title).section === want, `${String(cls(title).section).padEnd(15)} <- ${title.slice(0, 60)}`);
 
+h.section('headline-only place context stays conservative');
+const carneysLease = cls('ACME Group and Sample Delivery ink 530,000 sq. ft. lease at new Carneys Point logistics campus');
+h.chk(carneysLease.tier === 'BROADER', 'multi-word NJ township + logistics campus resolves as BROADER');
+const sarasotaAvailability = cls('767,000-square-foot Sarasota distribution center listed for lease');
+h.chk(sarasotaAvailability.tier === 'BROADER', 'city + distribution center resolves Sarasota as BROADER');
+const aberdeenNoPrice = cls('Sample Capital acquires 3.5-acre low-coverage industrial site in Aberdeen');
+h.chk(aberdeenNoPrice.tier === 'TARGET' && aberdeenNoPrice.code === 'MISSING_PRICE',
+  '"in" corroborates an NJ township; the sale is held for its missing price, not unmapped geography');
+const genericCommercial = cls('Commercial warehouse portfolio is available for lease');
+h.chk(genericCommercial.tier === 'UNMAPPED', 'generic "Commercial warehouse" does not resolve the Commercial township');
+
 h.section('sales mean ownership transfer, not financing');
 for (const [title, isSale] of [
   ['Buyer acquires Edison, New Jersey warehouse for $40 million', true],
+  ['Buyer completed the acquisition of an Edison, New Jersey warehouse for $40 million', true],
+  ['Buyer acquires a newly completed Edison, New Jersey warehouse for $40 million', true],
   ['Owner refinances Edison, New Jersey warehouse with a $40 million loan', false],
   ['$40 million CMBS loan backed by Edison, New Jersey warehouses', false],
   ['Warehouse for sale for $40 million in Edison, New Jersey', false],
 ]) h.chk((cls(title).section === 'sales') === isSale,
   `${isSale ? 'SALE    ' : 'NOT SALE'} <- ${title.slice(0, 58)}`);
+
+h.section('material portfolio financing is market intelligence');
+const largeRefi = cls('ACME to land $1.7B industrial portfolio refi');
+h.chk(largeRefi.section === 'intel' && /capital-trend/.test(largeRefi.reason),
+  '$1.7B industrial portfolio refi qualifies as a capital-markets trend');
+const smallRefi = cls('ACME lands $40 million industrial warehouse refinancing in Edison, New Jersey');
+h.chk(smallRefi.section === null && smallRefi.code === 'NO_SIGNAL',
+  'an ordinary property refinancing does not enter Market Intelligence');
+
+h.chk(cls('Developer completes a 500,001 SF industrial warehouse in Vineland, New Jersey').section === 'construction',
+  'an asset-specific completion remains a construction milestone');
 
 h.section('geography tiers');
 for (const [title, tier] of [

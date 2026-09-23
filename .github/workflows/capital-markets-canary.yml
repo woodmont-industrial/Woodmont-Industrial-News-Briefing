@@ -1,0 +1,76 @@
+name: Capital Markets Canary (Test Recipients Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type SEND TEST ONLY to confirm the gated canary'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: capital-markets-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    # Configure this environment with required reviewers before first use.
+    environment: capital-markets-canary
+    timeout-minutes: 10
+    steps:
+      - name: Verify manual confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [ "$CONFIRMATION" != "SEND TEST ONLY" ]; then
+            echo "Canary blocked: confirmation did not match."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run all Capital Markets tests
+        run: npm run test:capital-markets
+
+      - name: Build review artifact without private watchlist
+        run: npm run build:capital-markets-shadow
+
+      # This is deliberately a public-input baseline. When the private
+      # watchlist is enabled, the received canary is the authoritative render;
+      # do not upload a watchlist-derived HTML artifact.
+      - name: Upload public baseline rendering
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-markets-canary-public-baseline-${{ github.run_id }}
+          path: artifacts/capital-markets-shadow/
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Send gated canary
+        env:
+          CM_CANARY_CONFIRM: SEND_TEST_ONLY
+          CM_CANARY_TO: ${{ secrets.CM_CANARY_TO }}
+          # Comparison only; this value is never passed to the mail transport.
+          CM_PRODUCTION_TO_COMPARE: ${{ secrets.EMAIL_TO }}
+          CM_CANARY_ALLOWED_DOMAINS: ${{ vars.CM_CANARY_ALLOWED_DOMAINS }}
+          CM_WATCHLIST_CSV_B64: ${{ secrets.CM_WATCHLIST_CSV_B64 }}
+          CM_CANARY_SMTP_HOST: ${{ secrets.CM_CANARY_SMTP_HOST }}
+          CM_CANARY_SMTP_PORT: ${{ secrets.CM_CANARY_SMTP_PORT }}
+          CM_CANARY_SMTP_USER: ${{ secrets.CM_CANARY_SMTP_USER }}
+          CM_CANARY_SMTP_PASS: ${{ secrets.CM_CANARY_SMTP_PASS }}
+          CM_CANARY_EMAIL_FROM: ${{ secrets.CM_CANARY_EMAIL_FROM }}
+        run: npm run send:capital-markets-canary
