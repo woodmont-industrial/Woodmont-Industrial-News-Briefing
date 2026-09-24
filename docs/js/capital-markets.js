@@ -439,7 +439,7 @@
       // not a completed ownership transfer. It is not routed to Availabilities
       // either - no stakeholder rule covers investment-sale listings yet.
       sale: /\b(sells?|sold|sale of|sale to|acquires?|acquired|acquisition|buys?|bought|purchas\w+|trades? for|trades? hands|changes? hands|disposition|divests?|divested)\b/i,
-      financing: /\b(refinanc\w+|\brefi\b|financ\w+|\bloans?\b|mortgage|cmbs|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
+      financing: /\b(refinanc\w+|\brefi\b|financ\w+|\bloans?\b|mortgage|cmbs|securitiz\w+|asset[- ]backed|recapitaliz\w+|\brecap\b|debt placement|credit facility)\b/i,
       // Bare "leasing" is thematic language ("the industrial leasing map"),
       // not proof that a specific lease occurred. Concrete action is required.
       // A completed LEASE TRANSACTION requires a completion action. Marketing
@@ -464,6 +464,14 @@
     const CM_INTEL_SIGNALS = [
       ['market-fundamentals', /\b(vacancy rate|vacancy|absorption|net absorption|rent growth|asking rents|rental rates|deliveries|construction pipeline|supply pipeline|demand (?:for|remains|returns|jumps)|occupanc\w+)\b/i],
       ['capital-trend', /\b(cap rates?|cmbs|debt markets?|lending|capital markets?|valuations?|pricing trends?|investment volume|dry powder|fundrais\w+)\b/i],
+      // Structured finance is market-structure news, not a single-property
+      // transaction, so it carries the thematic 'capital-trend' label and is
+      // not filtered out by the property-specific guard for naming a dollar
+      // amount. Industrial/data-center context is still required downstream by
+      // the isInd check, so a consumer-loan ABS story cannot enter.
+      // NOTE: bare "ABS" is matched case-SENSITIVELY by cmStructuredFinance,
+      // never here, so "abs" inside an ordinary word can never match.
+      ['capital-trend', /\b(securitiz\w+|asset[- ]backed(?: securit\w+)?|single[- ]asset single[- ]borrower)\b/i],
       ['institutional-strategy', /\b(joint venture|\bjv\b|fund (?:close[sd]?|raises?|launch\w*)|raises? \$[\d.]+|platform acquisition|portfolio strategy|allocat\w+ to industrial|enters? the \w+ market|expands? (?:its )?(?:industrial )?portfolio)\b/i],
       // "Expansion" alone is too broad: a proposed property deal or a company
       // name can contain it without proving a material operating expansion.
@@ -472,8 +480,17 @@
       ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|utility|substation|transmission|interconnection|energy demand|power (?:constraints?|shortage))\b/i],
       ['data-center-intel', /\b(data ?cent\w+)\b.*\b(pipeline|demand|capacity|market|investment|moratorium|regulation|backlash|development boom|vacancy|supply chain|leasing (?:activity|demand|map))\b/i],
     ];
+    // "ABS" is an asset-backed security only as a standalone UPPERCASE token.
+    // A case-insensitive test would match "abs" inside other words, and the
+    // market-fundamentals signal already owns "absorption". Requiring a
+    // securities noun nearby keeps unrelated all-caps uses out.
+    const CM_ABS_TOKEN = /(^|[^A-Za-z0-9])ABS([^A-Za-z0-9]|$)/;
+    const cmStructuredFinance = (text) => CM_ABS_TOKEN.test(text)
+      && /\b(securit\w+|bond|note|issuance|offering|deal|financ\w+|transaction)\b/i.test(text);
+
     const cmIntelSignal = (text) => {
       for (const [label, rx] of CM_INTEL_SIGNALS) if (rx.test(text)) return label;
+      if (cmStructuredFinance(text)) return 'capital-trend';
       // A large industrial portfolio financing is material capital-markets
       // intelligence even when a terse headline says only "refi". Keep this
       // deliberately narrow: portfolio context and at least $500M are both
@@ -512,6 +529,17 @@
       const constructionOnlyInBody = constructionAt < 0 && !Number.isFinite(nonConstructionAt);
 
       if (CM_RX.municipal.test(text)) {
+        // Geography gates municipal items exactly as it gates every other
+        // section. This check must PRECEDE acceptance: it previously sat after
+        // it, so no municipal item was ever geography-validated and a planning
+        // board anywhere in the country could reach Week in Review.
+        // NATIONAL matters as much as UNMAPPED here. An explicitly named
+        // out-of-scope state resolves to NATIONAL, so gating on UNMAPPED alone
+        // would still admit an out-of-state entitlement story.
+        if (tier === 'UNMAPPED' || tier === 'NATIONAL') {
+          return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: null,
+                   reason: `UNMAPPED_GEO: municipal/entitlement item outside the covered markets; ${geo}` };
+        }
         return { section: 'municipal', tier, code: null, magnitude: null, reason: `municipal/entitlement keyword; ${geo}` };
       }
       if (CM_RX.lowValue.test(text)) {
