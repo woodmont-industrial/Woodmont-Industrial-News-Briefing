@@ -1,4 +1,11 @@
-import { assertFreshFeedForSend, buildCapitalMarketsPackage, readCanarySmtpConfig, validateCanaryRecipients } from './capital-markets-delivery.js';
+import { gzipSync } from 'zlib';
+import {
+    assertFreshFeedForSend,
+    buildCapitalMarketsPackage,
+    decodeWatchlistEnvironmentValue,
+    readCanarySmtpConfig,
+    validateCanaryRecipients,
+} from './capital-markets-delivery.js';
 import { NormalizedItem } from '../types/index.js';
 
 let failures = 0;
@@ -60,6 +67,38 @@ const rollingWindow = await buildCapitalMarketsPackage({
 });
 check(rollingWindow.summary.sectionCounts.sales === 1, 'delivery uses an exact rolling 24-hour cutoff');
 check(/\$31 million/.test(rollingWindow.deliveryHtml) && !/\$32 million/.test(rollingWindow.deliveryHtml), 'an item just outside the rolling window stays out');
+
+const syntheticWatchlist = 'Company Name,Website Domain\r\nACME Industrial,acme.example\r\n';
+const plainWatchlistValue = Buffer.from(syntheticWatchlist, 'utf8').toString('base64');
+const gzipWatchlistValue = gzipSync(Buffer.from(syntheticWatchlist, 'utf8')).toString('base64');
+check(decodeWatchlistEnvironmentValue(plainWatchlistValue) === syntheticWatchlist,
+  'existing plain-base64 watchlist values remain supported');
+check(decodeWatchlistEnvironmentValue(gzipWatchlistValue) === syntheticWatchlist,
+  'gzip-base64 watchlist values are detected and decoded');
+rejects(() => decodeWatchlistEnvironmentValue('not valid base64!'),
+  'malformed base64 watchlists fail closed');
+rejects(() => decodeWatchlistEnvironmentValue(Buffer.from([0xff]).toString('base64')),
+  'non-UTF-8 watchlists fail closed');
+rejects(() => decodeWatchlistEnvironmentValue(
+    gzipSync(Buffer.alloc(2_000_001, 65)).toString('base64')
+), 'gzip expansion beyond 2 MB is blocked');
+
+const priorEncodedWatchlist = process.env.CM_WATCHLIST_CSV_B64;
+const priorWatchlistPath = process.env.WATCHLIST_CSV;
+process.env.CM_WATCHLIST_CSV_B64 = gzipSync(Buffer.from(`\uFEFF${syntheticWatchlist}`, 'utf8')).toString('base64');
+delete process.env.WATCHLIST_CSV;
+const environmentWatchlist = await buildCapitalMarketsPackage({
+    articles: [item('Buyer acquires Edison, New Jersey industrial warehouse for $31 million', 'gzip-watchlist')],
+    asOfDate: '2026-09-23',
+    lookbackHours: 168,
+    includeWeekInReview: false,
+});
+check(environmentWatchlist.summary.watchlist.loaded === 1,
+  'gzip watchlist, including an optional UTF-8 BOM, flows through the server build without a temporary file');
+if (priorEncodedWatchlist === undefined) delete process.env.CM_WATCHLIST_CSV_B64;
+else process.env.CM_WATCHLIST_CSV_B64 = priorEncodedWatchlist;
+if (priorWatchlistPath === undefined) delete process.env.WATCHLIST_CSV;
+else process.env.WATCHLIST_CSV = priorWatchlistPath;
 
 const enriched = await buildCapitalMarketsPackage({
     articles: [item('ACME acquires an industrial warehouse in Edison, New Jersey', 'needs-price')],
