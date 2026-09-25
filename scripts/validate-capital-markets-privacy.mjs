@@ -8,6 +8,13 @@ import { fileURLToPath } from 'url';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.env.CM_PRIVACY_BASE || 'origin/main';
 const MAX_WATCHLIST_BYTES = 2_000_000;
+// The stakeholder explicitly approved these two files for publication. The
+// validator now ensures watchlist terms do not spread into code, comments,
+// logs or commit messages outside the source workbook and browser projection.
+const AUTHORIZED_PUBLIC_FILES = new Set([
+  'data/capital-markets/institutional-ownership-nnj.xlsx',
+  'docs/data/capital-markets-watchlist.json',
+]);
 
 function fail(message) {
   process.stderr.write(`Capital Markets privacy validation failed: ${message}\n`);
@@ -91,16 +98,26 @@ function escaped(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const inputPath = path.resolve(process.argv[2] || process.env.WATCHLIST_CSV || '');
-if (!process.argv[2] && !process.env.WATCHLIST_CSV) {
-  fail('provide the private CSV path as an argument or WATCHLIST_CSV');
-}
+const inputPath = path.resolve(process.argv[2] || process.env.WATCHLIST_CSV
+  || path.join(REPO, 'docs/data/capital-markets-watchlist.json'));
 let stat;
 try { stat = fs.statSync(inputPath); }
 catch { fail('watchlist could not be read'); }
 if (!stat.isFile() || stat.size > MAX_WATCHLIST_BYTES) fail('watchlist is not a file or exceeds 2 MB');
 
-const rows = parseCsv(fs.readFileSync(inputPath, 'utf8'));
+const inputText = fs.readFileSync(inputPath, 'utf8');
+let rows;
+if (inputPath.toLowerCase().endsWith('.json')) {
+  let parsed;
+  try { parsed = JSON.parse(inputText); }
+  catch { fail('watchlist JSON is invalid'); }
+  rows = Array.isArray(parsed) ? parsed : parsed.companies;
+  if (!Array.isArray(rows) || !rows.length || rows.some(row => !row || typeof row !== 'object')) {
+    fail('watchlist JSON has no company rows');
+  }
+} else {
+  rows = parseCsv(inputText);
+}
 const names = [...new Set(rows.map(row => row['Company Name']).filter(Boolean))];
 const distinctiveNames = [...new Set(names.map(normalize).filter(value =>
   value.length >= 7 && !genericNames.has(value)
@@ -118,6 +135,7 @@ const changedFiles = git(['diff', '--name-only', '--diff-filter=ACMRT', `${BASE}
 const findings = [];
 
 for (const file of changedFiles) {
+  if (AUTHORIZED_PUBLIC_FILES.has(file)) continue;
   const currentPath = path.join(REPO, file);
   if (!fs.existsSync(currentPath) || fs.statSync(currentPath).size > 3_000_000) continue;
   const current = fs.readFileSync(currentPath, 'utf8');
@@ -145,9 +163,12 @@ for (const file of changedFiles) {
   });
 }
 
-const history = git(['log', '--format=%B', '-p', '--no-ext-diff', `${BASE}..HEAD`]);
-const additions = history.split(/\r?\n/)
+const messages = git(['log', '--format=%B', `${BASE}..HEAD`]);
+const patchAdditions = changedFiles.filter(file => !AUTHORIZED_PUBLIC_FILES.has(file))
+  .map(file => git(['log', '--format=', '-p', '--no-ext-diff', `${BASE}..HEAD`, '--', file], true))
+  .flatMap(patch => patch.split(/\r?\n/))
   .filter(line => line.startsWith('+') && !line.startsWith('+++')).join('\n');
+const additions = `${messages}\n${patchAdditions}`;
 const normalizedAdditions = normalize(additions);
 const lowerAdditions = additions.toLowerCase();
 
@@ -168,6 +189,7 @@ domains.forEach((term, index) => {
 const result = {
   base: BASE,
   changedFiles: changedFiles.length,
+  authorizedPublicFiles: [...AUTHORIZED_PUBLIC_FILES],
   checked: {
     distinctiveNames: distinctiveNames.length,
     acronyms: acronyms.length,

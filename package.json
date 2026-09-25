@@ -9,6 +9,7 @@
     "build-static": "npx tsx rssfeed.ts --build-static",
     "build:capital-markets-shadow": "node --import tsx rssfeed.ts --build-capital-markets-shadow",
     "send:capital-markets-canary": "node --import tsx rssfeed.ts --send-capital-markets-canary",
+    "build:cm-watchlist": "python3 scripts/build-capital-markets-watchlist.py",
     "encode:cm-watchlist": "node scripts/encode-capital-markets-watchlist.mjs",
     "validate:cm-watchlist-privacy": "node scripts/validate-capital-markets-privacy.mjs",
     "build-reserve-pool": "npx tsx src/build/build-reserve-pool.ts",
