@@ -1,8 +1,8 @@
 /**
  * Runs every Capital Markets suite. Exit code is the total failure count.
  *   node tests/capital-markets/run-all.mjs
- * Set WATCHLIST_CSV to also exercise the private list; without it those checks
- * are skipped rather than failed, so CI needs no private data.
+ * The committed public list has its own suite. WATCHLIST_CSV remains available
+ * for exercising an optional runtime override without committing that file.
  */
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';

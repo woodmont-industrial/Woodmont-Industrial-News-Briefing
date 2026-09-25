@@ -1,8 +1,9 @@
 /**
  * Competitor watchlist attribution.
  *
- * The watchlist here is SYNTHETIC and inline. The real list is private and is
- * never committed; a suite that wants it reads WATCHLIST_CSV at runtime.
+ * The fixtures here stay synthetic so matching edge cases remain stable as the
+ * approved public ownership list changes. That public asset has its own suite;
+ * WATCHLIST_CSV can still exercise an optional runtime override.
  */
 import { loadCapitalMarkets, harness, loadWatchlist } from './load.mjs';
 const { CM } = await loadCapitalMarkets();
@@ -82,12 +83,12 @@ const byDomain = CM.cmCompetitorWatch([{ title: 'Vertex acquires a portfolio',
 h.chk(byDomain.items[0]._cw.company === 'Vertex Asset Management',
   'the more specific domain disambiguates within a family');
 
-h.section('optional: the private list, only when WATCHLIST_CSV is set');
+h.section('optional: runtime override, only when WATCHLIST_CSV is set');
 const real = loadWatchlist(CM);
-if (!real) h.note('WATCHLIST_CSV not set - skipped (this is expected in CI)');
+if (!real) h.note('WATCHLIST_CSV not set - optional override skipped');
 else {
   const res = CM.cmCompetitorWatch([], real);
-  h.chk(res.diag.companiesLoaded > 0, `private list parsed: ${res.diag.companiesLoaded} companies, ${res.diag.withDomains} with domains`);
+  h.chk(res.diag.companiesLoaded > 0, `runtime override parsed: ${res.diag.companiesLoaded} companies, ${res.diag.withDomains} with domains`);
   h.chk(res.diag.rejectedGenericName <= 2, `at most a couple of companies are unusable (${res.diag.rejectedGenericName})`);
 }
 

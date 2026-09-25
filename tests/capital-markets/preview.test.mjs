@@ -72,6 +72,21 @@ h.chk(/Try <strong>7 days<\/strong>/.test(empty) && /30 days/.test(empty), 'sugg
 h.chk(/No competitor watchlist loaded/.test(empty), 'reports watchlist health when none is loaded');
 h.chk(!/No items cleared the thresholds/.test(build(168)), 'the panel disappears once items qualify');
 
+h.section('partially populated daily preview leads with useful content');
+const intelOnly = build(24, [{
+  title: 'Industrial vacancy rate falls as net absorption improves',
+  description: '', link: 'https://example.test/intel', pubDate: day(0),
+}]);
+h.chk(/Preview result: 1 core item/.test(intelOnly), 'always summarizes a non-empty selection');
+h.chk(/Reviewed <strong>1<\/strong> candidate article/.test(intelOnly),
+  'summary states how much source material was reviewed');
+h.chk(/Quiet:<\/strong> Sales, Leases, Availabilities, Construction, Municipal/.test(intelOnly),
+  'quiet sections are named once');
+h.chk(!/Sales Transactions|Lease Transactions|<h2[^>]*>Availabilities<\/h2>|Construction Updates/.test(intelOnly),
+  'empty daily sections do not consume the top of the preview');
+h.chk(intelOnly.indexOf('Week in Review') < intelOnly.indexOf('Relevant Market Intelligence'),
+  'independent weekly context appears before the thin daily section');
+
 h.section('watchlist health reflects a loaded list');
 const wl = [{ 'Company Name': 'Northgate Industrial Partners', 'Website Domain': 'northgate.example' },
             { 'Company Name': 'ACME Logistics Properties', 'Website Domain': '' }];
@@ -80,6 +95,11 @@ h.chk(/2 companies loaded/.test(withWl), 'reports companies loaded');
 h.chk(/1 with website domains/.test(withWl), 'reports how many carry domains');
 h.chk(/Official company sites are not yet monitored/.test(withWl),
   'states plainly that official company sites are not yet monitored');
+const withRepoWl = CM.buildCapitalMarketsNewsletterHTML([
+  { title: 'Industry conference announced', description: '', link: '', pubDate: day(0) }
+], { asOfDate: AS_OF, lookbackHours: 24, watchlist: wl, watchlistSource: 'repo' });
+h.chk(/Approved public repo watchlist/.test(withRepoWl),
+  'identifies the automatically loaded repo-backed list');
 
 h.section('end-to-end build over the live feed');
 const live = loadFeed();

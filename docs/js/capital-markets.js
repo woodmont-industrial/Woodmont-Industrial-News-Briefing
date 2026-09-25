@@ -8,8 +8,9 @@
  *
  * Preview rendering is the default. A caller may explicitly request the clean
  * delivery renderer, but this module never sends email, chooses recipients or
- * mutates sent-state. The competitor watchlist is caller-supplied at runtime
- * and never persisted.
+ * mutates sent-state. The competitor watchlist is caller-supplied at runtime;
+ * the website may supply the approved public repo asset while server callers
+ * may still inject a separate runtime list.
  */
 (function (global) {
   'use strict';
@@ -27,8 +28,8 @@
     // plus a Census-derived municipality -> county lookup. Reading them is a
     // same-origin fetch of our own GitHub Pages assets. It is NOT an external
     // news fetch and it transmits nothing: no body, no query string, no
-    // credentials. The private competitor watchlist is unrelated to this and
-    // still never leaves the browser.
+    // credentials. The competitor watchlist is unrelated to this geography
+    // fetch and is never transmitted with these requests.
     const CM_GEO_FILES = ['capital-markets-geography.json', 'capital-markets-places.json'];
     const cmGeo = { status: 'idle', geography: null, index: null, error: null };
 
@@ -716,13 +717,12 @@
     };
 
     // ---------------------------------------------------------------------
-    // INSTITUTIONAL COMPETITOR WATCH (private runtime input, 2026-09-18)
+    // INSTITUTIONAL COMPETITOR WATCH (public default + runtime override)
     // ---------------------------------------------------------------------
-    // In the website preview the watchlist is uploaded via FileReader, held in
-    // React component memory ONLY, and disappears on refresh. The server-side
-    // shadow/canary adapter may inject the same rows from a runtime secret. In
-    // both cases the list is never committed, logged, or persisted by this
-    // module.
+    // The website preview receives the approved public repo watchlist by
+    // default and may replace it with a FileReader session override. The
+    // server-side shadow/canary adapter may inject rows from a runtime secret.
+    // This browser-neutral module never fetches, logs or persists either list.
     const CM_CSV_COLUMNS = ['Company Name', 'Secondary Type', 'City', 'State / Country',
       'NNJ Search SF', 'NNJ Search Properties', 'Portfolio SF', 'Website', 'Website Domain'];
 
@@ -1137,6 +1137,10 @@
       };
       const section = (title, items, note, kind) => {
         const shown = items.slice(0, maxItems);
+        // A stack of full-size empty sections made a correctly filtered daily
+        // preview look broken. The preview summary lists quiet sections once;
+        // delivery retains explicit empty headings for editorial review.
+        if (!delivery && shown.length === 0) return '';
         const overflow = items.length > shown.length
           ? `<p style="font-size:10px;color:#94a3b8;margin:5px 0 0;">Showing ${shown.length} of ${items.length} qualifying items.</p>` : '';
         return `
@@ -1187,11 +1191,42 @@
           ? 'Try <strong>30 days</strong> for a fuller picture.'
           : 'This is already a wide window; the market itself was quiet, or the thresholds are filtering everything.';
       const watchlistHealth = !o.watchlist || !o.watchlist.length
-        ? 'No competitor watchlist loaded (browser-only; re-upload after a refresh).'
+        ? 'No competitor watchlist loaded.'
         : `${cw.diag.companiesLoaded} companies loaded &middot; ${cw.diag.withDomains} with website domains &middot; `
           + `${cw.diag.rejectedGenericName} excluded for unusable matching data &middot; `
           + `${cw.diag.companiesMatched} matched &middot; ${cw.diag.accepted} material articles`
+          + (o.watchlistSource === 'repo'
+            ? `<br/><span style="color:#64748b;">Approved public repo watchlist &mdash; loaded automatically.</span>`
+            : '')
           + `<br/><span style="color:#94a3b8;">Official company sites are not yet monitored &mdash; matching runs over feed articles only.</span>`;
+
+      const coreCounts = {
+        'Sales': buckets.sales.length,
+        'Leases': buckets.leases.length,
+        'Availabilities': buckets.availabilities.length,
+        'Construction': buckets.construction.length,
+        'Market intelligence': buckets.intel.length,
+        'Municipal / entitlement': buckets.municipal.length,
+      };
+      const coreSelected = Object.values(coreCounts).reduce((sum, count) => sum + count, 0);
+      const quietSections = Object.entries(coreCounts).filter(([, count]) => count === 0).map(([name]) => name);
+      const activeSections = Object.entries(coreCounts).filter(([, count]) => count > 0)
+        .map(([name, count]) => `${name} ${count}`);
+      const transactionSelected = buckets.sales.length + buckets.leases.length
+        + buckets.availabilities.length + buckets.construction.length;
+      const selectionSummary = delivery || selectedCount === 0 ? '' : `
+        <div style="margin:12px 0 18px;padding:12px 14px;background:#eff6ff;border:1px solid #93c5fd;border-radius:6px;font-size:12px;color:#1e3a5f;">
+          <strong style="font-size:13px;">Preview result: ${coreSelected} core item${coreSelected === 1 ? '' : 's'}${cw.items.length ? ` + ${cw.items.length} competitor item${cw.items.length === 1 ? '' : 's'}` : ''}</strong>
+          <div style="margin-top:5px;">Reviewed <strong>${inWindow.length}</strong> candidate article${inWindow.length === 1 ? '' : 's'} in the selected window &middot; rejected <strong>${rejected.length}</strong>.</div>
+          ${activeSections.length ? `<div style="margin-top:5px;"><strong>Populated:</strong> ${esc(activeSections.join(' &middot; '))}</div>` : ''}
+          ${quietSections.length ? `<div style="margin-top:5px;"><strong>Quiet:</strong> ${esc(quietSections.join(', '))}</div>` : ''}
+          ${transactionSelected === 0 ? `<div style="margin-top:7px;color:#475569;">No qualifying transaction, availability or construction event was present in this source window. Weekly context is shown first below.</div>` : ''}
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #bfdbfe;"><strong>Watchlist:</strong> ${watchlistHealth}</div>
+          ${rejectedList ? `<details style="margin-top:9px;">
+            <summary style="cursor:pointer;font-weight:600;">Show ${Math.min(rejected.length, 60)} rejected candidate${rejected.length === 1 ? '' : 's'} and exact reasons</summary>
+            <ul style="margin:8px 0 0;padding-left:18px;">${rejectedList}</ul>
+          </details>` : ''}
+        </div>`;
 
       const feedHealth = o.feedHealth || null;
       const staleInput = feedHealth && feedHealth.status !== 'FRESH';
@@ -1350,21 +1385,25 @@
         ${wirTop.length
           ? `<ul style="padding-left:18px;margin:0;">${wirTop.map(wirRow).join('')}</ul>`
           : '<p style="font-size:12px;color:#64748b;margin:0;">Nothing cleared the thresholds in the last seven days.</p>'}`;
-      const sectionsHtml = `
+      const dailySections = `
         ${section('Sales Transactions', buckets.sales, '', 'sales')}
         ${section('Lease Transactions', buckets.leases, '', 'leases')}
         ${section('Availabilities', buckets.availabilities, '', 'availabilities')}
         ${section('Construction Updates', buckets.construction, '', 'construction')}
         ${section('Relevant Market Intelligence', buckets.intel, '', 'intel')}
-        ${section('Municipal / Entitlement Watch', buckets.municipal, delivery ? '' : 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.', 'municipal')}
-        ${cwSection}
-        ${friday}`;
+        ${section('Municipal / Entitlement Watch', buckets.municipal, delivery ? '' : 'NEWS-DERIVED — sourced from news articles, not from direct municipal records.', 'municipal')}`;
+      // Editors need the seven-day context immediately on thin daily runs.
+      // Delivery keeps the conventional daily-sections-first ordering.
+      const sectionsHtml = delivery
+        ? `${dailySections}${cwSection}${friday}`
+        : `${friday}${dailySections}${cwSection}`;
       if (!delivery) return `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#fff;color:#1e293b;">
         ${banner}
         ${freshnessWarning}
-        ${emptyState}
         <h1 style="font-size:20px;color:#0B223F;margin:0 0 2px;">Woodmont Capital Markets Preview</h1>
         <div style="font-size:12px;color:#64748b;margin-bottom:6px;">${esc(dateStr)} · lookback ${lookbackHours}h · sandbox</div>
+        ${selectionSummary}
+        ${emptyState}
         ${sectionsHtml}
         ${diag}
       </div>`;

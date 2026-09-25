@@ -6,8 +6,8 @@
  * evaluates only the module-scope helper region of that file - never the React
  * components - and injects the result into the factory.
  *
- * No private data is committed here. A watchlist, when a test needs one, is
- * read at runtime from WATCHLIST_CSV and is otherwise absent.
+ * The approved public watchlist has its own integration suite. A separate
+ * runtime override, when a test needs one, is read from WATCHLIST_CSV.
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -35,7 +35,7 @@ export function loadFeed() {
 }
 
 /**
- * The private watchlist, ONLY if the caller points at it via WATCHLIST_CSV.
+ * An optional runtime watchlist, ONLY if the caller points at WATCHLIST_CSV.
  * Returns null otherwise so suites can skip watchlist-dependent checks rather
  * than fail. The file is never copied, cached or committed.
  */
