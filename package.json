@@ -12,6 +12,7 @@
     "encode:cm-watchlist": "node scripts/encode-capital-markets-watchlist.mjs",
     "validate:cm-watchlist-privacy": "node scripts/validate-capital-markets-privacy.mjs",
     "validate:newsletter-automation-auth": "node scripts/validate-newsletter-automation-auth.mjs",
+    "test:sent-state-races": "bash .github/scripts/commit-send-state.test.sh",
     "build-reserve-pool": "npx tsx src/build/build-reserve-pool.ts",
     "dev": "npx tsx rssfeed.ts",
     "test:newsletter-diagnostics": "npx tsx src/server/newsletter-diagnostics.test.ts",
