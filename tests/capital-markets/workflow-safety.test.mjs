@@ -11,6 +11,7 @@ const h = harness('workflow safety');
 const shadow = read('.github/workflows/capital-markets-shadow.yml');
 const canary = read('.github/workflows/capital-markets-canary.yml');
 const production = read('.github/workflows/send-only.yml');
+const competitorSources = read('src/server/capital-markets-competitor-sources.ts');
 const config = JSON.parse(read('config/capital-markets-newsletter.json'));
 
 h.section('shadow has no delivery capability');
@@ -39,6 +40,14 @@ h.chk(/CM_CANARY_SMTP_HOST/.test(canary) && /CM_CANARY_SMTP_PASS/.test(canary)
   'canary uses only its dedicated SMTP secret namespace');
 h.chk(/public baseline/i.test(canary),
   'uploaded artifact is accurately labelled when private watchlist data is excluded');
+
+h.section('competitor source discovery is dormant');
+h.chk(!/competitor-sources|DISCOVER_COMPETITOR|homepageLoader/.test(`${shadow}\n${canary}\n${production}`),
+  'no workflow can invoke competitor-site discovery');
+h.chk(/if \(!enabled\) return/.test(competitorSources),
+  'source discovery returns before any loader work when disabled');
+h.chk(/requires an explicit homepage loader/.test(competitorSources),
+  'enabled discovery still requires an explicitly injected loader');
 
 h.section('production remains isolated');
 h.chk(!/capital-markets/i.test(production),

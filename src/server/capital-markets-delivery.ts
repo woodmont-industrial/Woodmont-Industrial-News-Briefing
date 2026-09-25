@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
+import { TextDecoder } from 'util';
+import { gunzipSync } from 'zlib';
 import { NormalizedItem } from '../types/index.js';
 import { loadArticlesFromFeed } from './newsletter-filters.js';
 import { enrichCapitalMarketsCandidates, CapitalMarketsEnrichmentDiagnostics } from './capital-markets-enrichment.js';
@@ -10,6 +12,9 @@ const require_ = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const MAX_WATCHLIST_BYTES = 2_000_000;
+const MAX_ENCODED_WATCHLIST_CHARS = 2_800_000;
+const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 type WatchlistRow = Record<string, string>;
 
@@ -126,18 +131,52 @@ function runtimeFor(repoRoot: string, docsDir: string): Promise<any> {
     return loadCapitalMarketsRuntime({ repoRoot, docsDir });
 }
 
+/**
+ * Decode the private runtime value without writing it to disk. Gzip is
+ * detected by its standard magic bytes, so existing plain-base64 values keep
+ * working while compressed values fit within GitHub's secret-size limit.
+ */
+export function decodeWatchlistEnvironmentValue(encodedValue: string): string {
+    const encoded = encodedValue.trim();
+    if (!encoded) throw new Error('Encoded watchlist is empty');
+    if (encoded.length > MAX_ENCODED_WATCHLIST_CHARS) {
+        throw new Error('Encoded watchlist exceeds the runtime safety limit');
+    }
+    if (!BASE64_PATTERN.test(encoded)) throw new Error('Encoded watchlist is not valid base64');
+
+    const decoded = Buffer.from(encoded, 'base64');
+    if (decoded.length > MAX_WATCHLIST_BYTES) {
+        throw new Error('Decoded watchlist exceeds the 2 MB safety limit');
+    }
+
+    let bytes = decoded;
+    const isGzip = decoded.length >= 2 && decoded[0] === 0x1f && decoded[1] === 0x8b;
+    if (isGzip) {
+        try {
+            bytes = gunzipSync(decoded, { maxOutputLength: MAX_WATCHLIST_BYTES });
+        } catch {
+            throw new Error('Gzip watchlist is invalid or exceeds the 2 MB decompression limit');
+        }
+    }
+    if (bytes.length > MAX_WATCHLIST_BYTES) {
+        throw new Error('Decoded watchlist exceeds the 2 MB safety limit');
+    }
+    try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+        throw new Error('Decoded watchlist is not valid UTF-8');
+    }
+}
+
 function readWatchlistTextFromEnvironment(): string | null {
     const encoded = (process.env.CM_WATCHLIST_CSV_B64 || '').trim();
     const runtimePath = (process.env.WATCHLIST_CSV || '').trim();
     if (encoded && runtimePath) throw new Error('Set only one of CM_WATCHLIST_CSV_B64 or WATCHLIST_CSV');
-    if (encoded) {
-        if (encoded.length > 2_800_000) throw new Error('Encoded watchlist exceeds the runtime safety limit');
-        return Buffer.from(encoded, 'base64').toString('utf8');
-    }
+    if (encoded) return decodeWatchlistEnvironmentValue(encoded);
     if (runtimePath) {
         const resolved = path.resolve(runtimePath);
         const stat = fs.statSync(resolved);
-        if (!stat.isFile() || stat.size > 2_000_000) throw new Error('Watchlist path is not a file or exceeds 2 MB');
+        if (!stat.isFile() || stat.size > MAX_WATCHLIST_BYTES) throw new Error('Watchlist path is not a file or exceeds 2 MB');
         return fs.readFileSync(resolved, 'utf8');
     }
     return null;
@@ -242,7 +281,9 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     let watchlist = options.watchlist;
     if (watchlist === undefined) {
         const watchlistText = readWatchlistTextFromEnvironment();
-        watchlist = watchlistText ? validateWatchlist(CM.cmParseCSV(watchlistText)) : null;
+        watchlist = watchlistText
+            ? validateWatchlist(CM.cmParseCSV(watchlistText.replace(/^\uFEFF/, '')))
+            : null;
     }
 
     const built = CM.cmBuildSections(articles, asOfTime, lookbackHours);

@@ -32,9 +32,11 @@ The gated test workflow uses:
 - `CM_CANARY_SMTP_USER` — dedicated canary SMTP user
 - `CM_CANARY_SMTP_PASS` — dedicated canary SMTP password or app password
 - `CM_CANARY_EMAIL_FROM` — corporate sender address for the test message
-- `CM_WATCHLIST_CSV_B64` — optional base64-encoded private watchlist, read at
-  runtime and never written to the repository or uploaded with the public
-  shadow artifact
+- `CM_WATCHLIST_CSV_B64` — optional gzip-compressed, base64-encoded private
+  watchlist, read at runtime and never written to the repository or uploaded
+  with the public shadow artifact. Existing uncompressed base64 values remain
+  supported, but the compressed form is required when the raw value would
+  exceed GitHub's 48 KB secret limit.
 
 Optional repository variable:
 
@@ -53,6 +55,43 @@ the repository plan supports environment secrets. The job receives `EMAIL_TO`
 only under the non-delivery name `CM_PRODUCTION_TO_COMPARE`; code uses it to
 reject an exact match with the production destination, including a single
 distribution-list alias.
+
+### Encode the private watchlist
+
+The encoder validates the required `Company Name` header, row count, UTF-8
+encoding, runtime size limit, and GitHub's 48 KB encoded-secret limit. It emits
+the secret value to standard output and reports only counts and byte sizes to
+standard error; it never logs company names or domains.
+
+On Windows PowerShell, copy the encoded value directly to the clipboard without
+creating an intermediate file:
+
+```powershell
+npm run --silent encode:cm-watchlist -- "C:\private\Institutional_Ownership_Watchlist.csv" | Set-Clipboard
+```
+
+Paste the clipboard value into the `CM_WATCHLIST_CSV_B64` secret under the
+protected `capital-markets-canary` Environment, save it, and then clear the
+clipboard:
+
+```powershell
+Set-Clipboard -Value ""
+```
+
+On macOS, replace `Set-Clipboard` with `pbcopy`. Base64 is transport encoding,
+not encryption: never paste the value into a commit, issue, pull request,
+workflow input, or workflow log. The decoder recognizes gzip by its standard
+magic bytes and refuses invalid base64, invalid UTF-8, or output above 2 MB.
+
+Before pushing a branch that changes Capital Markets code or examples, check
+the committed tree and added commit history against the private list:
+
+```powershell
+npm run --silent validate:cm-watchlist-privacy -- "C:\private\Institutional_Ownership_Watchlist.csv"
+```
+
+The validator reports only counts, file paths, finding types, and private term
+indexes. It never prints the matched company name, acronym, or domain.
 
 ## Verification
 

@@ -38,10 +38,16 @@ capital-markets-canary.yml -> manual confirmation -> test-only recipients
   when amount, canonical geography, timing, and corroborating story identity
   agree.
 - Keep the private competitor list runtime-only. It may be supplied to a test
-  run through `CM_WATCHLIST_CSV_B64` or a local `WATCHLIST_CSV`; it must never be
-  committed or included in the public shadow artifact.
+  run through gzip + base64 in `CM_WATCHLIST_CSV_B64` or a local
+  `WATCHLIST_CSV`; it must never be committed or included in the public shadow
+  artifact. Plain base64 remains accepted for backward compatibility.
 - Enrich missing deal facts only from public page metadata, never by guessing.
   Enrichment remains off until its shadow results are reviewed.
+- The competitor-source discovery module may plan runtime-only homepages and
+  parse explicitly loaded homepage HTML for same-site RSS/newsroom links. It is
+  disabled by default, has no workflow integration, performs no network work
+  without an injected loader, and must not serialize discovered URLs. Live
+  crawling and article ingestion remain subject to the owner decision below.
 - Customize the public title, daily lookback, item cap, empty-send policy, and
   Week in Review settings in `config/capital-markets-newsletter.json`. The
   public `subject` setting controls the canary subject after the mandatory
