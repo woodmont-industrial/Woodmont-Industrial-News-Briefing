@@ -35,7 +35,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write          # only to push the reserve file
+  contents: read           # writes use the dedicated GitHub App token
 
 jobs:
   build-reserve:
@@ -43,10 +43,19 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Create newsletter automation token
+        id: newsletter-app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.NEWSLETTER_AUTOMATION_CLIENT_ID }}
+          private-key: ${{ secrets.NEWSLETTER_AUTOMATION_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          token: ${{ steps.newsletter-app-token.outputs.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -41,7 +41,7 @@ on:
         default: false
 
 permissions:
-  contents: write
+  contents: read
   actions: write
 
 jobs:
@@ -98,11 +98,20 @@ jobs:
         run: echo "⏭️ Build already completed recently — skipping."
 
       # === SETUP ===
+      - name: Create newsletter automation token
+        id: newsletter-app-token
+        if: steps.dedup.outputs.skip != 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.NEWSLETTER_AUTOMATION_CLIENT_ID }}
+          private-key: ${{ secrets.NEWSLETTER_AUTOMATION_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout repository
         if: steps.dedup.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.newsletter-app-token.outputs.token }}
 
       - name: Setup Node.js
         if: steps.dedup.outputs.skip != 'true'

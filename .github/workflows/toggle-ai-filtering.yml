@@ -13,55 +13,16 @@ on:
           - disable
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   toggle-ai:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Toggle AI Filtering
+      - name: Direct workflow mutation is retired
         run: |
-          if [ "${{ inputs.action }}" == "disable" ]; then
-            echo "🔴 Disabling AI filtering..."
-            # Update send-newsletter-work.yml to add SKIP_AI
-            sed -i 's/GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}/GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}\n          SKIP_AI: '\''true'\''/g' .github/workflows/send-newsletter-work.yml
-            # Update update-articles.yml to add SKIP_AI
-            sed -i 's/GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}/GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}\n        SKIP_AI: '\''true'\''/g' .github/workflows/update-articles.yml
-            MESSAGE="🔴 AI filtering DISABLED"
-          else
-            echo "🟢 Enabling AI filtering..."
-            # Remove SKIP_AI from workflows
-            sed -i '/SKIP_AI/d' .github/workflows/send-newsletter-work.yml
-            sed -i '/SKIP_AI/d' .github/workflows/update-articles.yml
-            MESSAGE="🟢 AI filtering ENABLED"
-          fi
-
-          echo "status=$MESSAGE" >> $GITHUB_OUTPUT
-          echo "$MESSAGE"
-
-      - name: Commit changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .github/workflows/
-          if git diff --staged --quiet; then
-            echo "📋 No changes needed"
-          else
-            git commit -m "${{ inputs.action == 'disable' && '🔴 Disable' || '🟢 Enable' }} AI filtering via toggle workflow"
-            git push
-            echo "✅ AI filtering has been ${{ inputs.action }}d"
-          fi
-
-      - name: Report Status
-        run: |
-          if [ "${{ inputs.action }}" == "disable" ]; then
-            echo "::notice::🔴 AI filtering is now DISABLED. Newsletter will use basic filtering only."
-          else
-            echo "::notice::🟢 AI filtering is now ENABLED. Newsletter will use Groq AI for classification."
-          fi
+          echo "::error::This workflow no longer edits workflow files or pushes directly to main."
+          echo "Requested state: ${{ inputs.action }}"
+          echo "Change AI filtering through a reviewed pull request instead."
+          exit 1
