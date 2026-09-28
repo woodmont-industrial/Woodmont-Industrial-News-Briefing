@@ -2,7 +2,7 @@
 
 **Status:** contract defined, tests in place. The external caller itself is
 configured outside this repository (Power Automate, cron-job.org, or any
-HTTPS client) and is **not yet live** as of 2026-09-21.
+HTTPS client) and is **not yet live** as of 2026-09-28.
 
 ---
 
@@ -14,11 +14,17 @@ arrive hours late or are dropped entirely. Because every recovery layer is
 triggered by the same mechanism, a scheduler-wide delay disables all of them at
 once.
 
-That is exactly what happened on **Monday 2026-09-21**: `newsletter-pipeline.yml`
+That is exactly what happened again on **Monday 2026-09-28**: `newsletter-pipeline.yml`
 never ran, so no `workflow_run` recovery event was produced; the send crons never
 arrived; the watchdog crons never arrived. Nothing was broken in the repository —
 the whole class of trigger simply did not fire, and the day needed a manual
 `workflow_dispatch`.
+
+No scheduled newsletter workflow had fired by **10:01 AM ET**, and the send that
+finally went out came from a manual build. Note the precise claim: the crons had
+not *arrived* by then — not that they never would have. GitHub documents that
+scheduled jobs may be delayed or dropped, which is why adding more native crons
+cannot fix this.
 
 `repository_dispatch` and `workflow_dispatch` are **not** subject to that
 deprioritisation. They fire within seconds. So the fix is to move the *timing*
@@ -71,8 +77,13 @@ accepted. Treat any non-204 as a failure and retry (see *Retries* below).
 
 A fine-grained PAT scoped to **this repository only**, with:
 
-- **Contents: read and write** (the send commits `sent-articles.json`)
-- **Actions: read and write**
+- **Contents: write** — the only permission `POST /dispatches` requires.
+- **Actions: read** — optional, and only if the scheduler polls run status.
+
+**Not** `Actions: write`. The external credential never commits anything: the
+workflow's own `GITHUB_TOKEN` (or the dedicated GitHub App, once PR #13 lands)
+writes `sent-articles.json` and the build receipt. This token's sole job is to
+start a workflow, so it gets the narrowest scope that does that.
 
 Store it in the scheduler's secret store. **Never commit it.** If it leaks,
 revoke it immediately — a `repository_dispatch` token can trigger a real send

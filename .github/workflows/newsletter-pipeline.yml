@@ -6,25 +6,22 @@ name: Newsletter Pipeline (Build Only)
 
 on:
   schedule:
-    # ET WALL-CLOCK schedule (timezone-aware; Actions handles EDT/EST itself).
-    # 2026-09-14: converted from fixed UTC (06:55-07:55Z) to the identical ET
-    # local times, so the schedule no longer drifts an hour at DST boundaries.
+    # FALLBACK ONLY. The external scheduler (repository_dispatch build-feed at
+    # 6:15 AM ET) is the primary clock - see dev-docs/EXTERNAL-SCHEDULER.md.
     #
-    # These deliberately fire ~02:55-03:55 ET, which is NOT a delivery time:
-    # GitHub delivers `schedule` events hours late for this repo, so the build
-    # starts early to have fresh content committed before send-only.yml's
-    # window. The punctual path is an external scheduler ->
-    # repository_dispatch: build-feed, which this workflow already accepts.
-    - cron: '55 2 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '10 3 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '25 3 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '40 3 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '55 3 * * 1-5'
-      timezone: "America/New_York"
+    # 2026-09-28 review: these previously fired 02:55-03:55 ET, AHEAD of the
+    # external build. Both share concurrency group `newsletter-build`, and GitHub
+    # keeps only one running + one pending run per group, so a delayed cron could
+    # EVICT the pending 6:15 external build from the queue before its job ever
+    # started - meaning the repository_dispatch bypass inside the job never got
+    # the chance to execute. Moving the fallbacks AFTER the delivery window
+    # removes the contention: if the external scheduler worked, the send has
+    # already happened and these skip on the staleness gate; if it failed, these
+    # rebuild and the workflow_run chain delivers late rather than not at all.
+      - cron: '0 8 * * 1-5'
+        timezone: "America/New_York"
+      - cron: '30 8 * * 1-5'
+        timezone: "America/New_York"
   repository_dispatch:
     types: [build-feed]
   workflow_dispatch:
@@ -196,6 +193,27 @@ jobs:
                 git pull --no-rebase -X ours || true
               }
               git stash pop || true
+            done
+          fi
+
+      - name: Write build receipt
+        if: steps.dedup.outputs.skip != 'true'
+        env:
+          TRIGGER: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          node .github/scripts/write-build-receipt.mjs
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/build-receipt.json
+          if git diff --staged --quiet; then
+            echo "Receipt unchanged"
+          else
+            git commit -m "Build receipt - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            for i in 1 2 3; do
+              git push && break
+              git fetch origin main
+              git rebase origin/main --strategy-option=ours || git rebase --abort
             done
           fi
 
