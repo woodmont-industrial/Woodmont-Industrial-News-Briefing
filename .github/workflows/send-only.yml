@@ -87,18 +87,66 @@ jobs:
             const ny = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
             const nyMinutes = ny.getHours() * 60 + ny.getMinutes();
             const FLOOR = 7 * 60 + 15; // 7:15 AM ET
-            if (context.eventName === 'schedule' || context.eventName === 'workflow_run') {
+            // WEEKDAY GUARD (all automated triggers, repository_dispatch included).
+            // 2026-09-28 review: repository_dispatch previously skipped this gate
+            // entirely, so an external scheduler misconfigured for 7 days a week
+            // would email the whole department on Saturday and Sunday. Only a
+            // human workflow_dispatch may deliberately override the calendar.
+            if (context.eventName !== 'workflow_dispatch') {
               if (ny.getDay() === 0 || ny.getDay() === 6) {
                 core.setOutput('skip', 'true');
                 console.log('Weekend in America/New_York — no automated send.');
                 return;
               }
+            }
+            // DELIVERY-WINDOW GUARD for the external scheduler. A dispatch that
+            // arrives far outside the approved window is a misconfiguration, not
+            // a delivery; hold rather than mail at an arbitrary hour.
+            const WINDOW_END = 10 * 60; // 10:00 AM ET
+            if (context.eventName === 'repository_dispatch') {
+              if (nyMinutes < FLOOR || nyMinutes > WINDOW_END) {
+                core.setOutput('skip', 'true');
+                console.log(`repository_dispatch outside the 7:15-10:00 AM ET delivery window (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — holding.`);
+                return;
+              }
+            }
+            if (context.eventName === 'schedule' || context.eventName === 'workflow_run') {
               if (nyMinutes < FLOOR) {
                 core.setOutput('skip', 'true');
                 console.log(`Before the 7:15 AM ET delivery floor (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — deferring to a later trigger or the watchdog.`);
                 return;
               }
               console.log('Inside the delivery window — will send if not already sent today.');
+            }
+            // FRESHNESS GATE. The send must never mail yesterday's feed. The
+            // build writes docs/build-receipt.json on every successful build;
+            // without a receipt dated today the content cannot be proven fresh,
+            // so an automated send HOLDs. A human workflow_dispatch may override.
+            // Any successful build today satisfies this (external OR fallback
+            // cron) — requiring the external trigger specifically would make the
+            // fallback build unable to ever deliver, which is strictly worse.
+            if (context.eventName !== 'workflow_dispatch') {
+              let receiptOk = false, receiptWhy = 'no receipt found';
+              try {
+                const r = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: 'docs/build-receipt.json'
+                });
+                const rc = JSON.parse(Buffer.from(r.data.content, 'base64').toString());
+                const todayNY = ny.getFullYear() + '-' + String(ny.getMonth() + 1).padStart(2, '0') + '-' + String(ny.getDate()).padStart(2, '0');
+                if (rc.success !== true) receiptWhy = 'last build did not succeed';
+                else if (rc.buildDate !== todayNY) receiptWhy = `receipt is dated ${rc.buildDate}, not ${todayNY}`;
+                else { receiptOk = true; receiptWhy = `build ${rc.runId} via ${rc.trigger} at ${rc.completedAt}`; }
+              } catch (e) {
+                receiptWhy = 'could not read build-receipt.json: ' + e.message;
+              }
+              if (!receiptOk) {
+                core.setOutput('skip', 'true');
+                console.log(`HOLD — content freshness unproven (${receiptWhy}). Refusing to send a stale edition.`);
+                return;
+              }
+              console.log(`Freshness confirmed — ${receiptWhy}`);
             }
             try {
               const file = await github.rest.repos.getContent({
