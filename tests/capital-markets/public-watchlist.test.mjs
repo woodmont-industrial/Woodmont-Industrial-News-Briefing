@@ -1,5 +1,4 @@
 /** Repo-backed Capital Markets watchlist and browser auto-load contract. */
-import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadCapitalMarkets, harness, REPO } from './load.mjs';
