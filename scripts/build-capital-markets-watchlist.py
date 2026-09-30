@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Build the public browser watchlist from the committed ownership workbook.
+"""Build the public browser watchlist from the private ownership workbook.
 
-Only fields used by the Capital Markets matcher are published to docs/. Phone
-numbers and street addresses remain in the source workbook and are not copied
-into the browser-readable JSON.
+Only the fields used by matching and competitor-source discovery are published
+to docs/. Remaining workbook columns are not copied into the
+browser-readable JSON.
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
+import os
 import json
 import re
 import sys
@@ -20,7 +20,13 @@ from xml.etree import ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "data" / "capital-markets" / "institutional-ownership-nnj.xlsx"
+# The workbook is NOT committed. It carries more columns than the matcher
+# needs, so it is kept outside the tree and only the projection below is
+# published. Override the location with CM_WATCHLIST_WORKBOOK.
+DEFAULT_INPUT = Path(
+    os.environ.get("CM_WATCHLIST_WORKBOOK")
+    or Path.home() / "Downloads" / "woodmont-private" / "institutional-ownership-nnj.xlsx"
+)
 DEFAULT_OUTPUT = ROOT / "docs" / "data" / "capital-markets-watchlist.json"
 XML_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 
@@ -99,11 +105,13 @@ def build_payload(input_path: Path) -> dict[str, object]:
         "Secondary Type": "secondary type",
         "City": "city",
         "State / Country": "state / country",
-        "NNJ Search SF": "total sf (in search)",
-        "NNJ Search Properties": "# properties (in search)",
-        "Portfolio SF": "portfolio sf",
         "Website": "website",
     }
+    # PUBLISHED projection: the only fields matching and competitor-source
+    # discovery read. Everything else in the workbook is deliberately not
+    # emitted. Enforced by tests/capital-markets/public-watchlist.test.mjs.
+    published = ("Company Name", "Secondary Type", "City", "State / Country",
+                 "Website", "Website Domain")
     missing = [source for source in aliases.values() if source not in header]
     if missing:
         raise ValueError(f"Ownership workbook is missing required columns: {', '.join(missing)}")
@@ -123,13 +131,12 @@ def build_payload(input_path: Path) -> dict[str, object]:
         company["Website Domain"] = domain_of(company["Website"])
         if not company["Company Name"]:
             raise ValueError("Ownership workbook contains a data row without Company Name")
-        companies.append(company)
+        companies.append({key: company.get(key, "") for key in published})
 
     return {
         "version": 1,
         "visibility": "public-repository",
-        "sourceWorkbook": str(input_path.relative_to(ROOT)).replace("\\", "/"),
-        "sourceSha256": hashlib.sha256(input_path.read_bytes()).hexdigest(),
+        "sourceWorkbook": "private (not committed)",
         "rowCount": len(companies),
         "companies": companies,
     }
