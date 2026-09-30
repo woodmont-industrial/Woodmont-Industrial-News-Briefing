@@ -160,11 +160,46 @@ jobs:
           fi
         continue-on-error: true
 
+  # Watchlist data-minimization guard. The ownership workbook stays outside the
+  # repository, and the published projection must keep to the matcher fields.
+  # These tests previously ran only in the shadow/canary workflows, so a pull
+  # request could reintroduce the data unnoticed. BLOCKING on purpose.
+  watchlist-privacy:
+    runs-on: ubuntu-latest
+    name: Watchlist Privacy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Source workbook must not be committed
+        run: |
+          if git ls-files --error-unmatch data/capital-markets/institutional-ownership-nnj.xlsx >/dev/null 2>&1; then
+            echo "::error::The ownership workbook must not be committed; keep it outside the repository."
+            exit 1
+          fi
+          echo "✅ Ownership workbook is not in the tree"
+
+      - name: Published projection keeps to the matcher fields
+        run: npm run test:capital-markets
+
+      - name: Watchlist terms have not spread beyond the authorized file
+        run: npm run validate:cm-watchlist-privacy
+
   # Summary job - always runs
   ci-summary:
     runs-on: ubuntu-latest
     name: CI Summary
-    needs: [typecheck, build, python-tests, security-scan, geography-check]
+    needs: [typecheck, build, python-tests, security-scan, geography-check, watchlist-privacy]
     if: always()
     steps:
       - name: Check results
@@ -178,5 +213,6 @@ jobs:
           echo "| Python Tests | ${{ needs.python-tests.result }} |"
           echo "| Security Scan | ${{ needs.security-scan.result }} |"
           echo "| Geography Check | ${{ needs.geography-check.result }} |"
+          echo "| Watchlist Privacy | ${{ needs.watchlist-privacy.result }} |"
           echo ""
           echo "Note: Jobs with 'continue-on-error' may show as successful even with warnings."
