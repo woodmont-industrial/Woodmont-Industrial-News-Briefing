@@ -30,17 +30,17 @@ const companiesFor = (title, description = '', link = '') =>
   CM.cmCompetitorWatch([{ title, description, summary: '', link }], WL).items.map(i => i._cw.company);
 
 h.section('a match needs BOTH company evidence and a material event');
-h.chk(companiesFor('Northgate Industrial Partners acquires a warehouse').length === 1,
+h.chk(companiesFor('Northgate Industrial Partners acquires an Edison, New Jersey warehouse').length === 1,
   'company + acquisition -> match');
-h.chk(companiesFor('Northgate Industrial Partners named to a best-places-to-work list').length === 0,
+h.chk(companiesFor('Northgate Industrial Partners named to a best-places-to-work list in Edison, New Jersey').length === 0,
   'company + non-material event -> no match');
-h.chk(companiesFor('An unrelated firm acquires a warehouse').length === 0,
+h.chk(companiesFor('An unrelated firm acquires an Edison, New Jersey warehouse').length === 0,
   'material event with no watchlist company -> no match');
 
 h.section('acronym companies: exact uppercase token only');
-h.chk(companiesFor('QRZ acquires an Edison warehouse').some(c => c === 'QRZ'),
+h.chk(companiesFor('QRZ acquires an Edison, New Jersey warehouse').some(c => c === 'QRZ'),
   'uppercase acronym matches');
-h.chk(companiesFor('TPQX acquires an Edison warehouse').some(c => /TPQX/.test(c)),
+h.chk(companiesFor('TPQX acquires an Edison, New Jersey warehouse').some(c => /TPQX/.test(c)),
   'uppercase acronym with a corporate suffix matches');
 for (const prose of ['the qrz report was published and a site was acquired',
                      'tpqx style cabling was acquired for the fit-out'])
@@ -52,7 +52,7 @@ h.chk(!CM.cmAcronymTokens('ZL Industrial Partners').includes('ZL'),
   'a two-letter token is too weak to be an acronym');
 
 h.section('domain evidence reaches a company with no usable name');
-h.chk(companiesFor('Investor acquires a warehouse', 'details at qrz-capital.example',
+h.chk(companiesFor('Investor acquires an Edison, New Jersey warehouse', 'details at qrz-capital.example',
   'https://qrz-capital.example/x').some(c => c === 'QRZ'), 'domain evidence matches');
 
 h.section('geography-only and generic aliases are rejected');
@@ -70,15 +70,15 @@ h.chk(companiesFor('Warehouse sells for $21M - Commercial Sample Observer').ever
 
 h.section('family ambiguity is flagged, not guessed');
 const fam = CM.cmCompetitorWatch(
-  [{ title: 'Vertex acquires an industrial portfolio', description: '', summary: '', link: '' }], WL);
+  [{ title: 'Vertex acquires an Edison, New Jersey industrial portfolio', description: '', summary: '', link: '' }], WL);
 h.chk(fam.items.length === 1 && fam.items[0]._cw.familyMatch === true,
   'a bare family brand is flagged for verification');
 h.chk((fam.items[0]._cw.alsoConsidered || []).length === 3, 'all candidate entities are listed');
 const exact = CM.cmCompetitorWatch(
-  [{ title: 'Vertex Property Group acquires an industrial portfolio', description: '', summary: '', link: '' }], WL);
+  [{ title: 'Vertex Property Group acquires an Edison, New Jersey industrial portfolio', description: '', summary: '', link: '' }], WL);
 h.chk(exact.items[0]._cw.company === 'Vertex Property Group' && exact.items[0]._cw.familyMatch === false,
   'a specific entity name resolves exactly');
-const byDomain = CM.cmCompetitorWatch([{ title: 'Vertex acquires a portfolio',
+const byDomain = CM.cmCompetitorWatch([{ title: 'Vertex acquires an Edison, New Jersey industrial portfolio',
   description: 'see am.vertex-holdings.example', summary: '', link: '' }], WL);
 h.chk(byDomain.items[0]._cw.company === 'Vertex Asset Management',
   'the more specific domain disambiguates within a family');
@@ -91,5 +91,23 @@ else {
   h.chk(res.diag.companiesLoaded > 0, `runtime override parsed: ${res.diag.companiesLoaded} companies, ${res.diag.withDomains} with domains`);
   h.chk(res.diag.rejectedGenericName <= 2, `at most a couple of companies are unusable (${res.diag.rejectedGenericName})`);
 }
+
+
+h.section("relevance gate: a watchlist mention alone never qualifies");
+// Competitor Watch feeds Week in Review directly, so before this gate a retail
+// grocery-REIT portfolio deal qualified purely because a sovereign-wealth fund
+// on the list was named. Industrial context is always required; geography is
+// not, but an unmapped story must then carry its own material evidence.
+h.chk(companiesFor("Northgate Industrial Partners buys a grocery-anchored retail portfolio",
+  "The 115-property shopping centre portfolio changed hands.").length === 0,
+  "a non-industrial deal is rejected even for a watchlist company");
+h.chk(companiesFor("Northgate Industrial Partners acquires a 2,400,000 square foot logistics portfolio in Dallas, Texas for $750 million").length === 1,
+  "a large national industrial deal still qualifies without mapped geography");
+h.chk(companiesFor("Northgate Industrial Partners buys a small Ohio warehouse for $4 million").length === 0,
+  "a small unmapped industrial deal does not qualify on the name alone");
+h.chk(companiesFor("Northgate Industrial Partners breaks ground on an industrial warehouse campus in Phoenix, Arizona").length === 1,
+  "a national construction milestone qualifies");
+h.chk(companiesFor("Northgate Industrial Partners chief executive comments on the industrial warehouse market").length === 0,
+  "commentary naming a watchlist company is not a qualification");
 
 process.exit(h.done());

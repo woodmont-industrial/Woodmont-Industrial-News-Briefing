@@ -486,6 +486,11 @@
       ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|(?:electric|power|energy)\s+utilit(?:y|ies)|utilit(?:y|ies)\s+(?:compan\w+|provider|commission|district|grid|scale|interconnection|infrastructure)|substation|(?:power|electric(?:ity)?|energy|grid)\s+transmission|transmission\s+(?:line|capacity|infrastructure|constraints?)|interconnection|energy demand|power (?:constraints?|shortage|crunch))\b/i],
       ['data-center-intel', /\b(data ?cent\w+)\b.*\b(pipeline|demand|capacity|market|investment|moratorium|regulation|backlash|development boom|vacancy|supply chain|leasing (?:activity|demand|map))\b/i],
     ];
+    // Market-wide power language, as distinct from a property that merely
+    // quotes a megawatt figure. Only these confer thematic status on a
+    // power-infrastructure signal; bare "megawatts"/"MW"/"electricity" do not.
+    const CM_POWER_MARKETWIDE = /\b(power grid|grid capacity|grid constraints?|interconnection(?: queue| backlog)?|transmission (?:capacity|constraints?|infrastructure|line)|substation|(?:electric|power|energy)\s+utilit(?:y|ies)|utilit(?:y|ies)\s+(?:compan\w+|provider|commission|district|grid|infrastructure)|power (?:constraints?|shortage|crunch)|energy demand|moratorium)\b/i;
+
     // "ABS" is an asset-backed security only as a standalone UPPERCASE token.
     // A case-insensitive test would match "abs" inside other words, and the
     // market-fundamentals signal already owns "absorption". Requiring a
@@ -604,8 +609,15 @@
       const propertySpecific = /\b\d+[\d,-]*\s+[A-Z][A-Za-z.]*\s+(?:st|street|ave|avenue|rd|road|blvd|drive|dr|way|lane|ln|pkwy|parkway|highway|route|rt)\b/i.test(text)
         || /\$\s?[\d.]+\s*(?:million|billion|m|b)\b/i.test(text)
         || /\b\d[\d,]*\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft|sf)\b/i.test(text);
+      // power-infrastructure earns thematic treatment — and so an exemption from
+      // the PROPERTY_SPECIFIC guard — only when the story is actually about grid
+      // capacity, utilities, substations, transmission capacity or market-wide
+      // power constraints. A single building that happens to quote megawatts is
+      // a property story and must still clear the normal thresholds.
+      const powerMarketWide = CM_POWER_MARKETWIDE.test(text);
       const thematic = signal === 'market-fundamentals' || signal === 'capital-trend'
-        || signal === 'legislation-regulation' || signal === 'power-infrastructure';
+        || signal === 'legislation-regulation'
+        || (signal === 'power-infrastructure' && powerMarketWide);
       if (signal && isInd && propertySpecific && !thematic) {
         return { section: null, tier, code: CM_REJECT.PROPERTY_SPECIFIC, magnitude: null,
                  reason: `PROPERTY_SPECIFIC: deal/property-specific item cannot enter Market Intelligence via an industrial keyword (signal: ${signal})` };
@@ -932,6 +944,7 @@
     const cmCompetitorWatch = (articles, watchlist) => {
       const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
                      rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
+                     rejectedNotIndustrial: 0, rejectedUnprovenNational: 0,
                      ambiguousNameMatches: 0, rejectedLongerEntity: 0,
                      duplicatesCollapsed: 0, familyNarrowed: 0, familyAmbiguous: 0,
                      companiesMatched: 0 };
@@ -1007,6 +1020,33 @@
         diag.mentionsFound += cands.length;
         const event = cmMaterialEvent(text);
         if (!event) { diag.rejectedNoMaterialEvent += cands.length; continue; }
+        // RELEVANCE GATE. Competitor Watch feeds Week in Review directly, so a
+        // watchlist name plus any material event used to be enough: a retail
+        // grocery-REIT portfolio deal qualified because a sovereign-wealth fund
+        // on the list was named. A mention is never on its own a qualification.
+        //
+        // 1. Industrial context is always required — this is an industrial
+        //    briefing, and asset class does not depend on geography.
+        if (!CM_RX.industrial.test(text)) {
+          diag.rejectedNotIndustrial += cands.length; continue;
+        }
+        // 2. Geography is NOT required: a watchlist company's large national
+        //    industrial move is legitimately interesting. But outside the
+        //    mapped markets the story must carry its own evidence rather than
+        //    riding on the company name, so require one of the same material
+        //    proofs the deal sections use.
+        const cwTier = cmMarketTier(text).tier;
+        if (cwTier === 'NATIONAL' || cwTier === 'UNMAPPED') {
+          const national = CM_THRESHOLDS.sale.NATIONAL;
+          const nationalSf = CM_THRESHOLDS.lease.NATIONAL;
+          const qualifies = cmDollars(text) > national
+            || cmSquareFeet(text) > nationalSf
+            || CM_RX.construction.test(text)
+            || cmIntelSignal(text) !== null;
+          if (!qualifies) {
+            diag.rejectedUnprovenNational += cands.length; continue;
+          }
+        }
         // Most specific wins: domain evidence is hard proof; otherwise the
         // longest matched name wins, since "Vertex Asset Management" in the text
         // is stronger evidence than the bare brand token "Vertex".

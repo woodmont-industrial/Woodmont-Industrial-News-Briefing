@@ -163,4 +163,24 @@ for (const [title, description, want, why] of [
   h.chk(got === want, `${why.padEnd(56)} -> ${String(got)} (want ${String(want)})`);
 }
 
+
+h.section("power-infrastructure is thematic only when the story is market-wide");
+// The thematic allowlist exempts an item from the PROPERTY_SPECIFIC guard. A
+// single building quoting megawatts is a property story and must still clear
+// the normal thresholds; grid/utility/substation stories are genuinely thematic.
+for (const [title, description, want, why] of [
+  ["Operator commissions a 50 MW industrial warehouse facility at 123 Main Street costing $30 million",
+   "The logistics site will draw 50 megawatts.",
+   null, "a building quoting megawatts is PROPERTY_SPECIFIC, not thematic"],
+  ["Grid capacity constraints slow the industrial data center pipeline",
+   "Utility interconnection queues delay warehouse projects across the region.",
+   "intel", "grid capacity remains thematic"],
+  ["New substation unlocks industrial warehouse development capacity",
+   "The transmission capacity upgrade supports logistics growth.",
+   "intel", "substation and transmission capacity remain thematic"],
+]) {
+  const got = cls(title, { description }).section;
+  h.chk(got === want, why.padEnd(56) + " -> " + String(got) + " (want " + String(want) + ")");
+}
+
 process.exit(h.done());
