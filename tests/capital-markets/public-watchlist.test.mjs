@@ -1,5 +1,4 @@
 /** Repo-backed Capital Markets watchlist and browser auto-load contract. */
-import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadCapitalMarkets, harness, REPO } from './load.mjs';
@@ -10,28 +9,29 @@ const workbookPath = path.join(REPO, 'data', 'capital-markets', 'institutional-o
 const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const companies = data.companies || [];
 
-h.section('committed source and deterministic browser asset');
-h.chk(fs.existsSync(workbookPath), 'source workbook is committed');
+h.section('private source, minimal browser asset');
+// The workbook carries more columns than the matcher needs, so it stays out of
+// the tree; only the projection below is published.
+h.chk(!fs.existsSync(workbookPath), 'source workbook is not committed');
 h.chk(data.visibility === 'public-repository', 'visibility is explicit');
+h.chk(data.sourceWorkbook === 'private (not committed)', 'JSON does not leak a workbook path');
+h.chk(!Object.hasOwn(data, 'sourceSha256'), 'JSON does not fingerprint the private workbook');
 h.chk(data.rowCount === companies.length && companies.length >= 500,
   `published row count is complete (${companies.length})`);
-h.chk(data.sourceSha256 === (await import('crypto')).createHash('sha256')
-  .update(fs.readFileSync(workbookPath)).digest('hex'), 'JSON records the exact workbook revision');
-try {
-  execFileSync('python3', [path.join(REPO, 'scripts', 'build-capital-markets-watchlist.py'), '--check'],
-    { cwd: REPO, encoding: 'utf8' });
-  h.chk(true, 'published JSON is reproducible from the workbook');
-} catch (error) {
-  h.chk(false, `published JSON is stale: ${String(error.stderr || error.message).trim()}`);
-}
 
 h.section('minimal browser projection');
 const required = ['Company Name', 'Secondary Type', 'City', 'State / Country',
-  'NNJ Search SF', 'NNJ Search Properties', 'Portfolio SF', 'Website', 'Website Domain'];
+  'Website', 'Website Domain'];
 h.chk(companies.every(row => required.every(key => Object.hasOwn(row, key))),
   'every company has all matcher fields');
+h.chk(companies.every(row => Object.keys(row).every(key => required.includes(key))),
+  'no field beyond the matcher projection is published');
 h.chk(companies.every(row => !Object.keys(row).some(key => /phone|address|zip/i.test(key))),
   'phone, street-address and ZIP columns are not published to the browser');
+// Ownership metric columns must not reappear: the matcher reads none of them.
+const METRICS = /portfolio|in search|%\s*leased|leased|avail|acre|properties owned|search sf|rank/i;
+h.chk(companies.every(row => !Object.keys(row).some(key => METRICS.test(key))),
+  'ownership metric columns are not published to the browser');
 h.chk(companies.every(row => !row['Website Domain'] || /^[a-z0-9.-]+$/.test(row['Website Domain'])),
   'published domains are normalized hostnames');
 

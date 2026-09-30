@@ -8,11 +8,11 @@ import { fileURLToPath } from 'url';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.env.CM_PRIVACY_BASE || 'origin/main';
 const MAX_WATCHLIST_BYTES = 2_000_000;
-// The stakeholder explicitly approved these two files for publication. The
-// validator now ensures watchlist terms do not spread into code, comments,
-// logs or commit messages outside the source workbook and browser projection.
+// Only the trimmed browser projection may carry watchlist terms. The source
+// workbook is no longer published: see data/capital-markets/README.md. The
+// validator ensures watchlist terms do not spread into code, comments, logs or
+// commit messages outside that one file.
 const AUTHORIZED_PUBLIC_FILES = new Set([
-  'data/capital-markets/institutional-ownership-nnj.xlsx',
   'docs/data/capital-markets-watchlist.json',
 ]);
 
