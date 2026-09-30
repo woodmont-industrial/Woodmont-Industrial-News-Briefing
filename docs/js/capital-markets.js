@@ -478,9 +478,19 @@
       // name can contain it without proving a material operating expansion.
       ['tenant-expansion', /\b(expands? (?:manufacturing|operations|distribution)|(?:manufacturing|operations|distribution|facility|footprint|capacity) expansion|new (?:plant|factory|manufacturing facility)|opens? (?:a )?(?:new )?(?:plant|facility|distribution cent\w+)|adds? \d[\d,.]* jobs|relocat\w+ headquarters)\b/i],
       ['legislation-regulation', /\b(legislation|law|bill|statute|regulat\w+|executive order|tax credit|incentive program|policy|state(?:wide)? (?:rules|limits|restrictions))\b/i],
-      ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|utility|substation|transmission|interconnection|energy demand|power (?:constraints?|shortage))\b/i],
+      // "utility" was previously a bare token, so any company described as a
+      // "utility and communications components manufacturer" scored as power
+      // infrastructure — and because this label is treated as thematic below,
+      // that also bypassed the PROPERTY_SPECIFIC guard. Require the power sense
+      // explicitly. Same for "transmission", which otherwise matches gearboxes.
+      ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|(?:electric|power|energy)\s+utilit(?:y|ies)|utilit(?:y|ies)\s+(?:compan\w+|provider|commission|district|grid|scale|interconnection|infrastructure)|substation|(?:power|electric(?:ity)?|energy|grid)\s+transmission|transmission\s+(?:line|capacity|infrastructure|constraints?)|interconnection|energy demand|power (?:constraints?|shortage|crunch))\b/i],
       ['data-center-intel', /\b(data ?cent\w+)\b.*\b(pipeline|demand|capacity|market|investment|moratorium|regulation|backlash|development boom|vacancy|supply chain|leasing (?:activity|demand|map))\b/i],
     ];
+    // Market-wide power language, as distinct from a property that merely
+    // quotes a megawatt figure. Only these confer thematic status on a
+    // power-infrastructure signal; bare "megawatts"/"MW"/"electricity" do not.
+    const CM_POWER_MARKETWIDE = /\b(power grid|grid capacity|grid constraints?|interconnection(?: queue| backlog)?|transmission (?:capacity|constraints?|infrastructure|line)|substation|(?:electric|power|energy)\s+utilit(?:y|ies)|utilit(?:y|ies)\s+(?:compan\w+|provider|commission|district|grid|infrastructure)|power (?:constraints?|shortage|crunch)|energy demand|moratorium)\b/i;
+
     // "ABS" is an asset-backed security only as a standalone UPPERCASE token.
     // A case-insensitive test would match "abs" inside other words, and the
     // market-fundamentals signal already owns "absorption". Requiring a
@@ -489,8 +499,19 @@
     const cmStructuredFinance = (text) => CM_ABS_TOKEN.test(text)
       && /\b(securit\w+|bond|note|issuance|offering|deal|financ\w+|transaction)\b/i.test(text);
 
+    // A tenant expansion is only interesting here when it involves REAL ESTATE.
+    // "Duraline Expands Manufacturing with New Eurotech Ultima CNC" matched
+    // "expands manufacturing" and entered Market Intelligence, but buying a
+    // machine tool is not an industrial property event. Require space, a site,
+    // or an actual building alongside the expansion language.
+    const CM_FACILITY_EVIDENCE = /\b(square[- ]f[eo]{2}t|sq\.?\s*ft|\bsf\b|acres?|facility|facilities|plant|factory|warehouse|distribution cent\w+|campus|site|building|industrial park|headquarters|lease[sd]?|occupanc\w+)\b/i;
+
     const cmIntelSignal = (text) => {
-      for (const [label, rx] of CM_INTEL_SIGNALS) if (rx.test(text)) return label;
+      for (const [label, rx] of CM_INTEL_SIGNALS) {
+        if (!rx.test(text)) continue;
+        if (label === 'tenant-expansion' && !CM_FACILITY_EVIDENCE.test(text)) continue;
+        return label;
+      }
       if (cmStructuredFinance(text)) return 'capital-trend';
       // A large industrial portfolio financing is material capital-markets
       // intelligence even when a terse headline says only "refi". Keep this
@@ -599,8 +620,15 @@
       const propertySpecific = /\b\d+[\d,-]*\s+[A-Z][A-Za-z.]*\s+(?:st|street|ave|avenue|rd|road|blvd|drive|dr|way|lane|ln|pkwy|parkway|highway|route|rt)\b/i.test(text)
         || /\$\s?[\d.]+\s*(?:million|billion|m|b)\b/i.test(text)
         || /\b\d[\d,]*\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft|sf)\b/i.test(text);
+      // power-infrastructure earns thematic treatment — and so an exemption from
+      // the PROPERTY_SPECIFIC guard — only when the story is actually about grid
+      // capacity, utilities, substations, transmission capacity or market-wide
+      // power constraints. A single building that happens to quote megawatts is
+      // a property story and must still clear the normal thresholds.
+      const powerMarketWide = CM_POWER_MARKETWIDE.test(text);
       const thematic = signal === 'market-fundamentals' || signal === 'capital-trend'
-        || signal === 'legislation-regulation' || signal === 'power-infrastructure';
+        || signal === 'legislation-regulation'
+        || (signal === 'power-infrastructure' && powerMarketWide);
       if (signal && isInd && propertySpecific && !thematic) {
         return { section: null, tier, code: CM_REJECT.PROPERTY_SPECIFIC, magnitude: null,
                  reason: `PROPERTY_SPECIFIC: deal/property-specific item cannot enter Market Intelligence via an industrial keyword (signal: ${signal})` };
@@ -924,9 +952,93 @@
      *  its own evidence. Pass 2 groups syndicated copies of the same story and
      *  keeps the STRONGEST attribution, so a weaker copy encountered first can
      *  never suppress a later copy that names the company more precisely. */
+    /** SHARED JSON Feed normaliser.
+     *
+     *  docs/feed.json is JSON Feed (date_published / url / content_html), not
+     *  the article shape the classifier reads. The page and the server used to
+     *  normalise it independently, and they disagreed on the two fields that
+     *  decide classification: the page truncated the description to 200
+     *  characters and stripped a trailing publisher, and dropped `summary`
+     *  entirely, while the server kept the full text and preserved `summary`.
+     *  cmText() reads title + description + summary, so the shadow classifier
+     *  saw materially more text than the page — a dollar figure past character
+     *  200 was visible to one and invisible to the other.
+     *
+     *  Capital Markets now normalises through THIS function on both sides. The
+     *  page's own display mapping is untouched: it still drives the department
+     *  newsletter, and its truncation is a display concern, not a classifier
+     *  input. */
+    const cmNormalizeFeedItem = (a) => {
+      const item = a || {};
+      return {
+        ...item,
+        id: item.id,
+        title: item.title || 'Untitled',
+        link: item.url || item.link || '',
+        url: item.url || item.link || '',
+        pubDate: item.date_published || item.pubDate || '',
+        fetchedAt: item.date_modified || item.fetchedAt || '',
+        description: item.content_text || item.content_html || item.description || item.summary || '',
+        summary: item.summary || '',
+        source: (item._source && item._source.name) || item.source || '',
+        publisher: (item._source && item._source.website) || item.publisher || '',
+        category: item.category || 'relevant',
+      };
+    };
+
+    const cmNormalizeFeedItems = (items) => (items || []).map(cmNormalizeFeedItem);
+
+    /** SHARED candidate-pool builder. The browser preview and the server-side
+     *  shadow/canary builder MUST assemble the same pool, or a replay compares
+     *  two different newsletters. Before this existed the shadow builder read
+     *  only feed.json while the page also merged raw-feed.json, so the shadow
+     *  silently reviewed ~15% fewer candidates.
+     *
+     *  Each caller supplies its own already-parsed inputs (the page fetches,
+     *  the server reads from disk); the merge, normalisation, exclusion and
+     *  dedup order live here so they cannot drift apart again.
+     *
+     *  Order is significant and is the page's existing behaviour: feed items
+     *  first, in feed order, then raw candidates not already present by id or
+     *  by case-insensitive URL. Feed items are NOT deduped against each other,
+     *  which preserves current output exactly. */
+    const cmBuildArticlePool = (feedItems, rawItems, options) => {
+      const o = options || {};
+      const toSet = (v) => v instanceof Set ? v : new Set(v || []);
+      const exIds = toSet(o.excludedIds);
+      const exUrls = new Set([...toSet(o.excludedUrls)].map(u => String(u).toLowerCase()));
+      const out = [];
+      const seenIds = new Set();
+      const seenUrls = new Set();
+      for (const a of feedItems || []) {
+        const id = String((a && a.id) || '');
+        const url = String((a && (a.link || a.url)) || '').toLowerCase();
+        if ((id && exIds.has(id)) || (url && exUrls.has(url))) continue;
+        out.push(a);
+        if (id) seenIds.add(id);
+        if (url) seenUrls.add(url);
+      }
+      for (const r of rawItems || []) {
+        const id = String((r && r.id) || '');
+        const url = String((r && r.u) || '').toLowerCase();
+        if ((id && exIds.has(id)) || (url && exUrls.has(url))) continue;
+        if ((id && seenIds.has(id)) || (url && seenUrls.has(url))) continue;
+        out.push({
+          id, title: r.t || 'Untitled', link: r.u || '#', url: r.u || '#',
+          source: r.s || 'Unknown', pubDate: r.d || '',
+          description: r.ex || '', summary: r.ex || '',
+          category: r.c || 'relevant', _fromCapitalMarketsRawPool: true,
+        });
+        if (id) seenIds.add(id);
+        if (url) seenUrls.add(url);
+      }
+      return out;
+    };
+
     const cmCompetitorWatch = (articles, watchlist) => {
       const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
                      rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
+                     rejectedNotIndustrial: 0, rejectedUnprovenNational: 0,
                      ambiguousNameMatches: 0, rejectedLongerEntity: 0,
                      duplicatesCollapsed: 0, familyNarrowed: 0, familyAmbiguous: 0,
                      companiesMatched: 0 };
@@ -1002,6 +1114,33 @@
         diag.mentionsFound += cands.length;
         const event = cmMaterialEvent(text);
         if (!event) { diag.rejectedNoMaterialEvent += cands.length; continue; }
+        // RELEVANCE GATE. Competitor Watch feeds Week in Review directly, so a
+        // watchlist name plus any material event used to be enough: a retail
+        // grocery-REIT portfolio deal qualified because a sovereign-wealth fund
+        // on the list was named. A mention is never on its own a qualification.
+        //
+        // 1. Industrial context is always required — this is an industrial
+        //    briefing, and asset class does not depend on geography.
+        if (!CM_RX.industrial.test(text)) {
+          diag.rejectedNotIndustrial += cands.length; continue;
+        }
+        // 2. Geography is NOT required: a watchlist company's large national
+        //    industrial move is legitimately interesting. But outside the
+        //    mapped markets the story must carry its own evidence rather than
+        //    riding on the company name, so require one of the same material
+        //    proofs the deal sections use.
+        const cwTier = cmMarketTier(text).tier;
+        if (cwTier === 'NATIONAL' || cwTier === 'UNMAPPED') {
+          const national = CM_THRESHOLDS.sale.NATIONAL;
+          const nationalSf = CM_THRESHOLDS.lease.NATIONAL;
+          const qualifies = cmDollars(text) > national
+            || cmSquareFeet(text) > nationalSf
+            || CM_RX.construction.test(text)
+            || cmIntelSignal(text) !== null;
+          if (!qualifies) {
+            diag.rejectedUnprovenNational += cands.length; continue;
+          }
+        }
         // Most specific wins: domain evidence is hard proof; otherwise the
         // longest matched name wins, since "Vertex Asset Management" in the text
         // is stronger evidence than the bare brand token "Vertex".
@@ -1433,6 +1572,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,

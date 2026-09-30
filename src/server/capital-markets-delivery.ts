@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { TextDecoder } from 'util';
 import { gunzipSync } from 'zlib';
 import { NormalizedItem } from '../types/index.js';
-import { loadArticlesFromFeed } from './newsletter-filters.js';
+import { loadArticlesFromFeed, loadExcludedArticles } from './newsletter-filters.js';
 import { enrichCapitalMarketsCandidates, CapitalMarketsEnrichmentDiagnostics } from './capital-markets-enrichment.js';
 
 const require_ = createRequire(import.meta.url);
@@ -62,6 +62,16 @@ export interface CapitalMarketsPackage {
         enrichment: CapitalMarketsEnrichmentDiagnostics;
         weekInReviewIncluded: boolean;
         safetyChecks: string[];
+    };
+    /** Exactly what this build reviewed and decided. Exposed so a parity test
+     *  can compare the shadow's real output against the page's item-for-item
+     *  rather than comparing counts, or comparing a pool against itself. */
+    trace: {
+        poolIds: string[];
+        classified: string[];
+        sections: Record<string, string[]>;
+        competitors: string[];
+        weekInReview: string[];
     };
 }
 
@@ -253,8 +263,33 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     const docsDir = options.docsDir || process.env.WOODMONT_DOCS_DIR || path.join(repoRoot, 'docs');
     const cfg = loadConfig(repoRoot);
     const { CM } = await runtimeFor(repoRoot, docsDir);
-    const loaded = options.articles ? { articles: options.articles } : loadArticlesFromFeed();
-    let articles = loaded.articles;
+    // PARITY: assemble the candidate pool exactly as the page does, through the
+    // SAME shared functions. Capital Markets deliberately does NOT use
+    // loadArticlesFromFeed here: that normaliser and the page's disagreed on
+    // `description` and `summary`, which are precisely what cmText() classifies
+    // on, so the two paths judged different text. Explicit options.articles
+    // (tests, historical replays) is left untouched.
+    let articles: NormalizedItem[];
+    if (options.articles) {
+        articles = options.articles;
+    } else {
+        try {
+            const feedItems = JSON.parse(
+                fs.readFileSync(path.join(docsDir, 'feed.json'), 'utf8')).items || [];
+            const rawPath = path.join(docsDir, 'raw-feed.json');
+            const rawItems = fs.existsSync(rawPath)
+                ? (JSON.parse(fs.readFileSync(rawPath, 'utf8')).items || [])
+                : [];
+            const excluded = loadExcludedArticles(docsDir);
+            articles = CM.cmBuildArticlePool(CM.cmNormalizeFeedItems(feedItems), rawItems,
+                { excludedIds: excluded.ids, excludedUrls: excluded.urls }) as NormalizedItem[];
+            console.log(`[Capital Markets] pool: feed ${feedItems.length} + raw ${rawItems.length} -> ${articles.length}`);
+        } catch (error) {
+            console.warn('[Capital Markets] shared pool unavailable; falling back to feed.json:',
+                (error as Error).message);
+            articles = loadArticlesFromFeed().articles;
+        }
+    }
     const now = new Date();
     const asOfDate = options.asOfDate || easternDate(now);
     // Tests and historical replays may intentionally provide a date-only
@@ -281,9 +316,23 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     let watchlist = options.watchlist;
     if (watchlist === undefined) {
         const watchlistText = readWatchlistTextFromEnvironment();
-        watchlist = watchlistText
-            ? validateWatchlist(CM.cmParseCSV(watchlistText.replace(/^\uFEFF/, '')))
-            : null;
+        if (watchlistText) {
+            watchlist = validateWatchlist(CM.cmParseCSV(watchlistText.replace(/^\uFEFF/, '')));
+        } else {
+            // PARITY: the page auto-loads the committed projection, so without
+            // this a shadow run produced no Competitor Watch at all while the
+            // page showed one. The environment value stays an override for a
+            // newer or private list; this is the same file the page fetches.
+            try {
+                const projection = path.join(docsDir, 'data', 'capital-markets-watchlist.json');
+                watchlist = fs.existsSync(projection)
+                    ? validateWatchlist(JSON.parse(fs.readFileSync(projection, 'utf8')).companies || [])
+                    : null;
+            } catch (error) {
+                console.warn('[Capital Markets] committed watchlist unavailable:', (error as Error).message);
+                watchlist = null;
+            }
+        }
     }
 
     const built = CM.cmBuildSections(articles, asOfTime, lookbackHours);
@@ -330,6 +379,22 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
             weekInReviewIncluded: includeWeekInReview,
             safetyChecks,
         },
+        trace: (() => {
+            const idOf = (a: any) => String(a.id || a.link || a.title || '');
+            const sections: Record<string, string[]> = {};
+            for (const [name, items] of Object.entries(built.buckets || {})) {
+                sections[name] = (items as any[]).map(idOf);
+            }
+            return {
+                poolIds: articles.map(idOf),
+                classified: (built.inWindow || []).map((a: any) =>
+                    `${idOf(a)}:${(a._cm && a._cm.section) || '-'}:${(a._cm && a._cm.code) || '-'}`),
+                sections,
+                competitors: (competitor.items || []).map((i: any) =>
+                    `${idOf(i)}:${(i._cw || {}).company || ''}`),
+                weekInReview: (((built as any).weekInReview || {}).items || []).map(idOf),
+            };
+        })(),
     };
 }
 

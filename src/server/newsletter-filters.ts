@@ -895,7 +895,7 @@ export function mapFeedItemsToArticles(feedItems: any[]): NormalizedItem[] {
 /**
  * Load user-excluded article IDs/URLs from docs/excluded-articles.json
  */
-function loadExcludedArticles(docsDir: string): { ids: Set<string>; urls: Set<string> } {
+export function loadExcludedArticles(docsDir: string): { ids: Set<string>; urls: Set<string> } {
     const excludePath = path.join(docsDir, 'excluded-articles.json');
     try {
         if (fs.existsSync(excludePath)) {

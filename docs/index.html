@@ -3558,6 +3558,7 @@
     });
     const {
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
+      cmBuildArticlePool, cmNormalizeFeedItems,
     } = CapitalMarkets;
 
       const buildWorkNewsletterHTML = (articles, days) => {
@@ -3768,7 +3769,7 @@
               }
             } catch (e) { console.warn('Could not load server excludes:', e); }
 
-            const recentArticles = items.filter(item => {
+            let recentArticles = items.filter(item => {
               const articleId = item.id || item.link || item.title;
               const articleUrl = (item.link || item.url || '').toLowerCase();
               // Newsletter is a team product — only check team-level server excludes, not per-user ignores
@@ -3793,26 +3794,19 @@
                 const rawResponse = await fetch('raw-feed.json', { cache: 'no-store', credentials: 'omit' });
                 if (!rawResponse.ok) throw new Error(`HTTP ${rawResponse.status}`);
                 const rawData = await rawResponse.json();
-                const seenIds = new Set(recentArticles.map(article => String(article.id || '')).filter(Boolean));
-                const seenUrls = new Set(recentArticles
-                  .map(article => String(article.link || article.url || '').toLowerCase()).filter(Boolean));
-                let rawAdded = 0;
-                for (const raw of (rawData.items || [])) {
-                  const id = String(raw.id || '');
-                  const url = String(raw.u || '').toLowerCase();
-                  if ((id && serverExcludedIds.has(id)) || (url && serverExcludedIds.has(url))) continue;
-                  if ((id && seenIds.has(id)) || (url && seenUrls.has(url))) continue;
-                  recentArticles.push({
-                    id, title: raw.t || 'Untitled', link: raw.u || '#', url: raw.u || '#',
-                    source: raw.s || 'Unknown', pubDate: raw.d || '',
-                    description: raw.ex || '', summary: raw.ex || '',
-                    category: raw.c || 'relevant', _fromCapitalMarketsRawPool: true,
-                  });
-                  if (id) seenIds.add(id);
-                  if (url) seenUrls.add(url);
-                  rawAdded++;
-                }
-                console.log(`[Capital Markets] Added ${rawAdded} unique raw candidates for independent review`);
+                // Capital Markets re-reads feed.json and normalises it with the
+                // SHARED normaliser rather than reusing `items`. The page mapping
+                // above truncates the description to 200 characters for display
+                // and drops `summary`; the classifier reads both, so reusing it
+                // made the page judge different text from the shadow builder.
+                const feedResponse = await fetch('feed.json', { cache: 'no-store', credentials: 'omit' });
+                if (!feedResponse.ok) throw new Error(`HTTP ${feedResponse.status}`);
+                const feedData = await feedResponse.json();
+                const beforePool = recentArticles.length;
+                recentArticles = cmBuildArticlePool(
+                  cmNormalizeFeedItems(feedData.items || []), rawData.items || [],
+                  { excludedIds: serverExcludedIds, excludedUrls: serverExcludedIds });
+                console.log(`[Capital Markets] pool: feed ${(feedData.items||[]).length} + raw ${(rawData.items||[]).length} -> ${recentArticles.length} (was ${beforePool})`);
               } catch (error) {
                 console.warn('Capital Markets raw candidate pool unavailable; continuing with feed.json');
               }
