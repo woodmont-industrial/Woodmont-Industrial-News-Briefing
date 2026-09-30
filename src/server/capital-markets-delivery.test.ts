@@ -144,6 +144,46 @@ rejects(() => readCanarySmtpConfig({ ...canarySmtp, CM_CANARY_SMTP_PORT: '25' })
 if (priorDomains === undefined) delete process.env.CM_CANARY_ALLOWED_DOMAINS;
 else process.env.CM_CANARY_ALLOWED_DOMAINS = priorDomains;
 
+
+console.log("\n=== preview/shadow pool parity ===");
+// The page merges docs/raw-feed.json into its candidate pool. The shadow
+// builder read only feed.json, so it reviewed ~15% fewer candidates and no
+// replay could be compared item-for-item. This asserts the REAL builder now
+// assembles the page pool via the shared cmBuildArticlePool.
+{
+    const fsMod = await import("fs");
+    const pathMod = await import("path");
+    const urlMod = await import("url");
+    const here = pathMod.dirname(urlMod.fileURLToPath(import.meta.url));
+    const docs = pathMod.resolve(here, "..", "..", "docs");
+    const feedItems = JSON.parse(fsMod.readFileSync(pathMod.join(docs, "feed.json"), "utf8")).items || [];
+    const rawItems = JSON.parse(fsMod.readFileSync(pathMod.join(docs, "raw-feed.json"), "utf8")).items || [];
+    const { loadExcludedArticles } = await import("./newsletter-filters.js");
+    const excluded = loadExcludedArticles(docs);
+    const live = await buildCapitalMarketsPackage({
+        asOfDate: "2026-09-30",
+        asOfTime: "2026-09-30T12:00:00.000Z",
+        lookbackHours: 720,
+        includeWeekInReview: false,
+        testBanner: true,
+    });
+    const ids = new Set(feedItems.map((a: any) => String(a.id || "")).filter(Boolean));
+    const urls = new Set(feedItems.map((a: any) => String(a.link || a.url || "").toLowerCase()).filter(Boolean));
+    let uniqueRaw = 0;
+    for (const r of rawItems as any[]) {
+        const id = String(r.id || ""), u = String(r.u || "").toLowerCase();
+        if ((id && ids.has(id)) || (u && urls.has(u))) continue;
+        if ((id && excluded.ids.has(id)) || (u && excluded.urls.has(u))) continue;
+        uniqueRaw++;
+    }
+    check(live.summary.sourceArticles > feedItems.length,
+        "shadow pool exceeds feed.json alone (" + feedItems.length + " -> " + live.summary.sourceArticles + ")");
+    check(live.summary.sourceArticles === feedItems.length + uniqueRaw,
+        "shadow pool equals the page pool (feed " + feedItems.length + " + raw " + uniqueRaw + ")");
+    check(live.summary.watchlist.loaded > 500,
+        "shadow auto-loads the committed watchlist (" + live.summary.watchlist.loaded + " companies)");
+}
+
 console.log(failures ? `\n${failures} FAILURE(S)` : '\nOK: Capital Markets production guard');
 process.exit(failures ? 1 : 0);
 }

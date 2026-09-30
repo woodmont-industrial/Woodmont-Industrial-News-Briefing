@@ -941,6 +941,53 @@
      *  its own evidence. Pass 2 groups syndicated copies of the same story and
      *  keeps the STRONGEST attribution, so a weaker copy encountered first can
      *  never suppress a later copy that names the company more precisely. */
+    /** SHARED candidate-pool builder. The browser preview and the server-side
+     *  shadow/canary builder MUST assemble the same pool, or a replay compares
+     *  two different newsletters. Before this existed the shadow builder read
+     *  only feed.json while the page also merged raw-feed.json, so the shadow
+     *  silently reviewed ~15% fewer candidates.
+     *
+     *  Each caller supplies its own already-parsed inputs (the page fetches,
+     *  the server reads from disk); the merge, normalisation, exclusion and
+     *  dedup order live here so they cannot drift apart again.
+     *
+     *  Order is significant and is the page's existing behaviour: feed items
+     *  first, in feed order, then raw candidates not already present by id or
+     *  by case-insensitive URL. Feed items are NOT deduped against each other,
+     *  which preserves current output exactly. */
+    const cmBuildArticlePool = (feedItems, rawItems, options) => {
+      const o = options || {};
+      const toSet = (v) => v instanceof Set ? v : new Set(v || []);
+      const exIds = toSet(o.excludedIds);
+      const exUrls = new Set([...toSet(o.excludedUrls)].map(u => String(u).toLowerCase()));
+      const out = [];
+      const seenIds = new Set();
+      const seenUrls = new Set();
+      for (const a of feedItems || []) {
+        const id = String((a && a.id) || '');
+        const url = String((a && (a.link || a.url)) || '').toLowerCase();
+        if ((id && exIds.has(id)) || (url && exUrls.has(url))) continue;
+        out.push(a);
+        if (id) seenIds.add(id);
+        if (url) seenUrls.add(url);
+      }
+      for (const r of rawItems || []) {
+        const id = String((r && r.id) || '');
+        const url = String((r && r.u) || '').toLowerCase();
+        if ((id && exIds.has(id)) || (url && exUrls.has(url))) continue;
+        if ((id && seenIds.has(id)) || (url && seenUrls.has(url))) continue;
+        out.push({
+          id, title: r.t || 'Untitled', link: r.u || '#', url: r.u || '#',
+          source: r.s || 'Unknown', pubDate: r.d || '',
+          description: r.ex || '', summary: r.ex || '',
+          category: r.c || 'relevant', _fromCapitalMarketsRawPool: true,
+        });
+        if (id) seenIds.add(id);
+        if (url) seenUrls.add(url);
+      }
+      return out;
+    };
+
     const cmCompetitorWatch = (articles, watchlist) => {
       const diag = { companiesLoaded: 0, withDomains: 0, mentionsFound: 0, accepted: 0,
                      rejectedNoMaterialEvent: 0, rejectedGenericName: 0,
@@ -1478,6 +1525,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
+      cmBuildArticlePool,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,

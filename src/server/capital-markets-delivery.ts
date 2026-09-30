@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { TextDecoder } from 'util';
 import { gunzipSync } from 'zlib';
 import { NormalizedItem } from '../types/index.js';
-import { loadArticlesFromFeed } from './newsletter-filters.js';
+import { loadArticlesFromFeed, loadExcludedArticles } from './newsletter-filters.js';
 import { enrichCapitalMarketsCandidates, CapitalMarketsEnrichmentDiagnostics } from './capital-markets-enrichment.js';
 
 const require_ = createRequire(import.meta.url);
@@ -255,6 +255,27 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     const { CM } = await runtimeFor(repoRoot, docsDir);
     const loaded = options.articles ? { articles: options.articles } : loadArticlesFromFeed();
     let articles = loaded.articles;
+    // PARITY: the page merges docs/raw-feed.json into its candidate pool, so a
+    // shadow build reading only feed.json reviewed ~15% fewer candidates and no
+    // replay could be compared item-for-item. Use the SAME shared pool builder
+    // the page uses rather than re-implementing the merge here. Explicit
+    // options.articles (tests, historical replays) is left untouched.
+    if (!options.articles) {
+        try {
+            const rawPath = path.join(docsDir, 'raw-feed.json');
+            if (fs.existsSync(rawPath)) {
+                const rawItems = JSON.parse(fs.readFileSync(rawPath, 'utf8')).items || [];
+                const before = articles.length;
+                const excluded = loadExcludedArticles(docsDir);
+                articles = CM.cmBuildArticlePool(articles, rawItems,
+                    { excludedIds: excluded.ids, excludedUrls: excluded.urls }) as NormalizedItem[];
+                console.log(`[Capital Markets] pool ${before} -> ${articles.length} (raw-feed candidates merged)`);
+            }
+        } catch (error) {
+            console.warn('[Capital Markets] raw-feed.json unavailable; continuing with feed.json only:',
+                (error as Error).message);
+        }
+    }
     const now = new Date();
     const asOfDate = options.asOfDate || easternDate(now);
     // Tests and historical replays may intentionally provide a date-only
@@ -281,9 +302,23 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     let watchlist = options.watchlist;
     if (watchlist === undefined) {
         const watchlistText = readWatchlistTextFromEnvironment();
-        watchlist = watchlistText
-            ? validateWatchlist(CM.cmParseCSV(watchlistText.replace(/^\uFEFF/, '')))
-            : null;
+        if (watchlistText) {
+            watchlist = validateWatchlist(CM.cmParseCSV(watchlistText.replace(/^\uFEFF/, '')));
+        } else {
+            // PARITY: the page auto-loads the committed projection, so without
+            // this a shadow run produced no Competitor Watch at all while the
+            // page showed one. The environment value stays an override for a
+            // newer or private list; this is the same file the page fetches.
+            try {
+                const projection = path.join(docsDir, 'data', 'capital-markets-watchlist.json');
+                watchlist = fs.existsSync(projection)
+                    ? validateWatchlist(JSON.parse(fs.readFileSync(projection, 'utf8')).companies || [])
+                    : null;
+            } catch (error) {
+                console.warn('[Capital Markets] committed watchlist unavailable:', (error as Error).message);
+                watchlist = null;
+            }
+        }
     }
 
     const built = CM.cmBuildSections(articles, asOfTime, lookbackHours);

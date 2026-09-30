@@ -3558,6 +3558,7 @@
     });
     const {
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
+      cmBuildArticlePool,
     } = CapitalMarkets;
 
       const buildWorkNewsletterHTML = (articles, days) => {
@@ -3768,7 +3769,7 @@
               }
             } catch (e) { console.warn('Could not load server excludes:', e); }
 
-            const recentArticles = items.filter(item => {
+            let recentArticles = items.filter(item => {
               const articleId = item.id || item.link || item.title;
               const articleUrl = (item.link || item.url || '').toLowerCase();
               // Newsletter is a team product — only check team-level server excludes, not per-user ignores
@@ -3793,25 +3794,12 @@
                 const rawResponse = await fetch('raw-feed.json', { cache: 'no-store', credentials: 'omit' });
                 if (!rawResponse.ok) throw new Error(`HTTP ${rawResponse.status}`);
                 const rawData = await rawResponse.json();
-                const seenIds = new Set(recentArticles.map(article => String(article.id || '')).filter(Boolean));
-                const seenUrls = new Set(recentArticles
-                  .map(article => String(article.link || article.url || '').toLowerCase()).filter(Boolean));
-                let rawAdded = 0;
-                for (const raw of (rawData.items || [])) {
-                  const id = String(raw.id || '');
-                  const url = String(raw.u || '').toLowerCase();
-                  if ((id && serverExcludedIds.has(id)) || (url && serverExcludedIds.has(url))) continue;
-                  if ((id && seenIds.has(id)) || (url && seenUrls.has(url))) continue;
-                  recentArticles.push({
-                    id, title: raw.t || 'Untitled', link: raw.u || '#', url: raw.u || '#',
-                    source: raw.s || 'Unknown', pubDate: raw.d || '',
-                    description: raw.ex || '', summary: raw.ex || '',
-                    category: raw.c || 'relevant', _fromCapitalMarketsRawPool: true,
-                  });
-                  if (id) seenIds.add(id);
-                  if (url) seenUrls.add(url);
-                  rawAdded++;
-                }
+                // Shared pool builder — the server-side shadow builder calls the
+                // SAME function, so the two candidate pools cannot drift apart.
+                const beforePool = recentArticles.length;
+                recentArticles = cmBuildArticlePool(recentArticles, rawData.items || [],
+                  { excludedIds: serverExcludedIds, excludedUrls: serverExcludedIds });
+                const rawAdded = recentArticles.length - beforePool;
                 console.log(`[Capital Markets] Added ${rawAdded} unique raw candidates for independent review`);
               } catch (error) {
                 console.warn('Capital Markets raw candidate pool unavailable; continuing with feed.json');
