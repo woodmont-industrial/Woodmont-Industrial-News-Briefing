@@ -478,7 +478,12 @@
       // name can contain it without proving a material operating expansion.
       ['tenant-expansion', /\b(expands? (?:manufacturing|operations|distribution)|(?:manufacturing|operations|distribution|facility|footprint|capacity) expansion|new (?:plant|factory|manufacturing facility)|opens? (?:a )?(?:new )?(?:plant|facility|distribution cent\w+)|adds? \d[\d,.]* jobs|relocat\w+ headquarters)\b/i],
       ['legislation-regulation', /\b(legislation|law|bill|statute|regulat\w+|executive order|tax credit|incentive program|policy|state(?:wide)? (?:rules|limits|restrictions))\b/i],
-      ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|utility|substation|transmission|interconnection|energy demand|power (?:constraints?|shortage))\b/i],
+      // "utility" was previously a bare token, so any company described as a
+      // "utility and communications components manufacturer" scored as power
+      // infrastructure — and because this label is treated as thematic below,
+      // that also bypassed the PROPERTY_SPECIFIC guard. Require the power sense
+      // explicitly. Same for "transmission", which otherwise matches gearboxes.
+      ['power-infrastructure', /\b(power grid|grid capacity|electricity|megawatts?|\bmw\b|(?:electric|power|energy)\s+utilit(?:y|ies)|utilit(?:y|ies)\s+(?:compan\w+|provider|commission|district|grid|scale|interconnection|infrastructure)|substation|(?:power|electric(?:ity)?|energy|grid)\s+transmission|transmission\s+(?:line|capacity|infrastructure|constraints?)|interconnection|energy demand|power (?:constraints?|shortage|crunch))\b/i],
       ['data-center-intel', /\b(data ?cent\w+)\b.*\b(pipeline|demand|capacity|market|investment|moratorium|regulation|backlash|development boom|vacancy|supply chain|leasing (?:activity|demand|map))\b/i],
     ];
     // "ABS" is an asset-backed security only as a standalone UPPERCASE token.

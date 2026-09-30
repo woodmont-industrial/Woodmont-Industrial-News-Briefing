@@ -136,4 +136,31 @@ njOv.overrides = savedOv || {};
 h.chk(cls('Buyer acquires Brielle, New Jersey warehouse for $40 million').tier === 'TARGET',
   'removing the override restores the latitude result');
 
+
+h.section('power-infrastructure requires the power sense, not a bare word');
+// A company described as a "utility and communications components manufacturer"
+// used to score power-infrastructure. Because that label counts as thematic, it
+// also bypassed the PROPERTY_SPECIFIC guard, so an out-of-state plant
+// announcement with a dollar figure entered Market Intelligence.
+for (const [title, description, want, why] of [
+  ['Maker Plans Smallville, North Carolina, Plastics Manufacturing Operations',
+   'Utility and communications components manufacturer plans to establish operations in Smallville, North Carolina. The $6.7 million project is expected to create 20 jobs.',
+   null, 'utility as a company descriptor is not power infrastructure'],
+  ['Transmission Repair Chain Opens Smallville, Ohio Shop',
+   'The gearbox and transmission specialist will occupy a $4 million site.',
+   null, 'bare "transmission" is not grid infrastructure'],
+  ['Electric Utility Warns Of Power Constraints For Industrial Users',
+   'The electric utility says grid capacity limits will affect warehouse electrification.',
+   'intel', 'an actual electric utility still qualifies'],
+  ['Grid Capacity Constraints Slow Data Center Pipeline',
+   'Utility interconnection queues are delaying megawatts of planned warehouse capacity.',
+   'intel', 'grid capacity and interconnection still qualify'],
+  ['Data Center Industry Touts Power Flexibility As Key Solution',
+   'Flexible-load data centers are offered as a solution to the power crunch for industrial users.',
+   'intel', 'a power crunch story is market intelligence'],
+]) {
+  const got = cls(title, { description }).section;
+  h.chk(got === want, `${why.padEnd(56)} -> ${String(got)} (want ${String(want)})`);
+}
+
 process.exit(h.done());
