@@ -63,6 +63,16 @@ export interface CapitalMarketsPackage {
         weekInReviewIncluded: boolean;
         safetyChecks: string[];
     };
+    /** Exactly what this build reviewed and decided. Exposed so a parity test
+     *  can compare the shadow's real output against the page's item-for-item
+     *  rather than comparing counts, or comparing a pool against itself. */
+    trace: {
+        poolIds: string[];
+        classified: string[];
+        sections: Record<string, string[]>;
+        competitors: string[];
+        weekInReview: string[];
+    };
 }
 
 export interface FeedHealth {
@@ -253,27 +263,31 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
     const docsDir = options.docsDir || process.env.WOODMONT_DOCS_DIR || path.join(repoRoot, 'docs');
     const cfg = loadConfig(repoRoot);
     const { CM } = await runtimeFor(repoRoot, docsDir);
-    const loaded = options.articles ? { articles: options.articles } : loadArticlesFromFeed();
-    let articles = loaded.articles;
-    // PARITY: the page merges docs/raw-feed.json into its candidate pool, so a
-    // shadow build reading only feed.json reviewed ~15% fewer candidates and no
-    // replay could be compared item-for-item. Use the SAME shared pool builder
-    // the page uses rather than re-implementing the merge here. Explicit
-    // options.articles (tests, historical replays) is left untouched.
-    if (!options.articles) {
+    // PARITY: assemble the candidate pool exactly as the page does, through the
+    // SAME shared functions. Capital Markets deliberately does NOT use
+    // loadArticlesFromFeed here: that normaliser and the page's disagreed on
+    // `description` and `summary`, which are precisely what cmText() classifies
+    // on, so the two paths judged different text. Explicit options.articles
+    // (tests, historical replays) is left untouched.
+    let articles: NormalizedItem[];
+    if (options.articles) {
+        articles = options.articles;
+    } else {
         try {
+            const feedItems = JSON.parse(
+                fs.readFileSync(path.join(docsDir, 'feed.json'), 'utf8')).items || [];
             const rawPath = path.join(docsDir, 'raw-feed.json');
-            if (fs.existsSync(rawPath)) {
-                const rawItems = JSON.parse(fs.readFileSync(rawPath, 'utf8')).items || [];
-                const before = articles.length;
-                const excluded = loadExcludedArticles(docsDir);
-                articles = CM.cmBuildArticlePool(articles, rawItems,
-                    { excludedIds: excluded.ids, excludedUrls: excluded.urls }) as NormalizedItem[];
-                console.log(`[Capital Markets] pool ${before} -> ${articles.length} (raw-feed candidates merged)`);
-            }
+            const rawItems = fs.existsSync(rawPath)
+                ? (JSON.parse(fs.readFileSync(rawPath, 'utf8')).items || [])
+                : [];
+            const excluded = loadExcludedArticles(docsDir);
+            articles = CM.cmBuildArticlePool(CM.cmNormalizeFeedItems(feedItems), rawItems,
+                { excludedIds: excluded.ids, excludedUrls: excluded.urls }) as NormalizedItem[];
+            console.log(`[Capital Markets] pool: feed ${feedItems.length} + raw ${rawItems.length} -> ${articles.length}`);
         } catch (error) {
-            console.warn('[Capital Markets] raw-feed.json unavailable; continuing with feed.json only:',
+            console.warn('[Capital Markets] shared pool unavailable; falling back to feed.json:',
                 (error as Error).message);
+            articles = loadArticlesFromFeed().articles;
         }
     }
     const now = new Date();
@@ -365,6 +379,22 @@ export async function buildCapitalMarketsPackage(options: BuildCapitalMarketsOpt
             weekInReviewIncluded: includeWeekInReview,
             safetyChecks,
         },
+        trace: (() => {
+            const idOf = (a: any) => String(a.id || a.link || a.title || '');
+            const sections: Record<string, string[]> = {};
+            for (const [name, items] of Object.entries(built.buckets || {})) {
+                sections[name] = (items as any[]).map(idOf);
+            }
+            return {
+                poolIds: articles.map(idOf),
+                classified: (built.inWindow || []).map((a: any) =>
+                    `${idOf(a)}:${(a._cm && a._cm.section) || '-'}:${(a._cm && a._cm.code) || '-'}`),
+                sections,
+                competitors: (competitor.items || []).map((i: any) =>
+                    `${idOf(i)}:${(i._cw || {}).company || ''}`),
+                weekInReview: (((built as any).weekInReview || {}).items || []).map(idOf),
+            };
+        })(),
     };
 }
 

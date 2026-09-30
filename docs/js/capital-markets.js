@@ -499,8 +499,19 @@
     const cmStructuredFinance = (text) => CM_ABS_TOKEN.test(text)
       && /\b(securit\w+|bond|note|issuance|offering|deal|financ\w+|transaction)\b/i.test(text);
 
+    // A tenant expansion is only interesting here when it involves REAL ESTATE.
+    // "Duraline Expands Manufacturing with New Eurotech Ultima CNC" matched
+    // "expands manufacturing" and entered Market Intelligence, but buying a
+    // machine tool is not an industrial property event. Require space, a site,
+    // or an actual building alongside the expansion language.
+    const CM_FACILITY_EVIDENCE = /\b(square[- ]f[eo]{2}t|sq\.?\s*ft|\bsf\b|acres?|facility|facilities|plant|factory|warehouse|distribution cent\w+|campus|site|building|industrial park|headquarters|lease[sd]?|occupanc\w+)\b/i;
+
     const cmIntelSignal = (text) => {
-      for (const [label, rx] of CM_INTEL_SIGNALS) if (rx.test(text)) return label;
+      for (const [label, rx] of CM_INTEL_SIGNALS) {
+        if (!rx.test(text)) continue;
+        if (label === 'tenant-expansion' && !CM_FACILITY_EVIDENCE.test(text)) continue;
+        return label;
+      }
       if (cmStructuredFinance(text)) return 'capital-trend';
       // A large industrial portfolio financing is material capital-markets
       // intelligence even when a terse headline says only "refi". Keep this
@@ -941,6 +952,42 @@
      *  its own evidence. Pass 2 groups syndicated copies of the same story and
      *  keeps the STRONGEST attribution, so a weaker copy encountered first can
      *  never suppress a later copy that names the company more precisely. */
+    /** SHARED JSON Feed normaliser.
+     *
+     *  docs/feed.json is JSON Feed (date_published / url / content_html), not
+     *  the article shape the classifier reads. The page and the server used to
+     *  normalise it independently, and they disagreed on the two fields that
+     *  decide classification: the page truncated the description to 200
+     *  characters and stripped a trailing publisher, and dropped `summary`
+     *  entirely, while the server kept the full text and preserved `summary`.
+     *  cmText() reads title + description + summary, so the shadow classifier
+     *  saw materially more text than the page — a dollar figure past character
+     *  200 was visible to one and invisible to the other.
+     *
+     *  Capital Markets now normalises through THIS function on both sides. The
+     *  page's own display mapping is untouched: it still drives the department
+     *  newsletter, and its truncation is a display concern, not a classifier
+     *  input. */
+    const cmNormalizeFeedItem = (a) => {
+      const item = a || {};
+      return {
+        ...item,
+        id: item.id,
+        title: item.title || 'Untitled',
+        link: item.url || item.link || '',
+        url: item.url || item.link || '',
+        pubDate: item.date_published || item.pubDate || '',
+        fetchedAt: item.date_modified || item.fetchedAt || '',
+        description: item.content_text || item.content_html || item.description || item.summary || '',
+        summary: item.summary || '',
+        source: (item._source && item._source.name) || item.source || '',
+        publisher: (item._source && item._source.website) || item.publisher || '',
+        category: item.category || 'relevant',
+      };
+    };
+
+    const cmNormalizeFeedItems = (items) => (items || []).map(cmNormalizeFeedItem);
+
     /** SHARED candidate-pool builder. The browser preview and the server-side
      *  shadow/canary builder MUST assemble the same pool, or a replay compares
      *  two different newsletters. Before this existed the shadow builder read
@@ -1525,7 +1572,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,

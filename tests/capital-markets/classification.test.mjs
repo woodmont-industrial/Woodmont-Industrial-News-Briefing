@@ -183,4 +183,21 @@ for (const [title, description, want, why] of [
   h.chk(got === want, why.padEnd(56) + " -> " + String(got) + " (want " + String(want) + ")");
 }
 
+
+h.section("tenant-expansion requires real-estate evidence");
+// "Duraline Expands Manufacturing with New Eurotech Ultima CNC" entered Market
+// Intelligence on "expands manufacturing" alone. Buying a machine tool is not
+// an industrial property event.
+for (const [title, description, want, why] of [
+  ["Maker Expands Manufacturing with New Eurotech Ultima CNC",
+   "The machine tool boosts industrial output at the manufacturer.",
+   null, "a machine-tool purchase is not a property event"],
+  ["Maker opens a new distribution center in Vineland, New Jersey",
+   "The industrial warehouse facility is now operating.",
+   "intel", "an actual new facility still qualifies"],
+]) {
+  const got = cls(title, { description }).section;
+  h.chk(got === want, why.padEnd(56) + " -> " + String(got) + " (want " + String(want) + ")");
+}
+
 process.exit(h.done());

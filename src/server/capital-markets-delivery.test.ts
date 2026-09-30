@@ -184,6 +184,70 @@ console.log("\n=== preview/shadow pool parity ===");
         "shadow auto-loads the committed watchlist (" + live.summary.watchlist.loaded + " companies)");
 }
 
+
+console.log("\n=== end-to-end preview/shadow parity ===");
+// Pool COUNT parity is not output parity. The page and the shadow must reach
+// the same verdict on the same articles, in the same order, in every window.
+// One frozen timestamp; ordered ids and classifications, never counts, and
+// never a pool compared against itself: the shadow side comes from the real
+// build's own trace.
+{
+    const fsMod = await import("fs");
+    const pathMod = await import("path");
+    const urlMod = await import("url");
+    const modMod = await import("module");
+    const require2 = modMod.createRequire(import.meta.url);
+    const here = pathMod.dirname(urlMod.fileURLToPath(import.meta.url));
+    const repoRoot = pathMod.resolve(here, "..", "..");
+    const docs = pathMod.join(repoRoot, "docs");
+    const { loadCapitalMarketsRuntime } = require2(pathMod.join(repoRoot, "src/server/capital-markets-runtime.cjs"));
+    const { CM } = await loadCapitalMarketsRuntime({ repoRoot, docsDir: docs });
+    const { loadExcludedArticles } = await import("./newsletter-filters.js");
+
+    const feedItems = JSON.parse(fsMod.readFileSync(pathMod.join(docs, "feed.json"), "utf8")).items || [];
+    const rawItems = JSON.parse(fsMod.readFileSync(pathMod.join(docs, "raw-feed.json"), "utf8")).items || [];
+    const excluded = loadExcludedArticles(docs);
+    const wl = JSON.parse(fsMod.readFileSync(
+        pathMod.join(docs, "data", "capital-markets-watchlist.json"), "utf8")).companies;
+
+    // PAGE path, mirroring the browser branch in docs/index.html: fetch
+    // feed.json + raw-feed.json, normalise with the shared normaliser, merge
+    // with the shared pool builder.
+    const pagePool = CM.cmBuildArticlePool(
+        CM.cmNormalizeFeedItems(feedItems), rawItems,
+        { excludedIds: excluded.ids, excludedUrls: excluded.urls });
+
+    const FROZEN = "2026-09-30T12:00:00.000Z";
+    const WINDOWS: Array<[string, number]> = [["24h", 24], ["72h", 72], ["7d", 168], ["30d", 720]];
+    const idOf = (a: any) => String(a.id || a.link || a.title || "");
+
+    for (const [label, hours] of WINDOWS) {
+        const built = CM.cmBuildSections(pagePool, FROZEN, hours);
+        const cw = CM.cmCompetitorWatch(built.inWindow, wl);
+        const pageSections: Record<string, string[]> = {};
+        for (const [k, v] of Object.entries(built.buckets || {})) pageSections[k] = (v as any[]).map(idOf);
+
+        const live = await buildCapitalMarketsPackage({
+            asOfDate: "2026-09-30", asOfTime: FROZEN, lookbackHours: hours,
+            includeWeekInReview: false, testBanner: true,
+        });
+        const t = live.trace;
+
+        check(t.poolIds.join("|") === pagePool.map(idOf).join("|"),
+            `${label}: pool ids identical and ordered (${pagePool.length})`);
+        check(t.classified.join("|") === (built.inWindow || []).map((a: any) =>
+            `${idOf(a)}:${(a._cm && a._cm.section) || "-"}:${(a._cm && a._cm.code) || "-"}`).join("|"),
+            `${label}: per-article section and rejection code identical`);
+        check(JSON.stringify(t.sections) === JSON.stringify(pageSections),
+            `${label}: section assignments identical`);
+        check(t.competitors.join("|") === (cw.items || []).map((i: any) =>
+            `${idOf(i)}:${(i._cw || {}).company || ""}`).join("|"),
+            `${label}: competitor matches identical`);
+        check(t.weekInReview.join("|") === (((built as any).weekInReview || {}).items || []).map(idOf).join("|"),
+            `${label}: Week-in-Review ranking identical`);
+    }
+}
+
 console.log(failures ? `\n${failures} FAILURE(S)` : '\nOK: Capital Markets production guard');
 process.exit(failures ? 1 : 0);
 }
