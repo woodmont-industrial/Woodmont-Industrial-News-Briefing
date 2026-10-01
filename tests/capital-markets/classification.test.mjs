@@ -200,4 +200,50 @@ for (const [title, description, want, why] of [
   h.chk(got === want, why.padEnd(56) + " -> " + String(got) + " (want " + String(want) + ")");
 }
 
+
+h.section('completion and delivery milestones count as construction');
+// CM_RX.construction required the verb, an optional size and the noun to sit
+// next to each other. Real headlines put the market in between -- "Delivers
+// 358K-SF Lehigh Valley Industrial Project" -- and "358K-SF" does not match a
+// hyphen-free size pattern either, so a TARGET-market completion scored
+// NO_SIGNAL. Jacob asked for construction completions explicitly.
+for (const [title, description, want, why] of [
+  ['Builder Delivers 358K-SF Allentown, Pennsylvania Industrial Project', '',
+   'construction', 'a delivery milestone with the market between size and noun'],
+  ['Developer completes 400,000 SF warehouse in Allentown, Pennsylvania', '',
+   'construction', 'completes + warehouse still qualifies'],
+  ['Greater Lehigh Valley industrial project delivered', 'industrial warehouse facility',
+   'construction', 'an alias spelling of a stated region resolves'],
+  // Moving goods is not a real-estate milestone.
+  ['Retailer delivers packages faster with same-day delivery pilot', 'industrial warehouse logistics',
+   null, 'package delivery is not a construction milestone'],
+  ['Carrier completes delivery of 500 trucks', 'industrial',
+   null, 'vehicle delivery is not a construction milestone'],
+  ['Postal service and retailer partner on same-day delivery pilot', 'supply chain',
+   null, 'a delivery pilot is not a construction milestone'],
+]) {
+  const got = cls(title, { description }).section;
+  h.chk(got === want, why.padEnd(58) + ' -> ' + String(got) + ' (want ' + String(want) + ')');
+}
+
+h.section('Lehigh Valley resolves as a stated TARGET region');
+// Allentown, Bethlehem and Lehigh County all resolved to TARGET while the bare
+// regional name -- Jacob's own wording, and how the trade press writes it --
+// resolved to UNMAPPED.
+for (const [title, wantTier, why] of [
+  ['Buyer acquires industrial warehouse in Lehigh Valley for $50 million', 'TARGET',
+   'the bare regional name resolves'],
+  ['Buyer acquires industrial warehouse in Greater Lehigh Valley for $50 million', 'TARGET',
+   'the Greater alias resolves'],
+  ['Buyer acquires industrial warehouse in Allentown, Pennsylvania for $50 million', 'TARGET',
+   'municipalities still resolve'],
+]) {
+  const r = cls(title, { description: 'industrial warehouse' });
+  h.chk(r.tier === wantTier, why.padEnd(58) + ' -> ' + String(r.tier) + ' (want ' + wantTier + ')');
+}
+// Mapping the region does NOT settle the open Berks question.
+h.chk(/Berks/.test(JSON.stringify(CM.cmGeo.geography.states.PA._pendingConfirmation || {})) ||
+      /Berks/.test(JSON.stringify(CM.cmGeo.geography.states.PA.regions || [])),
+  'the unresolved Berks assumption stays visibly documented');
+
 process.exit(h.done());

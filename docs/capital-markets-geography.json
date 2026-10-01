@@ -63,7 +63,23 @@
           "What is the explicit county set for the I-78 / I-81 / Central PA (CPA) corridor?"
         ],
         "note": "The Lee & Associates Lehigh Valley page presents its submarket boundary primarily as a map image rather than a county list, so the current county interpretation needs explicit approval rather than inference. Tiers below are unchanged until then."
-      }
+      },
+      "regions": [
+        {
+          "name": "Lehigh Valley",
+          "aliases": [
+            "Lehigh Valley",
+            "Greater Lehigh Valley"
+          ],
+          "tier": "TARGET",
+          "counties": [
+            "Lehigh",
+            "Northampton"
+          ],
+          "source": "stakeholder-stated: \"Pennsylvania: Lehigh Valley\" named as a TARGET market. The bare regional name is how the trade press writes it, and it previously resolved to UNMAPPED while Allentown, Bethlehem and Lehigh County all resolved to TARGET.",
+          "note": "Counties listed here are the uncontested core of the named region. This entry does NOT settle whether Berks belongs to the Lehigh Valley target market - see _pendingConfirmation."
+        }
+      ]
     },
     "FL": {
       "method": "county",

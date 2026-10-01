@@ -293,7 +293,11 @@
       for (const st of Object.keys(cmGeo.geography.states || {})) {
         for (const rg of (cmGeo.geography.states[st].regions || [])) {
           if (states.size > 0 && !states.has(st)) continue;
-          if (padHas(text, rg.name))
+          // Match the canonical name OR any stated alias: the press writes
+          // "Greater Lehigh Valley" as readily as "Lehigh Valley", and a region
+          // that only matches one spelling silently drops the other.
+          const spellings = [rg.name, ...(rg.aliases || [])];
+          if (spellings.some(label => label && padHas(text, label)))
             add(rg.name, st, (rg.counties || []).join('/'), rg.tier,
                 'stated region ' + rg.name + ' (' + (rg.counties || []).join(', ') + ')');
         }
@@ -453,8 +457,24 @@
       // Completion verbs need an actual construction/asset object. A bare
       // "completed" also occurs in "completed the acquisition" and previously
       // misrouted sales into Construction Updates.
-      construction: /\b(?:break(?:s|ing)? ground|groundbreaking|construction (?:start|starts|started|completion|completes?|completed)|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|(?:completes?|completed|delivers?|delivered)\s+(?:(?:construction|work)\s+(?:of|on)\s+)?(?:a|an|the)?\s*(?:[\d,.]+\s*(?:million|m|k)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf)\s+)?(?:industrial\s+)?(?:warehouse|facility|building|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)(?!\s+(?:acquisition|purchase|sale|deal|transaction))|(?:warehouse|facility|building|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)\s+(?:construction\s+)?(?:is\s+)?(?:complete|completed|delivered))\b/i,
+      construction: /\b(?:break(?:s|ing)? ground|groundbreaking|construction (?:start|starts|started|completion|completes?|completed)|starts? construction|construction (?:is )?underway|wall tilt|walls? tilted|vertical construction|tilt-?up|topping out|tops? out|(?:completes?|completed|delivers?|delivered)\s+(?:(?:construction|work)\s+(?:of|on)\s+)?(?:a|an|the)?\s*(?:[\d,.]+\s*(?:million|m|k)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf)\s+)?(?:industrial\s+)?(?:warehouse|facility|building|project|development|industrial park|campus|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)(?!\s+(?:acquisition|purchase|sale|deal|transaction))|(?:warehouse|facility|building|project|development|industrial park|campus|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+)\s+(?:construction\s+)?(?:is\s+)?(?:complete|completed|delivered))\b/i,
       industrial: /\b(industrial|warehouse|distribution cent\w+|logistics|cold storage|manufactur\w+|fulfillment|data ?cent\w+)\b/i,
+      // COMPLETION / DELIVERY milestones. CM_RX.construction requires the verb,
+      // an optional size and the noun to sit next to each other, which real
+      // headlines do not do: "Delivers 358K-SF Lehigh Valley Industrial
+      // Project" puts the market between the size and the noun, and "358K-SF"
+      // does not match its hyphen-free size pattern either. Jacob asked for
+      // construction completions explicitly, so match the verb and require
+      // project evidence NEARBY rather than adjacent.
+      // "opens" is deliberately absent: a tenant opening a facility is a
+      // tenant-expansion signal, not a construction milestone. The lookahead
+      // keeps "completed the acquisition" a SALE — a completion verb attached
+      // to a transaction noun describes closing a deal, not finishing a
+      // building, and it would otherwise outrank the sale path in the headline.
+      completionVerb: /\b(?:delivers?|delivered|completes?|completed|construction completion)\b(?!\s+(?:the\s+|a\s+|an\s+|its\s+)?(?:acquisition|purchase|sale|disposition|deal|transaction|financing|refinanc\w+|lease|merger|offering|round))/i,
+      projectEvidence: /\b(?:industrial park|warehouse|distribution cent\w+|logistics cent\w+|fulfillment cent\w+|manufacturing plant|data ?cent\w+|industrial (?:project|development|building|facility|campus)|(?:project|development|building|facility|campus)\b[^.]{0,40}\b(?:industrial|warehouse|logistics))\b/i,
+      // Moving goods is not a real-estate milestone.
+      completionNotRealEstate: /\b(?:package|parcel|same[- ]day|next[- ]day|shipment|freight|order|truckloads?|vehicles?|units? to customers|mail)\b/i,
       municipal: /\b(planning board|zoning board|ordinance|rezon\w+|site plan|entitlement\w*|moratorium|variance|redevelopment plan|data ?cent\w+ (?:regulation|rules|restrictions|ordinance))\b/i,
       lowValue: /\b(obsolete|brokerage assignment|named exclusive (?:agent|broker)|hires? \w+ as broker|tapped to market|assignment to market|ribbon[- ]cutting|golf outing|charity|awards?\b|honou?ree|best places to work|top \d+ (?:brokers|agents|firms)|rankings?\b|webinar|podcast|conference|summit|networking|people on the move|promoted to|joins? as|named (?:president|ceo|cfo|partner|director))\b/i,
     };
@@ -544,7 +564,20 @@
       const saleAt = titleOnly.search(CM_RX.sale);
       const leaseAt = titleOnly.search(CM_RX.leaseCompleted);
       const availAt = titleOnly.search(CM_RX.availabilityOffer);
-      const constructionAt = titleOnly.search(CM_RX.construction);
+      // A completion milestone counts as construction when the verb carries
+      // project evidence nearby and is not describing goods movement.
+      // A structured-finance story ("completes a single-asset single-borrower
+      // deal on a distribution center") is capital-markets intelligence, not a
+      // building milestone, and the transaction noun can sit too far from the
+      // verb for a lookahead to catch. Defer to the intel signal instead.
+      const completionMilestone = CM_RX.completionVerb.test(titleOnly)
+        && CM_RX.projectEvidence.test(text)
+        && !CM_RX.completionNotRealEstate.test(text)
+        && cmIntelSignal(text) !== 'capital-trend';
+      const constructionRxAt = titleOnly.search(CM_RX.construction);
+      const constructionAt = constructionRxAt >= 0
+        ? constructionRxAt
+        : (completionMilestone ? titleOnly.search(CM_RX.completionVerb) : -1);
       const nonConstructionAt = [finAt, saleAt, leaseAt, availAt].filter(i => i >= 0)
         .reduce((best, i) => Math.min(best, i), Number.POSITIVE_INFINITY);
       const constructionLeadsHeadline = constructionAt >= 0 && constructionAt < nonConstructionAt;
@@ -569,7 +602,8 @@
                  reason: `LOW_VALUE_INTEL: "${(text.match(CM_RX.lowValue) || [''])[0]}"` };
       }
       // --- B. Construction --------------------------------------------
-      if (CM_RX.construction.test(text) && (constructionLeadsHeadline || constructionOnlyInBody)) {
+      if ((CM_RX.construction.test(text) || completionMilestone)
+          && (constructionLeadsHeadline || constructionOnlyInBody)) {
         if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
         if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
         if (tier === 'BROADER') {
