@@ -542,18 +542,129 @@
       return null;
     };
 
-    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION', PROPERTY_SPECIFIC: 'PROPERTY_SPECIFIC' };
+    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION', PROPERTY_SPECIFIC: 'PROPERTY_SPECIFIC', GEO_CONFLICT: 'GEO_CONFLICT', AMBIGUOUS_SF: 'AMBIGUOUS_SF' };
+
+    // ---- Event-specific evidence -------------------------------------------
+    // A direct-source pilot showed the classifier is unsafe on richer text: the
+    // proxy feed's 200-character truncation had been masking three defects.
+    // With full article bodies, a Miami RETAIL sale and a Michigan OFFICE lease
+    // entered industrial sections, an Arizona portfolio resolved to a PA/NJ
+    // market on an incidental body mention of "Newtown", and an office SF was
+    // reported as 810,460 after summing every figure in the body. Each gate
+    // below makes the decision follow the EVENT rather than the whole document.
+
+    // Asset classes that are explicitly NOT industrial. Headline evidence wins:
+    // an industrial word elsewhere in the body cannot rescue a retail headline.
+    // Plurals matter: a trailing \b after "warehouse" does not match
+    // "warehouses", which silently rejected "Two distribution warehouses sold".
+    const CM_NON_INDUSTRIAL_ASSET = /\b(shopping cent\w+|retail cent\w+|strip (?:malls?|cent\w+)|malls?|grocery|supermarkets?|office (?:buildings?|towers?|complex(?:es)?|leases?|space|parks?|campus(?:es)?)|offices?|multifamily|apartment\w*|residential|condo\w*|hotels?|hospitality|resorts?|senior (?:housing|living)|assisted living|student housing|self[- ]storage|medical office|life science)\b/i;
+    // Explicit industrial evidence. "industrial" alone is deliberately included,
+    // but an explicit non-industrial headline still overrides it.
+    const CM_INDUSTRIAL_ASSET = /\b(warehouses?|distribution cent\w+|logistics (?:facilit(?:y|ies)|cent\w+|parks?|campus(?:es)?)|cold storage|manufacturing (?:facilit(?:y|ies)|plants?)|industrial parks?|flex[- ]industrial|industrial|data ?cent\w+|fulfillment cent\w+)\b/i;
+
+    /** Asset class decided from the HEADLINE first. Returns 'industrial',
+     *  'non-industrial' or null (unknown). Unknown stays rejected rather than
+     *  inferred: Jacob's sections are industrial by definition. */
+    const cmAssetClass = (title, body) => {
+      const head = String(title || '');
+      const headNon = CM_NON_INDUSTRIAL_ASSET.test(head);
+      const headInd = CM_INDUSTRIAL_ASSET.test(head);
+      // "industrial office park" style mixes: the non-industrial term in the
+      // headline wins, because that is what the asset actually is.
+      if (headNon) return 'non-industrial';
+      if (headInd) return 'industrial';
+      const full = `${head} ${String(body || '')}`;
+      if (CM_NON_INDUSTRIAL_ASSET.test(full)) return 'non-industrial';
+      if (CM_INDUSTRIAL_ASSET.test(full)) return 'industrial';
+      return null;
+    };
+
+    /** Event-specific square footage.
+     *
+     *  Never sum every figure in a document. Precedence:
+     *    1. explicit headline SF
+     *    2. an explicit aggregate the SOURCE states ("totaling 500,000 sq ft")
+     *    3. SF in the sentence carrying the transaction verb
+     *  Two or more competing figures with no stated aggregate is AMBIGUOUS, not
+     *  a sum: a 157,642 SF lease inside a building of another size reported as
+     *  810,460 is a confidently wrong number, which is worse than no number. */
+    const CM_AGGREGATE_SF = /\b(?:total(?:ing|ling|s)?|combined|aggregate|across|portfolio of)\b[^.]{0,40}?(\d[\d,.]*\s*(?:million|m)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf)\b)/i;
+    // EVERY square-foot figure in a span. cmSquareFeet() returns a single value,
+    // so calling it on a sentence holding two competing figures silently picks
+    // one — which is how a 157,642 SF lease inside an 810,460 SF building got
+    // reported as the building. Ambiguity can only be detected by counting.
+    const CM_SF_ALL = /\d[\d,.]*\s*(?:million|m|k)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|\bsf\b)/gi;
+    const cmAllSquareFeet = (span) => {
+      const out = [];
+      for (const m of String(span || '').matchAll(CM_SF_ALL)) {
+        const v = cmSquareFeet(m[0]);
+        if (v) out.push(v);
+      }
+      return [...new Set(out)];
+    };
+    const cmEventSquareFeet = (title, body, eventRx) => {
+      const head = String(title || '');
+      const headSf = cmSquareFeet(head);
+      if (headSf) return { sf: headSf, basis: 'headline' };
+      const full = `${head} ${String(body || '')}`;
+      const agg = CM_AGGREGATE_SF.exec(full);
+      if (agg) {
+        const sf = cmSquareFeet(agg[1]);
+        if (sf) return { sf, basis: 'stated aggregate' };
+      }
+      const sentences = String(body || '').split(/(?<=[.!?])\s+/);
+      const eventSentences = eventRx ? sentences.filter(s => eventRx.test(s)) : [];
+      const fromEvent = [...new Set(eventSentences.flatMap(s => cmAllSquareFeet(s)))];
+      if (fromEvent.length === 1) return { sf: fromEvent[0], basis: 'transaction sentence' };
+      if (fromEvent.length > 1) return { sf: null, basis: 'ambiguous', ambiguous: true };
+      const distinct = cmAllSquareFeet(String(body || ''));
+      if (distinct.length === 1) return { sf: distinct[0], basis: 'single figure in body' };
+      if (distinct.length > 1) return { sf: null, basis: 'ambiguous', ambiguous: true };
+      return { sf: null, basis: 'none' };
+    };
 
     /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
     const cmClassify = (a) => {
       const text = cmText(a);
-      const { tier, matched, basis, provenance, locations } = cmMarketTier(text);
+      const titleOnlyText = String((a && a.title) || '');
+      const bodyText = `${String((a && a.description) || '')} ${String((a && a.summary) || '')}`.trim();
+      // GEOGRAPHY PRECEDENCE: the headline describes the event; the body may
+      // mention anywhere. Resolve from the headline first and only fall back to
+      // the full text when the headline carries no location at all. A
+      // municipality named elsewhere must never relocate the deal.
+      const headGeo = cmMarketTier(titleOnlyText);
+      const fullGeo = cmMarketTier(text);
+      const headResolved = headGeo.tier !== 'UNMAPPED';
+      const geoConflict = headResolved && fullGeo.tier !== 'UNMAPPED'
+        && headGeo.tier !== fullGeo.tier
+        && (headGeo.tier === 'NATIONAL' || fullGeo.tier === 'NATIONAL');
+      const { tier, matched, basis, provenance, locations } = headResolved ? headGeo : fullGeo;
       const provTag = (provenance && provenance !== 'EXACT') ? ` [${provenance}]` : '';
       const locTag = (locations && locations.length > 1)
         ? ` [locations: ${locations.map(l => l.label).join(' + ')}]` : '';
       const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}`;
       const dollars = cmDollars(text), sf = cmSquareFeet(text);
       const isInd = CM_RX.industrial.test(text);
+      // Asset class for the DEAL sections (sales, leases, availabilities,
+      // construction). Intelligence keeps the looser isInd test: a market
+      // report about industrial vacancy is not itself a property.
+      const assetClass = cmAssetClass(titleOnlyText, bodyText);
+      const assetIndustrial = assetClass === 'industrial';
+      // EARLY gate. A headline that explicitly names a non-industrial asset is
+      // out of scope whatever its event verb, and saying so here gives the
+      // honest code: an office lease whose verb the lease regex happens not to
+      // match would otherwise fall through to NO_SIGNAL, which reads as "we
+      // found nothing" rather than "this is not an industrial property".
+      if (CM_NON_INDUSTRIAL_ASSET.test(titleOnlyText) && !CM_INDUSTRIAL_ASSET.test(titleOnlyText)) {
+        return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null,
+                 reason: `NOT_INDUSTRIAL: the headline names a non-industrial asset class; ${geo}` };
+      }
+      const assetReject = (section) => ({
+        section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null,
+        reason: assetClass === 'non-industrial'
+          ? `NOT_INDUSTRIAL: ${section} of a non-industrial asset class (headline evidence wins over incidental body mentions)`
+          : `NOT_INDUSTRIAL: ${section} with no explicit industrial asset evidence — unknown asset class is not inferred`,
+      });
       // Headline event order resolves mixed stories. A sale/lease/availability
       // headline may mention a completed building in its description; that does
       // not turn the transaction into a construction update. Conversely,
@@ -622,6 +733,10 @@
       // the park it acquired in 2024" is a financing story, not a sale.
       const financingHeadline = finAt >= 0 && (saleAt < 0 || finAt < saleAt);
       if (CM_RX.sale.test(text) && !financingHeadline) {
+        // ORDER: event -> asset class -> location -> price -> threshold.
+        if (!assetIndustrial) return assetReject('sale');
+        if (geoConflict) return { section: null, tier, code: CM_REJECT.GEO_CONFLICT, magnitude: dollars,
+          reason: `GEO_CONFLICT: headline resolves ${headGeo.tier} via "${headGeo.matched}" but the body resolves ${fullGeo.tier} via "${fullGeo.matched}" — the deal is not relocated by an incidental mention` };
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
         if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
         const need = CM_THRESHOLDS.sale[tier];
@@ -637,11 +752,21 @@
       const isAvail = availOffer && !completedLease;
       if (isAvail || completedLease) {
         const sect = isAvail ? 'availabilities' : 'leases';
-        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
-        if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
+        // ORDER: event -> asset class -> location -> event-specific SF -> threshold.
+        if (!assetIndustrial) return assetReject(sect);
+        if (geoConflict) return { section: null, tier, code: CM_REJECT.GEO_CONFLICT, magnitude: null,
+          reason: `GEO_CONFLICT: headline resolves ${headGeo.tier} via "${headGeo.matched}" but the body resolves ${fullGeo.tier} via "${fullGeo.matched}" — the deal is not relocated by an incidental mention` };
+        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: null, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
+        // Event-specific SF: never a sum of every figure in the body.
+        const sfEvidence = cmEventSquareFeet(titleOnlyText, bodyText,
+          isAvail ? CM_RX.availabilityOffer : CM_RX.leaseCompleted);
+        if (sfEvidence.ambiguous) return { section: null, tier, code: CM_REJECT.AMBIGUOUS_SF, magnitude: null,
+          reason: `AMBIGUOUS_SF: several square-foot figures and no aggregate stated by the source — a portfolio total is never calculated; ${geo}` };
+        const eventSf = sfEvidence.sf;
+        if (!eventSf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
         const need = CM_THRESHOLDS.lease[tier];
-        if (sf > need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}); ${geo}` };
-        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF does not exceed ${need.toLocaleString()} (<=, ${tier})` };
+        if (eventSf > need) return { section: sect, tier, code: null, magnitude: eventSf, reason: `${sect} ${eventSf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}, SF from ${sfEvidence.basis}); ${geo}` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: eventSf, reason: `BELOW_THRESHOLD: ${sect} ${eventSf.toLocaleString()} SF does not exceed ${need.toLocaleString()} (<=, ${tier})` };
       }
       // --- D. Market intelligence (positive inclusion only) -------------
       // GUARD: every deal-shaped path above RETURNS, so an article rejected for

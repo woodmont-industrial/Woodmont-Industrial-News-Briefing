@@ -10,9 +10,9 @@ const AS_OF = '2026-09-22';                 // a Tuesday, deliberately not Frida
 const day = (n) => new Date(Date.UTC(2026, 8, 22 - n, 12)).toISOString();
 const corpus = [
   { title: 'Investor acquires Edison, New Jersey warehouse for $195 million', description: '', link: 'https://example.test/s1', pubDate: day(1) },
-  { title: 'Tenant leased 480,000 square feet in Edison, New Jersey', description: '', link: 'https://example.test/l1', pubDate: day(2) },
+  { title: 'Tenant leased 480,000 square feet of industrial warehouse space in Edison, New Jersey', description: '', link: 'https://example.test/l1', pubDate: day(2) },
   { title: 'Developer breaks ground on a 600,000 square foot industrial warehouse in Vineland, New Jersey', description: '', link: 'https://example.test/c1', pubDate: day(3) },
-  { title: '250,000 square feet available in Edison, New Jersey', description: '', link: 'https://example.test/a1', pubDate: day(4) },
+  { title: '250,000 square feet of industrial warehouse space available in Edison, New Jersey', description: '', link: 'https://example.test/a1', pubDate: day(4) },
   { title: 'Industrial vacancy rate falls again as absorption climbs', description: 'Net absorption rose across the quarter.', link: 'https://example.test/i1', pubDate: day(5) },
   { title: 'Planning board approves a site plan for an Edison, New Jersey industrial park', description: '', link: 'https://example.test/m1', pubDate: day(6) },
   { title: 'Investor acquires Edison, New Jersey warehouse for $195 million', description: '', link: 'https://syndicated.test/s1', pubDate: day(1) },
