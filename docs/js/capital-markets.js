@@ -397,7 +397,14 @@
 
       // 6. explicit non-target / nationwide framing
       const lower = text.toLowerCase();
-      const nat = states.size === 0 ? CM_GEO.NATIONAL.find(k => lower.includes(k)) : null;
+      // WHOLE PHRASE only. A substring test let "reno" match inside "Zireno
+      // Capital", so a company name with no location at all resolved NATIONAL
+      // and qualified on the national threshold. \b is not usable directly
+      // because several entries carry periods and spaces ("st. louis",
+      // "across the u.s."), so bound on non-alphanumerics instead.
+      const nat = states.size === 0
+        ? CM_GEO.NATIONAL.find(k => cmPhraseInText(lower, k))
+        : null;
       if (nat) return { tier: 'NATIONAL', matched: nat, provenance: 'EXACT', locations: [],
                         basis: 'explicit non-target market / nationwide framing' };
 
@@ -608,6 +615,52 @@
     // ordinary adjectival form and was being missed entirely, which turned a
     // valid lease into MISSING_SF.
     const CM_SF_ALL = /\d[\d,.]*[\s-]*(?:million|m|k)?[\s-]*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|\bsf\b)/gi;
+
+    /** Whole-phrase containment, bounded on non-alphanumerics so a phrase with
+     *  a period or space still matches but a substring inside a longer word
+     *  does not. */
+    const cmPhraseInText = (haystack, phrase) => {
+      const p = String(phrase || '').toLowerCase().trim();
+      if (!p) return false;
+      const esc = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`(^|[^a-z0-9])${esc}([^a-z0-9]|$)`, 'i').test(String(haystack || ''));
+    };
+
+    /** The square footage belonging to the TRANSACTION, resolved by position
+     *  relative to the verb rather than by order or magnitude.
+     *
+     *  Order alone is not enough: "In a building totaling 200,000 SF, the
+     *  tenant took 12,000 SF" puts the container first, and taking the largest
+     *  figure is worse still. English puts the object after the verb, so the
+     *  first figure AFTER the transaction verb is the deal's own area in both
+     *  orderings. Returns null when the verb carries no figure, so the caller
+     *  can fall back or declare ambiguity rather than guess. */
+    const cmSfAfterVerb = (span, verbRx) => {
+      const text = String(span || '');
+      if (!verbRx) return null;
+      const rx = new RegExp(verbRx.source, verbRx.flags.includes('g') ? verbRx.flags : verbRx.flags + 'g');
+      const verbs = [...text.matchAll(rx)].map(m => ({ start: m.index, end: m.index + m[0].length }));
+      if (!verbs.length) return null;
+      const figures = [];
+      for (const m of text.matchAll(CM_SF_ALL)) {
+        const v = cmSquareFeet(m[0]);
+        if (v) figures.push({ value: v, start: m.index, end: m.index + m[0].length });
+      }
+      if (!figures.length) return null;
+      // NEAREST the verb on either side. Lease wording puts the area after the
+      // verb ("took 12,000 square feet"); availability wording puts it before
+      // ("9,000 square feet is available"). Distance to the verb identifies the
+      // transaction's own area in both, where order and magnitude do not.
+      const distance = (f) => Math.min(...verbs.map(v =>
+        f.start >= v.end ? f.start - v.end : (v.start >= f.end ? v.start - f.end : 0)));
+      let best = null, bestAt = Infinity, tied = false;
+      for (const f of figures) {
+        const d = distance(f);
+        if (d < bestAt) { best = f.value; bestAt = d; tied = false; }
+        else if (d === bestAt && f.value !== best) tied = true;
+      }
+      return tied ? null : best;
+    };
     const cmAllSquareFeet = (span) => {
       const out = [];
       for (const m of String(span || '').matchAll(CM_SF_ALL)) {
@@ -618,8 +671,15 @@
     };
     const cmEventSquareFeet = (title, body, eventRx) => {
       const head = String(title || '');
-      const headSf = cmSquareFeet(head);
-      if (headSf) return { sf: headSf, basis: 'headline' };
+      // HEADLINE first, but resolved the same way: "leased 12,000 square feet
+      // in a 200,000 square foot warehouse" must not report the warehouse.
+      const headFigures = cmAllSquareFeet(head);
+      if (headFigures.length === 1) return { sf: headFigures[0], basis: 'headline' };
+      if (headFigures.length > 1) {
+        const byVerb = cmSfAfterVerb(head, eventRx);
+        if (byVerb) return { sf: byVerb, basis: 'headline (after the transaction verb)' };
+        return { sf: null, basis: 'ambiguous', ambiguous: true };
+      }
       const full = `${head} ${String(body || '')}`;
       const sentences = String(body || '').split(/(?<=[.!?])\s+/);
       const eventSentences = eventRx ? sentences.filter(s => eventRx.test(s)) : [];
@@ -634,12 +694,13 @@
         const figures = cmAllSquareFeet(sentence);
         if (figures.length === 1) return { sf: figures[0], basis: 'transaction sentence' };
         if (figures.length > 1) {
-          const ordered = [];
-          for (const m of String(sentence).matchAll(CM_SF_ALL)) {
-            const v = cmSquareFeet(m[0]);
-            if (v) ordered.push(v);
-          }
-          if (ordered.length) return { sf: ordered[0], basis: 'transaction sentence (nearest the verb)' };
+          // Position relative to the VERB, not order in the sentence: the
+          // container may come first ("In a building totaling 200,000 SF, the
+          // tenant took 12,000 SF"). If the verb carries no figure we decline
+          // rather than guess.
+          const byVerb = cmSfAfterVerb(sentence, eventRx);
+          if (byVerb) return { sf: byVerb, basis: 'transaction sentence (after the verb)' };
+          return { sf: null, basis: 'ambiguous', ambiguous: true };
         }
       }
       const agg = CM_AGGREGATE_SF.exec(full);
@@ -1833,7 +1894,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved, cmPhraseInText,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,

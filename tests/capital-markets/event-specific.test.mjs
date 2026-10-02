@@ -100,4 +100,38 @@ h.chk(cls('Tenant signs 124,000 square foot industrial warehouse lease in Linden
 h.chk(cls('Hanover Company Delivers 358K-SF Lehigh Valley Industrial Project - Connect CRE').section === 'construction',
   'the Hanover construction completion still qualifies');
 
+
+h.section("square footage is found by position relative to the verb, not order or size");
+// Taking the first figure was only accidentally right: a container can lead
+// the sentence, and lease and availability wording put the area on opposite
+// sides of the verb.
+for (const [title, description, wantSf, why] of [
+  ["Tenant signs an industrial warehouse lease in Edison, New Jersey",
+   "In a building totaling 200,000 square feet, the tenant took 12,000 square feet.",
+   12000, "container stated FIRST does not become the deal"],
+  ["Tenant signs an industrial warehouse lease in Edison, New Jersey",
+   "The tenant took 12,000 square feet in a building totaling 200,000 square feet.",
+   12000, "container stated LAST does not become the deal"],
+  ["Industrial warehouse space available in Edison, New Jersey",
+   "Within a 450,000 square foot building, 120,000 square feet is available.",
+   120000, "availability wording puts the area BEFORE the verb"],
+  ["Tenant leased 12,000 square feet in a 200,000 square foot industrial warehouse in Edison, New Jersey",
+   "", 12000, "two figures in the headline do not resolve to the larger"],
+]) {
+  const r = cls(title, description);
+  h.chk(r.magnitude === wantSf, why.padEnd(56) + " -> " + String(r.magnitude) + " (want " + wantSf + ")");
+}
+
+h.section("non-target metros match as whole phrases");
+// A substring test let "reno" match inside "Zireno Capital", so a company name
+// with no location at all resolved NATIONAL and cleared the national threshold.
+h.chk(cls("Zireno Capital acquires a warehouse portfolio for $750 million").tier !== "NATIONAL",
+  "a city name inside a company name is not a location");
+h.chk(cls("Buyer acquires a Reno, Nevada industrial warehouse for $750 million").tier === "NATIONAL",
+  "the actual city still resolves");
+h.chk(CM.cmPhraseInText("zireno capital", "reno") === false, "cmPhraseInText rejects a substring");
+h.chk(CM.cmPhraseInText("in reno, nevada", "reno") === true, "cmPhraseInText accepts a whole phrase");
+h.chk(CM.cmPhraseInText("deal in st. louis closed", "st. louis") === true,
+  "a phrase with a period and a space still matches");
+
 process.exit(h.done());
