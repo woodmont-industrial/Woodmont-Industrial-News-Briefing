@@ -109,6 +109,17 @@
         'u.s. industrial', 'us industrial', 'california', 'texas', 'dallas', 'houston',
         'phoenix', 'atlanta', 'chicago', 'inland empire', 'seattle', 'denver', 'nevada',
         'las vegas', 'ohio', 'indiana', 'georgia', 'arizona', 'tennessee', 'carolina',
+        // Major non-target metros. A headline naming one of these states the
+        // deal's location plainly; without them the headline resolved to
+        // UNMAPPED, the resolver fell back to the body, and a Tucson portfolio
+        // was relocated to BROADER by a seller's Newtown, Pennsylvania address.
+        'tucson', 'san antonio', 'austin', 'fort worth', 'el paso', 'oklahoma city',
+        'kansas city', 'st. louis', 'saint louis', 'minneapolis', 'detroit', 'cleveland',
+        'columbus', 'cincinnati', 'indianapolis', 'milwaukee', 'nashville', 'memphis',
+        'louisville', 'charlotte', 'raleigh', 'richmond', 'salt lake city', 'boise',
+        'portland', 'sacramento', 'san diego', 'los angeles', 'san francisco', 'oakland',
+        'riverside', 'stockton', 'reno', 'albuquerque', 'tulsa', 'omaha', 'boston',
+        'baltimore', 'pittsburgh', 'buffalo', 'rochester', 'hartford', 'providence',
       ],
     };
 
@@ -593,7 +604,10 @@
     // so calling it on a sentence holding two competing figures silently picks
     // one — which is how a 157,642 SF lease inside an 810,460 SF building got
     // reported as the building. Ambiguity can only be detected by counting.
-    const CM_SF_ALL = /\d[\d,.]*\s*(?:million|m|k)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|\bsf\b)/gi;
+    // The separator may be a hyphen: "a 120,000-square-foot facility" is the
+    // ordinary adjectival form and was being missed entirely, which turned a
+    // valid lease into MISSING_SF.
+    const CM_SF_ALL = /\d[\d,.]*[\s-]*(?:million|m|k)?[\s-]*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|\bsf\b)/gi;
     const cmAllSquareFeet = (span) => {
       const out = [];
       for (const m of String(span || '').matchAll(CM_SF_ALL)) {
@@ -607,16 +621,32 @@
       const headSf = cmSquareFeet(head);
       if (headSf) return { sf: headSf, basis: 'headline' };
       const full = `${head} ${String(body || '')}`;
+      const sentences = String(body || '').split(/(?<=[.!?])\s+/);
+      const eventSentences = eventRx ? sentences.filter(s => eventRx.test(s)) : [];
+      // The TRANSACTION SENTENCE outranks a document-level aggregate. "The
+      // tenant took 12,000 square feet in a building totaling 200,000 square
+      // feet" states an aggregate, but it describes the CONTAINER, not the
+      // deal — taking it admitted a 12,000 SF lease as 200,000 SF and sailed
+      // past Jacob's threshold. Within that sentence the figure nearest the
+      // verb is the deal's own: English puts the object after the verb, so the
+      // FIRST figure is the leased area and later ones describe the building.
+      for (const sentence of eventSentences) {
+        const figures = cmAllSquareFeet(sentence);
+        if (figures.length === 1) return { sf: figures[0], basis: 'transaction sentence' };
+        if (figures.length > 1) {
+          const ordered = [];
+          for (const m of String(sentence).matchAll(CM_SF_ALL)) {
+            const v = cmSquareFeet(m[0]);
+            if (v) ordered.push(v);
+          }
+          if (ordered.length) return { sf: ordered[0], basis: 'transaction sentence (nearest the verb)' };
+        }
+      }
       const agg = CM_AGGREGATE_SF.exec(full);
       if (agg) {
         const sf = cmSquareFeet(agg[1]);
         if (sf) return { sf, basis: 'stated aggregate' };
       }
-      const sentences = String(body || '').split(/(?<=[.!?])\s+/);
-      const eventSentences = eventRx ? sentences.filter(s => eventRx.test(s)) : [];
-      const fromEvent = [...new Set(eventSentences.flatMap(s => cmAllSquareFeet(s)))];
-      if (fromEvent.length === 1) return { sf: fromEvent[0], basis: 'transaction sentence' };
-      if (fromEvent.length > 1) return { sf: null, basis: 'ambiguous', ambiguous: true };
       const distinct = cmAllSquareFeet(String(body || ''));
       if (distinct.length === 1) return { sf: distinct[0], basis: 'single figure in body' };
       if (distinct.length > 1) return { sf: null, basis: 'ambiguous', ambiguous: true };
@@ -635,14 +665,19 @@
       const headGeo = cmMarketTier(titleOnlyText);
       const fullGeo = cmMarketTier(text);
       const headResolved = headGeo.tier !== 'UNMAPPED';
+      // A resolved headline WINS; the body never overrides it. This is a
+      // DIAGNOSTIC note only — rejecting on disagreement wrongly threw out a
+      // $750M Dallas sale whose buyer merely happens to be headquartered in
+      // Edison. The national threshold is there to judge exactly that deal.
       const geoConflict = headResolved && fullGeo.tier !== 'UNMAPPED'
-        && headGeo.tier !== fullGeo.tier
-        && (headGeo.tier === 'NATIONAL' || fullGeo.tier === 'NATIONAL');
+        && headGeo.tier !== fullGeo.tier;
       const { tier, matched, basis, provenance, locations } = headResolved ? headGeo : fullGeo;
+      const conflictTag = geoConflict
+        ? ` [GEO_CONFLICT: body suggests ${fullGeo.tier} via "${fullGeo.matched}"; headline wins]` : '';
       const provTag = (provenance && provenance !== 'EXACT') ? ` [${provenance}]` : '';
       const locTag = (locations && locations.length > 1)
         ? ` [locations: ${locations.map(l => l.label).join(' + ')}]` : '';
-      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}`;
+      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}${conflictTag}`;
       const dollars = cmDollars(text), sf = cmSquareFeet(text);
       const isInd = CM_RX.industrial.test(text);
       // Asset class for the DEAL sections (sales, leases, availabilities,
@@ -715,7 +750,7 @@
       // --- B. Construction --------------------------------------------
       if ((CM_RX.construction.test(text) || completionMilestone)
           && (constructionLeadsHeadline || constructionOnlyInBody)) {
-        if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
+        if (!assetIndustrial) return assetReject('construction milestone');
         if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
         if (tier === 'BROADER') {
           if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >500,000 SF, none stated; ${geo}` };
@@ -735,8 +770,6 @@
       if (CM_RX.sale.test(text) && !financingHeadline) {
         // ORDER: event -> asset class -> location -> price -> threshold.
         if (!assetIndustrial) return assetReject('sale');
-        if (geoConflict) return { section: null, tier, code: CM_REJECT.GEO_CONFLICT, magnitude: dollars,
-          reason: `GEO_CONFLICT: headline resolves ${headGeo.tier} via "${headGeo.matched}" but the body resolves ${fullGeo.tier} via "${fullGeo.matched}" — the deal is not relocated by an incidental mention` };
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
         if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
         const need = CM_THRESHOLDS.sale[tier];
@@ -754,8 +787,6 @@
         const sect = isAvail ? 'availabilities' : 'leases';
         // ORDER: event -> asset class -> location -> event-specific SF -> threshold.
         if (!assetIndustrial) return assetReject(sect);
-        if (geoConflict) return { section: null, tier, code: CM_REJECT.GEO_CONFLICT, magnitude: null,
-          reason: `GEO_CONFLICT: headline resolves ${headGeo.tier} via "${headGeo.matched}" but the body resolves ${fullGeo.tier} via "${fullGeo.matched}" — the deal is not relocated by an incidental mention` };
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: null, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
         // Event-specific SF: never a sum of every figure in the body.
         const sfEvidence = cmEventSquareFeet(titleOnlyText, bodyText,
