@@ -977,7 +977,7 @@
      *  call and no redirect following.
      *
      *  What this deliberately does NOT do: claim a canonical article URL. The
-     *  stored URL stays the proxy, `publisherVerified` stays false, and nothing
+     *  stored URL stays the proxy, `publisherDomainApproved` stays false, and nothing
      *  downstream may treat a recovered name as a trusted fetch target. Opaque
      *  proxy URLs 302 into further Google URLs; resolving them would mean
      *  fetching an untrusted redirect to discover where it goes. */
