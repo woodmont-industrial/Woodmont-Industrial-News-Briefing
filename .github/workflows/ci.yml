@@ -119,6 +119,12 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: Validate newsletter automation authentication
+        run: npm run validate:newsletter-automation-auth
+
+      - name: Test sent-state race safety
+        run: npm run test:sent-state-races
+
   # Geography drift check
   geography-check:
     runs-on: ubuntu-latest

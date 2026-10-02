@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   update-articles:
@@ -16,10 +16,19 @@ jobs:
     timeout-minutes: 25
 
     steps:
+    - name: Create newsletter automation token
+      id: newsletter-app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ vars.NEWSLETTER_AUTOMATION_CLIENT_ID }}
+        private-key: ${{ secrets.NEWSLETTER_AUTOMATION_PRIVATE_KEY }}
+        permission-contents: write
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        token: ${{ steps.newsletter-app-token.outputs.token }}
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
