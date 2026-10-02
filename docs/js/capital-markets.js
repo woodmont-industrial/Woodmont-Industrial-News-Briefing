@@ -635,26 +635,63 @@
      *  first figure AFTER the transaction verb is the deal's own area in both
      *  orderings. Returns null when the verb carries no figure, so the caller
      *  can fall back or declare ambiguity rather than guess. */
+    // A square-foot figure plays one of three ROLES, and distance to the verb
+    // cannot tell them apart: in "Leased space in a 200,000 SF warehouse,
+    // occupying 12,000 SF" the building is nearest the verb, and in "Leased
+    // 200,000 SF at one warehouse and 300,000 SF at another, totaling 500,000
+    // SF" the nearest figure is one leg of a deal whose total the source states.
+    const CM_BUILDING_NOUN = '(?:building|warehouse|facility|facilities|property|complex|centre|center|park|campus|tower|plant)';
+    // "...in a <figure> warehouse", "...at a <figure> facility" — the figure
+    // measures the container the transaction sits inside.
+    const CM_SF_CONTAINER_BEFORE = new RegExp(`\\b(?:in|within|inside|at|of|part of)\\s+(?:a|an|the|one|its)?\\s*$`, 'i');
+    // "...<building noun> totaling <figure>" — a total belonging to the
+    // building, not to the deal.
+    const CM_SF_BUILDING_TOTAL = new RegExp(`\\b${CM_BUILDING_NOUN}s?\\s+(?:totaling|totalling|total(?:s|ing)? of|of|measuring|spanning)\\s*$`, 'i');
+    // "...totaling <figure>" with no building noun in front: the source is
+    // stating the TRANSACTION's own total.
+    const CM_SF_TXN_TOTAL = /\b(?:totaling|totalling|in total|for a total of|total of|combined|aggregating|aggregate of)\s*$/i;
+    const CM_SF_CONTAINER_AFTER = new RegExp(`^\\s*(?:square[- ]f[eo]{2}t|sq\\.?\\s*ft\\.?|sf)?\\s*${CM_BUILDING_NOUN}`, 'i');
+
+    /** The square footage belonging to the TRANSACTION.
+     *
+     *  Precedence: a transaction total the SOURCE states, then the transaction
+     *  area nearest the verb, never a building's own area. Returns null when
+     *  the roles cannot be told apart, so the caller reports AMBIGUOUS_SF
+     *  rather than publishing a confidently wrong number. */
     const cmSfAfterVerb = (span, verbRx) => {
       const text = String(span || '');
+      const figures = [];
+      for (const m of text.matchAll(CM_SF_ALL)) {
+        const value = cmSquareFeet(m[0]);
+        if (!value) continue;
+        const before = text.slice(Math.max(0, m.index - 40), m.index);
+        const after = text.slice(m.index + m[0].length, m.index + m[0].length + 24);
+        let role = 'area';
+        if (CM_SF_BUILDING_TOTAL.test(before)) role = 'building';
+        else if (CM_SF_TXN_TOTAL.test(before)) role = 'total';
+        else if (CM_SF_CONTAINER_BEFORE.test(before) || CM_SF_CONTAINER_AFTER.test(after)) role = 'building';
+        figures.push({ value, role, start: m.index, end: m.index + m[0].length });
+      }
+      if (!figures.length) return null;
+
+      const totals = [...new Set(figures.filter(f => f.role === 'total').map(f => f.value))];
+      if (totals.length === 1) return totals[0];
+      if (totals.length > 1) return null;
+
+      const areas = figures.filter(f => f.role === 'area');
+      if (!areas.length) return null;
+      const distinct = [...new Set(areas.map(f => f.value))];
+      if (distinct.length === 1) return distinct[0];
       if (!verbRx) return null;
       const rx = new RegExp(verbRx.source, verbRx.flags.includes('g') ? verbRx.flags : verbRx.flags + 'g');
       const verbs = [...text.matchAll(rx)].map(m => ({ start: m.index, end: m.index + m[0].length }));
       if (!verbs.length) return null;
-      const figures = [];
-      for (const m of text.matchAll(CM_SF_ALL)) {
-        const v = cmSquareFeet(m[0]);
-        if (v) figures.push({ value: v, start: m.index, end: m.index + m[0].length });
-      }
-      if (!figures.length) return null;
-      // NEAREST the verb on either side. Lease wording puts the area after the
-      // verb ("took 12,000 square feet"); availability wording puts it before
-      // ("9,000 square feet is available"). Distance to the verb identifies the
-      // transaction's own area in both, where order and magnitude do not.
+      // Several genuine transaction areas and no stated total: the source has
+      // not said which is the deal, so pick none.
       const distance = (f) => Math.min(...verbs.map(v =>
         f.start >= v.end ? f.start - v.end : (v.start >= f.end ? v.start - f.end : 0)));
       let best = null, bestAt = Infinity, tied = false;
-      for (const f of figures) {
+      for (const f of areas) {
         const d = distance(f);
         if (d < bestAt) { best = f.value; bestAt = d; tied = false; }
         else if (d === bestAt && f.value !== best) tied = true;

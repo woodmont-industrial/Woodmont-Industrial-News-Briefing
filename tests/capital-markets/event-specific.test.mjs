@@ -134,4 +134,26 @@ h.chk(CM.cmPhraseInText("in reno, nevada", "reno") === true, "cmPhraseInText acc
 h.chk(CM.cmPhraseInText("deal in st. louis closed", "st. louis") === true,
   "a phrase with a period and a space still matches");
 
+
+h.section("a figure plays a ROLE: transaction area, building area, or stated total");
+// Distance to the verb could not tell these apart. In the first the BUILDING
+// is nearest the verb; in the second the nearest figure is one leg of a deal
+// whose total the source states.
+for (const [title, description, wantSf, wantSection, why] of [
+  ["Tenant signs an industrial warehouse lease in Edison, New Jersey",
+   "Leased space in a 200,000 square foot warehouse, occupying 12,000 square feet.",
+   12000, null, "a building nearest the verb is not the transaction"],
+  ["Tenant signs an industrial warehouse lease in Dallas, Texas",
+   "Leased 200,000 square feet at one warehouse and 300,000 square feet at another, totaling 500,000 square feet.",
+   500000, "leases", "a source-stated transaction total beats the nearest leg"],
+]) {
+  const r = cls(title, description);
+  h.chk(r.magnitude === wantSf, why.padEnd(56) + " -> " + String(r.magnitude) + " (want " + wantSf + ")");
+  h.chk(r.section === wantSection, "  and the section follows from it -> " + String(r.section));
+}
+// A building total is still a building total, even phrased as one.
+h.chk(cls("Tenant signs an industrial warehouse lease in Edison, New Jersey",
+  "In a building totaling 200,000 square feet, the tenant took 12,000 square feet.").magnitude === 12000,
+  "\"building totaling X\" is the container, not a transaction total");
+
 process.exit(h.done());
