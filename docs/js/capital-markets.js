@@ -998,14 +998,33 @@
       return name;
     };
 
-    const cmNormalizeFeedItem = (a) => {
+    /** Hostname match against an approved publisher-domain list, suffix-aware so
+     *  a subdomain of an approved domain counts and a lookalike does not
+     *  ("notre-nj.com" must not match "re-nj.com"). */
+    const cmHostApproved = (host, approvedDomains) => {
+      if (!host || !approvedDomains) return null;
+      const list = approvedDomains instanceof Set ? approvedDomains : new Set(approvedDomains);
+      if (!list.size) return null;
+      const h = String(host).toLowerCase().replace(/^www\./, '');
+      for (const d of list) {
+        const dom = String(d || '').toLowerCase().replace(/^www\./, '').trim();
+        if (!dom) continue;
+        if (h === dom || h.endsWith('.' + dom)) return true;
+      }
+      return false;
+    };
+
+    const cmNormalizeFeedItem = (a, options) => {
       const item = a || {};
       const url = item.url || item.link || '';
-      const proxied = /(^|\.)news\.google\.com$/i.test((() => {
-        try { return new URL(url).hostname; } catch { return ''; }
-      })());
+      let host = '';
+      try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { host = ''; }
+      const proxied = /(^|\.)news\.google\.com$/i.test(host);
       const titlePublisher = proxied ? cmPublisherFromTitle(item.title) : null;
       const feedSource = (item._source && item._source.name) || item.source || '';
+      // A proxied host can never be approved: it is news.google.com, not the
+      // publisher's domain.
+      const approved = proxied ? false : cmHostApproved(host, options && options.approvedDomains);
       return {
         ...item,
         id: item.id,
@@ -1023,13 +1042,22 @@
         // and per-feed accounting are unchanged; these are additive.
         originalPublisher: titlePublisher || (proxied ? null : feedSource) || null,
         viaProxy: proxied,
-        // Never true for a proxied item: the stored URL is an opaque redirect,
-        // so nothing downstream may treat it as a trusted fetch target.
-        publisherVerified: !proxied && Boolean(feedSource),
+        articleHost: host,
+        // NOT a trust signal. It says only "this item came from a direct feed
+        // rather than a proxy, and carries a source name" — it does NOT check
+        // that the article's host matches the publisher it claims. Naming it
+        // `publisherVerified` invited exactly the wrong reading: that being
+        // non-Google is enough to authorise fetching the page.
+        directSourceAttribution: !proxied && Boolean(feedSource),
+        // THE trust signal, and the only one enrichment may act on. Null means
+        // "not checked" — it is true only when the caller supplied an approved
+        // domain list AND the article's own hostname matches it. A proxied item
+        // can never reach true, because its host is news.google.com.
+        publisherDomainApproved: approved,
       };
     };
 
-    const cmNormalizeFeedItems = (items) => (items || []).map(cmNormalizeFeedItem);
+    const cmNormalizeFeedItems = (items, options) => (items || []).map(it => cmNormalizeFeedItem(it, options));
 
     /** SHARED candidate-pool builder. The browser preview and the server-side
      *  shadow/canary builder MUST assemble the same pool, or a replay compares
@@ -1615,7 +1643,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,
