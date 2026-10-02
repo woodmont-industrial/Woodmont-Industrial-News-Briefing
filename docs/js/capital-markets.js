@@ -1002,14 +1002,69 @@
      *  page's own display mapping is untouched: it still drives the department
      *  newsletter, and its truncation is a display concern, not a classifier
      *  input. */
-    const cmNormalizeFeedItem = (a) => {
+    /** Recover the real publisher from a Google News proxied item.
+     *
+     *  67% of the corpus arrives through news.google.com, where `source` is the
+     *  QUERY name ("Google News GlobeSt Deals") and the URL is an opaque
+     *  redirect. Google appends " - Publisher" to the title, and 81% of proxied
+     *  items carry it, so the publisher IDENTITY is recoverable with no network
+     *  call and no redirect following.
+     *
+     *  What this deliberately does NOT do: claim a canonical article URL. The
+     *  stored URL stays the proxy, `publisherDomainApproved` stays false, and nothing
+     *  downstream may treat a recovered name as a trusted fetch target. Opaque
+     *  proxy URLs 302 into further Google URLs; resolving them would mean
+     *  fetching an untrusted redirect to discover where it goes. */
+    const cmPublisherFromTitle = (title) => {
+      const text = String(title || '').trim();
+      // Split on the SEPARATOR " - " (spaced) and take the last segment. A
+      // character class cannot do this: listing titles carry several spaced
+      // hyphens ("3 Pearl Ct, Allendale, NJ 07401 - Industrial for Lease -
+      // LoopNet") while publishers themselves contain unspaced ones (ROI-NJ).
+      const parts = text.split(/ [-–—] /);
+      if (parts.length < 2) return null;
+      const name = parts[parts.length - 1].trim();
+      if (name.length < 2 || name.length > 40) return null;
+      if (!/^[A-Z]/.test(name)) return null;
+      // A trailing size, money, date or descriptive fragment is not a publisher.
+      if (/^\d|\bsq\.?\s*ft|\bSF\b|\$|\b(19|20)\d{2}\b/i.test(name)) return null;
+      if (/\b(for lease|for sale|industrial|warehouse|square|sq\.? ?ft)\b/i.test(name)) return null;
+      return name;
+    };
+
+    /** Hostname match against an approved publisher-domain list, suffix-aware so
+     *  a subdomain of an approved domain counts and a lookalike does not
+     *  ("notre-nj.com" must not match "re-nj.com"). */
+    const cmHostApproved = (host, approvedDomains) => {
+      if (!host || !approvedDomains) return null;
+      const list = approvedDomains instanceof Set ? approvedDomains : new Set(approvedDomains);
+      if (!list.size) return null;
+      const h = String(host).toLowerCase().replace(/^www\./, '');
+      for (const d of list) {
+        const dom = String(d || '').toLowerCase().replace(/^www\./, '').trim();
+        if (!dom) continue;
+        if (h === dom || h.endsWith('.' + dom)) return true;
+      }
+      return false;
+    };
+
+    const cmNormalizeFeedItem = (a, options) => {
       const item = a || {};
+      const url = item.url || item.link || '';
+      let host = '';
+      try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { host = ''; }
+      const proxied = /(^|\.)news\.google\.com$/i.test(host);
+      const titlePublisher = proxied ? cmPublisherFromTitle(item.title) : null;
+      const feedSource = (item._source && item._source.name) || item.source || '';
+      // A proxied host can never be approved: it is news.google.com, not the
+      // publisher's domain.
+      const approved = proxied ? false : cmHostApproved(host, options && options.approvedDomains);
       return {
         ...item,
         id: item.id,
         title: item.title || 'Untitled',
-        link: item.url || item.link || '',
-        url: item.url || item.link || '',
+        link: url,
+        url,
         pubDate: item.date_published || item.pubDate || '',
         fetchedAt: item.date_modified || item.fetchedAt || '',
         description: item.content_text || item.content_html || item.description || item.summary || '',
@@ -1017,10 +1072,26 @@
         source: (item._source && item._source.name) || item.source || '',
         publisher: (item._source && item._source.website) || item.publisher || '',
         category: item.category || 'relevant',
+        // Attribution. `source` stays the feed/query name so existing behaviour
+        // and per-feed accounting are unchanged; these are additive.
+        originalPublisher: titlePublisher || (proxied ? null : feedSource) || null,
+        viaProxy: proxied,
+        articleHost: host,
+        // NOT a trust signal. It says only "this item came from a direct feed
+        // rather than a proxy, and carries a source name" — it does NOT check
+        // that the article's host matches the publisher it claims. Naming it
+        // `publisherVerified` invited exactly the wrong reading: that being
+        // non-Google is enough to authorise fetching the page.
+        directSourceAttribution: !proxied && Boolean(feedSource),
+        // THE trust signal, and the only one enrichment may act on. Null means
+        // "not checked" — it is true only when the caller supplied an approved
+        // domain list AND the article's own hostname matches it. A proxied item
+        // can never reach true, because its host is news.google.com.
+        publisherDomainApproved: approved,
       };
     };
 
-    const cmNormalizeFeedItems = (items) => (items || []).map(cmNormalizeFeedItem);
+    const cmNormalizeFeedItems = (items, options) => (items || []).map(it => cmNormalizeFeedItem(it, options));
 
     /** SHARED candidate-pool builder. The browser preview and the server-side
      *  shadow/canary builder MUST assemble the same pool, or a replay compares
@@ -1606,7 +1677,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,
