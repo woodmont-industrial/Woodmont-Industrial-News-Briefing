@@ -968,14 +968,50 @@
      *  page's own display mapping is untouched: it still drives the department
      *  newsletter, and its truncation is a display concern, not a classifier
      *  input. */
+    /** Recover the real publisher from a Google News proxied item.
+     *
+     *  67% of the corpus arrives through news.google.com, where `source` is the
+     *  QUERY name ("Google News GlobeSt Deals") and the URL is an opaque
+     *  redirect. Google appends " - Publisher" to the title, and 81% of proxied
+     *  items carry it, so the publisher IDENTITY is recoverable with no network
+     *  call and no redirect following.
+     *
+     *  What this deliberately does NOT do: claim a canonical article URL. The
+     *  stored URL stays the proxy, `publisherVerified` stays false, and nothing
+     *  downstream may treat a recovered name as a trusted fetch target. Opaque
+     *  proxy URLs 302 into further Google URLs; resolving them would mean
+     *  fetching an untrusted redirect to discover where it goes. */
+    const cmPublisherFromTitle = (title) => {
+      const text = String(title || '').trim();
+      // Split on the SEPARATOR " - " (spaced) and take the last segment. A
+      // character class cannot do this: listing titles carry several spaced
+      // hyphens ("3 Pearl Ct, Allendale, NJ 07401 - Industrial for Lease -
+      // LoopNet") while publishers themselves contain unspaced ones (ROI-NJ).
+      const parts = text.split(/ [-–—] /);
+      if (parts.length < 2) return null;
+      const name = parts[parts.length - 1].trim();
+      if (name.length < 2 || name.length > 40) return null;
+      if (!/^[A-Z]/.test(name)) return null;
+      // A trailing size, money, date or descriptive fragment is not a publisher.
+      if (/^\d|\bsq\.?\s*ft|\bSF\b|\$|\b(19|20)\d{2}\b/i.test(name)) return null;
+      if (/\b(for lease|for sale|industrial|warehouse|square|sq\.? ?ft)\b/i.test(name)) return null;
+      return name;
+    };
+
     const cmNormalizeFeedItem = (a) => {
       const item = a || {};
+      const url = item.url || item.link || '';
+      const proxied = /(^|\.)news\.google\.com$/i.test((() => {
+        try { return new URL(url).hostname; } catch { return ''; }
+      })());
+      const titlePublisher = proxied ? cmPublisherFromTitle(item.title) : null;
+      const feedSource = (item._source && item._source.name) || item.source || '';
       return {
         ...item,
         id: item.id,
         title: item.title || 'Untitled',
-        link: item.url || item.link || '',
-        url: item.url || item.link || '',
+        link: url,
+        url,
         pubDate: item.date_published || item.pubDate || '',
         fetchedAt: item.date_modified || item.fetchedAt || '',
         description: item.content_text || item.content_html || item.description || item.summary || '',
@@ -983,6 +1019,13 @@
         source: (item._source && item._source.name) || item.source || '',
         publisher: (item._source && item._source.website) || item.publisher || '',
         category: item.category || 'relevant',
+        // Attribution. `source` stays the feed/query name so existing behaviour
+        // and per-feed accounting are unchanged; these are additive.
+        originalPublisher: titlePublisher || (proxied ? null : feedSource) || null,
+        viaProxy: proxied,
+        // Never true for a proxied item: the stored URL is an opaque redirect,
+        // so nothing downstream may treat it as a trusted fetch target.
+        publisherVerified: !proxied && Boolean(feedSource),
       };
     };
 
@@ -1572,7 +1615,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,
