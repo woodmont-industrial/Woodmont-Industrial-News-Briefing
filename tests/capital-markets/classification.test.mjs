@@ -14,10 +14,10 @@ for (const [title, want, why] of [
   ['Buyer acquires Vineland, New Jersey warehouse for $100 million', null, 'sale $100M BROADER'],
   ['Buyer acquires Vineland, New Jersey warehouse for $100,000,001', 'sales', 'sale $100,000,001 BROADER'],
   ['Buyer acquires Dallas, Texas warehouse for $500 million', null, 'sale $500M NATIONAL'],
-  ['Tenant leased 15,000 square feet in Edison, New Jersey', null, 'lease 15,000 TARGET'],
-  ['Tenant leased 15,001 square feet in Edison, New Jersey', 'leases', 'lease 15,001 TARGET'],
-  ['Tenant leased 100,000 square feet in Vineland, New Jersey', null, 'lease 100,000 BROADER'],
-  ['Tenant leased 250,000 square feet in Dallas, Texas', null, 'lease 250,000 NATIONAL'],
+  ['Tenant leased 15,000 square feet of industrial warehouse space in Edison, New Jersey', null, 'lease 15,000 TARGET'],
+  ['Tenant leased 15,001 square feet of industrial warehouse space in Edison, New Jersey', 'leases', 'lease 15,001 TARGET'],
+  ['Tenant leased 100,000 square feet of industrial warehouse space in Vineland, New Jersey', null, 'lease 100,000 BROADER'],
+  ['Tenant leased 250,000 square feet of industrial warehouse space in Dallas, Texas', null, 'lease 250,000 NATIONAL'],
   ['Developer breaks ground on 500,000 square feet industrial warehouse in Vineland, New Jersey', null, 'construction 500,000 BROADER'],
   ['Developer breaks ground on 500,001 square feet industrial warehouse in Vineland, New Jersey', 'construction', 'construction 500,001 BROADER'],
 ]) h.chk(cls(title).section === want, `${why.padEnd(34)} -> ${String(cls(title).section)} (want ${String(want)})`);
@@ -32,18 +32,18 @@ h.chk(cls('Developer breaks ground on an industrial warehouse in Edison, New Jer
 h.section('availability versus completed lease');
 for (const [title, want] of [
   ['200,000 SF industrial building for lease in Edison, New Jersey', 'availabilities'],
-  ['Now leasing: 250,000 square feet in Edison, New Jersey', 'availabilities'],
-  ['120,000 square feet available in Edison, New Jersey', 'availabilities'],
-  ['Offering memorandum released for a 400,000 square foot Edison, New Jersey facility', 'availabilities'],
-  ['Tenant signs a lease for 200,000 square feet in Edison, New Jersey', 'leases'],
-  ['Operator leased 250,000 square feet in Edison, New Jersey', 'leases'],
-  ['Distributor renews 180,000 square feet in Edison, New Jersey', 'leases'],
-  ['Retailer took 120,000 SF in Edison, New Jersey', 'leases'],
-  ['Tenant expands its occupancy by 150,000 square feet in Edison, New Jersey', 'leases'],
+  ['Now leasing: 250,000 square feet of industrial warehouse space in Edison, New Jersey', 'availabilities'],
+  ['120,000 square feet of industrial warehouse space available in Edison, New Jersey', 'availabilities'],
+  ['Offering memorandum released for a 400,000 square foot Edison, New Jersey industrial warehouse', 'availabilities'],
+  ['Tenant signs a lease for 200,000 square feet of industrial warehouse space in Edison, New Jersey', 'leases'],
+  ['Operator leased 250,000 square feet of industrial warehouse space in Edison, New Jersey', 'leases'],
+  ['Distributor renews 180,000 square feet of industrial warehouse space in Edison, New Jersey', 'leases'],
+  ['Retailer took 120,000 SF of industrial warehouse space in Edison, New Jersey', 'leases'],
+  ['Tenant expands its occupancy by 150,000 square feet of industrial warehouse space in Edison, New Jersey', 'leases'],
   ['ACME Group and Sample Delivery ink 530,000 sq. ft. lease at new Carneys Point logistics campus', 'leases'],
   ['767,000-square-foot Sarasota distribution center listed for lease', 'availabilities'],
   // completion wins when both appear
-  ['Space marketed for lease in Edison, New Jersey has now been leased, 200,000 square feet', 'leases'],
+  ['Industrial warehouse space marketed for lease in Edison, New Jersey has now been leased, 200,000 square feet', 'leases'],
 ]) h.chk(cls(title).section === want, `${String(cls(title).section).padEnd(15)} <- ${title.slice(0, 60)}`);
 
 h.section('headline-only place context stays conservative');
