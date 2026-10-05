@@ -506,7 +506,7 @@ export function isStrictlyIndustrial(text: string): boolean {
         'irr', 'ltv', 'loan-to-value', 'valuation', 'net operating income',
         'intermodal', 'build-to-suit', 'bts',
     ];
-    if (CRE_MACRO.some(kw => lower.includes(kw))) return true;
+    if (CRE_MACRO.some(kw => kw === 'cre' ? /\bcre\b/i.test(lower) : lower.includes(kw))) return true;
 
     // CRE deal signals — BUT only if the article is NOT about a non-industrial property type.
     // "Fanatics Expands West Village Lease" has "lease" but is not industrial.
@@ -524,11 +524,21 @@ export function isStrictlyIndustrial(text: string): boolean {
         'joint venture', 'recapitalization', 'sale-leaseback', 'sale leaseback',
         'ground lease', 'assemblage', 'entitlements',
     ];
+    // Shared by both deal paths: an independent asset noun must corroborate a
+    // measurement, including abbreviated units that skip CRE_DEAL_SIGNALS.
+    const hasPropertyContext = /\b(warehouses?|industrials?|distribution|logistics|fulfillment|manufacturing|cold\s+storage|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|assets?|sites?|land\s+(sale|deal)|industrial\s+parks?|centers?|complex(?:es)?|campus(?:es)?|loading\s+docks?)\b/i.test(lower);
     if (CRE_DEAL_SIGNALS.some(kw => lower.includes(kw))) {
         // 2026-05-27: tightened to require real property context. Plain "for sale"
         // was letting through vehicle ads from Daily Record ("Affordable Pickups
         // For Sale With Top Safety & Comfort") and similar non-RE listings.
-        const hasPropertyContext = /\b(warehouses?|industrials?|distribution|logistics|fulfillment|manufacturing|cold\s+storage|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|assets?|sites?|acres|square\s+feet|sq\.?\s*ft|\bsf\b|land\s+(sale|deal)|industrial\s+parks?|centers?|complex(?:es)?|campus(?:es)?|loading\s+docks?)\b/i.test(lower);
+        // A SIZE UNIT IS NOT ASSET EVIDENCE. "square feet", "sq ft", "sf" and
+        // "acres" appeared in BOTH lists, so this check was circular: the token
+        // satisfied the deal signal above and then proved its own property
+        // context here. A Manhattan office story naming no asset at all — "Sony
+        // in Talks to Anchor Tishman Speyer's 99 Hudson Boulevard", whose only
+        // qualifying token was the 568,000 square feet of its CURRENT
+        // headquarters — shipped in Transactions on 2026-10-05. Context must
+        // name a THING, not a measurement.
         const isVehicleAd = /\b(pickup|sedan|suv|truck\s+for\s+sale|dealership|2024|2025\s+(ford|chevy|toyota|honda|ram)|crew\s+cab|king\s+cab|4x4|safety\s*&\s*comfort|test\s+drive|learn\s+more\s*\))\b/i.test(lower);
         if (isVehicleAd) return false;
         if (hasPropertyContext) return true;
@@ -537,14 +547,13 @@ export function isStrictlyIndustrial(text: string): boolean {
     }
 
     // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context
-    // Generic "lease"/"leasing"/"tenant" — only pass with industrial/CRE property context
     // "Fanatics Expands Lease to Entire Building" should NOT pass (non-industrial tenant)
     // "Seagis signs lease at industrial building" SHOULD pass (industrial context)
     const GENERIC_DEAL_WORDS = ['leasing', 'lease', 'tenant', 'landlord'];
     if (GENERIC_DEAL_WORDS.some(kw => lower.includes(kw))) {
         const hasIndustrialContext = /\b(warehouses?|industrials?|logistics|distribution|manufacturing|fulfillment|cold\s*storage|flex\s*space|commercial\s*real\s*estate|cre)\b/i.test(lower);
         const hasStrongPropertySignal = /\b(sq\.?\s*ft|square feet|acres)\b/i.test(lower);
-        if (hasIndustrialContext || hasStrongPropertySignal) return true;
+        if (hasIndustrialContext || (hasPropertyContext && hasStrongPropertySignal)) return true;
     }
 
     // CRE firms + development/brokerage context
