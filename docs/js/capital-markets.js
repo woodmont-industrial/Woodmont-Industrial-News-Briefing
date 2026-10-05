@@ -575,7 +575,10 @@
     // an industrial word elsewhere in the body cannot rescue a retail headline.
     // Plurals matter: a trailing \b after "warehouse" does not match
     // "warehouses", which silently rejected "Two distribution warehouses sold".
-    const CM_NON_INDUSTRIAL_ASSET = /\b(shopping cent\w+|retail cent\w+|strip (?:malls?|cent\w+)|malls?|grocery|supermarkets?|office (?:buildings?|towers?|complex(?:es)?|leases?|space|parks?|campus(?:es)?)|offices?|multifamily|apartment\w*|residential|condo\w*|hotels?|hospitality|resorts?|senior (?:housing|living)|assisted living|student housing|self[- ]storage|medical office|life science)\b/i;
+    const CM_NON_INDUSTRIAL_ASSET = /\b(shopping cent\w+|retail cent\w+|strip (?:malls?|cent\w+)|malls?|grocery stores?|supermarket stores?|office (?:buildings?|towers?|complex(?:es)?|leases?|space|parks?|campus(?:es)?)|multifamily|apartment\w*|residential|condo\w*|hotels?|hospitality|resorts?|senior (?:housing|living)|assisted living|student housing|self[- ]storage|medical office|life science)\b/i;
+    // These words can name a tenant or company department. They identify a
+    // non-industrial asset only when the headline has no explicit industrial asset.
+    const CM_AMBIGUOUS_ASSET_WORD = /\b(grocery|supermarkets?|offices?)\b/i;
     // Explicit industrial evidence. "industrial" alone is deliberately included,
     // but an explicit non-industrial headline still overrides it.
     const CM_INDUSTRIAL_ASSET = /\b(warehouses?|distribution cent\w+|logistics (?:facilit(?:y|ies)|cent\w+|parks?|campus(?:es)?)|cold storage|manufacturing (?:facilit(?:y|ies)|plants?)|industrial parks?|flex[- ]industrial|industrial|data ?cent\w+|fulfillment cent\w+)\b/i;
@@ -591,9 +594,11 @@
       // headline wins, because that is what the asset actually is.
       if (headNon) return 'non-industrial';
       if (headInd) return 'industrial';
+      if (CM_AMBIGUOUS_ASSET_WORD.test(head)) return 'non-industrial';
       const full = `${head} ${String(body || '')}`;
       if (CM_NON_INDUSTRIAL_ASSET.test(full)) return 'non-industrial';
       if (CM_INDUSTRIAL_ASSET.test(full)) return 'industrial';
+      if (CM_AMBIGUOUS_ASSET_WORD.test(full)) return 'non-industrial';
       return null;
     };
 
@@ -751,6 +756,26 @@
       return { sf: null, basis: 'none' };
     };
 
+    // Body geography must describe the asset/event, never an adviser or owner
+    // address. Retain transaction and property-location statements and stop
+    // before participant-location clauses, including within the same sentence.
+    const cmEventGeographyText = (body) => {
+      const spans = String(body || '').split(/(?<=[.!?;])\s+/);
+      const eventPatterns = [CM_RX.sale, CM_RX.leaseCompleted, CM_RX.availabilityOffer,
+        CM_RX.construction, CM_RX.municipal];
+      const assetSubject = /\b(warehouses?|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|projects?|sites?|industrial parks?|distribution cent\w+|logistics cent\w+|data cent\w+)\b/i;
+      const locative = /\b(in|at|located|situated|spanning|across)\b/i;
+      const incidental = /\b(headquarters?|headquartered|based in|based at|advised by|represented by|brokered by|offices? in|offices? at)\b/i;
+      const facts = [];
+      for (let span of spans) {
+        const cut = span.search(incidental);
+        if (cut >= 0) span = span.slice(0, cut);
+        if (eventPatterns.some(rx => rx.test(span)) || (assetSubject.test(span) && locative.test(span)))
+          facts.push(span);
+      }
+      return facts.join(' ');
+    };
+
     /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
     const cmClassify = (a) => {
       const text = cmText(a);
@@ -758,7 +783,7 @@
       const bodyText = `${String((a && a.description) || '')} ${String((a && a.summary) || '')}`.trim();
       // GEOGRAPHY PRECEDENCE: the headline describes the event; the body may
       // mention anywhere. Resolve from the headline first and only fall back to
-      // the full text when the headline carries no location at all. A
+      // body statements about the event or asset when the headline has no location. A
       // municipality named elsewhere must never relocate the deal.
       const headGeo = cmMarketTier(titleOnlyText);
       const fullGeo = cmMarketTier(text);
@@ -769,7 +794,8 @@
       // Edison. The national threshold is there to judge exactly that deal.
       const geoConflict = headResolved && fullGeo.tier !== 'UNMAPPED'
         && headGeo.tier !== fullGeo.tier;
-      const { tier, matched, basis, provenance, locations } = headResolved ? headGeo : fullGeo;
+      const bodyEventGeo = cmMarketTier(cmEventGeographyText(bodyText));
+      const { tier, matched, basis, provenance, locations } = headResolved ? headGeo : bodyEventGeo;
       const conflictTag = geoConflict
         ? ` [GEO_CONFLICT: body suggests ${fullGeo.tier} via "${fullGeo.matched}"; headline wins]` : '';
       const provTag = (provenance && provenance !== 'EXACT') ? ` [${provenance}]` : '';
@@ -788,7 +814,7 @@
       // honest code: an office lease whose verb the lease regex happens not to
       // match would otherwise fall through to NO_SIGNAL, which reads as "we
       // found nothing" rather than "this is not an industrial property".
-      if (CM_NON_INDUSTRIAL_ASSET.test(titleOnlyText) && !CM_INDUSTRIAL_ASSET.test(titleOnlyText)) {
+      if (assetClass === 'non-industrial' && !CM_INDUSTRIAL_ASSET.test(titleOnlyText)) {
         return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null,
                  reason: `NOT_INDUSTRIAL: the headline names a non-industrial asset class; ${geo}` };
       }

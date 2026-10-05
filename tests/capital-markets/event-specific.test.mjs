@@ -62,6 +62,27 @@ const dallas = cls('Buyer acquires a Dallas, Texas industrial warehouse for $750
   'The buyer is headquartered in Edison, New Jersey.');
 h.chk(dallas.section === 'sales' && dallas.tier === 'NATIONAL',
   `a $750M national sale still qualifies despite an Edison HQ mention (${dallas.section}/${dallas.tier})`);
+for (const description of [
+  'The portfolio is in Tucson, Arizona. It was advised by a firm in Newtown, Pennsylvania.',
+  'The portfolio is in Tucson, Arizona but was advised by a firm in Newtown, Pennsylvania.',
+]) {
+  const r = cls('Firm acquires an industrial warehouse portfolio for $165.7 million', description);
+  h.chk(r.tier === 'NATIONAL' && r.code === 'BELOW_THRESHOLD',
+    'a location in the body follows the portfolio rather than its adviser');
+}
+h.chk(cls('Firm acquires an industrial warehouse for $50 million',
+  'The buyer is headquartered in Edison, New Jersey.').code === 'UNMAPPED_GEO',
+  'a participant headquarters is not a substitute for an asset location');
+h.chk(cls('Firm acquires an industrial warehouse for $50 million',
+  'The warehouse is in Edison, New Jersey.').section === 'sales',
+  'a genuine property-location statement in the body remains usable');
+h.chk(cls('Tenant signs an industrial warehouse lease',
+  'The tenant leased 120,000 square feet in Edison, New Jersey.').section === 'leases',
+  'a transaction sentence can provide the property location');
+for (const tenant of ['Grocery distributor', 'Supermarket operator', 'Regional office of a retailer']) {
+  h.chk(cls(`${tenant} leased 200,000 SF warehouse in Edison, New Jersey`).section === 'leases',
+    'tenant business or department words do not override an explicit warehouse');
+}
 
 h.section('square footage belongs to the event, never the container');
 // The aggregate describes the BUILDING. Taking it admitted a 12,000 SF lease
