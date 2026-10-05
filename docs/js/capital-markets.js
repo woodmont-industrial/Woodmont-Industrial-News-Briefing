@@ -109,6 +109,17 @@
         'u.s. industrial', 'us industrial', 'california', 'texas', 'dallas', 'houston',
         'phoenix', 'atlanta', 'chicago', 'inland empire', 'seattle', 'denver', 'nevada',
         'las vegas', 'ohio', 'indiana', 'georgia', 'arizona', 'tennessee', 'carolina',
+        // Major non-target metros. A headline naming one of these states the
+        // deal's location plainly; without them the headline resolved to
+        // UNMAPPED, the resolver fell back to the body, and a Tucson portfolio
+        // was relocated to BROADER by a seller's Newtown, Pennsylvania address.
+        'tucson', 'san antonio', 'austin', 'fort worth', 'el paso', 'oklahoma city',
+        'kansas city', 'st. louis', 'saint louis', 'minneapolis', 'detroit', 'cleveland',
+        'columbus', 'cincinnati', 'indianapolis', 'milwaukee', 'nashville', 'memphis',
+        'louisville', 'charlotte', 'raleigh', 'richmond', 'salt lake city', 'boise',
+        'portland', 'sacramento', 'san diego', 'los angeles', 'san francisco', 'oakland',
+        'riverside', 'stockton', 'reno', 'albuquerque', 'tulsa', 'omaha', 'boston',
+        'baltimore', 'pittsburgh', 'buffalo', 'rochester', 'hartford', 'providence',
       ],
     };
 
@@ -386,7 +397,14 @@
 
       // 6. explicit non-target / nationwide framing
       const lower = text.toLowerCase();
-      const nat = states.size === 0 ? CM_GEO.NATIONAL.find(k => lower.includes(k)) : null;
+      // WHOLE PHRASE only. A substring test let "reno" match inside "Zireno
+      // Capital", so a company name with no location at all resolved NATIONAL
+      // and qualified on the national threshold. \b is not usable directly
+      // because several entries carry periods and spaces ("st. louis",
+      // "across the u.s."), so bound on non-alphanumerics instead.
+      const nat = states.size === 0
+        ? CM_GEO.NATIONAL.find(k => cmPhraseInText(lower, k))
+        : null;
       if (nat) return { tier: 'NATIONAL', matched: nat, provenance: 'EXACT', locations: [],
                         basis: 'explicit non-target market / nationwide framing' };
 
@@ -542,18 +560,270 @@
       return null;
     };
 
-    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION', PROPERTY_SPECIFIC: 'PROPERTY_SPECIFIC' };
+    const CM_REJECT = { MISSING_PRICE: 'MISSING_PRICE', MISSING_SF: 'MISSING_SF', BELOW_THRESHOLD: 'BELOW_THRESHOLD', UNMAPPED_GEO: 'UNMAPPED_GEO', LOW_VALUE_INTEL: 'LOW_VALUE_INTEL', NO_SIGNAL: 'NO_SIGNAL', NOT_INDUSTRIAL: 'NOT_INDUSTRIAL', NATIONAL_CONSTRUCTION: 'NATIONAL_CONSTRUCTION', PROPERTY_SPECIFIC: 'PROPERTY_SPECIFIC', GEO_CONFLICT: 'GEO_CONFLICT', AMBIGUOUS_SF: 'AMBIGUOUS_SF' };
+
+    // ---- Event-specific evidence -------------------------------------------
+    // A direct-source pilot showed the classifier is unsafe on richer text: the
+    // proxy feed's 200-character truncation had been masking three defects.
+    // With full article bodies, a Miami RETAIL sale and a Michigan OFFICE lease
+    // entered industrial sections, an Arizona portfolio resolved to a PA/NJ
+    // market on an incidental body mention of "Newtown", and an office SF was
+    // reported as 810,460 after summing every figure in the body. Each gate
+    // below makes the decision follow the EVENT rather than the whole document.
+
+    // Asset classes that are explicitly NOT industrial. Headline evidence wins:
+    // an industrial word elsewhere in the body cannot rescue a retail headline.
+    // Plurals matter: a trailing \b after "warehouse" does not match
+    // "warehouses", which silently rejected "Two distribution warehouses sold".
+    const CM_NON_INDUSTRIAL_ASSET = /\b(shopping cent\w+|retail cent\w+|strip (?:malls?|cent\w+)|malls?|grocery stores?|supermarket stores?|office (?:buildings?|towers?|complex(?:es)?|leases?|space|parks?|campus(?:es)?)|multifamily|apartment\w*|residential|condo\w*|hotels?|hospitality|resorts?|senior (?:housing|living)|assisted living|student housing|self[- ]storage|medical office|life science)\b/i;
+    // These words can name a tenant or company department. They identify a
+    // non-industrial asset only when the headline has no explicit industrial asset.
+    const CM_AMBIGUOUS_ASSET_WORD = /\b(grocery|supermarkets?|offices?)\b/i;
+    // Explicit industrial evidence. "industrial" alone is deliberately included,
+    // but an explicit non-industrial headline still overrides it.
+    const CM_INDUSTRIAL_ASSET = /\b(warehouses?|distribution cent\w+|logistics (?:facilit(?:y|ies)|cent\w+|parks?|campus(?:es)?)|cold storage|manufacturing (?:facilit(?:y|ies)|plants?)|industrial parks?|flex[- ]industrial|industrial|data ?cent\w+|fulfillment cent\w+)\b/i;
+
+    /** Asset class decided from the HEADLINE first. Returns 'industrial',
+     *  'non-industrial' or null (unknown). Unknown stays rejected rather than
+     *  inferred: Jacob's sections are industrial by definition. */
+    const cmAssetClass = (title, body) => {
+      const head = String(title || '');
+      const headNon = CM_NON_INDUSTRIAL_ASSET.test(head);
+      const headInd = CM_INDUSTRIAL_ASSET.test(head);
+      // "industrial office park" style mixes: the non-industrial term in the
+      // headline wins, because that is what the asset actually is.
+      if (headNon) return 'non-industrial';
+      if (headInd) return 'industrial';
+      if (CM_AMBIGUOUS_ASSET_WORD.test(head)) return 'non-industrial';
+      const full = `${head} ${String(body || '')}`;
+      if (CM_NON_INDUSTRIAL_ASSET.test(full)) return 'non-industrial';
+      if (CM_INDUSTRIAL_ASSET.test(full)) return 'industrial';
+      if (CM_AMBIGUOUS_ASSET_WORD.test(full)) return 'non-industrial';
+      return null;
+    };
+
+    /** Event-specific square footage.
+     *
+     *  Never sum every figure in a document. Precedence:
+     *    1. explicit headline SF
+     *    2. an explicit aggregate the SOURCE states ("totaling 500,000 sq ft")
+     *    3. SF in the sentence carrying the transaction verb
+     *  Two or more competing figures with no stated aggregate is AMBIGUOUS, not
+     *  a sum: a 157,642 SF lease inside a building of another size reported as
+     *  810,460 is a confidently wrong number, which is worse than no number. */
+    const CM_AGGREGATE_SF = /\b(?:total(?:ing|ling|s)?|combined|aggregate|across|portfolio of)\b[^.]{0,40}?(\d[\d,.]*\s*(?:million|m)?\s*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|sf)\b)/i;
+    // EVERY square-foot figure in a span. cmSquareFeet() returns a single value,
+    // so calling it on a sentence holding two competing figures silently picks
+    // one — which is how a 157,642 SF lease inside an 810,460 SF building got
+    // reported as the building. Ambiguity can only be detected by counting.
+    // The separator may be a hyphen: "a 120,000-square-foot facility" is the
+    // ordinary adjectival form and was being missed entirely, which turned a
+    // valid lease into MISSING_SF.
+    const CM_SF_ALL = /\d[\d,.]*[\s-]*(?:million|m|k)?[\s-]*(?:square[- ]f[eo]{2}t|sq\.?\s*ft\.?|\bsf\b)/gi;
+
+    /** Whole-phrase containment, bounded on non-alphanumerics so a phrase with
+     *  a period or space still matches but a substring inside a longer word
+     *  does not. */
+    const cmPhraseInText = (haystack, phrase) => {
+      const p = String(phrase || '').toLowerCase().trim();
+      if (!p) return false;
+      const esc = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`(^|[^a-z0-9])${esc}([^a-z0-9]|$)`, 'i').test(String(haystack || ''));
+    };
+
+    /** The square footage belonging to the TRANSACTION, resolved by position
+     *  relative to the verb rather than by order or magnitude.
+     *
+     *  Order alone is not enough: "In a building totaling 200,000 SF, the
+     *  tenant took 12,000 SF" puts the container first, and taking the largest
+     *  figure is worse still. English puts the object after the verb, so the
+     *  first figure AFTER the transaction verb is the deal's own area in both
+     *  orderings. Returns null when the verb carries no figure, so the caller
+     *  can fall back or declare ambiguity rather than guess. */
+    // A square-foot figure plays one of three ROLES, and distance to the verb
+    // cannot tell them apart: in "Leased space in a 200,000 SF warehouse,
+    // occupying 12,000 SF" the building is nearest the verb, and in "Leased
+    // 200,000 SF at one warehouse and 300,000 SF at another, totaling 500,000
+    // SF" the nearest figure is one leg of a deal whose total the source states.
+    const CM_BUILDING_NOUN = '(?:building|warehouse|facility|facilities|property|complex|centre|center|park|campus|tower|plant)';
+    // "...in a <figure> warehouse", "...at a <figure> facility" — the figure
+    // measures the container the transaction sits inside.
+    const CM_SF_CONTAINER_BEFORE = new RegExp(`\\b(?:in|within|inside|at|of|part of)\\s+(?:a|an|the|one|its)?\\s*$`, 'i');
+    // "...<building noun> totaling <figure>" — a total belonging to the
+    // building, not to the deal.
+    const CM_SF_BUILDING_TOTAL = new RegExp(`\\b${CM_BUILDING_NOUN}s?\\s+(?:totaling|totalling|total(?:s|ing)? of|of|measuring|spanning)\\s*$`, 'i');
+    // "...totaling <figure>" with no building noun in front: the source is
+    // stating the TRANSACTION's own total.
+    const CM_SF_TXN_TOTAL = /\b(?:totaling|totalling|in total|for a total of|total of|combined|aggregating|aggregate of)\s*$/i;
+    const CM_SF_CONTAINER_AFTER = new RegExp(`^\\s*(?:square[- ]f[eo]{2}t|sq\\.?\\s*ft\\.?|sf)?\\s*${CM_BUILDING_NOUN}`, 'i');
+
+    /** The square footage belonging to the TRANSACTION.
+     *
+     *  Precedence: a transaction total the SOURCE states, then the transaction
+     *  area nearest the verb, never a building's own area. Returns null when
+     *  the roles cannot be told apart, so the caller reports AMBIGUOUS_SF
+     *  rather than publishing a confidently wrong number. */
+    const cmSfAfterVerb = (span, verbRx) => {
+      const text = String(span || '');
+      const figures = [];
+      for (const m of text.matchAll(CM_SF_ALL)) {
+        const value = cmSquareFeet(m[0]);
+        if (!value) continue;
+        const before = text.slice(Math.max(0, m.index - 40), m.index);
+        const after = text.slice(m.index + m[0].length, m.index + m[0].length + 24);
+        let role = 'area';
+        if (CM_SF_BUILDING_TOTAL.test(before)) role = 'building';
+        else if (CM_SF_TXN_TOTAL.test(before)) role = 'total';
+        else if (CM_SF_CONTAINER_BEFORE.test(before) || CM_SF_CONTAINER_AFTER.test(after)) role = 'building';
+        figures.push({ value, role, start: m.index, end: m.index + m[0].length });
+      }
+      if (!figures.length) return null;
+
+      const totals = [...new Set(figures.filter(f => f.role === 'total').map(f => f.value))];
+      if (totals.length === 1) return totals[0];
+      if (totals.length > 1) return null;
+
+      const areas = figures.filter(f => f.role === 'area');
+      if (!areas.length) return null;
+      const distinct = [...new Set(areas.map(f => f.value))];
+      if (distinct.length === 1) return distinct[0];
+      if (!verbRx) return null;
+      const rx = new RegExp(verbRx.source, verbRx.flags.includes('g') ? verbRx.flags : verbRx.flags + 'g');
+      const verbs = [...text.matchAll(rx)].map(m => ({ start: m.index, end: m.index + m[0].length }));
+      if (!verbs.length) return null;
+      // Several genuine transaction areas and no stated total: the source has
+      // not said which is the deal, so pick none.
+      const distance = (f) => Math.min(...verbs.map(v =>
+        f.start >= v.end ? f.start - v.end : (v.start >= f.end ? v.start - f.end : 0)));
+      let best = null, bestAt = Infinity, tied = false;
+      for (const f of areas) {
+        const d = distance(f);
+        if (d < bestAt) { best = f.value; bestAt = d; tied = false; }
+        else if (d === bestAt && f.value !== best) tied = true;
+      }
+      return tied ? null : best;
+    };
+    const cmAllSquareFeet = (span) => {
+      const out = [];
+      for (const m of String(span || '').matchAll(CM_SF_ALL)) {
+        const v = cmSquareFeet(m[0]);
+        if (v) out.push(v);
+      }
+      return [...new Set(out)];
+    };
+    const cmEventSquareFeet = (title, body, eventRx) => {
+      const head = String(title || '');
+      // HEADLINE first, but resolved the same way: "leased 12,000 square feet
+      // in a 200,000 square foot warehouse" must not report the warehouse.
+      const headFigures = cmAllSquareFeet(head);
+      if (headFigures.length === 1) return { sf: headFigures[0], basis: 'headline' };
+      if (headFigures.length > 1) {
+        const byVerb = cmSfAfterVerb(head, eventRx);
+        if (byVerb) return { sf: byVerb, basis: 'headline (after the transaction verb)' };
+        return { sf: null, basis: 'ambiguous', ambiguous: true };
+      }
+      const full = `${head} ${String(body || '')}`;
+      const sentences = String(body || '').split(/(?<=[.!?])\s+/);
+      const eventSentences = eventRx ? sentences.filter(s => eventRx.test(s)) : [];
+      // The TRANSACTION SENTENCE outranks a document-level aggregate. "The
+      // tenant took 12,000 square feet in a building totaling 200,000 square
+      // feet" states an aggregate, but it describes the CONTAINER, not the
+      // deal — taking it admitted a 12,000 SF lease as 200,000 SF and sailed
+      // past Jacob's threshold. Within that sentence the figure nearest the
+      // verb is the deal's own: English puts the object after the verb, so the
+      // FIRST figure is the leased area and later ones describe the building.
+      for (const sentence of eventSentences) {
+        const figures = cmAllSquareFeet(sentence);
+        if (figures.length === 1) return { sf: figures[0], basis: 'transaction sentence' };
+        if (figures.length > 1) {
+          // Position relative to the VERB, not order in the sentence: the
+          // container may come first ("In a building totaling 200,000 SF, the
+          // tenant took 12,000 SF"). If the verb carries no figure we decline
+          // rather than guess.
+          const byVerb = cmSfAfterVerb(sentence, eventRx);
+          if (byVerb) return { sf: byVerb, basis: 'transaction sentence (after the verb)' };
+          return { sf: null, basis: 'ambiguous', ambiguous: true };
+        }
+      }
+      const agg = CM_AGGREGATE_SF.exec(full);
+      if (agg) {
+        const sf = cmSquareFeet(agg[1]);
+        if (sf) return { sf, basis: 'stated aggregate' };
+      }
+      const distinct = cmAllSquareFeet(String(body || ''));
+      if (distinct.length === 1) return { sf: distinct[0], basis: 'single figure in body' };
+      if (distinct.length > 1) return { sf: null, basis: 'ambiguous', ambiguous: true };
+      return { sf: null, basis: 'none' };
+    };
+
+    // Body geography must describe the asset/event, never an adviser or owner
+    // address. Retain transaction and property-location statements and stop
+    // before participant-location clauses, including within the same sentence.
+    const cmEventGeographyText = (body) => {
+      const spans = String(body || '').split(/(?<=[.!?;])\s+/);
+      const eventPatterns = [CM_RX.sale, CM_RX.leaseCompleted, CM_RX.availabilityOffer,
+        CM_RX.construction, CM_RX.municipal];
+      const assetSubject = /\b(warehouses?|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|projects?|sites?|industrial parks?|distribution cent\w+|logistics cent\w+|data cent\w+)\b/i;
+      const locative = /\b(in|at|located|situated|spanning|across)\b/i;
+      const incidental = /\b(headquarters?|headquartered|based in|based at|advised by|represented by|brokered by|offices? in|offices? at)\b/i;
+      const facts = [];
+      for (let span of spans) {
+        const cut = span.search(incidental);
+        if (cut >= 0) span = span.slice(0, cut);
+        if (eventPatterns.some(rx => rx.test(span)) || (assetSubject.test(span) && locative.test(span)))
+          facts.push(span);
+      }
+      return facts.join(' ');
+    };
 
     /** Classify one article. Returns { section|null, tier, code, reason, magnitude } */
     const cmClassify = (a) => {
       const text = cmText(a);
-      const { tier, matched, basis, provenance, locations } = cmMarketTier(text);
+      const titleOnlyText = String((a && a.title) || '');
+      const bodyText = `${String((a && a.description) || '')} ${String((a && a.summary) || '')}`.trim();
+      // GEOGRAPHY PRECEDENCE: the headline describes the event; the body may
+      // mention anywhere. Resolve from the headline first and only fall back to
+      // body statements about the event or asset when the headline has no location. A
+      // municipality named elsewhere must never relocate the deal.
+      const headGeo = cmMarketTier(titleOnlyText);
+      const fullGeo = cmMarketTier(text);
+      const headResolved = headGeo.tier !== 'UNMAPPED';
+      // A resolved headline WINS; the body never overrides it. This is a
+      // DIAGNOSTIC note only — rejecting on disagreement wrongly threw out a
+      // $750M Dallas sale whose buyer merely happens to be headquartered in
+      // Edison. The national threshold is there to judge exactly that deal.
+      const geoConflict = headResolved && fullGeo.tier !== 'UNMAPPED'
+        && headGeo.tier !== fullGeo.tier;
+      const bodyEventGeo = cmMarketTier(cmEventGeographyText(bodyText));
+      const { tier, matched, basis, provenance, locations } = headResolved ? headGeo : bodyEventGeo;
+      const conflictTag = geoConflict
+        ? ` [GEO_CONFLICT: body suggests ${fullGeo.tier} via "${fullGeo.matched}"; headline wins]` : '';
       const provTag = (provenance && provenance !== 'EXACT') ? ` [${provenance}]` : '';
       const locTag = (locations && locations.length > 1)
         ? ` [locations: ${locations.map(l => l.label).join(' + ')}]` : '';
-      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}`;
+      const geo = `${tier}${matched ? ` via "${matched}"` : ''} (${basis})${provTag}${locTag}${conflictTag}`;
       const dollars = cmDollars(text), sf = cmSquareFeet(text);
       const isInd = CM_RX.industrial.test(text);
+      // Asset class for the DEAL sections (sales, leases, availabilities,
+      // construction). Intelligence keeps the looser isInd test: a market
+      // report about industrial vacancy is not itself a property.
+      const assetClass = cmAssetClass(titleOnlyText, bodyText);
+      const assetIndustrial = assetClass === 'industrial';
+      // EARLY gate. A headline that explicitly names a non-industrial asset is
+      // out of scope whatever its event verb, and saying so here gives the
+      // honest code: an office lease whose verb the lease regex happens not to
+      // match would otherwise fall through to NO_SIGNAL, which reads as "we
+      // found nothing" rather than "this is not an industrial property".
+      if (assetClass === 'non-industrial' && !CM_INDUSTRIAL_ASSET.test(titleOnlyText)) {
+        return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null,
+                 reason: `NOT_INDUSTRIAL: the headline names a non-industrial asset class; ${geo}` };
+      }
+      const assetReject = (section) => ({
+        section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: null,
+        reason: assetClass === 'non-industrial'
+          ? `NOT_INDUSTRIAL: ${section} of a non-industrial asset class (headline evidence wins over incidental body mentions)`
+          : `NOT_INDUSTRIAL: ${section} with no explicit industrial asset evidence — unknown asset class is not inferred`,
+      });
       // Headline event order resolves mixed stories. A sale/lease/availability
       // headline may mention a completed building in its description; that does
       // not turn the transaction into a construction update. Conversely,
@@ -604,7 +874,7 @@
       // --- B. Construction --------------------------------------------
       if ((CM_RX.construction.test(text) || completionMilestone)
           && (constructionLeadsHeadline || constructionOnlyInBody)) {
-        if (!isInd) return { section: null, tier, code: CM_REJECT.NOT_INDUSTRIAL, magnitude: sf, reason: 'NOT_INDUSTRIAL: construction milestone without industrial context' };
+        if (!assetIndustrial) return assetReject('construction milestone');
         if (tier === 'TARGET') return { section: 'construction', tier, code: null, magnitude: sf, reason: `TARGET industrial construction milestone — qualifies regardless of stated SF; ${geo}` };
         if (tier === 'BROADER') {
           if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: BROADER construction requires >500,000 SF, none stated; ${geo}` };
@@ -622,6 +892,8 @@
       // the park it acquired in 2024" is a financing story, not a sale.
       const financingHeadline = finAt >= 0 && (saleAt < 0 || finAt < saleAt);
       if (CM_RX.sale.test(text) && !financingHeadline) {
+        // ORDER: event -> asset class -> location -> price -> threshold.
+        if (!assetIndustrial) return assetReject('sale');
         if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: dollars, reason: `UNMAPPED_GEO: sale in an unmapped location — not admitted under a guessed threshold; ${geo}` };
         if (!dollars) return { section: null, tier, code: CM_REJECT.MISSING_PRICE, magnitude: 0, reason: `MISSING_PRICE: no defensible price in title+description; ${geo}` };
         const need = CM_THRESHOLDS.sale[tier];
@@ -637,11 +909,19 @@
       const isAvail = availOffer && !completedLease;
       if (isAvail || completedLease) {
         const sect = isAvail ? 'availabilities' : 'leases';
-        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: sf, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
-        if (!sf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
+        // ORDER: event -> asset class -> location -> event-specific SF -> threshold.
+        if (!assetIndustrial) return assetReject(sect);
+        if (tier === 'UNMAPPED') return { section: null, tier, code: CM_REJECT.UNMAPPED_GEO, magnitude: null, reason: `UNMAPPED_GEO: ${sect} in an unmapped location; ${geo}` };
+        // Event-specific SF: never a sum of every figure in the body.
+        const sfEvidence = cmEventSquareFeet(titleOnlyText, bodyText,
+          isAvail ? CM_RX.availabilityOffer : CM_RX.leaseCompleted);
+        if (sfEvidence.ambiguous) return { section: null, tier, code: CM_REJECT.AMBIGUOUS_SF, magnitude: null,
+          reason: `AMBIGUOUS_SF: several square-foot figures and no aggregate stated by the source — a portfolio total is never calculated; ${geo}` };
+        const eventSf = sfEvidence.sf;
+        if (!eventSf) return { section: null, tier, code: CM_REJECT.MISSING_SF, magnitude: 0, reason: `MISSING_SF: no defensible SF in title+description; ${geo}` };
         const need = CM_THRESHOLDS.lease[tier];
-        if (sf > need) return { section: sect, tier, code: null, magnitude: sf, reason: `${sect} ${sf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}); ${geo}` };
-        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: sf, reason: `BELOW_THRESHOLD: ${sect} ${sf.toLocaleString()} SF does not exceed ${need.toLocaleString()} (<=, ${tier})` };
+        if (eventSf > need) return { section: sect, tier, code: null, magnitude: eventSf, reason: `${sect} ${eventSf.toLocaleString()} SF > ${need.toLocaleString()} (${tier}, SF from ${sfEvidence.basis}); ${geo}` };
+        return { section: null, tier, code: CM_REJECT.BELOW_THRESHOLD, magnitude: eventSf, reason: `BELOW_THRESHOLD: ${sect} ${eventSf.toLocaleString()} SF does not exceed ${need.toLocaleString()} (<=, ${tier})` };
       }
       // --- D. Market intelligence (positive inclusion only) -------------
       // GUARD: every deal-shaped path above RETURNS, so an article rejected for
@@ -1677,7 +1957,7 @@
     return {
       // public API used by the page
       buildCapitalMarketsNewsletterHTML, cmBuildSections, cmLoadGeography, cmParseCSV,
-      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved,
+      cmBuildArticlePool, cmNormalizeFeedItem, cmNormalizeFeedItems, cmPublisherFromTitle, cmHostApproved, cmPhraseInText,
       // exposed for tests
       cmClassify, cmCompetitorWatch, cmCompanyAliases, cmAcronymTokens,
       cmIsGeographyOnly, cmMaterialEvent, cmText, cmDollars, cmSquareFeet,
