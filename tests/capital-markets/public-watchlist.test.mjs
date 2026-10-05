@@ -47,7 +47,7 @@ h.section('website loads it automatically');
 const page = fs.readFileSync(path.join(REPO, 'docs', 'index.html'), 'utf8');
 h.chk(/fetch\(['"]data\/capital-markets-watchlist\.json/.test(page),
   'Capital Markets preview fetches the repo-backed list');
-h.chk(/Repo watchlist/.test(page), 'the UI identifies the automatic source');
+h.chk(/Built-in watchlist/.test(page), 'the UI identifies the automatic source');
 h.chk(/fetch\(['"]raw-feed\.json/.test(page) && /cmBuildArticlePool\(/.test(page),
   'Capital Markets adds the raw candidate pool before applying its own rules');
 // The merge itself lives in the shared builder so the server-side shadow path
