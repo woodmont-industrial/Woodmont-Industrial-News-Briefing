@@ -528,7 +528,15 @@ export function isStrictlyIndustrial(text: string): boolean {
         // 2026-05-27: tightened to require real property context. Plain "for sale"
         // was letting through vehicle ads from Daily Record ("Affordable Pickups
         // For Sale With Top Safety & Comfort") and similar non-RE listings.
-        const hasPropertyContext = /\b(warehouses?|industrials?|distribution|logistics|fulfillment|manufacturing|cold\s+storage|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|assets?|sites?|acres|square\s+feet|sq\.?\s*ft|\bsf\b|land\s+(sale|deal)|industrial\s+parks?|centers?|complex(?:es)?|campus(?:es)?|loading\s+docks?)\b/i.test(lower);
+        // A SIZE UNIT IS NOT ASSET EVIDENCE. "square feet", "sq ft", "sf" and
+        // "acres" appeared in BOTH lists, so this check was circular: the token
+        // satisfied the deal signal above and then proved its own property
+        // context here. A Manhattan office story naming no asset at all — "Sony
+        // in Talks to Anchor Tishman Speyer's 99 Hudson Boulevard", whose only
+        // qualifying token was the 568,000 square feet of its CURRENT
+        // headquarters — shipped in Transactions on 2026-10-05. Context must
+        // name a THING, not a measurement.
+        const hasPropertyContext = /\b(warehouses?|industrials?|distribution|logistics|fulfillment|manufacturing|cold\s+storage|buildings?|facilit(?:y|ies)|propert(?:y|ies)|portfolios?|assets?|sites?|land\s+(sale|deal)|industrial\s+parks?|centers?|complex(?:es)?|campus(?:es)?|loading\s+docks?)\b/i.test(lower);
         const isVehicleAd = /\b(pickup|sedan|suv|truck\s+for\s+sale|dealership|2024|2025\s+(ford|chevy|toyota|honda|ram)|crew\s+cab|king\s+cab|4x4|safety\s*&\s*comfort|test\s+drive|learn\s+more\s*\))\b/i.test(lower);
         if (isVehicleAd) return false;
         if (hasPropertyContext) return true;
