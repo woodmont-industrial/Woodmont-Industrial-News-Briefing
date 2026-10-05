@@ -29,6 +29,9 @@ jobs:
         run: npx tsc --noEmit --skipLibCheck || echo "TypeScript check completed with warnings"
         continue-on-error: true
 
+      - name: Test region and asset evidence
+        run: node --import tsx src/server/region-evidence.test.ts
+
   # Build verification
   build:
     runs-on: ubuntu-latest

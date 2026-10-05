@@ -28,6 +28,12 @@ const sony = 'Sony in Talks to Anchor Tishman Speyer 99 Hudson Boulevard. '
 check(isStrictlyIndustrial(sony) === false, 'an office story whose only token is a square footage is not industrial');
 check(isStrictlyIndustrial('Executive buys a 5,000 square feet apartment') === false,
     'a size unit with no CRE asset is not industrial');
+for (const unit of ['SF', 'sq.ft', 'sq.  ft', 'sq ft', 'square feet', 'acres']) {
+    check(isStrictlyIndustrial(`Company is an anchor tenant; its current headquarters occupies 568,000 ${unit}`) === false,
+        `${unit} alone never supplies property evidence through either deal path`);
+}
+check(isStrictlyIndustrial('Tenant leased 120,000 sq.ft in a building in Edison, New Jersey') === true,
+    'an abbreviated measurement with independent building evidence still qualifies');
 
 console.log('=== real assets still qualify ===');
 for (const [text, why] of [
