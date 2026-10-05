@@ -2331,46 +2331,60 @@
                         <option value="720">30 days</option>
                       </select>
                     </div>
-                    {/* The approved ownership list loads from this public repo.
-                        FileReader remains as an optional session-only override. */}
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm text-slate-600 dark:text-slate-400">Watchlist:</label>
-                      <input
-                        type="file"
-                        accept=".csv,text/csv"
-                        onChange={(e) => {
-                          const f = e.target.files && e.target.files[0];
-                          if (!f) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            try {
-                              const rows = cmParseCSV(String(ev.target.result || ''));
-                              onCmWatchlistOverride(rows);
-                            } catch (err) {
-                              // Deliberately does not log file contents.
-                              console.warn('Watchlist parse failed (contents not logged)');
-                            }
-                          };
-                          reader.readAsText(f);
-                        }}
-                        className="text-xs text-slate-600 dark:text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-200"
-                        title="Optional CSV override for this browser session"
-                      />
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {/* The built-in watchlist loads automatically. FileReader
+                        is available only as an optional session replacement. */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Watchlist:</span>
+                      <span role="status" aria-live="polite" className="text-xs text-slate-500 dark:text-slate-400">
                         {cmWatchlistStatus === 'loading'
-                          ? 'Loading repo watchlist…'
+                          ? 'Loading built-in watchlist…'
                           : cmWatchlist && cmWatchlist.length
-                            ? `${cmWatchlistSource === 'repo' ? 'Repo watchlist' : 'Session override'} · ${cmWatchlist.length} companies loaded`
+                            ? `${cmWatchlistSource === 'repo' ? 'Built-in watchlist' : 'Session replacement'} · ${cmWatchlist.length} companies loaded${cmWatchlistSource === 'repo' ? ' · No upload needed' : ''}`
                             : cmWatchlistStatus === 'error'
-                              ? 'Repo watchlist failed to load'
-                              : 'No competitor watchlist loaded'}
+                              ? 'Watchlist could not load. Retry the built-in list.'
+                              : 'Loading built-in watchlist…'}
                       </span>
-                      {cmWatchlistSource !== 'repo' && (
+                      {cmWatchlistStatus === 'error' && (
                         <button
                           onClick={onRestoreCmWatchlist}
                           className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-600 rounded"
-                        >Restore repo list</button>
+                        >Retry watchlist</button>
                       )}
+                      {cmWatchlistSource === 'upload' && cmWatchlistStatus !== 'error' && (
+                        <button
+                          onClick={onRestoreCmWatchlist}
+                          className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-600 rounded"
+                        >Use built-in watchlist</button>
+                      )}
+                      <details className="w-full text-xs text-slate-600 dark:text-slate-300">
+                        <summary className="cursor-pointer">Replace watchlist (optional)</summary>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <label htmlFor="cm-watchlist-override">CSV for this session only:</label>
+                          <input
+                            id="cm-watchlist-override"
+                            type="file"
+                            accept=".csv,text/csv"
+                            disabled={cmWatchlistStatus === 'loading'}
+                            onChange={(e) => {
+                              const f = e.target.files && e.target.files[0];
+                              if (!f) return;
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                try {
+                                  const rows = cmParseCSV(String(ev.target.result || ''));
+                                  onCmWatchlistOverride(rows);
+                                } catch (err) {
+                                  // Deliberately does not log file contents.
+                                  console.warn('Watchlist parse failed (contents not logged)');
+                                }
+                              };
+                              reader.readAsText(f);
+                            }}
+                            className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-200"
+                            title="Optional CSV replacement; the built-in list loads on your next visit"
+                          />
+                        </div>
+                      </details>
                     </div>
                   </>
                 )}
