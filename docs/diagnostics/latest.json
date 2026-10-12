@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-09-1200",
-  "generatedAt": "2026-10-09T12:00:34.151Z",
-  "isFriday": true,
+  "runId": "2026-10-12-1201",
+  "generatedAt": "2026-10-12T12:01:03.138Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 215,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 202,
+      "inWindow": 4,
+      "regionPass": 4,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 69,
+      "selected": 6,
+      "supplyCandidates": 73,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -40,24 +40,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 5,
+        "tier2_48h_72h": 4,
+        "tier3_30d_deep": 3,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "transactions": {
-      "loaded": 215,
-      "inWindow": 1,
-      "regionPass": 0,
+      "loaded": 202,
+      "inWindow": 4,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 0,
+      "selected": 3,
+      "supplyCandidates": 6,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -70,7 +70,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,8 +85,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 2,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -94,15 +94,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 215,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 202,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 9,
+      "supplyCandidates": 6,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -114,7 +114,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
+        "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -139,7 +139,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 215,
+      "loaded": 202,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -185,7 +185,7 @@
     }
   },
   "perFeedBySection": {
-    "Google News Traded.co Availabilities": {
+    "globest.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -203,61 +203,71 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 9,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 0,
+        "relevant": 5,
+        "transactions": 3,
         "availabilities": 1,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
-    "score": 80,
-    "outOf10": 8,
-    "grade": "B",
-    "itemCount": 2,
-    "operationalScore": 80,
-    "operationalGrade": "B",
-    "editorialQualityScore": 75,
+    "score": 76,
+    "outOf10": 7.6,
+    "grade": "C",
+    "itemCount": 10,
+    "operationalScore": 76,
+    "operationalGrade": "C",
+    "editorialQualityScore": 79,
     "editorialGrade": "C",
-    "coverageSupplyScore": 47,
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "QUALITY_REJECTED",
+      "transactions": "FILLED",
       "availabilities": "FILLED",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 2,
+    "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 22,
-      "freshness": 12.6,
-      "regional": 25,
+      "coverage": 27,
+      "freshness": 16.5,
+      "regional": 18.5,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 3,
-      "deep": 2,
-      "reserve": 5
+      "fresh": 5,
+      "deep": 6,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
-    "supply": "Normal",
-    "penalties": [],
+    "supply": "Rich",
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"DEP creates statewide data center permit tracker\""
+      },
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Gecko Robotics partners with Anduril to aid subm\""
+      }
+    ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): transactions",
       "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
@@ -269,8 +279,20 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 105,
+    "crossDayPoolRepeatsSuppressed": 94,
     "audit": [
+      {
+        "id": "82e328bcdbbb7a3572e159b461a8deadfe077e9d",
+        "title": "Lehigh Valley Data Center Zoning Fight: 3-1 Vote [2026] - https://tech-insider.org/",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "9a4fa25d56ec2099140499114a304dc4558b31e0",
+        "title": "Industrial Property in Miami at 1171 Northwest 36th Street - Traded",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "a924d645007be3bd6c1d9bcbaa990a5367ea6887",
         "title": "Kerry Opens Coffee-Derived Ingredients Manufacturing Facility in Pennsylvania - Food Safety Magazine",
@@ -292,6 +314,12 @@
       {
         "id": "e46989260a2f92dd695100aee58555d840a1462b",
         "title": "Bergen Logistics of North Bergen names industry veteran Herman as president - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d5702b213127897295f99f01e5e98ed7514d079b",
+        "title": "Industrial For Lease — 5400 Longleaf St, Jacksonville, FL 32209, USA | United States - Colliers",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -500,8 +528,20 @@
         "reason": "sent_id"
       },
       {
+        "id": "d11829a5331f9882de9fd489f825bf9451f22c56",
+        "title": "1008 State Route 33, Freehold, NJ 07728 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "8e2f70c80e3c58051d30c0bb0bb0238667501a6e",
         "title": "QTS Eyes $1B ABS Deal on Data Center Collection",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "136585cb87a327b5ce66a56cf9688042a1ea00a3",
+        "title": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -802,72 +842,6 @@
       {
         "id": "5fd5ab612ac19ea380fd3d7e159571d424592cf2",
         "title": "Connors inks $4.8 million sale of 30,000 sq. ft. North Bergen warehouse - re-nj.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ed51f7168a01546e43f66ba3e54f1557a66e0e39",
-        "title": "Industrial Outdoor Storage Draws Institutional Capital",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "856b89c230d8285bfa20d9af2b37de9060de69bd",
-        "title": "70 Carter Dr, Edison, NJ 08817 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "4a6c0ffcefe3f2af8c3a4b2165658bfbbf45d9de",
-        "title": "Colliers completes $12.725 million sale of industrial property in Northeast Philadelphia - Colliers",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9ebd737248ace18fb6fe525bf3001f0c901e8e6e",
-        "title": "Local developers planning a data center they hope the community will support - Lehigh Valley Business",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "17d314e7cf42c2f474c40f884d64cd9c2bf0dd71",
-        "title": "Metz Industrial Group renews almost 124K square feet in industrial leases in Linden - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6ad71d4a17f99c2c759f9d5983faf0e9e5ede398",
-        "title": "US Industrial Occupancies Rise 25% as Big-Box Demand Returns",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ade78f1544f92ce4ee32192cc91dff9a5dbe5c42",
-        "title": "Canyon Partners Provides Refi on Four-Building Elizabeth Industrial - Connect CRE",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "dc3cb1676ea522c42f72a785ec9b65924c614633",
-        "title": "Longpoint beefs up Miami-Dade industrial portfolio with $195M acquisition - The Real Deal",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f807cff976618309622f37f36aa2ccbd5bf84c8c",
-        "title": "Marq Logistics fills Newark warehouse with 100,000 sq. ft. lease with AV, media company - re-nj.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a8dea636d23fdb8f326a7346658b0337affb61f6",
-        "title": "Canyon Partners Real Estate provides $67M senior loan to refinance industrial property in Elizabeth - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bdcca6a2ab4f4ee2d6b74cd1c05797eeec75165d",
-        "title": "BRC: Linden warehouse stays fully leased after two renewals totaling 124,000 sq. ft. - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }

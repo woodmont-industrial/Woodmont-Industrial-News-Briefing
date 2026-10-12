@@ -1,31 +1,6 @@
 {
-  "updatedAt": "2026-10-09T12:00:37.712Z",
+  "updatedAt": "2026-10-12T12:01:08.339Z",
   "history": [
-    {
-      "date": "2026-06-04",
-      "runId": "2026-06-04-1530",
-      "score": 79,
-      "outOf10": 7.9,
-      "grade": "C",
-      "itemCount": 8,
-      "breakdown": {
-        "coverage": 24,
-        "freshness": 19.8,
-        "regional": 18.1,
-        "relevanceIntegrity": 20
-      },
-      "age": {
-        "fresh": 10,
-        "deep": 2,
-        "reserve": 0
-      },
-      "penalties": [
-        {
-          "type": "repeat_cross_day",
-          "points": 3
-        }
-      ]
-    },
     {
       "date": "2026-06-05",
       "runId": "2026-06-05-1517",
@@ -2705,6 +2680,40 @@
       },
       "supply": "Normal",
       "penalties": []
+    },
+    {
+      "date": "2026-10-12",
+      "runId": "2026-10-12-1201",
+      "score": 76,
+      "outOf10": 7.6,
+      "grade": "C",
+      "itemCount": 10,
+      "breakdown": {
+        "coverage": 27,
+        "freshness": 16.5,
+        "regional": 18.5,
+        "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 5,
+        "deep": 6,
+        "reserve": 0
+      },
+      "delivery": {
+        "score": 100,
+        "grade": "A"
+      },
+      "supply": "Rich",
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        },
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
     }
   ]
 }
