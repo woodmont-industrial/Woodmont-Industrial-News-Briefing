@@ -8,7 +8,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProvider, trackTokenUsage, logTokenUsage } from './ai-provider.js';
+import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
 
 const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
 
@@ -222,7 +222,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
 
 async function generateSingleDescription(
     article: NormalizedItem,
-    provider: { name: string; url: string; model: string; apiKey: string; reasoningEffort?: 'low' | 'medium' | 'high' }
+    provider: { name: string; url: string; model: string; apiKey: string; reasoningEffort?: 'none' | 'low' | 'medium' | 'high' }
 ): Promise<string | null> {
     try {
         // Derive source from article metadata or URL domain
@@ -248,19 +248,19 @@ async function generateSingleDescription(
         while (retries < 3) {
             response = await fetch(provider.url, {
                 method: 'POST',
+                    signal: AbortSignal.timeout(30_000),
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${provider.apiKey}`
                 },
                 body: JSON.stringify({
-                    model: provider.model,
+                    ...completionModelOptions(provider),
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: prompt }
                     ],
                     temperature: 0.1,
                     max_completion_tokens: 2048,
-                    ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
                 })
             });
 

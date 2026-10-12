@@ -7,6 +7,18 @@ import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 
+/** Publication date label for content older than the normal 72-hour window. */
+export function earlierDevelopmentLabel(item: NormalizedItem, asOf = new Date()): string | null {
+    const raw = item.pubDate || (item as any).date_published;
+    if (!raw) return null;
+    const stamp = Date.parse(String(raw));
+    if (!Number.isFinite(stamp) || asOf.getTime() - stamp <= 72 * 3600000) return null;
+    const published = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York', month: 'short', day: 'numeric',
+    }).format(new Date(stamp));
+    return `Earlier development · published ${published}`;
+}
+
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
     'wsj', 'wall street journal', 'bloomberg', 'costar', 'bisnow',
@@ -186,6 +198,8 @@ export function buildWorkBriefing(
         // Publisher in parens before the Source link — e.g., "(WSVN) Source"
         // Uses shared getPublisherName so server + SPA agree on display value.
         const publisher = getPublisherName(item);
+        const earlier = earlierDevelopmentLabel(item);
+        const earlierTag = earlier ? `<span style="color: #8a5800; font-size: 11px;">[${escapeHtml(earlier)}]</span> ` : '';
         const publisherTag = publisher ? `<span style="color: #777; font-size: 12px;">(${escapeHtml(publisher)})</span> ` : '';
         // safeUrl rejects non-http(s) (data:, javascript:, etc.) → '#'.
         const sourceHref = safeUrl(url);
@@ -193,7 +207,7 @@ export function buildWorkBriefing(
         const ignoreHref = safeUrl(ignoreUrl);
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
+            ${earlierTag}${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 

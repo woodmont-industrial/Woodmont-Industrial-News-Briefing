@@ -198,11 +198,61 @@ jobs:
       - name: Watchlist terms have not spread beyond the authorized file
         run: npm run validate:cm-watchlist-privacy
 
+  ai-compatibility:
+    name: AI Request Compatibility
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: node --import tsx src/filter/ai-provider.test.ts
+      - run: node --import tsx src/server/newsletter-backfill.test.ts
+
+  ai-provider-smoke:
+    name: AI Provider Smoke Test
+    # The initial repair is verified with existing secrets on this same-repo PR.
+    # Later checks are manually requested through this existing CI workflow.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.head_ref == 'fix/ai-model-recovery' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - name: Verify each provider without building or sending a newsletter
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+        run: node --import tsx scripts/ai-provider-smoke.ts
+      - name: Upload compatibility results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-provider-smoke-${{ github.run_id }}
+          path: artifacts/ai-provider-smoke/result.json
+          retention-days: 14
+          if-no-files-found: error
+
   # Summary job - always runs
   ci-summary:
     runs-on: ubuntu-latest
     name: CI Summary
-    needs: [typecheck, build, python-tests, security-scan, geography-check, watchlist-privacy]
+    needs: [typecheck, build, python-tests, security-scan, geography-check, watchlist-privacy, ai-compatibility, ai-provider-smoke]
     if: always()
     steps:
       - name: Check results
@@ -217,5 +267,7 @@ jobs:
           echo "| Security Scan | ${{ needs.security-scan.result }} |"
           echo "| Geography Check | ${{ needs.geography-check.result }} |"
           echo "| Watchlist Privacy | ${{ needs.watchlist-privacy.result }} |"
+          echo "| AI Request Compatibility | ${{ needs.ai-compatibility.result }} |"
+          echo "| AI Provider Smoke Test | ${{ needs.ai-provider-smoke.result }} |"
           echo ""
           echo "Note: Jobs with 'continue-on-error' may show as successful even with warnings."

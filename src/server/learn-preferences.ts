@@ -13,6 +13,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { resolveAIModel, modelReasoningEffort, completionModelOptions } from '../filter/ai-provider.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -173,7 +174,8 @@ async function callGroq(feedback: FeedbackEntry[], currentWeights: ScoringWeight
         return null;
     }
 
-    const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+    const model = resolveAIModel('Groq', process.env.GROQ_MODEL);
+    const reasoningEffort = modelReasoningEffort(model);
     const url = 'https://api.groq.com/openai/v1/chat/completions';
 
     // Summarize feedback for the prompt (don't send massive payloads)
@@ -217,12 +219,13 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
     try {
         const response = await fetch(url, {
             method: 'POST',
+            signal: AbortSignal.timeout(30_000),
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model,
+                ...completionModelOptions({ model, reasoningEffort }),
                 messages: [
                     {
                         role: 'system',
@@ -234,7 +237,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
                     },
                 ],
                 temperature: 0.2,
-                max_tokens: 2000,
+                max_completion_tokens: 2000,
+                response_format: { type: 'json_object' },
             }),
         });
 
