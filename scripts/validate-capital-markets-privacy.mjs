@@ -14,6 +14,20 @@ const MAX_WATCHLIST_BYTES = 2_000_000;
 // commit messages outside that one file.
 const AUTHORIZED_PUBLIC_FILES = new Set([
   'docs/data/capital-markets-watchlist.json',
+  // NARROW PUBLIC-SOURCE CONTRACT. The on-demand scanner reports only
+  // developments it read from a company's OWN public press release, so naming
+  // that company alongside the URL republishes what the publisher already
+  // published. That is not a second copy of the watchlist, and these two scan
+  // artifacts may therefore carry a company name - but only when:
+  //   * the name belongs to a source the scanner actually fetched;
+  //   * it sits beside the public URL the claim came from;
+  //   * no ownership metric, contact or any other watchlist column travels
+  //     with it.
+  // Everything else stays off-limits - configs, code, tests, commit messages -
+  // which is why the scanner resolves its sources from the watchlist at
+  // runtime instead of listing them in a config of its own.
+  'docs/data/capital-markets-scan.json',
+  'docs/data/capital-markets-scan-state.json',
 ]);
 
 function fail(message) {
