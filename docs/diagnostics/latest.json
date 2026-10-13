@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-12-1201",
-  "generatedAt": "2026-10-12T12:01:03.138Z",
+  "runId": "2026-10-13-1200",
+  "generatedAt": "2026-10-13T12:00:33.019Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 202,
+      "loaded": 213,
       "inWindow": 4,
       "regionPass": 4,
       "industrialPass": 0,
       "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 6,
-      "supplyCandidates": 73,
+      "selected": 3,
+      "supplyCandidates": 71,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -41,23 +41,23 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 4,
-        "tier3_30d_deep": 3,
-        "tier4_reserve": 0,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 2,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 202,
-      "inWindow": 4,
-      "regionPass": 3,
+      "loaded": 213,
+      "inWindow": 3,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 6,
+      "selected": 2,
+      "supplyCandidates": 4,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -70,7 +70,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,8 +85,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -94,7 +94,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 202,
+      "loaded": 213,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -102,7 +102,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 6,
+      "supplyCandidates": 5,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -139,8 +139,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 202,
-      "inWindow": 0,
+      "loaded": 213,
+      "inWindow": 4,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -149,7 +149,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -185,7 +185,7 @@
     }
   },
   "perFeedBySection": {
-    "globest.com": {
+    "commercialsearch.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -203,12 +203,26 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 9,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 5,
-        "transactions": 3,
+        "relevant": 2,
+        "transactions": 2,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
         "availabilities": 1,
         "people": 0
       }
@@ -222,53 +236,42 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 76,
-    "outOf10": 7.6,
-    "grade": "C",
-    "itemCount": 10,
-    "operationalScore": 76,
-    "operationalGrade": "C",
-    "editorialQualityScore": 79,
+    "score": 80,
+    "outOf10": 8,
+    "grade": "B",
+    "itemCount": 6,
+    "operationalScore": 80,
+    "operationalGrade": "B",
+    "editorialQualityScore": 77,
     "editorialGrade": "C",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "NO_FRESH_SUPPLY"
+      "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 16.5,
-      "regional": 18.5,
+      "freshness": 16.8,
+      "regional": 16.7,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
-      "deep": 6,
-      "reserve": 0
+      "fresh": 6,
+      "deep": 2,
+      "reserve": 2
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"DEP creates statewide data center permit tracker\""
-      },
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Gecko Robotics partners with Anduril to aid subm\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — fresh supply rejected by section gates (quality): people"
     ]
   },
   "logicImpact": {
@@ -279,8 +282,20 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 94,
+    "crossDayPoolRepeatsSuppressed": 103,
     "audit": [
+      {
+        "id": "ab9e8cec3a87b067a56ffb5d01fc74a0bcbde254",
+        "title": "Lehigh Valley town already facing data center zoning challenge now faces another. What we know - The Morning Call",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "6f9a8bb79ee006e6f79cbac6793465752f085d8f",
+        "title": "Industrial Construction Pipeline Rebounds as Regional Performance Diverges",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "82e328bcdbbb7a3572e159b461a8deadfe077e9d",
         "title": "Lehigh Valley Data Center Zoning Fight: 3-1 Vote [2026] - https://tech-insider.org/",
@@ -288,8 +303,50 @@
         "reason": "sent_signature"
       },
       {
+        "id": "d04c1a867bf0e0c8a752b6bd3d78847c3c0eb7a3",
+        "title": "Branchburg industrial building sells for $4.2 million - Central New Jersey News",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "8df013b7b2454b07b13dc22dc5e9c32537ce8d02",
+        "title": "DEP creates statewide data center permit tracker - Scranton Times-Tribune",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "bf07378f4b2f9c1f7e86d2d9097c63998d0fcf33",
+        "title": "Gecko Robotics partners with Anduril to aid submarine manufacturing - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "9c4a0af3b1bac9b87c1add08c66955ffb5c8e27f",
+        "title": "New Jersey Community Capital Closes $10 Million Financing for Lassonde Manufacturing Facility in Seabrook - citybiz",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "54f8370b232f3718076dcf9bc62ee1eb5b02345f",
+        "title": "Legacy Real Estate Developers completes sale of Totowa industrial property to food manufacturer - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "9a4fa25d56ec2099140499114a304dc4558b31e0",
         "title": "Industrial Property in Miami at 1171 Northwest 36th Street - Traded",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5dc43f26e2351733bb78ee0aeaea752fef7ce9b7",
+        "title": "Doral, FL Commercial Real Estate for Lease and Sale - PropertyShark",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7c6192d2fde6978a00fa086d79c22f4cd83d307d",
+        "title": "Blackstone affiliate sells Bucks County warehouse for $53M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -462,6 +519,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "a780c3d7ae1b39e7f145ca84a6151a1accc53962",
+        "title": "Crow Holdings adds to Philly portfolio with new 104,000 sq. ft. warehouse - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "45b8486f57c275d464f1b5fcec47586e46683ee9",
         "title": "Terreno sells 31,000 sq. ft. Fairfield industrial building for $8.8 million - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -488,6 +551,12 @@
       {
         "id": "18a9252293dc3fb891f64c5f17174d23b9bed228",
         "title": "South Florida’s top deals: Brookfield sells warehouses to Longpoint Partners for $195M - The Real Deal",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5ddbd8e973ec5312ff8d3887e45c6085181fbbb3",
+        "title": "449 Blair Rd, Avenel, NJ 07001 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -812,36 +881,6 @@
       {
         "id": "ed908ad49cea1d10a9e062c1c97ff26feff23dae",
         "title": "Two Orlando warehouse investments came within about two months for Speed Bay - Stock Titan",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "8f267012c2778528be3f32702dfe0c9bc12455cf",
-        "title": "1330 Livingston Ave, North Brunswick, NJ 08902 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "fc5eb629e74cb62366207cbd054f391678e395ef",
-        "title": "Amy Kremer’s Data Center Revolt is coming to Florida. She’ll find the state got there first. - Florida Politics",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "476d638633670facc961f67e198412cb55e1960e",
-        "title": "555 Rt 57 W, Port Murray, NJ 07865 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0f99c7d7b02efa8cd8ce198d3f4ebc26fcf36470",
-        "title": "Longpoint Buys Miami-Dade Warehouse Portfolio for $195M",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5fd5ab612ac19ea380fd3d7e159571d424592cf2",
-        "title": "Connors inks $4.8 million sale of 30,000 sq. ft. North Bergen warehouse - re-nj.com",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
