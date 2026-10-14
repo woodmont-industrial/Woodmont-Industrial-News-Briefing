@@ -1,17 +1,17 @@
 {
-  "runId": "2026-10-13-1200",
-  "generatedAt": "2026-10-13T12:00:33.019Z",
+  "runId": "2026-10-14-1200",
+  "generatedAt": "2026-10-14T12:00:33.748Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 213,
-      "inWindow": 4,
-      "regionPass": 4,
+      "loaded": 228,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 4,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
+      "selected": 4,
       "supplyCandidates": 71,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
@@ -40,26 +40,26 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 4,
+        "tier2_48h_72h": 5,
         "tier3_30d_deep": 1,
-        "tier4_reserve": 2,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "transactions": {
-      "loaded": 213,
-      "inWindow": 3,
-      "regionPass": 2,
+      "loaded": 228,
+      "inWindow": 7,
+      "regionPass": 3,
       "industrialPass": 0,
       "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 3,
       "supplyCandidates": 4,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -70,7 +70,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,7 +86,7 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 2,
-        "tier3_30d_deep": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -94,7 +94,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 213,
+      "loaded": 228,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -102,7 +102,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 5,
+      "supplyCandidates": 7,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -139,7 +139,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 213,
+      "loaded": 228,
       "inWindow": 4,
       "regionPass": 0,
       "industrialPass": 0,
@@ -185,7 +185,7 @@
     }
   },
   "perFeedBySection": {
-    "commercialsearch.com": {
+    "Google News RE-NJ Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -199,16 +199,86 @@
         "people": 0
       }
     },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "commercialcafe.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Commercial Observer": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Real Deal Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
-        "transactions": 2,
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -239,7 +309,7 @@
     "score": 80,
     "outOf10": 8,
     "grade": "B",
-    "itemCount": 6,
+    "itemCount": 8,
     "operationalScore": 80,
     "operationalGrade": "B",
     "editorialQualityScore": 77,
@@ -255,21 +325,27 @@
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 16.8,
-      "regional": 16.7,
+      "freshness": 18.6,
+      "regional": 16.9,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 6,
-      "deep": 2,
-      "reserve": 2
+      "fresh": 7,
+      "deep": 3,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Taylor Technology Campus Wins Approval for 1 GW \""
+      }
+    ],
     "notes": [
       "Empty — fresh supply rejected by section gates (quality): people"
     ]
@@ -282,8 +358,32 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 103,
+    "crossDayPoolRepeatsSuppressed": 106,
     "audit": [
+      {
+        "id": "9627bc9e4638b7ed57cc093b1b81050d1ca40def",
+        "title": "Is Entitlement Risk Reshaping Industrial Development?",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "6cc2a117da7629849270f69d126d2697f9a953f6",
+        "title": "Commercial development roundup: $1.7M warehouse conversion tops list of new Duval permits - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "3e116badd1aa441e0d1b30ced10d7d23982c5a86",
+        "title": "Report: Pittsburgh falling behind in good-paying industrial jobs - WPXI",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "775d54b10c1474405fc2446b08fd766711c1d507",
+        "title": "Newmark Associates CRE: Pipeline strong after $55 million in sale, lease deals year to date - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "ab9e8cec3a87b067a56ffb5d01fc74a0bcbde254",
         "title": "Lehigh Valley town already facing data center zoning challenge now faces another. What we know - The Morning Call",
@@ -321,6 +421,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "bae5d621051ba27ef028b6422dddd6d544891aea",
+        "title": "Lehigh Valley township gets second data center proposal. Its developer brings zoning challenge - Yahoo",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "9c4a0af3b1bac9b87c1add08c66955ffb5c8e27f",
         "title": "New Jersey Community Capital Closes $10 Million Financing for Lassonde Manufacturing Facility in Seabrook - citybiz",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -341,6 +447,12 @@
       {
         "id": "5dc43f26e2351733bb78ee0aeaea752fef7ce9b7",
         "title": "Doral, FL Commercial Real Estate for Lease and Sale - PropertyShark",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "ba02b8911423d13fe266f5e7c51aa8c49ad60e16",
+        "title": "237 Interstate Blvd, Sarasota, FL 34240 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -531,6 +643,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "2b42ee639c948bdd1b8887e702acf6b46f233832",
+        "title": "New Jersey Industrial Development Picks Up the Pace - CommercialSearch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "a640a30e9dd9588a8db13e17dc50876dcf7aa715",
         "title": "Data Center Developer Offers $10K Checks To Skeptical Pennsylvania Residents",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -711,12 +829,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "b6308bc855217d3936129f514d952c7477ce7065",
-        "title": "2060 Springdale Rd, Cherry Hill, NJ 08003 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
         "id": "cc7c48a3f0b775596e8d796838926916fc9a110f",
         "title": "The Data Center Supply Chain is Redrawing the Industrial Leasing Map",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -845,42 +957,6 @@
       {
         "id": "2227bbf7b3b612b49a591c9d52fc007a879610f1",
         "title": "Data Center Debt Is Flooding the CMBS Market",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9b1284c0922a15c3a2edaf36e3da20c8178cdb11",
-        "title": "The president isn’t worried, but Orange County has data center concerns - Orlando Sentinel",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a1e962b6a0be1bcfc97a23f55a8432c126d42502",
-        "title": "Industrial Occupancy Jumps as Big-Box Demand Returns",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2250fbe6abf3de857888b4acbcb3b1957862b6ea",
-        "title": "3 Pearl Ct, Allendale, NJ 07401 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "abcc4a5c898c59568ff5fb1db2830359de2585b1",
-        "title": "Philadelphia protesters demand city leaders prevent data center development - WHYY",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2a8a8786c9e6ec06151801ed431f1bd5e98a319d",
-        "title": "Brookfield Buys Minority Stake In Hyperscale Data Center Developer AREP",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ed908ad49cea1d10a9e062c1c97ff26feff23dae",
-        "title": "Two Orlando warehouse investments came within about two months for Speed Bay - Stock Titan",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
