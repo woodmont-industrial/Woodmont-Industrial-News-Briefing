@@ -1,9 +1,8 @@
 /**
  * AI Provider Abstraction
  *
- * Selects the best available AI provider:
- * 1. Cerebras (preferred) — Qwen 3 235B, free tier, 1M tokens/day, very fast
- * 2. Groq (fallback) — llama-3.1-8b-instant, free tier
+ * Shared model configuration for classification, editorial checks and summaries.
+ * Groq is primary; the editorial second pass prefers Cerebras.
  *
  * Both use OpenAI-compatible chat completions API format.
  */
@@ -25,20 +24,46 @@ export interface AIProvider {
     descBatchDelayMs: number;
     /** For reasoning models (e.g. gpt-oss): reasoning_effort sent at call sites.
      *  Leave undefined for non-reasoning models so the param isn't sent. */
-    reasoningEffort?: 'low' | 'medium' | 'high';
+    reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
 }
 
-// Model via env: CEREBRAS_MODEL (set to zai-glm-4.7 in repo vars 2026-06-24).
-// 2026-06-24: Cerebras RETIRED llama3.1-8b -> every fallback call 404'd, dumping
-// the Woodmont second-pass load onto Groq (caused the 429 storms). Switched to
-// Cerebras's current free preview model zai-glm-4.7.
+// Current shared-inference models, checked against the provider catalogs.
+// A known retired repository override is migrated with a warning; an unrelated
+// custom model is preserved so dedicated deployments remain configurable.
+export const DEFAULT_AI_MODELS = {
+    Cerebras: 'qwen-3.8-27b',
+    Groq: 'openai/gpt-oss-20b',
+} as const;
+
+type ProviderName = keyof typeof DEFAULT_AI_MODELS;
+const RETIRED_MODELS: Record<ProviderName, Set<string>> = {
+    Cerebras: new Set(['zai-glm-4.7', 'llama3.1-8b', 'qwen-3-235b-a22b-instruct-2507']),
+    Groq: new Set(['llama-3.1-8b-instant', 'llama-3.3-70b-versatile']),
+};
+
+export function resolveAIModel(provider: ProviderName, configured?: string): string {
+    const model = configured?.trim() || DEFAULT_AI_MODELS[provider];
+    if (!RETIRED_MODELS[provider].has(model)) return model;
+    console.warn(`[${provider}] Retired model override ${model}; using ${DEFAULT_AI_MODELS[provider]}. Update the model variable.`);
+    return DEFAULT_AI_MODELS[provider];
+}
+
+export function modelReasoningEffort(model: string): AIProvider['reasoningEffort'] {
+    if (model === 'qwen-3.8-27b') return 'none';
+    if (/^(?:openai\/)?gpt-oss-(?:20|120)b$/.test(model)) return 'low';
+    return undefined;
+}
+
+export function completionModelOptions(provider: Pick<AIProvider, 'model' | 'reasoningEffort'>) {
+    return {
+        model: provider.model,
+        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {}),
+    };
+}
+
 const CEREBRAS_CONFIG = {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
-    model: process.env.CEREBRAS_MODEL || 'zai-glm-4.7',
-    // 2026-05-27 v2: tighter still since Cerebras is now the fallback. When it
-    // does run, it's because Groq already 429'd — we should be extra-gentle.
-    // 2 concurrent x 5000ms = ~24 RPM, well under free-tier RPM cap.
     maxConcurrent: 2,
     batchDelayMs: 5000,
     maxArticles: 40,
@@ -49,13 +74,6 @@ const CEREBRAS_CONFIG = {
 const GROQ_CONFIG = {
     name: 'Groq',
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    // 2026-06-24: tried gpt-oss-120b but reasoning latency x ~60 calls blew the
-    // 15-min build timeout. Reverted to fast llama-3.1-8b-instant. No reasoningEffort,
-    // so the reasoning_effort param isn't sent. (Batching planned to cut call volume.)
-    model: 'llama-3.1-8b-instant',
-    // 2026-05-27: promoted to primary; Cerebras now fallback. Bumped maxArticles
-    // 15 -> 60 to match Cerebras throughput. Groq's free tier RPM is similar to
-    // Cerebras but their TPM cap is generous; these values should stay within it.
     maxConcurrent: 3,
     batchDelayMs: 2000,
     maxArticles: 60,
@@ -87,12 +105,14 @@ export function getAIProviders(): AIProvider[] {
 
     const groqKey = process.env.GROQ_API_KEY;
     if (groqKey) {
-        providers.push({ ...GROQ_CONFIG, apiKey: groqKey });
+        const model = resolveAIModel('Groq', process.env.GROQ_MODEL);
+        providers.push({ ...GROQ_CONFIG, model, reasoningEffort: modelReasoningEffort(model), apiKey: groqKey });
     }
 
     const cerebrasKey = process.env.CEREBRAS_API_KEY;
     if (cerebrasKey) {
-        providers.push({ ...CEREBRAS_CONFIG, apiKey: cerebrasKey });
+        const model = resolveAIModel('Cerebras', process.env.CEREBRAS_MODEL);
+        providers.push({ ...CEREBRAS_CONFIG, model, reasoningEffort: modelReasoningEffort(model), apiKey: cerebrasKey });
     }
 
     return providers;

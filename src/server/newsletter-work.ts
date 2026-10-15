@@ -7,6 +7,18 @@ import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 
+/** Publication date label for content older than the normal 72-hour window. */
+export function earlierDevelopmentLabel(item: NormalizedItem, asOf = new Date()): string | null {
+    const raw = item.pubDate || (item as any).date_published;
+    if (!raw) return null;
+    const stamp = Date.parse(String(raw));
+    if (!Number.isFinite(stamp) || asOf.getTime() - stamp <= 72 * 3600000) return null;
+    const published = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York', month: 'short', day: 'numeric',
+    }).format(new Date(stamp));
+    return `Earlier development · published ${published}`;
+}
+
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
     'wsj', 'wall street journal', 'bloomberg', 'costar', 'bisnow',
@@ -140,8 +152,9 @@ export function buildWorkBriefing(
         if (rawDesc && rawDesc.length > 10) {
             // Split on sentence boundaries, but protect decimal points in numbers ($1.6B, 23.5M, etc.)
             // Replace decimal points in numbers with placeholder, split, then restore
-            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2');
-            const sentences = safeDesc.match(/[^.!?]+[.!?]+/g)?.map(s => s.replace(/\u0000/g, '.'));
+            const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2')
+                .replace(/\b(?:[A-Za-z]\.){2,}/g, abbreviation => abbreviation.replace(/\./g, '\u0000'));
+            const sentences = safeDesc.match(/[^.!?]+(?:[.!?]+|$)/g)?.map(s => s.replace(/\u0000/g, '.'));
             if (sentences && sentences.length > 0) {
                 description = sentences.slice(0, maxSentences).join('').trim();
             } else {
@@ -155,19 +168,22 @@ export function buildWorkBriefing(
         // Always show the title — never replace it with the description.
         // Escape RSS-derived text BEFORE injecting into the HTML span/template.
         const titleSafe = escapeHtml(title);
-        const descSafe = escapeHtml(description);
         let displayText = titleSafe;
         if (description && description.length > 20) {
-            const titleWords = new Set(title.toLowerCase().split(/\s+/));
-            const descWords = description.toLowerCase().split(/\s+/);
-            const overlap = descWords.filter(w => titleWords.has(w)).length / descWords.length;
-            // Only append if description adds new info (less than 60% word overlap with title)
-            if (overlap < 0.6) {
-                displayText = `${titleSafe} — <span style="color: #555;">${descSafe}</span>`;
+            const comparable = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+            const publisherText = comparable(getPublisherName(item) || sourceName);
+            const withoutPublisher = (text: string): string => publisherText && text.endsWith(' ' + publisherText)
+                ? text.slice(0, -publisherText.length).trim() : text;
+            // Facts such as names, places and figures necessarily overlap the
+            // headline. Suppress only an actual repeated headline, including
+            // the publisher suffix commonly appended by RSS feeds.
+            const repeatedHeadline = withoutPublisher(comparable(description)) === withoutPublisher(comparable(title));
+            const remaining = Math.max(0, 500 - title.length - 3);
+            if (!repeatedHeadline && remaining > 20) {
+                const visibleDesc = description.length > remaining
+                    ? description.slice(0, remaining - 3).replace(/\s+\S*$/, '') + '...' : description;
+                displayText = `${titleSafe} — <span style="color: #555;">${escapeHtml(visibleDesc)}</span>`;
             }
-        }
-        if (displayText.length > 500) {
-            displayText = displayText.substring(0, 497).replace(/\s+\S*$/, '') + '...';
         }
 
         // Structured deal fields prefix (Location · Size · $Amount)
@@ -186,6 +202,8 @@ export function buildWorkBriefing(
         // Publisher in parens before the Source link — e.g., "(WSVN) Source"
         // Uses shared getPublisherName so server + SPA agree on display value.
         const publisher = getPublisherName(item);
+        const earlier = earlierDevelopmentLabel(item);
+        const earlierTag = earlier ? `<span style="color: #8a5800; font-size: 11px;">[${escapeHtml(earlier)}]</span> ` : '';
         const publisherTag = publisher ? `<span style="color: #777; font-size: 12px;">(${escapeHtml(publisher)})</span> ` : '';
         // safeUrl rejects non-http(s) (data:, javascript:, etc.) → '#'.
         const sourceHref = safeUrl(url);
@@ -193,7 +211,7 @@ export function buildWorkBriefing(
         const ignoreHref = safeUrl(ignoreUrl);
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
+            ${earlierTag}${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 

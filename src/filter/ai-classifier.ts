@@ -11,7 +11,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProvider, getAIProviders, getRetryAfterMs, trackTokenUsage, logTokenUsage } from './ai-provider.js';
+import { getAIProvider, getAIProviders, getRetryAfterMs, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
 
 export interface AIClassificationResult {
     category: 'relevant' | 'transactions' | 'availabilities' | 'people' | 'exclude';
@@ -132,19 +132,20 @@ export async function classifyWithAI(
             while (retries < maxRetries) {
                 response = await fetch(provider.url, {
                     method: 'POST',
+                    signal: AbortSignal.timeout(30_000),
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${provider.apiKey}`
                     },
                     body: JSON.stringify({
-                        model: provider.model,
+                        ...completionModelOptions(provider),
                         messages: [
                             { role: 'system', content: SYSTEM_PROMPT },
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
                         max_completion_tokens: 2048,
-                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
+                        response_format: { type: 'json_object' },
                     })
                 });
 
@@ -262,16 +263,17 @@ async function classifyMultipleWithAI(
             while (retries < maxRetries) {
                 response = await fetch(provider.url, {
                     method: 'POST',
+                    signal: AbortSignal.timeout(30_000),
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.apiKey}` },
                     body: JSON.stringify({
-                        model: provider.model,
+                        ...completionModelOptions(provider),
                         messages: [
                             { role: 'system', content: SYSTEM_PROMPT },
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
                         max_completion_tokens: 4096,
-                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {})
+                        response_format: { type: 'json_object' },
                     })
                 });
                 if (response.status === 429) {

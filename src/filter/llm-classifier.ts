@@ -24,7 +24,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProviders, getRetryAfterMs, trackTokenUsage } from './ai-provider.js';
+import { getAIProviders, getRetryAfterMs, trackTokenUsage, completionModelOptions } from './ai-provider.js';
 import { WOODMONT_SYSTEM_PROMPT, buildArticleUserPrompt, WOODMONT_RUBRIC_VERSION } from './woodmont-rubric.js';
 
 interface WoodmontVerdict {
@@ -72,19 +72,19 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
             while (retries < maxRetries) {
                 response = await fetch(provider.url, {
                     method: 'POST',
+                    signal: AbortSignal.timeout(30_000),
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${provider.apiKey}`
                     },
                     body: JSON.stringify({
-                        model: provider.model,
+                        ...completionModelOptions(provider),
                         messages: [
                             { role: 'system', content: WOODMONT_SYSTEM_PROMPT },
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
                         max_completion_tokens: 2048,
-                        ...(provider.reasoningEffort ? { reasoning_effort: provider.reasoningEffort } : {}),
                         response_format: { type: 'json_object' }
                     })
                 });
@@ -126,6 +126,11 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
             }
 
             const parsed = JSON.parse(jsonMatch[0]);
+            if (typeof parsed.approve !== 'boolean' || typeof parsed.reason !== 'string'
+                || typeof parsed.confidence !== 'number' || !Number.isFinite(parsed.confidence)) {
+                if (!isLast) continue;
+                return null;
+            }
             return {
                 approve: parsed.approve === true,
                 reason: String(parsed.reason || '').slice(0, 300),
