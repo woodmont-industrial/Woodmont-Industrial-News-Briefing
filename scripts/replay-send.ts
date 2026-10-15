@@ -31,6 +31,7 @@ interface ReplayConfig {
     frozenNowUtc: string;
     inputs: Record<string, string>;   // docs-relative path -> git ref
     spotlight: string[];              // title substrings to trace in detail
+    triggerEvent?: string;
 }
 
 const DEFAULT_CONFIG: ReplayConfig = {
@@ -86,12 +87,40 @@ console.log(`🕐 clock frozen to ${cfg.frozenNowUtc}`);
 // ---- 3. Environment: frozen docsDir + dry-run ----------------------------------------
 process.env.WOODMONT_DOCS_DIR = tmpDocs;
 process.env.DRY_RUN = '1';
-process.env.TRIGGER_EVENT = 'workflow_run';                     // match the real run's trigger
+process.env.TRIGGER_EVENT = cfg.triggerEvent || 'workflow_run';
 process.env.NEWSLETTER_RECIPIENTS = process.env.NEWSLETTER_RECIPIENTS || 'replay@example.com';
 process.env.EMAIL_TO = process.env.EMAIL_TO || 'replay@example.com';
 
 // ---- 4. Install tracer + run the REAL pipeline ---------------------------------------
 async function main() {
+const outputDir = process.env.REPLAY_OUTPUT_DIR ? path.resolve(process.env.REPLAY_OUTPUT_DIR) : null;
+if (outputDir && (outputDir === path.resolve('docs') || outputDir.startsWith(path.resolve('docs') + path.sep))) {
+    throw new Error('Review output must be outside production docs');
+}
+const summaryBatches: Array<{ generated: number; requested: number }> = [];
+const requests: Array<{ model: string; status: number }> = [];
+const originalLog = console.log;
+const originalFetch = globalThis.fetch;
+if (outputDir) {
+    console.log = (...args: any[]) => {
+        const match = /\[AI Desc\] Generated (\d+)\/(\d+) descriptions/.exec(args.map(String).join(' '));
+        if (match) summaryBatches.push({ generated: Number(match[1]), requested: Number(match[2]) });
+        originalLog(...args);
+    };
+    globalThis.fetch = async (url, init) => {
+        const target = new URL(String(url));
+        if (process.env.DRY_RUN !== '1' || target.origin !== 'https://api.groq.com'
+            || target.pathname !== '/openai/v1/chat/completions' || init?.method !== 'POST') {
+            throw new Error('Review permits only Groq classification and summary requests');
+        }
+        if (requests.length >= 80) throw new Error('Review request budget exhausted');
+        const record = { model: JSON.parse(String(init.body || '{}')).model || '', status: 0 };
+        requests.push(record);
+        const response = await originalFetch(url, init);
+        record.status = response.status;
+        return response;
+    };
+}
 const { SendTracer, setActiveTracer } = await import('../src/server/send-tracer.js');
 const { sendDailyNewsletterWork } = await import('../src/server/email.js');
 const tracer = new SendTracer();
@@ -162,6 +191,23 @@ if (wirItems.length) {
     wirItems.forEach(t => console.log(`     • ${t.title.slice(0, 70)}`));
 }
 
+if (outputDir) {
+    const diagnosticsPath = path.join(tmpDocs, 'diagnostics', 'latest.json');
+    const quality = fs.existsSync(diagnosticsPath) ? JSON.parse(fs.readFileSync(diagnosticsPath, 'utf8')).quality : null;
+    fs.writeFileSync(path.join(tmpDocs, 'replay-review.json'), JSON.stringify({
+        previewOnly: true, deliveryInvoked: false, frozenNowUtc: cfg.frozenNowUtc,
+        triggerEvent: process.env.TRIGGER_EVENT, inputs: cfg.inputs,
+        codeRef: process.env.GITHUB_SHA || resolveRef('HEAD'),
+        summaryBatches, requests, quality,
+        sections: sectionItems.map(({ id, title, category }) => ({ id, title, category })),
+        spotlight: cfg.spotlight.map(needle => ({ needle, traces: tracer.find(needle) })),
+    }, null, 2) + '\n');
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.cpSync(tmpDocs, outputDir, { recursive: true });
+    console.log('Review HTML and diagnostics saved; no delivery was invoked.');
+}
+console.log = originalLog;
+globalThis.fetch = originalFetch;
 fs.rmSync(tmpDocs, { recursive: true, force: true });
 console.log('\n✅ replay complete (temp docsDir cleaned up)');
 }

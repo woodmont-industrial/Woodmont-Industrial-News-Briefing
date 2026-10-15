@@ -1,0 +1,69 @@
+name: Newsletter Preview Replay
+
+on:
+  push:
+    branches: ['preview/**']
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - name: Render isolated review email
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY_2 }}
+          DRY_RUN: '1'
+          EMAIL_TO: 'replay@example.com'
+          NEWSLETTER_RECIPIENTS: 'replay@example.com'
+          REPLAY_OUTPUT_DIR: ${{ runner.temp }}/newsletter-review
+          TZ: UTC
+        run: |
+          set -euo pipefail
+          mkdir -p "$REPLAY_OUTPUT_DIR"
+          node --import tsx scripts/replay-send.ts scripts/preview-replay-oct14.json 2>&1 | tee "$REPLAY_OUTPUT_DIR/replay.log"
+          git diff --exit-code -- docs
+      - name: Verify review result
+        env:
+          REVIEW_DIR: ${{ runner.temp }}/newsletter-review
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const assert = require('node:assert/strict');
+          const r = JSON.parse(fs.readFileSync(path.join(process.env.REVIEW_DIR, 'replay-review.json'), 'utf8'));
+          assert.equal(r.deliveryInvoked, false);
+          assert.ok(fs.statSync(path.join(process.env.REVIEW_DIR, 'newsletter-archive/latest.html')).size > 1000);
+          const generated = r.summaryBatches.reduce((n, b) => n + b.generated, 0);
+          const requested = r.summaryBatches.reduce((n, b) => n + b.requested, 0);
+          if (process.env.GITHUB_REF_NAME === 'preview/baseline-replay') {
+            assert.equal(r.sections.length, 8, 'baseline reproduces the production selection');
+            assert.equal(generated, 0, 'baseline reproduces the failed summaries');
+            assert.equal(requested, 15, 'baseline reproduces both summary batches');
+          } else {
+            assert.ok(generated > 0, 'recovered model must produce real summaries');
+            assert.ok(r.requests.some(q => q.status === 200), 'production Groq secret must return usable responses');
+          }
+          const summary = `Preview only: ${r.sections.length} articles; ${generated}/${requested} generated descriptions; editorial ${r.quality?.editorialQualityScore}/${r.quality?.editorialGrade}.`;
+          console.log(summary);
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          NODE
+      - name: Save review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-review-${{ github.run_id }}
+          path: ${{ runner.temp }}/newsletter-review
+          if-no-files-found: error
+          retention-days: 14
