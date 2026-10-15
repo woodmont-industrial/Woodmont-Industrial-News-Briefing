@@ -49,6 +49,14 @@ check(fail('449 Blair Rd, Avenel, NJ 07001 - Industrial Properties for Lease') =
     'a three-digit street address is a specific listing');
 
 console.log('=== legitimate items are preserved ===');
+check(fail('Industrial Boomtowns: The U.S. Metros Where Logistics & Warehousing Grew Fastest') === null,
+    'a title-only warehouse market growth report survives');
+check(fail('Which metros have the fastest warehousing growth?') === null,
+    'warehouse growth reports do not depend on one headline wording');
+check(fail('Warehousing software market grows fastest this year') === 'NO_PROPERTY_OR_MARKET_CONTEXT',
+    'software market growth is not warehouse real estate growth');
+check(fail('Factory operator expands manufacturing with new machinery') === 'NO_PROPERTY_OR_MARKET_CONTEXT',
+    'company operations do not become a property-market report');
 for (const [title, why] of [
     ['Industrial Report: Industrial Market Moves Closer to Balance', 'a market report'],
     ['Loan-to-Value Ratios Climb as CRE Lender Competition Heats Up', 'CRE lending commentary'],

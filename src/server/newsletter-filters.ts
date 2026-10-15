@@ -400,7 +400,16 @@ export function relevantEvidenceFailure(title: string, fullText: string): string
     if (AGGREGATOR_CATEGORY_PAGE_RE.test(title) && !specific) return 'AGGREGATOR_CATEGORY_PAGE';
     if (JOB_POSTING_RE.test(title)) return 'JOB_POSTING_NOT_NEWS';
     if (EVENT_OR_INDEX_RE.test(title)) return 'EVENT_OR_INDEX_PAGE';
-    if (!PROPERTY_CONTEXT_RE.test(fullText) && !MARKET_CONTEXT_RE.test(fullText)) return 'NO_PROPERTY_OR_MARKET_CONTEXT';
+    // Some publisher feeds provide only a growth-report headline, without
+    // vacancy or rent figures. Require warehouse, market and growth evidence
+    // together; a software/equipment market is a different subject.
+    const warehouseGrowthReport = /\b(?:warehouses?|warehousing)\b/i.test(title)
+        && /\b(?:metros?|markets?|boomtowns?)\b/i.test(title)
+        && /\b(?:growth|grew|fastest|rank(?:ing|ed|s)?)\b/i.test(title)
+        && !/\b(?:software|robotics?|equipment|machinery)\b/i.test(title);
+    if (!PROPERTY_CONTEXT_RE.test(fullText) && !MARKET_CONTEXT_RE.test(fullText) && !warehouseGrowthReport) {
+        return 'NO_PROPERTY_OR_MARKET_CONTEXT';
+    }
     return null;
 }
 
