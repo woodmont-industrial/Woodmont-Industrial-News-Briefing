@@ -20,11 +20,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
+import { createHash } from 'crypto';
 import { extractCompetitorSourceEndpoints } from './capital-markets-competitor-sources.js';
 
 const require_ = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const { validateScanResult, validateScanState } = require_('./capital-markets-scan-artifacts.cjs');
+const opaqueKey = (value: string): string => createHash('sha256').update(value).digest('hex');
+const storyKey = (title: string): string => String(title).replace(/ [-–—] [^-–—]{2,40}$/, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 /** Endpoint labels are not evidence. An investor-relations page is routinely
  *  labelled "newsroom" and carries dividends and earnings dates, never a
@@ -50,6 +55,7 @@ export type SourceOutcome = 'ok' | 'refused' | 'transient' | 'cooling';
 
 export interface SourceHealth {
     name: string;
+    url: string;
     outcome: SourceOutcome;
     status: string;
     endpoints: number;
@@ -138,7 +144,11 @@ export function resolveSources(docsDir: string, selection: ScanConfig['selection
  *  it did not name, so a syndicated link elsewhere is never fetched. */
 export function hostDeclared(url: string, domains: string[]): boolean {
     let host = '';
-    try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return false; }
+    try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) return false;
+        host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    } catch { return false; }
     return domains.some(d => {
         const dom = String(d || '').toLowerCase().replace(/^www\./, '').trim();
         return Boolean(dom) && (host === dom || host.endsWith('.' + dom));
@@ -151,19 +161,45 @@ export function classifyFailure(status: string): 'refused' | 'transient' {
     return /^(401|403|404|410|451)$/.test(status) ? 'refused' : 'transient';
 }
 
-export interface Fetcher { (url: string, timeoutMs: number): Promise<{ ok: boolean; body: string; status: string }> }
+export interface Fetcher {
+    (url: string, timeoutMs: number, domains?: string[]): Promise<{
+        ok: boolean; body: string; status: string; finalUrl?: string; requestCount?: number;
+    }>;
+}
 
-export const httpFetcher: Fetcher = async (url, timeoutMs) => {
+export const httpFetcher: Fetcher = async (url, timeoutMs, domains) => {
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), timeoutMs);
+    let requestCount = 0;
     try {
-        const res = await fetch(url, {
-            signal: ac.signal, redirect: 'follow',
-            headers: { 'user-agent': 'Mozilla/5.0 (compatible; WoodmontCapitalMarketsScan/1.0)' },
-        });
-        return { ok: res.ok, body: res.ok ? await res.text() : '', status: String(res.status) };
+        const approved = domains || [new URL(url).hostname];
+        let current = url;
+        for (let hop = 0; hop < 6; hop++) {
+            if (!hostDeclared(current, approved)) return { ok: false, body: '', status: 'unapproved-redirect', requestCount };
+            requestCount++;
+            const res = await fetch(current, {
+                signal: ac.signal, redirect: 'manual',
+                headers: { 'user-agent': 'Mozilla/5.0 (compatible; WoodmontCapitalMarketsScan/1.0)' },
+            });
+            if (res.url && !hostDeclared(res.url, approved)) {
+                return { ok: false, body: '', status: 'unapproved-redirect', requestCount };
+            }
+            if ([301, 302, 303, 307, 308].includes(res.status)) {
+                const location = res.headers.get('location');
+                if (!location) return { ok: false, body: '', status: 'missing-redirect', requestCount };
+                const next = new URL(location, current).toString();
+                // Validate BEFORE issuing the next request, not after reading
+                // an unapproved destination's content.
+                if (!hostDeclared(next, approved)) return { ok: false, body: '', status: 'unapproved-redirect', requestCount };
+                current = next;
+                continue;
+            }
+            return { ok: res.ok, body: res.ok ? await res.text() : '', status: String(res.status),
+                finalUrl: res.url || current, requestCount };
+        }
+        return { ok: false, body: '', status: 'redirect-limit', requestCount };
     } catch (e) {
-        return { ok: false, body: '', status: (e as Error).name === 'AbortError' ? 'timeout' : 'error' };
+        return { ok: false, body: '', status: (e as Error).name === 'AbortError' ? 'timeout' : 'error', requestCount };
     } finally { clearTimeout(timer); }
 };
 
@@ -279,7 +315,7 @@ export function articleDate(html: string): string {
     return '';
 }
 
-interface ScanState { sources: Record<string, { outcome: SourceOutcome; retryAfter?: string }>; lastHits: string[]; }
+interface ScanState { version?: number; sources: Record<string, { outcome: SourceOutcome; retryAfter?: string }>; lastHits: string[]; }
 
 function loadState(docsDir: string): ScanState {
     try {
@@ -320,6 +356,7 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
     const { CM } = await loadCapitalMarketsRuntime({ repoRoot, docsDir });
 
     const state = loadState(docsDir);
+    const nextSources: ScanState['sources'] = {};
     const health: SourceHealth[] = [];
     const hits: ScanHit[] = [];
     let requests = 0;
@@ -327,21 +364,33 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
 
     const sources = resolveSources(docsDir, cfg.selection);
     for (const source of sources) {
-        const prior = state.sources[source.name];
+        const sourceId = opaqueKey(source.homepage);
+        // Read the original state once for a seamless upgrade; only opaque
+        // identifiers are written back to the public state artifact.
+        const prior = state.sources[sourceId] || state.sources[source.name];
         if (prior?.retryAfter && Date.parse(prior.retryAfter) > now.getTime()) {
-            health.push({ name: source.name, outcome: 'cooling', status: prior.outcome,
+            nextSources[sourceId] = prior;
+            health.push({ name: source.name, url: source.homepage, outcome: 'cooling', status: prior.outcome,
                 endpoints: 0, articles: 0, retryAfter: prior.retryAfter });
             continue;
         }
 
-        requests++;
-        const home = await fetcher(source.homepage, cfg.defaults.timeoutMs);
+        const sourceFetch = async (url: string): ReturnType<Fetcher> => {
+            if (!hostDeclared(url, source.domains)) return { ok: false, body: '', status: 'unapproved-host' };
+            const response = await fetcher(url, cfg.defaults.timeoutMs, source.domains);
+            requests += response.requestCount ?? 1;
+            if (response.finalUrl && !hostDeclared(response.finalUrl, source.domains)) {
+                return { ok: false, body: '', status: 'unapproved-redirect' };
+            }
+            return response;
+        };
+        const home = await sourceFetch(source.homepage);
         if (!home.ok) {
             const kind = classifyFailure(home.status);
             const hours = kind === 'refused' ? cfg.cooldowns.refusedHours : cfg.cooldowns.transientHours;
             const retryAfter = new Date(now.getTime() + hours * 3600000).toISOString();
-            state.sources[source.name] = { outcome: kind, retryAfter };
-            health.push({ name: source.name, outcome: kind, status: home.status, endpoints: 0, articles: 0, retryAfter });
+            nextSources[sourceId] = { outcome: kind, retryAfter };
+            health.push({ name: source.name, url: source.homepage, outcome: kind, status: home.status, endpoints: 0, articles: 0, retryAfter });
             continue;
         }
 
@@ -349,33 +398,36 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
         try { endpoints = extractCompetitorSourceEndpoints(home.body, source.homepage, 0, 6); } catch { /* oversize page */ }
         const usable = endpoints.filter(e => !IR_PATH.test(e.url) && hostDeclared(e.url, source.domains));
 
-        const candidates: Array<{ title: string; link: string; date: string; body: string }> = [];
+        const candidates: Array<{ title: string; link: string; date: string; body: string; evidenceSource?: 'article page' }> = [];
         for (const ep of usable.slice(0, 3)) {
-            requests++;
-            const page = await fetcher(ep.url, cfg.defaults.timeoutMs);
+            const page = await sourceFetch(ep.url);
             if (!page.ok) continue;
             const feedItems = parseFeedArticles(page.body, cfg.defaults.maxArticlesPerSource);
-            if (feedItems.length) { candidates.push(...feedItems); continue; }
+            if (feedItems.length) {
+                for (const item of feedItems) {
+                    try { item.link = new URL(item.link, page.finalUrl || ep.url).toString(); } catch { continue; }
+                    if (hostDeclared(item.link, source.domains)) candidates.push(item);
+                }
+                continue;
+            }
             // No feed: treat it as an HTML newsroom and follow its article links.
             for (const link of parseNewsroomLinks(page.body, ep.url, source.domains)) {
                 if (articleFetches >= cfg.defaults.maxArticleFetches) break;
-                articleFetches++; requests++;
-                const art = await fetcher(link.link, cfg.defaults.timeoutMs);
+                articleFetches++;
+                const art = await sourceFetch(link.link);
                 if (!art.ok) continue;
-                candidates.push({ title: link.title, link: link.link, date: articleDate(art.body), body: articleText(art.body).slice(0, 1200) });
+                candidates.push({ title: link.title, link: art.finalUrl || link.link, date: articleDate(art.body),
+                    body: articleText(art.body).slice(0, 1200), evidenceSource: 'article page' });
             }
         }
 
         let kept = 0;
         for (const c of candidates) {
-            const when = Date.parse(c.date);
+            let when = Date.parse(c.date);
             if (!Number.isFinite(when) || when < cutoff) continue;
-            // A future date is a parsing artefact or a scheduled post, not a
-            // development that has happened. One day of slack absorbs timezone
-            // skew without admitting next month's press release.
-            if (when > now.getTime() + 86400000) continue;
+            if (when > now.getTime()) continue;
             let body = c.body;
-            let evidenceSource: ScanHit['evidenceSource'] = 'feed';
+            let evidenceSource: ScanHit['evidenceSource'] = c.evidenceSource || 'feed';
             let verdict = CM.cmClassify({ title: c.title, description: body, summary: '' });
             // Fetch the page when the feed summary is missing the figure that
             // decides the item. Gating this on verdict.section was backwards:
@@ -387,27 +439,34 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
             if ((missingFact || (verdict.section && !verdict.magnitude))
                 && articleFetches < cfg.defaults.maxArticleFetches
                 && c.link && hostDeclared(c.link, source.domains)) {
-                articleFetches++; requests++;
-                const art = await fetcher(c.link, cfg.defaults.timeoutMs);
+                articleFetches++;
+                const art = await sourceFetch(c.link);
                 if (art.ok) {
+                    const pageDate = Date.parse(articleDate(art.body));
+                    if (Number.isFinite(pageDate)) {
+                        if (pageDate < cutoff || pageDate > now.getTime()) continue;
+                        when = pageDate;
+                    }
                     const full = articleText(art.body).slice(0, 4000);
                     const better = CM.cmClassify({ title: c.title, description: full, summary: '' });
-                    if (better.section) { verdict = better; body = full; evidenceSource = 'article page'; }
+                    if (better.section) { verdict = better; body = full; evidenceSource = 'article page'; c.link = art.finalUrl || c.link; }
                 }
             }
             if (!verdict.section) continue;
             kept++;
+            const amount = Number(verdict.magnitude);
+            const figure = Number.isFinite(amount) && amount > 0 ? amount : null;
             hits.push({
                 title: c.title, link: c.link, publishedAt: new Date(when).toISOString(),
                 source: source.name, section: verdict.section, tier: String(verdict.tier),
-                squareFeet: magnitudeUnit(verdict.section) === 'sf' ? (verdict.magnitude ?? null) : null,
-                priceUsd: magnitudeUnit(verdict.section) === 'usd' ? (verdict.magnitude ?? null) : null,
-                evidence: evidenceSentence(body, verdict.magnitude) || body.slice(0, 240),
+                squareFeet: magnitudeUnit(verdict.section) === 'sf' ? figure : null,
+                priceUsd: magnitudeUnit(verdict.section) === 'usd' ? figure : null,
+                evidence: evidenceSentence(body, figure) || body.slice(0, 240),
                 evidenceSource, reason: String(verdict.reason),
             });
         }
-        state.sources[source.name] = { outcome: 'ok' };
-        health.push({ name: source.name, outcome: 'ok', status: '200', endpoints: usable.length, articles: candidates.length });
+        nextSources[sourceId] = { outcome: 'ok' };
+        health.push({ name: source.name, url: source.homepage, outcome: 'ok', status: '200', endpoints: usable.length, articles: candidates.length });
         void kept;
     }
 
@@ -415,12 +474,9 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
     // endpoints of one source, or from two companies announcing a joint project.
     // Normalise the title — case, punctuation and any trailing publisher — and
     // keep the first, preferring one that already carries a verified figure.
-    const storyKey = (h: ScanHit) => String(h.title)
-        .replace(/ [-–—] [^-–—]{2,40}$/, '')
-        .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const byStory = new Map<string, ScanHit>();
     for (const h of hits) {
-        const k = storyKey(h);
+        const k = storyKey(h.title);
         const seen = byStory.get(k);
         if (!seen) { byStory.set(k, h); continue; }
         const seenFigure = seen.squareFeet ?? seen.priceUsd;
@@ -432,8 +488,9 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
     hits.length = 0;
     hits.push(...deduplicated);
 
-    const key = (h: ScanHit) => `${h.source}::${h.title}`;
-    const previous = new Set(state.lastHits || []);
+    const key = (h: ScanHit) => opaqueKey(storyKey(h.title));
+    const previous = new Set((state.lastHits || []).map(value => /^[a-f0-9]{64}$/.test(value)
+        ? value : opaqueKey(storyKey(value.slice(value.indexOf('::') + 2)))));
     const newSinceLastScan = hits.filter(h => !previous.has(key(h))).map(h => h.title);
     const counts: Record<string, number> = {};
     for (const h of hits) counts[h.section] = (counts[h.section] || 0) + 1;
@@ -448,10 +505,14 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
         duplicatesCollapsed,
     };
 
+    const nextState = { version: 2, sources: nextSources, lastHits: hits.map(key) };
+    const rows = JSON.parse(fs.readFileSync(path.join(docsDir, 'data', 'capital-markets-watchlist.json'), 'utf8')).companies;
+    validateScanResult(result, rows);
+    validateScanState(nextState);
     if (options.write !== false) {
         writeJson(path.join(docsDir, 'data', 'capital-markets-scan.json'), result);
         writeJson(path.join(docsDir, 'data', 'capital-markets-scan-state.json'),
-            { sources: state.sources, lastHits: hits.map(key) });
+            nextState);
     }
     return result;
 }

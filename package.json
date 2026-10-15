@@ -15,7 +15,7 @@
     "build-reserve-pool": "npx tsx src/build/build-reserve-pool.ts",
     "dev": "npx tsx rssfeed.ts",
     "test:newsletter-diagnostics": "npx tsx src/server/newsletter-diagnostics.test.ts",
-    "test:capital-markets": "node tests/capital-markets/run-all.mjs && node --import tsx src/server/capital-markets-delivery.test.ts && node --import tsx src/server/capital-markets-competitor-sources.test.ts",
+    "test:capital-markets": "node tests/capital-markets/run-all.mjs && node --import tsx src/server/capital-markets-delivery.test.ts && node --import tsx src/server/capital-markets-competitor-sources.test.ts && node --import tsx src/server/capital-markets-scan.test.ts && node src/server/capital-markets-scan-artifacts.test.cjs && node scripts/test-capital-markets-scan-privacy.mjs",
     "scan:capital-markets": "node --import tsx rssfeed.ts --run-capital-markets-scan"
   },
   "dependencies": {

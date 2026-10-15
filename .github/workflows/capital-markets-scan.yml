@@ -62,6 +62,9 @@ jobs:
       - name: Run the scan
         run: node --import tsx rssfeed.ts --run-capital-markets-scan --scan-days "${{ inputs.lookback_days || '30' }}"
 
+      - name: Validate public scan artifacts
+        run: npm run validate:cm-watchlist-privacy
+
       # The scan result is only "published" if it reaches the branch and path
       # GitHub Pages actually serves. Verified against the repository's Pages
       # settings: build_type "legacy", source { branch: main, path: /docs }.
