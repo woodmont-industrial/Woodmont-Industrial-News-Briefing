@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-14-1200",
-  "generatedAt": "2026-10-14T12:00:33.748Z",
+  "runId": "2026-10-15-1200",
+  "generatedAt": "2026-10-15T12:00:37.082Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 228,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 229,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 71,
+      "selected": 3,
+      "supplyCandidates": 66,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -40,26 +40,26 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
+        "tier2_48h_72h": 3,
         "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
+        "tier4_reserve": 4,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 228,
-      "inWindow": 7,
-      "regionPass": 3,
+      "loaded": 229,
+      "inWindow": 4,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 4,
+      "selected": 1,
+      "supplyCandidates": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
+        "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -70,7 +70,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -85,8 +85,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -94,7 +94,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 228,
+      "loaded": 229,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -102,7 +102,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 7,
+      "supplyCandidates": 6,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -139,8 +139,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 228,
-      "inWindow": 4,
+      "loaded": 229,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -149,7 +149,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -185,7 +185,7 @@
     }
   },
   "perFeedBySection": {
-    "Google News RE-NJ Industrial": {
+    "Google News Lehigh Valley": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -199,7 +199,7 @@
         "people": 0
       }
     },
-    "Google News Manufacturing NJ/PA/FL": {
+    "Bisnow National": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -209,62 +209,6 @@
       "bySection": {
         "relevant": 1,
         "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "credaily.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialcafe.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Commercial Observer": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Real Deal Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -273,17 +217,17 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 2,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 1,
         "people": 0
       }
     },
-    "Google News LoopNet NJ/PA/FL": {
+    "Google News Palm Beach County FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -292,8 +236,8 @@
       "rejections": {},
       "bySection": {
         "relevant": 0,
-        "transactions": 0,
-        "availabilities": 1,
+        "transactions": 1,
+        "availabilities": 0,
         "people": 0
       }
     }
@@ -306,33 +250,33 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 80,
-    "outOf10": 8,
-    "grade": "B",
-    "itemCount": 8,
-    "operationalScore": 80,
-    "operationalGrade": "B",
-    "editorialQualityScore": 77,
+    "score": 75,
+    "outOf10": 7.5,
+    "grade": "C",
+    "itemCount": 5,
+    "operationalScore": 75,
+    "operationalGrade": "C",
+    "editorialQualityScore": 78,
     "editorialGrade": "C",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "QUALITY_REJECTED"
+      "people": "NO_FRESH_SUPPLY"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 18.6,
-      "regional": 16.9,
+      "freshness": 14,
+      "regional": 20,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 7,
-      "deep": 3,
-      "reserve": 0
+      "fresh": 4,
+      "deep": 2,
+      "reserve": 4
     },
     "delivery": {
       "score": 100,
@@ -341,13 +285,18 @@
     "supply": "Rich",
     "penalties": [
       {
+        "type": "repeat_cross_day",
+        "points": 3,
+        "detail": "Deal already sent in the last 14 days: \"Here’s how a Lehigh Valley town could get $50 mi\""
+      },
+      {
         "type": "weak_item",
         "points": 3,
-        "detail": "Borderline / off-topic: \"Taylor Technology Campus Wins Approval for 1 GW \""
+        "detail": "Borderline / off-topic: \"Space Race: How The Private Sector's Orbital Asp\""
       }
     ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -358,8 +307,50 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 106,
+    "crossDayPoolRepeatsSuppressed": 109,
     "audit": [
+      {
+        "id": "84d9f7e8678c0ede275b7475bd8b5a24465b4f67",
+        "title": "Here’s how a Lehigh Valley town could get $50 million if it approves updated data center plans - The Morning Call",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "d28128c816f3cb0f90b384634f7edc7837367fad",
+        "title": "Sheldon Gross inks $1.76 million sale of distinctive Phillipsburg industrial building - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e2453fff04cc2a206f89ca37e8c87725eb6eee38",
+        "title": "GSK Announces Drug Manufacturing Expansion In Pennsylvania - Pharmaceutical Online",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "88c8be8f4e33a38b23ffa1785cfb4d073b034351",
+        "title": "Starwood Property Trust Provides $238M Refi on N.C. Life Sciences Campus",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "1e4508dcc620bd98336e0f9ae943130abf369046",
+        "title": "Taylor Technology Campus Wins Approval for 1 GW Data Center",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5889ba4162da9fdc710d6b842f3aa22987e8e73b",
+        "title": "Industrial Sale-Leaseback on Florida’s Space Coast Draws Approximately 25 Offers, Closes at $10.2 Million - El Paso Time",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "1c2cafb885bc4189428ed38234f000f739ea095c",
+        "title": "Industrial Boomtowns: The U.S. Metros Where Logistics & Warehousing Grew Fastest",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "9627bc9e4638b7ed57cc093b1b81050d1ca40def",
         "title": "Is Entitlement Risk Reshaping Industrial Development?",
@@ -389,6 +380,12 @@
         "title": "Lehigh Valley town already facing data center zoning challenge now faces another. What we know - The Morning Call",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
+        "title": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "6f9a8bb79ee006e6f79cbac6793465752f085d8f",
@@ -435,6 +432,12 @@
       {
         "id": "54f8370b232f3718076dcf9bc62ee1eb5b02345f",
         "title": "Legacy Real Estate Developers completes sale of Totowa industrial property to food manufacturer - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "ba873138abb5fc800e79277e40902b89ec830422",
+        "title": "Top permits: $46M North Miami Beach warehouse redevelopment; $14M office shell in West Kendall - The Real Deal",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -903,60 +906,6 @@
       {
         "id": "28f143998fa7aeefd5f1daaceab1722ed281625c",
         "title": "News | Salon products maker extends industrial lease in Medley, Florida - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "852eed3c02bfdb7a95d165cfe053312f8396f12d",
-        "title": "News | Walmart signs long-term lease at newly built warehouse in Medley, Florida - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c9dd2932728c6874fae987fbe26dd38a41cf99f9",
-        "title": "Walmart signs 16-year lease for newly built warehouse in Miami-Dade County - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "734e746e47d8bb021c4795a29949a18477eb9f59",
-        "title": "Iselin law firm Greenbaum, Rowe, Smith & Davis debuts data center development practice - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bf3911615ca713b5e7152a89c4db1cd887f73880",
-        "title": "Owner of 308,000 sq. ft. Ewing industrial portfolio scores $26 million loan, Wilcox says - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "eff38bec490b123f818707bf6612d11d00ab88b3",
-        "title": "Brookfield Takes Minority Stake in Data Center Developer",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "aa1ba4079fd1653fbbbf441b6f7ac1b1dc3b8a61",
-        "title": "Dalfen Industrial Expands Florida Footprint with Acquisition of Miami Industrial Property - finance.yahoo.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7524d400822ecf5417880482ede4da27f275ebb0",
-        "title": "Lehigh Valley community becomes latest to pass data center ordinance, ahead of review of farmland rezoning request - The",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "8aa08a1f2bf30a37adb0f036959295de1a0b6ac5",
-        "title": "South Florida Industrial Real Estate Summit - Bisnow",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2227bbf7b3b612b49a591c9d52fc007a879610f1",
-        "title": "Data Center Debt Is Flooding the CMBS Market",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
