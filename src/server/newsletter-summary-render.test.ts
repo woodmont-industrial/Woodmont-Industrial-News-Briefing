@@ -15,6 +15,8 @@ assert.ok(render(article()).includes(description), 'a factual summary survives h
 assert.ok(!render(article({ description: title + ' Example Wire' })).includes(' — <span'),
     'a feed description containing only the headline and publisher stays hidden');
 assert.ok(!render(article({ description: title })).includes(' — <span'), 'an exact repeated headline stays hidden');
+assert.ok(render(article({ description: 'U.S. metros where logistics and warehousing grew fastest' }))
+    .includes('warehousing grew fastest'), 'abbreviations and an unpunctuated final sentence retain their facts');
 const html = render(article({ description: 'Published property detail & supporting context. '.repeat(20) }));
 assert.equal((html.match(/<span\b/g) || []).length, (html.match(/<\/span>/g) || []).length,
     'long summaries keep balanced HTML spans');
