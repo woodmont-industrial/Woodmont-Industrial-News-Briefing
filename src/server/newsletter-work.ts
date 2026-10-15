@@ -167,19 +167,22 @@ export function buildWorkBriefing(
         // Always show the title — never replace it with the description.
         // Escape RSS-derived text BEFORE injecting into the HTML span/template.
         const titleSafe = escapeHtml(title);
-        const descSafe = escapeHtml(description);
         let displayText = titleSafe;
         if (description && description.length > 20) {
-            const titleWords = new Set(title.toLowerCase().split(/\s+/));
-            const descWords = description.toLowerCase().split(/\s+/);
-            const overlap = descWords.filter(w => titleWords.has(w)).length / descWords.length;
-            // Only append if description adds new info (less than 60% word overlap with title)
-            if (overlap < 0.6) {
-                displayText = `${titleSafe} — <span style="color: #555;">${descSafe}</span>`;
+            const comparable = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+            const publisherText = comparable(getPublisherName(item) || sourceName);
+            const withoutPublisher = (text: string): string => publisherText && text.endsWith(' ' + publisherText)
+                ? text.slice(0, -publisherText.length).trim() : text;
+            // Facts such as names, places and figures necessarily overlap the
+            // headline. Suppress only an actual repeated headline, including
+            // the publisher suffix commonly appended by RSS feeds.
+            const repeatedHeadline = withoutPublisher(comparable(description)) === withoutPublisher(comparable(title));
+            const remaining = Math.max(0, 500 - title.length - 3);
+            if (!repeatedHeadline && remaining > 20) {
+                const visibleDesc = description.length > remaining
+                    ? description.slice(0, remaining - 3).replace(/\s+\S*$/, '') + '...' : description;
+                displayText = `${titleSafe} — <span style="color: #555;">${escapeHtml(visibleDesc)}</span>`;
             }
-        }
-        if (displayText.length > 500) {
-            displayText = displayText.substring(0, 497).replace(/\s+\S*$/, '') + '...';
         }
 
         // Structured deal fields prefix (Location · Size · $Amount)
