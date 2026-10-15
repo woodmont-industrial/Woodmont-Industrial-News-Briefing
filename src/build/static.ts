@@ -561,6 +561,7 @@ export async function buildStaticRSS(): Promise<void> {
 
         // === AI FILTERING (if CEREBRAS_API_KEY or GROQ_API_KEY is set) ===
         let aiFilteredItems = filteredNewItems;
+        let aiDegraded = false;
         if (process.env.CEREBRAS_API_KEY || process.env.GROQ_API_KEY) {
             const aiProvider = process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'Groq';
             log('info', `Running AI classification on articles using ${aiProvider}...`);
@@ -608,6 +609,34 @@ export async function buildStaticRSS(): Promise<void> {
                     excludedByAI,
                     categories: categoryBreakdown
                 });
+
+                // DEGRADED PROCESSING MUST BE LOUD. On 2026-10-12 both configured
+                // models were retired — Groq's llama-3.1-8b-instant returned 404
+                // "does not exist", Cerebras' zai-glm-4.7 returned 404 "archived"
+                // — so 29 classifications failed and none were approved. The run
+                // still reported success and shipped on deterministic rules alone.
+                // A silent fallback to no editorial AI is a quality change the
+                // newsletter should announce, not absorb.
+                if (filteredNewItems.length > 0 && aiResult.classifications.size === 0) {
+                    log('error', 'AI CLASSIFICATION DEGRADED: every model call failed — the edition ' +
+                        'was built on deterministic rules alone. Check model availability.', {
+                        candidates: filteredNewItems.length,
+                        classified: 0,
+                        provider: aiProvider,
+                        degraded: true,
+                    });
+                    aiDegraded = true;
+                } else if (filteredNewItems.length > 0
+                    && aiResult.classifications.size < filteredNewItems.length / 2) {
+                    log('warn', 'AI classification partially degraded: fewer than half the candidates ' +
+                        'were classified.', {
+                        candidates: filteredNewItems.length,
+                        classified: aiResult.classifications.size,
+                        provider: aiProvider,
+                        degraded: true,
+                    });
+                    aiDegraded = true;
+                }
 
                 // Log some examples of excluded articles
                 const excludedExamples = aiResult.excluded.slice(0, 3).map(a => ({
@@ -1162,8 +1191,18 @@ export async function buildStaticRSS(): Promise<void> {
             }
         } catch { /* ignore */ }
         const feedHealthReport = generateFeedHealthReport(results, previousHealthReport);
+        // PERSIST the degradation flag. A log line alone is not enough: nobody
+        // reads a green build's logs, which is how both retired models went
+        // unnoticed. Recording it in feed-health.json puts it somewhere the
+        // dashboards and the next reviewer actually look.
+        (feedHealthReport as Record<string, unknown>).aiClassification = {
+            degraded: aiDegraded,
+            provider: process.env.CEREBRAS_API_KEY ? 'Cerebras' : (process.env.GROQ_API_KEY ? 'Groq' : 'none'),
+            checkedAt: new Date().toISOString(),
+        };
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
-        log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
+        log('info', 'Generated docs/feed-health.json', {
+            feedCount: feedHealthReport.feeds.length, aiDegraded });
 
         // Archive a daily feed-health summary to a flat CSV for Power BI time-series
         // (feed-health.json itself is overwritten each build, so it's only "today").
