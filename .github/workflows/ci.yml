@@ -212,6 +212,7 @@ jobs:
       - run: npm ci --prefer-offline --no-audit
       - run: node --import tsx src/filter/ai-provider.test.ts
       - run: node --import tsx src/server/newsletter-backfill.test.ts
+      - run: node --import tsx src/server/newsletter-summary-render.test.ts
 
   ai-provider-smoke:
     name: AI Provider Smoke Test
