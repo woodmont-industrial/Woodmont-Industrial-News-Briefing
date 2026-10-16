@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-15-1200",
-  "generatedAt": "2026-10-15T12:00:37.082Z",
-  "isFriday": false,
+  "runId": "2026-10-16-1200",
+  "generatedAt": "2026-10-16T12:00:35.055Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 229,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 222,
+      "inWindow": 2,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 66,
+      "selected": 2,
+      "supplyCandidates": 65,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -35,31 +35,32 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 4,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 2,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "transactions": {
-      "loaded": 229,
-      "inWindow": 4,
-      "regionPass": 1,
+      "loaded": 222,
+      "inWindow": 6,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 1,
+      "selected": 3,
+      "supplyCandidates": 5,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -85,24 +86,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 2,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 229,
+      "loaded": 222,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 6,
+      "selected": 0,
+      "supplyCandidates": 4,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -131,15 +132,15 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 229,
+      "loaded": 222,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -185,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "Google News Lehigh Valley": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Bisnow National": {
+    "Google News MHL News": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -217,64 +204,50 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
-        "transactions": 0,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "Google News Palm Beach County FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
+        "transactions": 3,
         "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 75,
-    "outOf10": 7.5,
+    "score": 72,
+    "outOf10": 7.2,
     "grade": "C",
     "itemCount": 5,
-    "operationalScore": 75,
+    "operationalScore": 72,
     "operationalGrade": "C",
-    "editorialQualityScore": 78,
-    "editorialGrade": "C",
-    "coverageSupplyScore": 80,
+    "editorialQualityScore": 81,
+    "editorialGrade": "B",
+    "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "FILLED",
+      "availabilities": "NO_FRESH_SUPPLY",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 3,
+    "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 27,
-      "freshness": 14,
-      "regional": 20,
+      "coverage": 21,
+      "freshness": 12.2,
+      "regional": 22,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 4,
+      "fresh": 2,
       "deep": 2,
       "reserve": 4
     },
@@ -287,16 +260,11 @@
       {
         "type": "repeat_cross_day",
         "points": 3,
-        "detail": "Deal already sent in the last 14 days: \"Here’s how a Lehigh Valley town could get $50 mi\""
-      },
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Space Race: How The Private Sector's Orbital Asp\""
+        "detail": "Deal already sent in the last 14 days: \"Lehigh Valley township gets second data center p\""
       }
     ],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
     ]
   },
   "logicImpact": {
@@ -307,13 +275,31 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 109,
+    "crossDayPoolRepeatsSuppressed": 111,
     "audit": [
+      {
+        "id": "59356e83ab4580aed036abd30e33fcdad43cc073",
+        "title": "Space Race: How The Private Sector's Orbital Aspirations Are Driving CRE On Earth",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "13a5729de0b5fd5de9189c7c33c617d4f5c629d4",
+        "title": "Biotech firm buys $27.5M warehouse near West Palm Beach, plans 100 jobs - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "84d9f7e8678c0ede275b7475bd8b5a24465b4f67",
         "title": "Here’s how a Lehigh Valley town could get $50 million if it approves updated data center plans - The Morning Call",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
+      },
+      {
+        "id": "144d7ca1b259ddc14d3e64f0118a61c493b3299a",
+        "title": "N.J.'s largest AI data center just got hit with another lawsuit — and the issues go deeper than noise - NJ.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "d28128c816f3cb0f90b384634f7edc7837367fad",
@@ -379,7 +365,7 @@
         "id": "ab9e8cec3a87b067a56ffb5d01fc74a0bcbde254",
         "title": "Lehigh Valley town already facing data center zoning challenge now faces another. What we know - The Morning Call",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
       },
       {
         "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
@@ -397,7 +383,7 @@
         "id": "82e328bcdbbb7a3572e159b461a8deadfe077e9d",
         "title": "Lehigh Valley Data Center Zoning Fight: 3-1 Vote [2026] - https://tech-insider.org/",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
       },
       {
         "id": "d04c1a867bf0e0c8a752b6bd3d78847c3c0eb7a3",
@@ -580,12 +566,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "004997b6a5407a8898f014339733056261d539f8",
-        "title": "WareSpace Invests in Space-Constrained Industrial Markets - CommercialCafe",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_title"
-      },
-      {
         "id": "6d174e9e976949f3a1223f19cddb3a87e8423f17",
         "title": "WareSpace Invests in Space-Constrained Industrial Markets",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -684,6 +664,12 @@
       {
         "id": "4b796bcf0cd3b05ce86c705f0f1f3b1f6e7cabb1",
         "title": "JLL Arranges $66.8M Refinancing for Industrial Development in Stuart, Florida - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "2250fbe6abf3de857888b4acbcb3b1957862b6ea",
+        "title": "3 Pearl Ct, Allendale, NJ 07401 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -832,6 +818,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "b6308bc855217d3936129f514d952c7477ce7065",
+        "title": "2060 Springdale Rd, Cherry Hill, NJ 08003 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "cc7c48a3f0b775596e8d796838926916fc9a110f",
         "title": "The Data Center Supply Chain is Redrawing the Industrial Leasing Map",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -882,30 +874,6 @@
       {
         "id": "26bac7d4afb6f5ffac04c43d29e667dd34e29966",
         "title": "Warehouse space provider purchases another South Florida property for $20M - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "08809dd02720fa24d67a1467c999524e61b189e4",
-        "title": "Data Center Leaders Aren't Sweating Calls For An AI Slowdown",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "54b82289089106fa27391dba3d51359b127bc599",
-        "title": "Study warns of electricity shortages unless supply keeps pace with data center growth - Pennsylvania Capital-Star",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "4a5dbe536cbfa7ddcb644ff713b52a40fabd81c6",
-        "title": "REPORT: Amazon Eyes Next Industrial Push With Plans To Expand Same-Day Deliveries",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "28f143998fa7aeefd5f1daaceab1722ed281625c",
-        "title": "News | Salon products maker extends industrial lease in Medley, Florida - CoStar",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
