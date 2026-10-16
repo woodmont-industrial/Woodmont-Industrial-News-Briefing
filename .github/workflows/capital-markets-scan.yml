@@ -1,0 +1,167 @@
+name: Run Capital Markets Scan
+
+# ON-DEMAND ONLY. There is no schedule and no send step: this workflow fetches
+# publisher sources directly, classifies what it finds under Jacob's rules, and
+# publishes the result to the website. It never contacts a mail relay, never
+# reads sent-state, and never touches the department newsletter.
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'How many days back to scan'
+        required: false
+        default: '30'
+        type: choice
+        options: ['7', '30', '60', '90']
+
+# One scan at a time. A second request waits rather than racing the first for
+# the results file.
+concurrency:
+  group: capital-markets-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    name: Capital Markets Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Confirm the scanner cannot send
+        run: |
+          # A scan that could mail the department would be a different product.
+          # Check the MODULE rather than this file: a self-grep would match its
+          # own pattern and fail every run, proving nothing.
+          if grep -qiE "nodemailer|smtp|sendMail|EMAIL_TO|sent-articles" src/server/capital-markets-scan.ts; then
+            echo "::error::capital-markets-scan.ts references a mail or sent-state path."
+            exit 1
+          fi
+          node -e "
+            const cfg = require('./config/capital-markets-newsletter.json');
+            if (cfg.rollout.productionEnabled !== false) {
+              console.error('::error::Capital Markets production is enabled; a scan must not run against it.');
+              process.exit(1);
+            }
+            console.log('productionEnabled is false');
+          "
+          echo "✅ the scanner has no send path"
+
+      - name: Run the scan
+        run: node --import tsx rssfeed.ts --run-capital-markets-scan --scan-days "${{ inputs.lookback_days || '30' }}"
+
+      - name: Validate public scan artifacts
+        run: npm run validate:cm-watchlist-privacy
+
+      # The scan result is only "published" if it reaches the branch and path
+      # GitHub Pages actually serves. Verified against the repository's Pages
+      # settings: build_type "legacy", source { branch: main, path: /docs }.
+      #
+      # Deliberately NOT actions/upload-pages-artifact + actions/deploy-pages:
+      # those require build_type "workflow", and switching this repository to it
+      # would cut off the daily feed build and send, which publish by pushing to
+      # main:/docs. The legacy builder already fires on this job's pushes - bot
+      # commits at 12:01:13, 10:21:10 and 09:49:23 UTC each produced a
+      # successful pages-build-deployment within three seconds.
+      - name: Publish results to the website
+        id: publish
+        run: |
+          PAGES_BRANCH=main
+          REF="${GITHUB_REF_NAME}"
+          git add docs/data/capital-markets-scan.json docs/data/capital-markets-scan-state.json
+          if git diff --staged --quiet; then
+            echo "scan produced no change to publish"
+            echo "published=none" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if [ "$REF" != "$PAGES_BRANCH" ]; then
+            # Committing here would push scan output to a branch Pages never
+            # reads, and the summary would claim a publish that did not happen.
+            echo "::warning::Ran on '$REF'. Pages serves '$PAGES_BRANCH':/docs, so the website was NOT updated. Results are attached as an artifact."
+            echo "published=wrong-branch" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "🔎 Capital Markets scan - $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git pull --rebase --autostash
+          git push
+          echo "published=yes" >> $GITHUB_OUTPUT
+
+      # Always keep the result retrievable, including when the run was dispatched
+      # from a branch Pages does not serve.
+      - name: Upload the scan result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-markets-scan
+          path: docs/data/capital-markets-scan*.json
+          if-no-files-found: warn
+
+      # Prove the website serves THIS scan, rather than assuming the push was
+      # enough. Compares completedAt on the live site with the local file.
+      - name: Confirm the live site serves this scan
+        if: steps.publish.outputs.published == 'yes'
+        run: |
+          LOCAL=$(node -e "console.log(require('./docs/data/capital-markets-scan.json').completedAt)")
+          URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data/capital-markets-scan.json"
+          echo "expecting completedAt=$LOCAL at $URL"
+          for i in $(seq 1 20); do
+            LIVE=$(curl -fsSL -H 'Cache-Control: no-cache' "$URL" | node -e "
+              let b='';process.stdin.on('data',d=>b+=d).on('end',()=>{
+                try { console.log(JSON.parse(b).completedAt || ''); } catch { console.log(''); }
+              });" || true)
+            if [ "$LIVE" = "$LOCAL" ]; then
+              echo "✅ the live site serves this scan (attempt $i)"
+              exit 0
+            fi
+            echo "attempt $i: live completedAt='$LIVE'"
+            sleep 15
+          done
+          echo "::error::The push succeeded but the live site still does not serve this scan after 5 minutes."
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Capital Markets scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          case "${{ steps.publish.outputs.published }}" in
+            yes)           echo "- website: updated and verified live" >> $GITHUB_STEP_SUMMARY ;;
+            none)          echo "- website: unchanged (this scan found nothing new)" >> $GITHUB_STEP_SUMMARY ;;
+            wrong-branch)  echo "- website: **not updated** - this run was dispatched from '${GITHUB_REF_NAME}', and Pages serves 'main':/docs. Download the 'capital-markets-scan' artifact instead." >> $GITHUB_STEP_SUMMARY ;;
+            *)             echo "- website: publish step did not complete" >> $GITHUB_STEP_SUMMARY ;;
+          esac
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f docs/data/capital-markets-scan.json ]; then
+            node -e "
+              const r = require('./docs/data/capital-markets-scan.json');
+              const out = [];
+              out.push('- completed: ' + r.completedAt + ' (' + r.runtimeSeconds + 's, ' + r.requests + ' requests)');
+              out.push('- lookback: ' + r.lookbackDays + ' days');
+              out.push('- qualifying: ' + r.hits.length + ' (' + r.newSinceLastScan.length + ' new)');
+              out.push('');
+              out.push('| section | tier | SF | published | title |');
+              out.push('|---|---|---|---|---|');
+              for (const h of r.hits) out.push('| ' + h.section + ' | ' + h.tier + ' | ' + (h.squareFeet ?? '-') + ' | ' + h.publishedAt.slice(0,10) + ' | [' + h.title.replace(/\|/g,'') .slice(0,70) + '](' + h.link + ') |');
+              out.push('');
+              out.push('| source | outcome | articles |');
+              out.push('|---|---|---|');
+              for (const s of r.sources) out.push('| ' + s.name + ' | ' + s.outcome + ' | ' + s.articles + ' |');
+              console.log(out.join('\n'));
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "no results file was produced" >> $GITHUB_STEP_SUMMARY
+          fi

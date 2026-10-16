@@ -2715,6 +2715,12 @@
             </div>
           )}
 
+          {/* Scan results stand on their own: published by the scan workflow,
+              read straight from docs/data/capital-markets-scan.json. Mounting
+              this inside the `html &&` preview card hid every scan until a
+              preview had been generated. */}
+          {theme === 'capital-markets' && <CapitalMarketsScanPanel darkMode={darkMode} />}
+
           {html && (
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
@@ -2923,6 +2929,116 @@
         </div>
       );
     };
+
+    // Module scope, NOT inside App: NewsletterPreview renders this panel and
+    // is itself declared outside App, so a declaration inside App was never
+    // in scope - selecting the Capital Markets theme threw
+    // "CapitalMarketsScanPanel is not defined" and blanked the page.
+    // It must also sit AFTER the shared-helper block, which
+    // src/server/capital-markets-runtime.cjs extracts from this file by
+    // slicing up to "const NewsletterPreview = (" and evaluating it as plain
+    // JS - JSX inside that slice breaks every server-side Capital Markets run.
+    // ---- Capital Markets scan results -----------------------------------
+    // The scan runs in GitHub Actions ("Run Capital Markets Scan") and publishes
+    // docs/data/capital-markets-scan.json. This page READS that artifact: Pages
+    // is static, so the scan is triggered from the Actions tab and the result
+    // appears here once it finishes.
+    function CapitalMarketsScanPanel({ darkMode }) {
+      const [scan, setScan] = React.useState(null);
+      const [state, setState] = React.useState('loading');
+      React.useEffect(() => {
+        fetch('data/capital-markets-scan.json', { cache: 'no-store' })
+          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+          .then(d => { setScan(d); setState('ready'); })
+          .catch(() => setState('none'));
+      }, []);
+
+      const card = 'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 mb-4';
+      if (state === 'loading') return <div className={card}><p className="text-sm text-slate-500">Loading scan results…</p></div>;
+      if (state === 'none') return (
+        <div className={card}>
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">On-demand scan</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            No scan has been published yet. Run <strong>Run Capital Markets Scan</strong> from the
+            repository's Actions tab; results appear here when it finishes.
+          </p>
+        </div>
+      );
+
+      const fresh = new Set(scan.newSinceLastScan || []);
+      const failed = (scan.sources || []).filter(x => x.outcome !== 'ok');
+      return (
+        <div className={card}>
+          <div className="flex items-baseline justify-between flex-wrap gap-2 mb-3">
+            <h3 className="font-semibold text-slate-900 dark:text-white">On-demand scan</h3>
+            <span className="text-xs text-slate-500">
+              last scan {new Date(scan.completedAt).toLocaleString()} · {scan.lookbackDays}-day lookback ·
+              {' '}{scan.runtimeSeconds}s · {scan.requests} requests{scan.duplicatesCollapsed ? ` · ${scan.duplicatesCollapsed} duplicate${scan.duplicatesCollapsed === 1 ? '' : 's'} collapsed` : ''}
+            </span>
+          </div>
+
+          {(scan.hits || []).length === 0 ? (
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              No qualifying developments in the last {scan.lookbackDays} days.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {scan.hits.map((h, i) => (
+                <li key={i} className="border-l-2 border-blue-500 pl-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                      {h.section} · {h.tier}
+                    </span>
+                    {fresh.has(h.title) && (
+                      <span className="text-xs rounded px-1.5 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        new since last scan
+                      </span>
+                    )}
+                  </div>
+                  <a href={h.link} target="_blank" rel="noopener noreferrer"
+                     className="block font-medium text-slate-900 dark:text-white hover:underline">
+                    {h.title}
+                  </a>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {h.source} · published {String(h.publishedAt).slice(0, 10)}
+                    {/* The classifier returns ONE magnitude and only its section
+                        says which unit: dollars for a sale, square feet otherwise.
+                        Storing both in one field rendered a $53M sale as 53,000,000 SF. */}
+                    {h.squareFeet
+                      ? ` · ${Number(h.squareFeet).toLocaleString()} SF (verified from ${h.evidenceSource})`
+                      : h.priceUsd
+                        ? ` · $${(Number(h.priceUsd) / 1e6).toFixed(1)}M (verified from ${h.evidenceSource})`
+                        : ' · figure not stated'}
+                  </div>
+                  {h.evidence && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 italic">
+                      "{String(h.evidence).slice(0, 180)}{String(h.evidence).length > 180 ? '…' : ''}"
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {failed.length > 0 && (
+            <details className="mt-3">
+              <summary className="text-xs text-slate-500 cursor-pointer">
+                {failed.length} source{failed.length === 1 ? '' : 's'} unavailable this run
+              </summary>
+              <ul className="mt-1 text-xs text-slate-500 space-y-0.5">
+                {failed.map((f, i) => (
+                  <li key={i}>
+                    {f.name} — {f.outcome}{f.status && f.status !== f.outcome ? ` (${f.status})` : ''}
+                    {f.retryAfter ? ` · retries after ${new Date(f.retryAfter).toLocaleDateString()}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      );
+    }
+
 
     const App = () => {
       const [items, setItems] = useState([]);
@@ -3559,6 +3675,7 @@
     // reached only by explicit evidence (a named non-target US market, or
     // explicit nationwide framing). Everything else is UNMAPPED and is routed
     // to diagnostics for review, never admitted under a guessed threshold.
+
     // ---- Capital Markets Preview (extracted module) ----------------------
     // The classification, geography and competitor logic lives in
     // docs/js/capital-markets.js so it can be unit tested directly rather than

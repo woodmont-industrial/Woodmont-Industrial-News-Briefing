@@ -1,0 +1,16 @@
+{
+  "_comment": "On-demand Capital Markets scanner. SELECTION CRITERIA ONLY — no company names and no domains. Sources are resolved at runtime from docs/data/capital-markets-watchlist.json, which is the one file authorised to carry watchlist terms. Hardcoding the names here would have copied the list into a second place, which is exactly what the privacy guard exists to prevent.",
+  "version": 2,
+  "defaults": { "lookbackDays": 30, "maxArticlesPerSource": 25, "maxArticleFetches": 20, "timeoutMs": 12000 },
+  "cooldowns": {
+    "_comment": "A refusal is not a permanent verdict. 401/403/404 is an access refusal and waits longer; timeouts and 5xx are transient. Both are retried after the cooldown.",
+    "refusedHours": 168,
+    "transientHours": 6
+  },
+  "selection": {
+    "_comment": "Regional developers headquartered in the target states announce North Jersey and Lehigh Valley milestones on their own newsrooms. A 2026-10-05 discovery spike over 25 such sites found a construction completion absent from the subscribed feeds entirely.",
+    "states": ["NJ", "NY", "PA"],
+    "secondaryTypeMatches": "developer",
+    "maxSources": 25
+  }
+}
