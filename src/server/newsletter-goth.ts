@@ -8,7 +8,7 @@ import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
  * Rules:
  * - Concise, scannable daily briefing
  * - Focus on NJ, PA, FL; national only if it informs these markets
- * - Deals ≥100K SF or ≥$25M highlighted
+ * - Transactions section floor: ≥50K SF or ≥$10M (smaller regional deals route to Relevant)
  * - Clear headings and bullets
  * - 2 lines or fewer per bullet, 4-6 bullets per section
  * - Include: location + size + key players + terms
