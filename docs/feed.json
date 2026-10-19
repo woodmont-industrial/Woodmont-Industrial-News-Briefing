@@ -38,8 +38,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "New manufacturing facility opening in Pennsylvania (target region) for a major industrial food ingredient company, fits industrial real estate focus (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "New manufacturing facility opening in Pennsylvania (target region) for a major industrial player, fits the 'adjacent industries' judgment call for real industrial facilities",
+      "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -71,8 +71,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "New manufacturing facility in Melbourne, Florida (target region) with strong industrial asset signal, published within 7 days (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "New manufacturing facility in Melbourne, Florida (target region) with neutral pro-development framing, fits adjacent industry approval criteria",
+      "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -104,7 +104,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial/manufacturing expansion in Pennsylvania (target region) with a project value of $800M, well above the $25M threshold, and published within the last 7 days (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial manufacturing expansion in Pennsylvania (target region) with a project value of $800M, well above the $25M threshold, published within the last 7 days (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -165,8 +165,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -236,7 +236,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class — the article discusses general supply chain pipeline efficiency metrics rather than industrial real estate transactions, leasing, or development, matching Rule 5",
+      "_woodmontReason": "Wrong asset class — the article discusses supply chain pipeline efficiency metrics, which is operational/logistics data, not industrial real estate (warehouses, distribution centers, etc.), matching Rule 5",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -333,7 +333,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Wrong region — Stockbridge is in Massachusetts (New England), which is outside the target regions of NJ, PA, and FL, matching Rule 9",
       "_woodmontConfidence": 95,
@@ -368,7 +368,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction at 173,475 SF in Mine Hill, which is above the 100K SF threshold and within the target region (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real NJ industrial transaction at 173,475 SF in Mine Hill, which exceeds the 100K SF threshold and is within the target region (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -434,7 +434,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction in Florida ($174M, well above $25M threshold) from a recognized CRE source, published within 7 days, with neutral market framing (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Industrial transaction in Florida (target region) with $174M value, well above the $25M threshold, published within 7 days (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -500,7 +500,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class — the article focuses on space exploration and orbital aspirations, which are not industrial real estate (warehouses, distribution centers, etc.) as defined in Rule 5",
+      "_woodmontReason": "Wrong asset class — the article focuses on space exploration and orbital aspirations, which are not industrial real estate (warehouses, logistics, etc.) as defined in Rule 5",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -566,7 +566,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Major industrial manufacturing investment ($800M) in Pennsylvania (target region) involving a real industrial facility, fits adjacent industry approval criteria",
+      "_woodmontReason": "Major industrial manufacturing investment ($800M) in Pennsylvania (target region) involving a real industrial facility, meeting all approval criteria",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -599,7 +599,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial transaction in Florida (West Palm Beach) for $27.5M, meeting the dollar threshold and region criteria (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Industrial transaction in Florida (West Palm Beach) for $27.5M, which meets the dollar threshold and target region criteria.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -632,8 +632,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — Lehigh Valley is in Pennsylvania, but the article discusses data center plans which are not industrial real estate (warehouses/logistics) and often fall under Rule 3 if framed as local opposition/incentive negotiation, but primarily fails the asset class and specific industrial focus;",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Wrong region — Lehigh Valley is in Pennsylvania, but the article discusses data center plans which are not industrial real estate (warehouses/logistics) and often fall under Rule 3 if framed as local opposition/incentive negotiation, but primarily fails Rule 5 (Wrong Asset Class) as data centers are",
+      "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -650,19 +650,18 @@
         "name": "Google News REBusiness Online"
       },
       "_source": {
-        "name": "Google News REBusiness Online",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxONE8yZVBsWEFMN1l4eFJHQUNhM0tudTM0NVI4WGJhWms0QjdtSmZWX1ZLTzh5WlE3WjI3WVoxcjFLdVBlQUFXc2VxN1I2N2lBSHdJRWZlOFdfUVFxMDA2SXdkT2dfVUFXX2pqOTJGcm5hMHN2cnhhZ2IxMlpqS2U0N053dmdNQS1aU0IxRmRsN3BFa3JQYzVJZnk5UnlGZEcwWlJya3M2VzJEYjZmWjRr?oc=5",
-        "feedName": "Google News REBusiness Online"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "D",
       "_woodmontApprove": false,
@@ -831,7 +830,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "GSK is expanding a drug manufacturing facility in Pennsylvania, which is a target region and falls under the 'adjacent industries' judgment call for real industrial facilities (Rule: APPROVE criteria met)",
+      "_woodmontReason": "GSK is expanding a manufacturing facility in Pennsylvania, which is a target region and falls under the 'adjacent industries' judgment call for real industrial facilities (Rule: APPROVE criteria met)",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -1062,7 +1061,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title (ends in ' - LoopNet') and source is a listing aggregator, matches Rule 13",
+      "_woodmontReason": "Listing aggregator without explicit region token in title (ends in ' - LoopNet') and lacks transaction details (price/SF) required for approval, matches Rule 13",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1227,8 +1226,8 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is a personnel move (executive hiring) at a brokerage firm, not an industrial real estate transaction, market report, or development story; does not meet the primary subject criteria for approval (Rule: APPROVE criteria - Primary subject is industrial real estate or directly relevant macro)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Personnel move at a national brokerage firm without a specific NJ/PA/FL regional focus or transaction detail, failing the target region requirement for non-macro news (Rule 9/Approve criteria)",
+      "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1261,7 +1260,7 @@
       "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Wrong region — The Real Deal is a New York City-focused publication, and the article does not specify NJ, PA, or FL as the primary location, matching Rule 9",
-      "_woodmontConfidence": 90,
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1392,7 +1391,7 @@
       "_classificationReason": "PEOPLE_BODY_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — the article discusses national intermodal freight volumes without specifying NJ, PA, or FL, and does not meet the criteria for a clearly relevant macro story (Rule 9)",
+      "_woodmontReason": "Wrong region — the article discusses national intermodal freight volumes without specific focus on NJ, PA, or FL, matching Rule 9",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -1425,7 +1424,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "NJ industrial real estate transaction summary meeting the $25M threshold and target region criteria (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "NJ industrial real estate transaction summary ($55M YTD) from a recognized CRE source, within target region and freshness window (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1491,8 +1490,8 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title matches Rule 13 (LoopNet listing without NJ/PA/FL token in title, though Bayonne is NJ, the rule specifically targets titles ending in ' - LoopNet' without explicit region tokens, but here 'Bayonne, NJ' IS in the title. Wait, Rule 13 says 'wi",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Listing aggregator without explicit region token in title (ends in ' - LoopNet') and no transaction details (price/SF) to verify threshold, matches Rule 13",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1854,7 +1853,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial transaction in Florida (North Miami Beach) with $46M value exceeding the $25M threshold, published within the last 7 days (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial transaction in Florida (North Miami Beach) with $46M value exceeding the $25M threshold, published within the last 7 days (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -2118,7 +2117,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region token in title — matches Rule 13 (LoopNet listing, no explicit NJ/PA/FL token in title despite Sarasota being in FL, but the rule specifically targets titles ending in ' - LoopNet' without an explicit region token; however, Sarasota IS in FL. Re-evaluating: Rule 13 ",
+      "_woodmontReason": "Listing aggregator without region token in title — title ends in ' - LoopNet' and lacks explicit NJ/PA/FL token in the title structure required by Rule 13, despite the description mentioning FL",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -2146,12 +2145,12 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial real estate transaction in Bucks County, PA (target region) for $53M, which exceeds the $25M threshold, and published within the last 7 days.",
+      "_woodmontReason": "Real industrial transaction in Bucks County, PA (target region) for $53M, which exceeds the $25M threshold, and published within the last 7 days (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -2448,7 +2447,7 @@
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title (ends with ' - Colliers') and source is a news aggregator, matches Rule 13",
+      "_woodmontReason": "Listing aggregator without explicit region token in title (ends in ' - Colliers') and source is a news aggregator, matches Rule 13",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -2839,12 +2838,12 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial transaction in New Jersey (Linden) for 333,000 SF, which exceeds the 100K SF threshold and is within the target region and freshness window",
+      "_woodmontReason": "Industrial transaction in New Jersey (Linden) for 333,000 SF, which exceeds the 100K SF threshold and is within the target region (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -3159,16 +3158,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxPZUZDRFpQekVLb0xQY1VWTGFxakN6d1pOZ1RCUHJXLTdhZmhWbnpOeUFJZEo1NjZZSFBXRjlvcVJDNDZhLVI4eDlVdjBVLTBKRnViLTJNajUxQjZTR3B2Z0RTMGdDVzdTbU9mZGg3ZXI4NTdoTEFHRlhDODVFQVh2OQ?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -3637,7 +3635,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is older than 7 days (published 2026-10-01, today is 2026-10-18), matches Rule 11 (STALE)",
+      "_woodmontReason": "Article is older than 7 days (published 2026-10-01, today is 2026-10-19), matches Rule 11 (STALE)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -5551,7 +5549,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is stale, published on 2026-09-22 which is more than 7 days before today's date (2026-10-18), matching Rule 11",
+      "_woodmontReason": "Article is stale, published on 2026-09-22 which is more than 7 days before today's date (2026-10-19), matching Rule 11",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -6064,16 +6062,15 @@
         "name": "Google News RE-NJ Industrial"
       },
       "_source": {
-        "name": "Google News RE-NJ Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQ2Q0YzhMZFJiQUVOM05tbmdUUmYwb3hHb19mNjZvZGZUcGdLY0oyR2JscU1ZQm5yVnFQazl1M0htWE5pWmFZOVpGZ2pFVjZoVmJTSWFnTWJJb3FlYkRxdkhwS2oweTBsOE5mM2NwZ3BTYW8yb1NINVlTWHM4dnhfaFNZTXVvLTE1bnhMOXh6UHBlSmNLU293M3RJNzczdkQ4?oc=5",
-        "feedName": "Google News RE-NJ Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "NJ"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -6738,204 +6735,6 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "893228651c37028f567edc17c5619eca9066f305",
-      "url": "https://www.globest.com/2026/09/18/coca-colas-10b-buildout-creates-new-industrial-demand/",
-      "title": "Coca-Cola's $10B Buildout Creates New Industrial Demand",
-      "content_html": "Its planned U.S. investments include large production plants, distribution upgrades and corporate campuses with implications for industrial real estate markets.",
-      "content_text": "Its planned U.S. investments include large production plants, distribution upgrades and corporate campuses with implications for industrial real estate markets.",
-      "summary": "Its planned U.S. investments include large production plants, distribution upgrades and corporate campuses with implications for industrial real estate markets.",
-      "date_published": "2026-09-18",
-      "date_modified": "2026-09-18T11:56:36.325Z",
-      "image": "https://picsum.photos/seed/k2vww6/640/360",
-      "author": {
-        "name": "GlobeSt"
-      },
-      "_source": {
-        "name": "globest.com",
-        "website": "globest.com",
-        "url": "https://www.globest.com/2026/09/18/coca-colas-10b-buildout-creates-new-industrial-demand/",
-        "feedName": "globest.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "globest.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "5678faab1da0aa99743ac7d9055eb667d0631a9e",
-      "url": "https://www.bisnow.com/news/national/data-center-personnel/booming-data-center-sector-faces-shortage-of-experienced-professionals",
-      "title": "America's Data Centers Are Running Out Of People Who Know How To Run Them",
-      "content_html": "Data center operators are increasingly struggling with labor shortages, particularly among senior leaders, affecting the growth of AI infrastructure.",
-      "content_text": "Data center operators are increasingly struggling with labor shortages, particularly among senior leaders, affecting the growth of AI infrastructure.",
-      "summary": "Data center operators are increasingly struggling with labor shortages, particularly among senior leaders, affecting the growth of AI infrastructure.",
-      "date_published": "2026-09-17T21:33:31.000Z",
-      "date_modified": "2026-09-18T11:58:04.149Z",
-      "image": "https://picsum.photos/seed/cvx7ij/640/360",
-      "author": {
-        "name": "Dan Rabb, Billy Hurley"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/news/national/data-center-personnel/booming-data-center-sector-faces-shortage-of-experienced-professionals",
-        "feedName": "bisnow.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "b641b83803ae33f9f5d980f8ab8378c8046eb888",
-      "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPamFYc05FZUs2MXpiUTdiZHEwSUJKZzdScURkUHpvYlNON0RoTml3MjR0VXQ0TmxhbjgwQ2hiV0tnY2xMQ0hOUWIyS1puUllTQ3EtcXZqUWZkWl9wbkZmYVQ1MTIwT2xsT0l1VXg5QTNFanlqbmZlWEc3dGRRVElEMlZTa0tXLWNSQmExa0pRUEc1S3RhQlZWTzJhQ3hWaDFtWGFJRTZJaktOMEtyV3Rr?oc=5",
-      "title": "Provident Industrial Names Martin O’Hara EVP of Investments and Strategy - citybiz",
-      "content_html": "Provident Industrial Names Martin O’Hara EVP of Investments and Strategy citybiz",
-      "content_text": "Provident Industrial Names Martin O’Hara EVP of Investments and Strategy citybiz",
-      "summary": "Provident Industrial Names Martin O’Hara EVP of Investments and Strategy citybiz",
-      "date_published": "2026-09-17T18:39:15.000Z",
-      "date_modified": "2026-09-18T11:59:41.288Z",
-      "image": "https://picsum.photos/seed/ubyz89/640/360",
-      "author": {
-        "name": "Google News citybiz Executive Moves"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPamFYc05FZUs2MXpiUTdiZHEwSUJKZzdScURkUHpvYlNON0RoTml3MjR0VXQ0TmxhbjgwQ2hiV0tnY2xMQ0hOUWIyS1puUllTQ3EtcXZqUWZkWl9wbkZmYVQ1MTIwT2xsT0l1VXg5QTNFanlqbmZlWEc3dGRRVElEMlZTa0tXLWNSQmExa0pRUEc1S3RhQlZWTzJhQ3hWaDFtWGFJRTZJaktOMEtyV3Rr?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "people",
-      "tags": [
-        "People News — Personnel Moves in CRE",
-        "news.google.com"
-      ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
-      "_classificationReason": "PEOPLE_TITLE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Article is older than 7 days (published 2026-09-17, today is 2026-10-18), matches Rule 11 (STALE)",
-      "_woodmontConfidence": 100,
-      "_woodmontClassifier": "cerebras"
-    },
-    {
-      "id": "81386d5fa445a2d75406da31b32236559e5ebb74",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNFkwem02ejZMbUZSX19CeFpIeHhIU1JrS3o0YldWem52a2Jjc2tUa1hieHlrSGhPM09CUDg3RFBaM0NDekx5OGxsbmVzVnNSSjJ4emVLZDN5WVRzYk9wZ2NsZFpldWtjcy1fdktpVFVQTjhudE5OOTZTczloYXU4NHhIbTRxaXAzdUdtQ1Bta3k4TlhEWmxCb0JqNTRldkNUdWZpZVV2anIwbFhSeUgxNA?oc=5",
-      "title": "CalSTRS Adds $5B In Commercial Real Estate Commitments - Bisnow",
-      "content_html": "CalSTRS Adds $5B In Commercial Real Estate Commitments Bisnow",
-      "content_text": "CalSTRS Adds $5B In Commercial Real Estate Commitments Bisnow",
-      "summary": "CalSTRS Adds $5B In Commercial Real Estate Commitments Bisnow",
-      "date_published": "2026-09-17T18:16:35.000Z",
-      "date_modified": "2026-09-19T17:41:15.841Z",
-      "image": "https://picsum.photos/seed/nrt12y/640/360",
-      "author": {
-        "name": "Google News Bisnow Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNFkwem02ejZMbUZSX19CeFpIeHhIU1JrS3o0YldWem52a2Jjc2tUa1hieHlrSGhPM09CUDg3RFBaM0NDekx5OGxsbmVzVnNSSjJ4emVLZDN5WVRzYk9wZ2NsZFpldWtjcy1fdktpVFVQTjhudE5OOTZTczloYXU4NHhIbTRxaXAzdUdtQ1Bta3k4TlhEWmxCb0JqNTRldkNUdWZpZVV2anIwbFhSeUgxNA?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "57c9377a7c3aa961638c187af3b2d3173f7f2063",
-      "url": "https://www.bisnow.com/news/national/capital-markets/calstrs-adds-15-new-cre-commitments-to-5-billion-portfolio",
-      "title": "CalSTRS Plans $5B In New CRE Investments",
-      "content_html": "CalSTRS' new commitments were announced alongside $584M in dispositions the pension fund made in the first half of the year.",
-      "content_text": "CalSTRS' new commitments were announced alongside $584M in dispositions the pension fund made in the first half of the year.",
-      "summary": "CalSTRS' new commitments were announced alongside $584M in dispositions the pension fund made in the first half of the year.",
-      "date_published": "2026-09-17T18:16:35.000Z",
-      "date_modified": "2026-09-18T11:58:04.154Z",
-      "image": "https://picsum.photos/seed/fnqcje/640/360",
-      "author": {
-        "name": "Bisnow National"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/news/national/capital-markets/calstrs-adds-15-new-cre-commitments-to-5-billion-portfolio",
-        "feedName": "bisnow.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "eaf79565d7346e847217d078ad84d06e1a5f3a88",
-      "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxNX2pyZmJwYlBWY1lRYnNYdm1xM1M1TG4zS3lNTXVVRENTTU9iTWFkT21ONkNwNTh2VmRuS2hQN2M0NExxbF9SaGJ5bEQxbWFuZ084RnFKQ3BhYW8yUHZ4ZUJKRjVxOU5pUGRMMnlJYjhUZ2ZoWnNia1Jqa3NuLWpTLUgtdWR6dlBmd2ZFNGlQZktkallVY0NtZ2lFeDBKWWpXTGo0bmcyVVBpUDFyUzRWTEZuQUs0aGp3T2NTek9Fak1MaVhPdmpjTkdId0FhVFJrVzBuUHFoS0tHcnhBeVNxYWRKT21RV0VWT253YXgxd05sdElEdjBHcEFn?oc=5",
-      "title": "8. Regional Industrial Development Corporation of Southwestern Pennsylvania (RIDC) (medium) - The Business Journals",
-      "content_html": "8. Regional Industrial Development Corporation of Southwestern Pennsylvania (RIDC) (medium) The Business Journals",
-      "content_text": "8. Regional Industrial Development Corporation of Southwestern Pennsylvania (RIDC) (medium) The Business Journals",
-      "summary": "8. Regional Industrial Development Corporation of Southwestern Pennsylvania (RIDC) (medium) The Business Journals",
-      "date_published": "2026-09-17T18:08:09.000Z",
-      "date_modified": "2026-09-20T17:52:38.580Z",
-      "image": "https://picsum.photos/seed/lshpnm/640/360",
-      "author": {
-        "name": "Pittsburgh Business Times CRE"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxNX2pyZmJwYlBWY1lRYnNYdm1xM1M1TG4zS3lNTXVVRENTTU9iTWFkT21ONkNwNTh2VmRuS2hQN2M0NExxbF9SaGJ5bEQxbWFuZ084RnFKQ3BhYW8yUHZ4ZUJKRjVxOU5pUGRMMnlJYjhUZ2ZoWnNia1Jqa3NuLWpTLUgtdWR6dlBmd2ZFNGlQZktkallVY0NtZ2lFeDBKWWpXTGo0bmcyVVBpUDFyUzRWTEZuQUs0aGp3T2NTek9Fak1MaVhPdmpjTkdId0FhVFJrVzBuUHFoS0tHcnhBeVNxYWRKT21RV0VWT253YXgxd05sdElEdjBHcEFn?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
