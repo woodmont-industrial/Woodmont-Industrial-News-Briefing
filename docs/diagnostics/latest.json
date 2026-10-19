@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-16-1200",
-  "generatedAt": "2026-10-16T12:00:35.055Z",
-  "isFriday": true,
+  "runId": "2026-10-19-1200",
+  "generatedAt": "2026-10-19T12:00:52.499Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 222,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 205,
+      "inWindow": 4,
+      "regionPass": 4,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 65,
+      "selected": 7,
+      "supplyCandidates": 67,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,74 +36,75 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 3,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "transactions": {
+      "loaded": 205,
+      "inWindow": 1,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 2,
+      "supplyCandidates": 3,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
         "tier3_30d_deep": 2,
-        "tier4_reserve": 2,
-        "tier5_manual_include": 0
-      },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
-    },
-    "transactions": {
-      "loaded": 222,
-      "inWindow": 6,
-      "regionPass": 2,
-      "industrialPass": 0,
-      "sectionPass": 2,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 5,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 222,
+      "loaded": 205,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 4,
+      "selected": 1,
+      "supplyCandidates": 13,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -132,23 +133,23 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "people": {
-      "loaded": 222,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 205,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 0,
+      "supplyCandidates": 1,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -164,7 +165,7 @@
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
+        "NO_PEOPLE_ACTION": 1,
         "DUPLICATE_ID": 0,
         "DUPLICATE_SIGNATURE": 0,
         "DUPLICATE_URL": 0,
@@ -186,7 +187,21 @@
     }
   },
   "perFeedBySection": {
-    "Google News MHL News": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 8,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 5,
+        "transactions": 2,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "areadevelopment.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,56 +215,56 @@
         "people": 0
       }
     },
-    "news.google.com": {
+    "Google News MHL News": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
-        "transactions": 3,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
-    "score": 72,
-    "outOf10": 7.2,
+    "score": 71,
+    "outOf10": 7.1,
     "grade": "C",
-    "itemCount": 5,
-    "operationalScore": 72,
+    "itemCount": 10,
+    "operationalScore": 71,
     "operationalGrade": "C",
-    "editorialQualityScore": 81,
-    "editorialGrade": "B",
-    "coverageSupplyScore": 60,
+    "editorialQualityScore": 71,
+    "editorialGrade": "C",
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "NO_FRESH_SUPPLY",
-      "people": "NO_FRESH_SUPPLY"
+      "availabilities": "FILLED",
+      "people": "QUALITY_REJECTED"
     },
-    "sectionsFilled": 2,
+    "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 21,
-      "freshness": 12.2,
-      "regional": 22,
+      "coverage": 24,
+      "freshness": 15.4,
+      "regional": 23.5,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 2,
-      "deep": 2,
-      "reserve": 4
+      "fresh": 3,
+      "deep": 6,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
@@ -258,13 +273,13 @@
     "supply": "Rich",
     "penalties": [
       {
-        "type": "repeat_cross_day",
-        "points": 3,
-        "detail": "Deal already sent in the last 14 days: \"Lehigh Valley township gets second data center p\""
+        "type": "leak",
+        "points": 12,
+        "detail": "Off-target / non-RE content shipped: \"BRC: Carteret-based plumbing, industrial supplie\""
       }
     ],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
+      "Empty — fresh supply rejected by section gates (quality): people"
     ]
   },
   "logicImpact": {
@@ -275,8 +290,26 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 111,
+    "crossDayPoolRepeatsSuppressed": 96,
     "audit": [
+      {
+        "id": "4c949353f1125ffacec794f2d643263b3017c1b0",
+        "title": "Supply Chain Pipeline Efficiency Fell 49% in Q2 - Material Handling & Logistics",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "ef0122dc2990a719436330c460d226fda5af80d6",
+        "title": "Amazing Savings Signs 173,475 SF Industrial Lease in Mine Hill, New Jersey - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "f5d447d70441f6aff519155dbe55d07c8419b332",
+        "title": "BKM pushes into Florida with $174M industrial blitz despite “turbulent” market - The Real Deal",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "59356e83ab4580aed036abd30e33fcdad43cc073",
         "title": "Space Race: How The Private Sector's Orbital Aspirations Are Driving CRE On Earth",
@@ -407,7 +440,7 @@
         "id": "bae5d621051ba27ef028b6422dddd6d544891aea",
         "title": "Lehigh Valley township gets second data center proposal. Its developer brings zoning challenge - Yahoo",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
       },
       {
         "id": "9c4a0af3b1bac9b87c1add08c66955ffb5c8e27f",
@@ -716,12 +749,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "136585cb87a327b5ce66a56cf9688042a1ea00a3",
-        "title": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
         "id": "c00bdcc80fdc9b5818c7884b6799462acac64a12",
         "title": "US Manufacturing Employment Share Falls as Automation Rises",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -838,42 +865,6 @@
       {
         "id": "158b916c5fb6f1a35ee80bd7680a1554cf57e94c",
         "title": "Central Florida industrial properties sell for $113M to Denver firm - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c518d5739c5f49cdf3f29d3cae294b420f3acb2b",
-        "title": "29 Park Way, Upper Saddle River, NJ 07458 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5678faab1da0aa99743ac7d9055eb667d0631a9e",
-        "title": "America's Data Centers Are Running Out Of People Who Know How To Run Them",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "eaf79565d7346e847217d078ad84d06e1a5f3a88",
-        "title": "8. Regional Industrial Development Corporation of Southwestern Pennsylvania (RIDC) (medium) - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e9bdafbf2914c60a7c04ca550e6dc2ee44aceaa2",
-        "title": "News | Lee & Associates starts leasing at recently completed industrial park north of Tampa - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "373cc1ea6e1844929a5c7dd00664c17aa7971cf2",
-        "title": "WareSpace Acquires $36.5 Million Industrial Portfolio in South Florida and Bay Area - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "26bac7d4afb6f5ffac04c43d29e667dd34e29966",
-        "title": "Warehouse space provider purchases another South Florida property for $20M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
