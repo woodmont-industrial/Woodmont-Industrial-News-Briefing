@@ -497,25 +497,41 @@ const EDA_TOKEN_RE = /\beda\b/i;
 // coalitions and boards too, so the JOINER must look like a person, not just the role words.
 // Title-only: the subject of a headline is reliable, an enriched description is not.
 const PERSONAL_ROLE = 'ceo|cfo|coo|cio|cto|president|vice[- ]president|vice[- ]chair(?:man|woman)?|chair(?:man|woman)?|vp|svp|evp|managing director|executive director|director|principal|managing partner|senior partner|founding partner|chief|head of|broker|officer|general counsel|counsel|senior advisor';
-// "<role> [name…] joins": the role directly identifies the joiner as a person.
-const ROLE_THEN_JOINS_RE = /\b(?:president|vice[- ]president|vice[- ]chair(?:man|woman)?|chair(?:man|woman)|managing director|executive director|principal|broker|ceo|cfo|coo)(?:\s+[\w.'-]+){0,3}\s+join(?:s|ed)\b/i;
+// "<role> [name…] joins". Group 1 is what sits between the role and the verb — the joiner's name,
+// which must ALSO pass the organisation check ("Mortgage broker <X> Realty joins …" is a company).
+// Words BEFORE the role describe a prior employer ("Former <firm> vice chairman joins") and are not checked.
+const ROLE_THEN_JOINS_RE = /\b(?:president|vice[- ]president|vice[- ]chair(?:man|woman)?|chair(?:man|woman)|managing director|executive director|principal|broker|ceo|cfo|coo)((?:\s+[\w.'&-]+){0,3})\s+join(?:s|ed)\b/i;
 const JOINS_AS_ROLE_RE = new RegExp(`\\bjoin(?:s|ed|ing)?\\b[^|]{0,80}?\\bas\\s+(?:(?:a|an|the|its|their|new)\\s+)?(?:[\\w&'-]+\\s+){0,3}?(?:${PERSONAL_ROLE})\\b`, 'i');
+// Bare "partner" is also a corporate role ("joins venture as partner"), so it counts only when the
+// joiner is a capitalised personal name ("Jane Doe joins <brokerage> as partner").
+const JOINS_AS_PARTNER_RE = /\bjoin(?:s|ed|ing)?\b[^|]{0,80}?\bas\s+(?:(?:a|an|the|its|their|new)\s+)?partner\b/i;
 const JOINS_BOARD_RE = /\bjoin(?:s|ed)\b[^|]{0,60}?\bboard\b/i;
 // A joiner containing any of these is an organisation or a thing, not a person.
 const NON_PERSON_JOINER_RE = /\b(?:capital|industrial|logistics|partners|group|realty|properties|property|holdings|trust|funds?|ventures?|investments?|investors?|advisors|management|llc|inc|corp|corporation|company|companies|co|reit|development|developers?|associates|bank|equity|global|estate|tenants?|firms?|owners?|landlords?|operators?|lenders?|retailers?|manufacturers?|startups?|brands?|coalition|alliance|council|county|city|township|authority|agency|university|warehouse|distribution|technologies|technology|tech|systems|solutions|services|energy|power|foods?|former)\b/i;
 
-function joinerLooksLikePerson(title: string): boolean {
+// The headline's subject: text before the join verb, minus a leading label ("Movers:", "People |").
+function joinerOf(title: string): string | null {
     const m = /\bjoin(?:s|ed|ing)?\b/i.exec(title);
-    if (!m) return false;
-    // Drop a leading label ("Movers:", "People |") so only the headline's subject remains.
-    const subject = title.slice(0, m.index).split(/[:|]/).pop()!.trim();
-    const words = subject.split(/\s+/).filter(Boolean);
-    return words.length >= 1 && words.length <= 4 && !NON_PERSON_JOINER_RE.test(subject);
+    return m ? title.slice(0, m.index).split(/[:|]/).pop()!.trim() : null;
+}
+function isPersonLike(phrase: string): boolean {
+    const words = phrase.split(/\s+/).filter(Boolean);
+    return words.length >= 1 && words.length <= 4 && !NON_PERSON_JOINER_RE.test(phrase);
+}
+// Stricter: two or three capitalised name words ("Jane Doe", "Jane Q. Doe").
+function isPersonalName(phrase: string): boolean {
+    const words = phrase.split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.length <= 3 && words.every(w => /^[A-Z][A-Za-z'.-]*$/.test(w))
+        && !NON_PERSON_JOINER_RE.test(phrase);
 }
 
 export function isPersonnelJoin(title: string): boolean {
-    if (ROLE_THEN_JOINS_RE.test(title)) return true;
-    return joinerLooksLikePerson(title) && (JOINS_AS_ROLE_RE.test(title) || JOINS_BOARD_RE.test(title));
+    const roleThen = ROLE_THEN_JOINS_RE.exec(title);
+    if (roleThen && !NON_PERSON_JOINER_RE.test(roleThen[1])) return true;
+    const joiner = joinerOf(title);
+    if (!joiner || !isPersonLike(joiner)) return false;
+    if (JOINS_AS_ROLE_RE.test(title) || JOINS_BOARD_RE.test(title)) return true;
+    return JOINS_AS_PARTNER_RE.test(title) && isPersonalName(joiner);
 }
 
 // A real person/role signal: an explicit title-level personnel verb, or a role/title keyword.

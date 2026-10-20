@@ -53,6 +53,14 @@ expectPaths('person joins a board',
 expectPaths('role-before-verb national move (no target region)',
     'Movers: Former Sample Brokers vice chairman joins Example Advisory as vice chair of industrial and logistics occupier leasing',
     'The industrial broker moves to lead occupier leasing.', { F: true, R: true, Q: false });
+// Bare "partner" appointment of a NAMED PERSON is ordinary hiring news (main accepted it everywhere).
+expectPaths('named person joins a brokerage AS PARTNER',
+    'Jane Doe joins a New Jersey industrial brokerage as partner',
+    'Jane Doe joined the New Jersey industrial brokerage as a partner.', ALL);
+// Role-before-verb with a NAME between role and verb.
+expectPaths('role then name then joins',
+    'Sample Brokers managing director Jane Doe joins New Jersey industrial brokerage',
+    'Jane Doe will lead industrial warehouse brokerage in New Jersey.', ALL);
 
 // ---- Corporate "joins": never People, on any path (all in NJ so region is not what blocks Q) ----
 expectPaths('company joins an industry initiative (body says "joined")',
@@ -76,6 +84,14 @@ expectPaths('investor joins a venture',
 expectPaths('tenant joins a park',
     'Exampleco joins tenants at Edison logistics park as anchor occupant',
     'The industrial park in Edison, New Jersey, now has a warehouse tenant.', NONE);
+// A role word BEFORE the verb must not skip the organisation check on the joiner itself.
+expectPaths('role word before a COMPANY joiner ("Mortgage broker … Realty joins")',
+    'Mortgage broker Example Realty joins New Jersey industrial coalition',
+    'The New Jersey industrial coalition now has a mortgage brokerage member.', NONE);
+// Bare "partner" with a one-word, non-name joiner stays corporate.
+expectPaths('single-word company joins a venture AS PARTNER',
+    'Examplecorp joins New Jersey warehouse venture as partner',
+    'The joint venture will develop an industrial warehouse in New Jersey.', NONE);
 
 // ---- The title-only helper itself ----
 const helper: Array<[string, boolean]> = [
@@ -86,6 +102,10 @@ const helper: Array<[string, boolean]> = [
     ['Former warehouse tenant joins New Jersey industrial coalition', false],
     ['Example Logistics joins New Jersey industrial advisory board', false],
     ['Investment manager Samplefund joins push for warehouse decarbonization', false],
+    ['Mortgage broker Example Realty joins New Jersey industrial coalition', false],
+    ['Jane Doe joins a New Jersey industrial brokerage as partner', true],
+    ['Examplecorp joins New Jersey warehouse venture as partner', false],
+    ['Sample Brokers managing director Jane Doe joins New Jersey industrial brokerage', true],
 ];
 for (const [t, want] of helper) { assert.equal(isPersonnelJoin(t), want, `isPersonnelJoin: ${t}`); pass++; }
 console.log(`✓ isPersonnelJoin: ${helper.length} title cases`);
