@@ -610,8 +610,10 @@ export const RELEVANT_KEYWORDS = [
 // STAY here but are gated behind a person/role signal by the consumers (see
 // PEOPLE_ACTION_AMBIGUOUS in newsletter-filters.ts) — a company can win an award or
 // announce news with no personnel change (leak: "… Approved for NJEDA … Manufacturing Award").
+// 'joined' is deliberately absent: a company "joined" a coalition/initiative too. Joins count
+// only INTO A ROLE — see isPersonnelJoin() in src/server/newsletter-filters.ts (2026-10-20).
 export const PEOPLE_ACTION_KEYWORDS = [
-    'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped', 'recruit',
+    'hired', 'appointed', 'promoted', 'named', 'elevated', 'tapped', 'recruit',
     'hires', 'appoints', 'promotes', 'names', 'adds', 'taps', 'leads', 'heads',
     'chair', 'nabs', 'welcomes', 'brings',
     'movers', 'shakers', 'leadership', 'executive', 'move',
