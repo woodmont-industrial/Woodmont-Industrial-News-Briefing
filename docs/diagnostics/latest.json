@@ -1,17 +1,17 @@
 {
-  "runId": "2026-10-19-1200",
-  "generatedAt": "2026-10-19T12:00:52.499Z",
+  "runId": "2026-10-20-1200",
+  "generatedAt": "2026-10-20T12:00:41.773Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 205,
-      "inWindow": 4,
-      "regionPass": 4,
+      "loaded": 203,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 7,
+      "selected": 4,
       "supplyCandidates": 67,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
@@ -36,29 +36,29 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 3,
-        "tier4_reserve": 0,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 3,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 205,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 203,
+      "inWindow": 2,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 3,
+      "selected": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -81,14 +81,13 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -96,17 +95,17 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 205,
-      "inWindow": 0,
+      "loaded": 203,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 13,
+      "supplyCandidates": 11,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -141,9 +140,9 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 205,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 203,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
@@ -165,7 +164,7 @@
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 1,
+        "NO_PEOPLE_ACTION": 0,
         "DUPLICATE_ID": 0,
         "DUPLICATE_SIGNATURE": 0,
         "DUPLICATE_URL": 0,
@@ -187,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 8,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 5,
-        "transactions": 2,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "areadevelopment.com": {
+    "Google News Lehigh Valley": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -215,7 +200,21 @@
         "people": 0
       }
     },
-    "Google News MHL News": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 4,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 1,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -238,48 +237,42 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 71,
-    "outOf10": 7.1,
-    "grade": "C",
-    "itemCount": 10,
-    "operationalScore": 71,
-    "operationalGrade": "C",
-    "editorialQualityScore": 71,
-    "editorialGrade": "C",
+    "score": 83,
+    "outOf10": 8.3,
+    "grade": "B",
+    "itemCount": 6,
+    "operationalScore": 83,
+    "operationalGrade": "B",
+    "editorialQualityScore": 89,
+    "editorialGrade": "B",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "QUALITY_REJECTED"
+      "people": "NO_FRESH_SUPPLY"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 24,
-      "freshness": 15.4,
-      "regional": 23.5,
+      "freshness": 13.9,
+      "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 3,
-      "deep": 6,
-      "reserve": 0
+      "deep": 2,
+      "reserve": 3
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "leak",
-        "points": 12,
-        "detail": "Off-target / non-RE content shipped: \"BRC: Carteret-based plumbing, industrial supplie\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -290,8 +283,44 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 96,
+    "crossDayPoolRepeatsSuppressed": 105,
     "audit": [
+      {
+        "id": "1baae8b69c5b4ba6ba2fe00205852d978295349b",
+        "title": "Workforce Readiness is Bottleneck for Supply Chain AI Adoption - Material Handling & Logistics",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "9f0491e25b082b0733cbe500c29b5085a5361c7f",
+        "title": "Kerry opens coffee extraction manufacturing facility in Pennsylvania - Plant Services",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "0a58c5bf28ec3b4c279ee40a8c2c31dd2bbba7f6",
+        "title": "CesiumAstro to Add Manufacturing Facility in Melbourne, Florida - Via Satellite",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "0547317d18acae53d49254ca0ddcd99b25a89a2d",
+        "title": "GSK Expands Montgomery County, Pennsylvania, Manufacturing Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "a204fd9b58ab0f4f6c2d53c267134882e6fc72ec",
+        "title": "Sitex Group Acquires 343 KSF NJ Logistics Facility - CommercialSearch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "96b3f455c5f5174659bf50168dcd6380cdee78d6",
+        "title": "Sitex Group buys logistics site leased by UPS in South Brunswick - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "4c949353f1125ffacec794f2d643263b3017c1b0",
         "title": "Supply Chain Pipeline Efficiency Fell 49% in Q2 - Material Handling & Logistics",
@@ -299,8 +328,20 @@
         "reason": "sent_id"
       },
       {
+        "id": "c6821b7799dacbb6a5ebfe6d093adf1e81cbdf9d",
+        "title": "Terreno Realty Sells East Rutherford Industrial Property for $25 Million - citybiz",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "ef0122dc2990a719436330c460d226fda5af80d6",
         "title": "Amazing Savings Signs 173,475 SF Industrial Lease in Mine Hill, New Jersey - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7835282d9a13ddeef929eae37b5ab0bad401d2e9",
+        "title": "Terreno Realty Sells New Jersey Industrial Property for $25 Million - Yahoo Finance",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -317,6 +358,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "c3a9612ea659a54d4156dbe987a0f0b2a14c170c",
+        "title": "GSK Pledges $800M to Scale Biologics Manufacturing at Pa. Facility - Thomasnet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "13a5729de0b5fd5de9189c7c33c617d4f5c629d4",
         "title": "Biotech firm buys $27.5M warehouse near West Palm Beach, plans 100 jobs - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -325,6 +372,12 @@
       {
         "id": "84d9f7e8678c0ede275b7475bd8b5a24465b4f67",
         "title": "Here’s how a Lehigh Valley town could get $50 million if it approves updated data center plans - The Morning Call",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c10f8e5e210b91755163fcf0a10a67b4ee86818b",
+        "title": "Benchmark, Regal Ventures Buy 85,053 SF Industrial Building in Easton, Pennsylvania - REBusinessOnline",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -367,6 +420,12 @@
       {
         "id": "1c2cafb885bc4189428ed38234f000f739ea095c",
         "title": "Industrial Boomtowns: The U.S. Metros Where Logistics & Warehousing Grew Fastest",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d807985aea7af6ce4201fe269c4deecd22ec920b",
+        "title": "525 Main St, Belleville, NJ 07109 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -755,12 +814,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "c88687961ffebfdb0854a363d19cf64d6a2203a8",
-        "title": "Blackstone to Land $1.7B Industrial Portfolio Refi",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
         "id": "a120d44eaf370fcfa146de4b5622acdb2025f4a6",
         "title": "Rockefeller Group, Metropolitan Warehouse and Delivery ink 530,000 sq. ft. lease at new Carneys Point logistics campus -",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -829,42 +882,6 @@
       {
         "id": "e3c54b77ee4ae75be6ecc3d3332b24e0af6a62e0",
         "title": "Made Scientific Acquires 85,000-Square-Foot Pennsylvania Cell Therapy Manufacturing Facility - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9eaddd69f7f5b12f6f477870bef31fcdc3810682",
-        "title": "Updated 6,500 sq. ft. industrial building in Lodi trades for $1.2 million, Keller Williams says - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "31b151558dc24c6f7483206143a6db1b65951c9b",
-        "title": "Seagis, DHL Global Forwarding ink 17,000 sq. ft. industrial lease in Carteret, BRC says - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b6308bc855217d3936129f514d952c7477ce7065",
-        "title": "2060 Springdale Rd, Cherry Hill, NJ 08003 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "cc7c48a3f0b775596e8d796838926916fc9a110f",
-        "title": "The Data Center Supply Chain is Redrawing the Industrial Leasing Map",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d8968fa2d5e161de88c9edc771f6cf0e052b2874",
-        "title": "Corebridge and Kadima sell 12-property New Jersey industrial portfolio to L&B - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "158b916c5fb6f1a35ee80bd7680a1554cf57e94c",
-        "title": "Central Florida industrial properties sell for $113M to Denver firm - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
