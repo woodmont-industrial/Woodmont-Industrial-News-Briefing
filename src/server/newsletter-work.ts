@@ -152,8 +152,13 @@ export function buildWorkBriefing(
         if (rawDesc && rawDesc.length > 10) {
             // Split on sentence boundaries, but protect decimal points in numbers ($1.6B, 23.5M, etc.)
             // Replace decimal points in numbers with placeholder, split, then restore
+            // Also protect spaced unit/company/address abbreviations: "685,000 sq. ft. Florida
+            // warehouse" split at "sq." and "ft.", and the two fragments used up a Transactions
+            // summary's two-sentence budget ("Profeta sells 685,000 sq. ft." shipped 2026-10-21).
             const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2')
-                .replace(/\b(?:[A-Za-z]\.){2,}/g, abbreviation => abbreviation.replace(/\./g, '\u0000'));
+                .replace(/\b(?:[A-Za-z]\.){2,}/g, abbreviation => abbreviation.replace(/\./g, '\u0000'))
+                .replace(/\b(?:sq|ft|inc|corp|co|ltd|llc|st|ave|rd|blvd|hwy|rte|mt|no|nos|approx|vs|mr|mrs|ms|dr|jr|sr)\.(?=\s|$)/gi,
+                    abbreviation => abbreviation.replace('.', '\u0000'));
             const sentences = safeDesc.match(/[^.!?]+(?:[.!?]+|$)/g)?.map(s => s.replace(/\u0000/g, '.'));
             if (sentences && sentences.length > 0) {
                 description = sentences.slice(0, maxSentences).join('').trim();
