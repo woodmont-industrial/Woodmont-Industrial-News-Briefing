@@ -264,7 +264,7 @@ jobs:
     name: Editorial Rubric Replay
     concurrency:
       group: editorial-rubric-provider-replay
-      cancel-in-progress: false
+      cancel-in-progress: true
     if: >-
       github.event_name == 'pull_request' && github.head_ref == 'fix/relevant-rubric-enforcement' &&
       github.event.pull_request.head.repo.full_name == github.repository
