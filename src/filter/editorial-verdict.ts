@@ -4,6 +4,7 @@ import type { NormalizedItem } from '../types/index.js';
 const VERDICT_FIELDS = [
     '_woodmontApprove', '_woodmontReason', '_woodmontConfidence', '_woodmontClassifier',
     '_woodmontRubricVersion', '_woodmontClassifiedAt', '_woodmontModel',
+    '_woodmontModelApprove', '_woodmontDateValidation',
 ] as const;
 
 export function editorialVerdictFields(article: NormalizedItem): Record<string, unknown> {

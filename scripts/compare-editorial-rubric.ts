@@ -118,6 +118,8 @@ async function main() {
                     id: item.id, expected: cases[i].approve, approve: item._woodmontApprove ?? null,
                     correct: item._woodmontApprove === cases[i].approve,
                     rubricVersion: item._woodmontRubricVersion ?? null,
+                    modelApprove: item._woodmontModelApprove ?? null,
+                    dateValidation: item._woodmontDateValidation ?? null,
                 })) });
                 save();
             }
@@ -156,6 +158,7 @@ async function main() {
             writeEditorialFeed(updated, path.join(providerDocs, 'feed.json'));
             const stored = JSON.parse(fs.readFileSync(path.join(providerDocs, 'feed.json'), 'utf8')).items;
             result.versionedInFeed = stored.filter((item: any) => item._woodmontRubricVersion === WOODMONT_RUBRIC_VERSION).length;
+            result.dateOverrides = stored.filter((item: any) => item._woodmontDateValidation === 'STALE_RULE_11').map((item: any) => item.id);
             assert.equal(result.versionedInFeed, result.review.classified, 'successful verdicts reach the production feed writer');
             result.transitions = stored.flatMap((item: any) => {
                 const previous: any = originalItems.find(a => a.id === item.id);

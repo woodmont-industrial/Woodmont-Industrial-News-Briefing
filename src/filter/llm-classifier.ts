@@ -33,6 +33,8 @@ interface WoodmontVerdict {
     confidence: number;
     classifier: string;
     model: string;
+    modelApprove: boolean;
+    dateValidation: 'STALE_RULE_11' | null;
 }
 
 /** A prompt and its version travel together, including in paired replay tests. */
@@ -138,12 +140,23 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
                 if (!isLast) continue;
                 return null;
             }
+            const published = new Date(article.pubDate || (article as any).date_published || '');
+            const today = options.asOf ?? new Date();
+            const utcDay = (date: Date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+            // Rule 11 already requires <=7 days. Validate date arithmetic ourselves:
+            // richer editorial context must not turn a 9-day-old report into fresh news.
+            const stale = Number.isFinite(published.getTime()) && utcDay(today) - utcDay(published) > 7 * 86400000;
+            const dateValidation = parsed.approve && stale ? 'STALE_RULE_11' : null;
             return {
-                approve: parsed.approve === true,
-                reason: String(parsed.reason || '').slice(0, 300),
+                approve: parsed.approve === true && !stale,
+                reason: dateValidation
+                    ? `Rule 11 date validation: published ${published.toISOString().slice(0, 10)}, evaluated ${today.toISOString().slice(0, 10)}; older than 7 days.`
+                    : String(parsed.reason || '').slice(0, 300),
                 confidence: Math.max(0, Math.min(100, Number(parsed.confidence) || 0)),
                 classifier: provider.name.toLowerCase(),
                 model: provider.model,
+                modelApprove: parsed.approve,
+                dateValidation,
             };
         } catch (err) {
             if (!isLast) continue;
@@ -227,6 +240,8 @@ export async function classifyWoodmontBatch(
             (item as any)._woodmontRubricVersion = rubricVersion;
             (item as any)._woodmontClassifiedAt = new Date().toISOString();
             (item as any)._woodmontModel = verdict.model;
+            (item as any)._woodmontModelApprove = verdict.modelApprove;
+            (item as any)._woodmontDateValidation = verdict.dateValidation;
             if (verdict.approve) approved++; else rejected++;
         });
 

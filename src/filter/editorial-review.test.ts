@@ -79,6 +79,17 @@ async function main() {
         assert.equal(stored._predictedPublish, true, 'prediction is recomputed after the old rejection changes');
         const loaded = mapFeedItemsToArticles([stored])[0];
         assert.equal((loaded as any)._woodmontRubricVersion, WOODMONT_RUBRIC_VERSION, 'version survives the send-time reader');
+        const stale = article('stale-model-approval', { pubDate: '2026-10-13T12:00:00Z' });
+        const boundary = article('seven-day-control', { pubDate: '2026-10-15T00:00:00Z' });
+        await reviewEditorialCandidates([stale, boundary], { maxConcurrent: 1, batchDelayMs: 0, asOf: new Date('2026-10-22T12:00:20Z') });
+        assert.equal((stale as any)._woodmontApprove, false, 'a model cannot miscalculate an old article into freshness');
+        assert.equal((stale as any)._woodmontModelApprove, true, 'the raw model answer stays auditable');
+        assert.equal((stale as any)._woodmontDateValidation, 'STALE_RULE_11');
+        assert.equal((boundary as any)._woodmontApprove, true, 'Rule 11 calendar-day boundary stays seven days');
+        writeEditorialFeed([stale], destination);
+        const dated = JSON.parse(fs.readFileSync(destination, 'utf8')).items[0];
+        assert.equal(dated._woodmontDateValidation, 'STALE_RULE_11', 'the feed discloses the deterministic override');
+        assert.equal(dated._woodmontModelApprove, true);
     } finally {
         globalThis.fetch = realFetch;
         for (const [key, value] of Object.entries(keys)) {

@@ -166,6 +166,8 @@ export function generateJSONFeed(items: NormalizedItem[]): object {
                 _woodmontRubricVersion: (item as any)._woodmontRubricVersion ?? null,
                 _woodmontClassifiedAt: (item as any)._woodmontClassifiedAt ?? null,
                 _woodmontModel: (item as any)._woodmontModel ?? null,
+                _woodmontModelApprove: (item as any)._woodmontModelApprove ?? null,
+                _woodmontDateValidation: (item as any)._woodmontDateValidation ?? null,
             };
         })
     };
