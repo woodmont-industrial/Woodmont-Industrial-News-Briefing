@@ -1,0 +1,86 @@
+name: Social Pilot Checks
+
+# This stacked PR does not target main yet, so the general CI workflow does not
+# run for it. These checks run the real classifier fixtures and prove that the
+# pinned reader tools install and start on Linux. They do not collect posts.
+on:
+  push:
+    branches: [feature/cm-social-pilot]
+    paths:
+      - '.github/workflows/social-pilot-checks.yml'
+      - 'scripts/social-pilot.ts'
+      - 'scripts/social-pilot/**'
+      - 'src/server/capital-markets-social*'
+      - 'src/server/capital-markets-scan*'
+      - 'package*.json'
+  pull_request:
+    branches: [main, feature/cm-scanner-v1]
+    paths:
+      - '.github/workflows/social-pilot-checks.yml'
+      - 'scripts/social-pilot.ts'
+      - 'scripts/social-pilot/**'
+      - 'src/server/capital-markets-social*'
+      - 'src/server/capital-markets-scan*'
+      - 'package*.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: social-pilot-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validation:
+    name: Social classifier and privacy checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run the Capital Markets and social fixture tests
+        run: npm run test:capital-markets
+      - name: Validate watchlist minimization
+        run: npm run validate:cm-watchlist-privacy
+
+  reader-installation:
+    name: Pinned readers start on Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the pinned X reader in a temporary environment
+        run: |
+          python -m venv "$RUNNER_TEMP/social-reader-venv"
+          "$RUNNER_TEMP/social-reader-venv/bin/python" -m pip install --disable-pip-version-check twitter-cli==0.8.5
+      - name: Install the pinned OpenCLI reader outside the repository
+        run: npm install --prefix "$RUNNER_TEMP/social-reader-opencli" --ignore-scripts --no-audit --no-fund @jackwener/opencli@2.0.2
+      - name: Check native entry points and read-command arguments without login
+        run: |
+          "$RUNNER_TEMP/social-reader-venv/bin/twitter" --version
+          "$RUNNER_TEMP/social-reader-venv/bin/twitter" user-posts --help
+          "$RUNNER_TEMP/social-reader-opencli/node_modules/.bin/opencli" --version
+          "$RUNNER_TEMP/social-reader-opencli/node_modules/.bin/opencli" instagram user --help
+          "$RUNNER_TEMP/social-reader-opencli/node_modules/.bin/opencli" facebook feed --help
+      - name: Record what this check proves
+        run: |
+          {
+            echo '### Social reader installation'
+            echo 'Pinned Linux tools installed and their read-command help returned successfully.'
+            echo 'No social login, account list, post collection, browser session, report upload or website publication was attempted.'
+            echo 'Live X collection still needs a dedicated account session; Instagram and Facebook also need a connected browser with the extension.'
+          } >> "$GITHUB_STEP_SUMMARY"
