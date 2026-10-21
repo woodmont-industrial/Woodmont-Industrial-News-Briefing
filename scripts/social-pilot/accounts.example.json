@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy to ~/.woodmont-social/accounts.json (OUTSIDE the repo) and replace these synthetic entries. domains = the account owner's OWN website; only a linked announcement on one of these can verify a post. Facebook handle = the page name exactly as it appears as the post author in the dedicated account's feed (that account must follow the page).",
+  "accounts": [
+    { "platform": "x", "handle": "exampledeveloper", "domains": ["exampledeveloper.com"], "kind": "developer" },
+    { "platform": "instagram", "handle": "examplebrokerage", "domains": ["examplebrokerage.com"], "kind": "brokerage" },
+    { "platform": "facebook", "handle": "Example Township Planning Board", "domains": [], "kind": "municipal" }
+  ]
+}
