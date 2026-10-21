@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-20-1200",
-  "generatedAt": "2026-10-20T12:00:41.773Z",
+  "runId": "2026-10-21-1200",
+  "generatedAt": "2026-10-21T12:00:40.687Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 203,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 224,
+      "inWindow": 8,
+      "regionPass": 8,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 67,
+      "supplyCandidates": 75,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 4
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 3,
+        "tier2_48h_72h": 4,
+        "tier3_30d_deep": 3,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 203,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 224,
+      "inWindow": 4,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
+      "selected": 2,
       "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 2,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -95,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 203,
+      "loaded": 224,
       "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 11,
+      "supplyCandidates": 9,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -140,7 +140,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 203,
+      "loaded": 224,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,7 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "Google News Lehigh Valley": {
+    "Google News Data Centers NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,17 +200,17 @@
         "people": 0
       }
     },
-    "news.google.com": {
+    "Google News Reuters CRE": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
-        "transactions": 1,
-        "availabilities": 1,
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
         "people": 0
       }
     },
@@ -227,6 +227,62 @@
         "availabilities": 0,
         "people": 0
       }
+    },
+    "Google News Traded.co": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Cold Storage": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News RE-NJ Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
     }
   },
   "weekInReview": {
@@ -237,13 +293,13 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 83,
-    "outOf10": 8.3,
+    "score": 81,
+    "outOf10": 8.1,
     "grade": "B",
-    "itemCount": 6,
-    "operationalScore": 83,
+    "itemCount": 7,
+    "operationalScore": 81,
     "operationalGrade": "B",
-    "editorialQualityScore": 89,
+    "editorialQualityScore": 87,
     "editorialGrade": "B",
     "coverageSupplyScore": 80,
     "supplyStatus": {
@@ -256,14 +312,14 @@
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 24,
-      "freshness": 13.9,
-      "regional": 25,
+      "freshness": 17.8,
+      "regional": 19.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 3,
-      "deep": 2,
-      "reserve": 3
+      "fresh": 6,
+      "deep": 4,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
@@ -283,8 +339,38 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 105,
+    "crossDayPoolRepeatsSuppressed": 113,
     "audit": [
+      {
+        "id": "7b67a5350d42f6b20a883bc929a98df22aca2dfd",
+        "title": "Broward County moves toward moratorium on large-scale data center development - The Real Deal",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "419d7dc29a9adb9746dfc7ae822c088f48446b8e",
+        "title": "News | Lehigh Valley warehouse construction starts back up even as earlier projects remain unleased - CoStar",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5afae39b53b7b61ebdf971c8c2d1d58f3b302cb1",
+        "title": "Broward County to Consider One-Year Moratorium on Large Data Center Development - Florida Daily",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "2f081fa1853e3f4fc856357efb506a9315c1e531",
+        "title": "Speed Bay Warehouse Solutions Buys 488,936 SF Industrial Portfolio in Greater Philadelphia - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "3f26b26e0686a63f604c4d1cbdf236223c9108d8",
+        "title": "Industrial vacancy up along I-78/I-81 corridor, but market remains strong - Lehigh Valley Business",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "1baae8b69c5b4ba6ba2fe00205852d978295349b",
         "title": "Workforce Readiness is Bottleneck for Supply Chain AI Adoption - Material Handling & Logistics",
@@ -366,6 +452,12 @@
       {
         "id": "13a5729de0b5fd5de9189c7c33c617d4f5c629d4",
         "title": "Biotech firm buys $27.5M warehouse near West Palm Beach, plans 100 jobs - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "fa426c621c71adbe2f0bf8a1fe07480255eda495",
+        "title": "Novartis Selects Winter Park for New Radioligand Therapy Manufacturing Facility - Orlando Economic Partnership",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -484,6 +576,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "7b95f5d584747f28e4484cf3a813139866d0888d",
+        "title": "Branchburg industrial building sells for $4.2 million - AOL.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
+      },
+      {
         "id": "8df013b7b2454b07b13dc22dc5e9c32537ce8d02",
         "title": "DEP creates statewide data center permit tracker - Scranton Times-Tribune",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -528,6 +626,12 @@
       {
         "id": "5dc43f26e2351733bb78ee0aeaea752fef7ce9b7",
         "title": "Doral, FL Commercial Real Estate for Lease and Sale - PropertyShark",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e8a6a916103401736143ba68f2f7601d3db52399",
+        "title": "194 Atlantic St, Hackensack, NJ 07601 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -834,54 +938,6 @@
       {
         "id": "5b9b182e8a90d39beb64eac37ff3ed19148ae4f1",
         "title": "Dalfen Industrial Buys Fully Leased Doral Warehouse Near Miami Airport Cargo Terminal - NewsGram",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "fca959a522297b1df6eacaec44bb2db4849f2399",
-        "title": "Farmingdale industrial site sold for $6.35 million to New Jersey real estate group - Newsday",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ebe22c25ee87552e0527980d8eb077ca2b784a07",
-        "title": "Data Centers Are Making It Harder To Build Everything Else",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "37320758f9efd3e97431ba3e95005518824b1d59",
-        "title": "Florham Park Borough Planning Board approves warehouse development on property on Vreeland Road - New Jersey Hills Media",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9929b2770ca3aefab5f6cf4c18f7028ba8fc23af",
-        "title": "Alpha Compute Signs Pennsylvania Land Deal for AI Data Center Expansion - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0bac64a2f2e0ee9a61abd1bb53d98587d6990efa",
-        "title": "Alpha Compute Corp. Announces Pennsylvania Real Estate and Asset Acquisition for Planned Data Center Development - Quive",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9b3681addec60547068f12bf07674989eb31e77b",
-        "title": "Corebridge, Kadima exit 840,000 sq. ft. industrial portfolio in northern, southern New Jersey - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "850ca54abaefb49933d0c5e4672329d8d43c0174",
-        "title": "Regional Industrial Development Corporation of Southwestern Pennsylvania Latest News - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e3c54b77ee4ae75be6ecc3d3332b24e0af6a62e0",
-        "title": "Made Scientific Acquires 85,000-Square-Foot Pennsylvania Cell Therapy Manufacturing Facility - citybiz",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
