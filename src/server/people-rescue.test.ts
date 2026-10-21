@@ -57,10 +57,12 @@ const grantDenham: any = {
 check('Genuine personnel move (Names … Chief of Staff, PA) still qualifies', qualifiesForPeopleRescue(grantDenham) === true);
 
 // (5) Each retained verb still matches the regex (guard against accidental removal).
-for (const v of ['hires', 'appoints', 'names', 'joins', 'promotes', 'taps', 'welcomes', 'recruits']) {
+for (const v of ['hires', 'appoints', 'names', 'promotes', 'taps', 'welcomes', 'recruits']) {
     check(`verb "${v}" still recognized`, PEOPLE_TITLE_ACTION.test(`Firm ${v} someone as director`));
 }
 // ...and 'elevates' is NOT recognized.
+// 'joins' is no longer a bare title verb — it counts only as a join INTO A ROLE (people-join.test.ts).
+check('bare "joins" is NOT a title action (role-gated instead)', !PEOPLE_TITLE_ACTION.test('Examplecorp joins tech firms push'));
 check('verb "elevates" is NOT recognized (regression guard)', !PEOPLE_TITLE_ACTION.test('HPS Floors elevates its facilities'));
 
 console.log(`\nAll people-rescue regression tests passed (${pass} checks).`);

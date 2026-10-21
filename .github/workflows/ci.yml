@@ -32,6 +32,12 @@ jobs:
       - name: Test region and asset evidence
         run: node --import tsx src/server/region-evidence.test.ts
 
+      - name: Test People personnel detection
+        run: |
+          node --import tsx src/server/people-join.test.ts
+          node --import tsx src/server/people-rescue.test.ts
+          node --import tsx src/server/people-corporate-verb.test.ts
+
   # Build verification
   build:
     runs-on: ubuntu-latest

@@ -489,10 +489,55 @@ const PERSON_ROLE_KEYWORDS = [
 // Word-bounded EDA — avoids the "NJEDA" substring false positive the bare 'eda' token caused.
 const EDA_TOKEN_RE = /\beda\b/i;
 
+// "Joins" is a personnel verb ONLY when a PERSON joins INTO A ROLE (2026-10-20).
+// A developer's "<Surname> joins <firm> as vice president of acquisitions" hire was rejected
+// NO_PEOPLE_ACTION (no 'joins' in the action list), while a bare title-level JOINS — and the body
+// word "joined" — were already accepted elsewhere, so "<Company> joins tech firms' push to
+// standardize data center development" could be relocated into People. Companies join ventures,
+// coalitions and boards too, so the JOINER must look like a person, not just the role words.
+// Title-only: the subject of a headline is reliable, an enriched description is not.
+const PERSONAL_ROLE = 'ceo|cfo|coo|cio|cto|president|vice[- ]president|vice[- ]chair(?:man|woman)?|chair(?:man|woman)?|vp|svp|evp|managing director|executive director|director|principal|managing partner|senior partner|founding partner|chief|head of|broker|officer|general counsel|counsel|senior advisor';
+// "<role> [name…] joins". Group 1 is what sits between the role and the verb — the joiner's name,
+// which must ALSO pass the organisation check ("Mortgage broker <X> Realty joins …" is a company).
+// Words BEFORE the role describe a prior employer ("Former <firm> vice chairman joins") and are not checked.
+const ROLE_THEN_JOINS_RE = /\b(?:president|vice[- ]president|vice[- ]chair(?:man|woman)?|chair(?:man|woman)|managing director|executive director|principal|broker|ceo|cfo|coo)((?:\s+[\w.'&-]+){0,3})\s+join(?:s|ed)\b/i;
+const JOINS_AS_ROLE_RE = new RegExp(`\\bjoin(?:s|ed|ing)?\\b[^|]{0,80}?\\bas\\s+(?:(?:a|an|the|its|their|new)\\s+)?(?:[\\w&'-]+\\s+){0,3}?(?:${PERSONAL_ROLE})\\b`, 'i');
+// Bare "partner" is also a corporate role ("joins venture as partner"), so it counts only when the
+// joiner is a capitalised personal name ("Jane Doe joins <brokerage> as partner").
+const JOINS_AS_PARTNER_RE = /\bjoin(?:s|ed|ing)?\b[^|]{0,80}?\bas\s+(?:(?:a|an|the|its|their|new)\s+)?partner\b/i;
+const JOINS_BOARD_RE = /\bjoin(?:s|ed)\b[^|]{0,60}?\bboard\b/i;
+// A joiner containing any of these is an organisation or a thing, not a person.
+const NON_PERSON_JOINER_RE = /\b(?:capital|industrial|logistics|partners|group|realty|properties|property|holdings|trust|funds?|ventures?|investments?|investors?|advisors|management|llc|inc|corp|corporation|company|companies|co|reit|development|developers?|associates|bank|equity|global|estate|tenants?|firms?|owners?|landlords?|operators?|lenders?|retailers?|manufacturers?|startups?|brands?|coalition|alliance|council|county|city|township|authority|agency|university|warehouse|distribution|technologies|technology|tech|systems|solutions|services|energy|power|foods?|former)\b/i;
+
+// The headline's subject: text before the join verb, minus a leading label ("Movers:", "People |").
+function joinerOf(title: string): string | null {
+    const m = /\bjoin(?:s|ed|ing)?\b/i.exec(title);
+    return m ? title.slice(0, m.index).split(/[:|]/).pop()!.trim() : null;
+}
+function isPersonLike(phrase: string): boolean {
+    const words = phrase.split(/\s+/).filter(Boolean);
+    return words.length >= 1 && words.length <= 4 && !NON_PERSON_JOINER_RE.test(phrase);
+}
+// Stricter: two or three capitalised name words ("Jane Doe", "Jane Q. Doe").
+function isPersonalName(phrase: string): boolean {
+    const words = phrase.split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.length <= 3 && words.every(w => /^[A-Z][A-Za-z'.-]*$/.test(w))
+        && !NON_PERSON_JOINER_RE.test(phrase);
+}
+
+export function isPersonnelJoin(title: string): boolean {
+    const roleThen = ROLE_THEN_JOINS_RE.exec(title);
+    if (roleThen && !NON_PERSON_JOINER_RE.test(roleThen[1])) return true;
+    const joiner = joinerOf(title);
+    if (!joiner || !isPersonLike(joiner)) return false;
+    if (JOINS_AS_ROLE_RE.test(title) || JOINS_BOARD_RE.test(title)) return true;
+    return JOINS_AS_PARTNER_RE.test(title) && isPersonalName(joiner);
+}
+
 // A real person/role signal: an explicit title-level personnel verb, or a role/title keyword.
 function hasPersonRoleSignal(article: NormalizedItem): boolean {
     const titleUpper = (article.title || '').toUpperCase();
-    if (/\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES|RECRUITS|ELEVATES?|ELEVATED)\b/.test(titleUpper)) return true;
+    if (/\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES|RECRUITS|ELEVATES?|ELEVATED)\b/.test(titleUpper) || isPersonnelJoin(article.title || '')) return true;
     return containsAny(getText(article), PERSON_ROLE_KEYWORDS);
 }
 
@@ -500,6 +545,7 @@ function hasPersonRoleSignal(article: NormalizedItem): boolean {
 // person/role signal is also present. `actionList` is the caller's action vocabulary.
 function hasGatedPeopleAction(article: NormalizedItem, actionList: string[]): boolean {
     const text = getText(article);
+    if (isPersonnelJoin(article.title || '')) return true;
     if (containsAny(text, actionList.filter(k => !PEOPLE_ACTION_AMBIGUOUS.includes(k)))) return true;
     const ambiguous = actionList.filter(k => PEOPLE_ACTION_AMBIGUOUS.includes(k));
     return ambiguous.length > 0 && containsAny(text, ambiguous) && hasPersonRoleSignal(article);
@@ -523,9 +569,9 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
         const hasIndustrial = hasIndustrialContextForPeople(text);
         // If title OR body has strong people signal, allow even if body mentions transactions
         const titleUpper = (article.title || '').toUpperCase();
-        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
-            || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
-        const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped']);
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
+            || isPersonnelJoin(article.title || '') || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
+        const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'named', 'elevated', 'tapped']);
         // If it's primarily a transaction (and neither title nor body indicate people), skip
         if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) {
             if (diag) diag.recordReject('people', 'CATEGORY_MISMATCH');
@@ -551,7 +597,7 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
 // Strong people action words — these unambiguously indicate personnel news
 // (excludes generic words like "nabs", "leads", "heads" that trigger false positives)
 const STRONG_PEOPLE_ACTIONS = [
-    'hired', 'appointed', 'promoted', 'joined', 'named', 'elevated', 'tapped',
+    'hired', 'appointed', 'promoted', 'named', 'elevated', 'tapped',
     'hires', 'appoints', 'promotes', 'names',
     'movers', 'shakers', 'power broker', 'rising star', 'top producer',
     'recognized', 'award', 'honored', 'featured', 'profile', 'spotlight',
@@ -580,7 +626,7 @@ export function reCategorizeRelevantAsPeople(
         const isPeoplePuff = containsAny(text, ['milestone', 'anniversary', 'retirement', 'retiring', 'marks milestone']);
         // Title-level people signal — very strong indicator
         const titleUpper = (article.title || '').toUpperCase();
-        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
         // An ACTION signal is now NECESSARY (2026-07-24), not just 2-of-3. Role + industrial
         // ALONE used to rescue "Greek Real Estate Partners Expands Bucks County …" — a company
         // whose NAME contains "Partners" (matched PERSON_ROLE_KEYWORDS) with a warehouse project,
@@ -598,7 +644,7 @@ export function reCategorizeRelevantAsPeople(
         const text = getText(article);
         // If it's a transaction AND doesn't have title-level people signal, keep in relevant
         const titleUpper = (article.title || '').toUpperCase();
-        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
         if (!titleHasPeopleSignal && containsAny(text, TRANSACTION_ACTION_WORDS)) {
             keptRelevant.push(article);
             continue;
@@ -614,7 +660,7 @@ export function reCategorizeRelevantAsPeople(
     if (transactions) {
         for (const article of transactions) {
             const titleUpper = (article.title || '').toUpperCase();
-            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|JOINS|JOINED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper);
+            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
             if (titleHasPeopleSignal && rescueArticle(article)) {
                 movedToPeople.push(article);
             } else {
@@ -643,7 +689,7 @@ export function reCategorizeRelevantAsPeople(
  * applyPeopleFilter — relocated a vendor-PR item into People (2026-07-21). "Elevates <product/
  * facility>" marketing is more common than "elevated <to role>" personnel usage, so it's out.
  */
-export const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|joins?|joined|taps?|tapped|welcomes?|recruits?)\b/i;
+export const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|taps?|tapped|welcomes?|recruits?)\b/i;
 
 /**
  * Does a Relevant item qualify to be relocated into People by the post-backfill second rescue?
@@ -655,7 +701,8 @@ export const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes
  * industrial/facility/company/action language cannot make a non-personnel TITLE qualify.
  */
 export function qualifiesForPeopleRescue(article: NormalizedItem): boolean {
-    if (!PEOPLE_TITLE_ACTION.test(article.title || '')) return false;
+    const title = article.title || '';
+    if (!PEOPLE_TITLE_ACTION.test(title) && !isPersonnelJoin(title)) return false;
     if (!isTargetRegion(article)) return false;
     return applyPeopleFilter([article]).length > 0;
 }
