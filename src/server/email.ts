@@ -22,6 +22,8 @@ import {
 } from './newsletter-filters.js';
 import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
+import { indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
+import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -394,6 +396,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         resetLogicImpact(); // start-of-send: zero the diagnostics-only logic-impact counters
         const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
+        const currentVerdicts = indexEditorialVerdicts(allLoadedArticles);
+        const passesRelevantVerdict = (article: NormalizedItem) =>
+            passesRelevantEditorialVerdict(withCurrentEditorialVerdict(article, currentVerdicts), diag);
         const tracer = getActiveTracer();
         tracer?.markMany(allLoadedArticles, 'loaded', 'info');
         console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
@@ -716,6 +721,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 pubDate: r.date_published,
                                 ...(r as any),
                             } as NormalizedItem;
+                            if (label === 'relevant' && !passesRelevantVerdict(item)) continue;
                             section.push(item);
                             usedIds.add(key);
                         }
@@ -764,10 +770,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         if (editionTotal() >= TARGET_MIN_TOTAL || relevant.length >= MAX_PER_SECTION) break;
                         const key = r.id || r.url;
                         if (usedIds.has(key)) continue;
-                        relevant.push({
+                        const item = {
                             id: r.id, title: r.title, link: r.url, description: r.description || '',
                             category: r.category, source: r.source, pubDate: r.date_published, ...(r as any),
-                        } as NormalizedItem);
+                        } as NormalizedItem;
+                        if (!passesRelevantVerdict(item)) continue;
+                        relevant.push(item);
                         usedIds.add(key);
                     }
                     const added = relevant.length - before;
@@ -800,6 +808,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 console.log(`🚫 Included article skipped (political): "${article.title?.substring(0, 60)}"`);
                 continue;
             }
+            if ((article.category || 'relevant') === 'relevant' && !passesRelevantVerdict(article)) continue;
             usedIds.add(articleKey);
             const cat = article.category || 'relevant';
             if (cat === 'transactions') transactions.push(article);
@@ -1033,6 +1042,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         const finalGate = (articles: NormalizedItem[], sectionName: string): NormalizedItem[] => {
             return articles.filter(a => {
+                if (sectionName === 'Relevant' && !passesRelevantVerdict(a)) return false;
                 const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
                 const url = (a.link || a.url || '').toLowerCase();
                 const source = (a.source || (a as any)._source?.website || '').toLowerCase();
