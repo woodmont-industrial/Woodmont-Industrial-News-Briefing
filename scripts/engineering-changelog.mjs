@@ -8,7 +8,7 @@
  *
  *   AUTO (from git / GitHub checks): date, commit_sha, implemented_date, files_changed,
  *     lines_added, lines_removed, test_suite, tests_added, ci_checks_passed, status,
- *     production_status (live; from annotations for preview/shadow work).
+ *     production_status (from reviewed annotations; blank when unclassified).
  *   ANNOTATION (judgement): change_name, change_type, component, bug_class,
  *     validation_level, replay_dates, editorial_outcome, risk_level, notes.
  *     Taken from --annotations <json> when given; otherwise change_name is the commit
@@ -32,7 +32,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CSV = path.join(REPO, 'docs', 'engineering-changelog.csv');
 const BOT = /github-actions|\[bot\]/i;
 
-const git = (args) => execFileSync('git', args, { cwd: REPO, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+const gitAt = (repo, args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+const git = (args) => gitAt(REPO, args);
 
 /** Data and prose, not logic. docs/index.html and docs/js/* are code and DO count. */
 export function isDataOrProse(file) {
@@ -65,6 +66,7 @@ export function parseCsv(text) {
             row = [];
         } else field += c;
     }
+    if (quoted) throw new Error('Unterminated CSV field');
     if (field !== '' || row.length) { row.push(field); rows.push(row); }
     return rows;
 }
@@ -79,22 +81,41 @@ function etDate(iso) {
         .format(new Date(iso));
 }
 
-function ciResult(sha) {
+export function ciResult(sha, api, repository) {
     try {
-        const remote = git(['remote', 'get-url', 'origin']).trim();
-        const m = remote.match(/github\.com[/:]([^/]+\/[^/.]+)/);
-        if (!m) return '';
-        // Pages deployment runs (build / deploy / report-build-status) are the website, not tests.
-        const out = execFileSync('gh', ['api', `repos/${m[1]}/commits/${sha}/check-runs?per_page=100`,
-            '--jq', '[.check_runs[] | select(.name != "build" and .name != "deploy" and .name != "report-build-status") | .conclusion] | join(",")'],
-            { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-        // "cancelled" means a newer push superseded the run (concurrency), not that a check failed.
-        const conclusions = (out ? out.split(',') : []).filter(c => c !== 'cancelled' && c !== 'skipped');
-        if (!conclusions.length) return '';
-        if (conclusions.some(c => c === 'failure' || c === 'timed_out' || c === 'action_required')) return 'fail';
-        if (conclusions.some(c => c !== 'success' && c !== 'neutral')) return '';
-        return 'pass';
+        if (!/^[a-f0-9]{40}$/.test(sha)) return '';
+        if (!repository) {
+            const remote = git(['remote', 'get-url', 'origin']).trim();
+            repository = process.env.GITHUB_REPOSITORY || remote.match(/github\.com[/:]([^/]+\/[^/.]+)/)?.[1];
+        }
+        if (!repository) return '';
+        api ||= endpoint => JSON.parse(execFileSync('gh', ['api', endpoint], {
+            encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30_000,
+        }));
+        // Inspect only the exact commit's CI workflow. Pages, this updater, and
+        // unrelated running jobs must not contaminate the recorded result.
+        const runs = api(`repos/${repository}/actions/workflows/ci.yml/runs?head_sha=${sha}&per_page=100`)
+            .workflow_runs.filter(run => run.head_sha === sha)
+            .sort((a, b) => b.id - a.id);
+        const run = runs[0];
+        if (!run || run.status !== 'completed') return '';
+        const jobs = [];
+        for (let page = 1; ; page++) {
+            const batch = api(`repos/${repository}/actions/runs/${run.id}/jobs?filter=latest&per_page=100&page=${page}`).jobs;
+            jobs.push(...batch);
+            if (batch.length < 100) break;
+        }
+        return completedCiResult(jobs);
     } catch { return ''; }
+}
+
+export function completedCiResult(jobs) {
+        if (jobs.some(job => ['failure', 'timed_out', 'action_required', 'startup_failure'].includes(job.conclusion))) return 'fail';
+        // Cancellation leaves coverage incomplete, even if some checks passed.
+        if (!jobs.length || jobs.some(job => job.status !== 'completed' ||
+            !['success', 'neutral', 'skipped'].includes(job.conclusion))) return '';
+        if (!jobs.some(job => job.conclusion === 'success')) return '';
+        return 'pass';
 }
 
 export function commitFacts(sha) {
@@ -116,17 +137,20 @@ export function commitFacts(sha) {
     return { files, added, removed, testSuite: [...tests].sort().join(';'), testsAdded };
 }
 
-export function candidates(loggedShas) {
+export function candidates(loggedShas, through = 'HEAD', repo = REPO) {
+    const runGit = args => gitAt(repo, args);
+    const end = runGit(['rev-parse', '--verify', `${through}^{commit}`]).trim();
+    runGit(['merge-base', '--is-ancestor', end, 'HEAD']);
     const lastLogged = [...loggedShas].reverse().find(s => {
-        try { git(['merge-base', '--is-ancestor', s, 'HEAD']); return true; } catch { return false; }
+        try { runGit(['merge-base', '--is-ancestor', s, end]); return true; } catch { return false; }
     });
-    const range = lastLogged ? `${lastLogged}..HEAD` : 'HEAD';
-    const log = git(['log', '--no-merges', '--reverse', '--format=%H%x09%an%x09%ae%x09%cI%x09%s', range]).trim();
+    const range = lastLogged ? `${lastLogged}..${end}` : end;
+    const log = runGit(['log', '--no-merges', '--reverse', '--format=%H%x09%an%x09%ae%x09%cI%x09%s', range]).trim();
     const out = [];
     for (const line of log ? log.split('\n') : []) {
         const [sha, author, email, when, subject] = line.split('\t');
         if (loggedShas.has(sha) || BOT.test(author) || BOT.test(email)) continue;
-        const files = git(['show', '--name-only', '--format=', sha]).trim().split('\n').filter(Boolean);
+        const files = runGit(['show', '--name-only', '--format=', sha]).trim().split('\n').filter(Boolean);
         if (!files.length || files.every(isDataOrProse)) continue;
         out.push({ sha, when, subject: subject.replace(/^﻿/, '').trim() });
     }
@@ -137,14 +161,18 @@ function main() {
     const args = process.argv.slice(2);
     const append = args.includes('--append');
     const annIdx = args.indexOf('--annotations');
+    const throughIdx = args.indexOf('--through');
+    if (throughIdx >= 0 && !/^[a-f0-9]{40}$/.test(args[throughIdx + 1] || '')) throw new Error('--through requires a full commit SHA');
+    const through = throughIdx >= 0 ? args[throughIdx + 1] : 'HEAD';
     const annotations = annIdx >= 0 ? JSON.parse(fs.readFileSync(path.resolve(args[annIdx + 1]), 'utf8')) : {};
     const text = fs.readFileSync(CSV, 'utf8');
     const eol = text.includes('\r\n') ? '\r\n' : '\n';
     const rows = parseCsv(text);
     const header = rows[0];
     const shaCol = header.indexOf('commit_sha');
+    if (shaCol < 0 || rows.some(row => row.length !== header.length)) throw new Error('Invalid changelog schema');
     const logged = new Set(rows.slice(1).map(r => r[shaCol]));
-    const fresh = candidates(logged);
+    const fresh = candidates(logged, through);
     const lines = [];
     for (const c of fresh) {
         const f = commitFacts(c.sha);
@@ -154,13 +182,13 @@ function main() {
         const record = {
             date, commit_sha: c.sha, change_name: ann.change_name || c.subject.replace(/\s*\(#\d+\)$/, ''),
             change_type: ann.change_type || '', component: ann.component || '', bug_class: ann.bug_class || '',
-            status: 'shipped', production_status: ann.production_status || 'live',
+            status: 'shipped', production_status: ann.production_status || '',
             issue_found_date: ann.issue_found_date || '', implemented_date: date,
             files_changed: f.files, lines_added: f.added, lines_removed: f.removed,
             test_suite: f.testSuite, tests_added: f.testsAdded, ci_checks_passed: ciResult(c.sha),
-            validation_level: ann.validation_level || (f.testSuite ? 'unit-tested' : ''),
-            historical_items_reviewed: ann.historical_items_reviewed || '', historical_items_affected: ann.historical_items_affected || '',
-            false_positives_found: ann.false_positives_found || '', live_occurrences_blocked: ann.live_occurrences_blocked || '',
+            validation_level: ann.validation_level || '',
+            historical_items_reviewed: ann.historical_items_reviewed ?? '', historical_items_affected: ann.historical_items_affected ?? '',
+            false_positives_found: ann.false_positives_found ?? '', live_occurrences_blocked: ann.live_occurrences_blocked ?? '',
             replay_dates: ann.replay_dates || '', editorial_outcome: ann.editorial_outcome || '',
             risk_level: ann.risk_level || '', notes: found ? (ann.notes || '') : 'auto-logged: annotation pending',
         };

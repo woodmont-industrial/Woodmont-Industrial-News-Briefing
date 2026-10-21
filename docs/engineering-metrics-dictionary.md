@@ -24,22 +24,34 @@ push to main.
 - **Which commits:** non-merge commits reachable from main, by a person, that touch anything other than
   data or prose (send-state JSON, CSV datasets, archives, diagnostics and `*.md` are excluded).
 - **Auto columns:** `files_changed / lines_*` count code files only. `test_suite` lists the changed test files;
-  `tests_added` counts added assertion calls (`check`, `chk`, `assert*`, `expect*`, `keep`, `block`, …).
-  `ci_checks_passed` is `pass`, `fail`, or blank. Blank means every run was **cancelled** (superseded by a
-  newer push) or skipped. Website deployment runs (`build`, `deploy`, `report-build-status`) are not tests
-  and are ignored.
+  `tests_added` counts added lines containing assertion calls (`check`, `chk`, `assert*`, `expect*`, `keep`,
+  `block`, …). This is a static assertion-change metric, not a count of executed or passing tests.
+  `ci_checks_passed` is `pass`, `fail`, or blank, from the latest exact-commit `CI/CD Pipeline` run's jobs.
+  Any failed job means `fail`. Incomplete or cancelled checks, missing runs, unavailable evidence, or
+  all-skipped checks mean blank, even if some jobs passed. Pages and this updater are outside that workflow
+  and never count as CI evidence. A CI `pass` records job conclusions; legacy non-blocking steps can warn.
+  The October backfill has 28 `pass` rows and 17 unknown rows, not 31 fully verified passes.
 - **Annotation:** rows the workflow appends carry `notes = auto-logged: annotation pending` until someone fills in
   the judgement columns. The 2026-08-27..10-21 backfill was annotated from
   `scripts/engineering-annotations/2026-10-backfill.json`.
-- **`production_status`** ∈ {`live`, `shadow` (runs but never sends), `preview-only` (website preview
-  sandbox)}. Most Capital Markets work is `preview-only` or `shadow`. Filter on `live` for changes that
-  affected the department newsletter.
+- **`production_status`** ∈ {`live` (department newsletter or its website), `shadow` (runs but never sends),
+  `preview-only` (Capital Markets preview sandbox)}, or blank until reviewed. Most Capital Markets work is
+  `preview-only` or `shadow`; merging it does not enable Capital Markets delivery. The October backfill
+  has 21 live newsletter/site changes and 24 Capital Markets preview/shadow changes. Automatic rows leave
+  deployment status and validation level blank until annotated; changed test files do not prove execution.
+- **CI boundary:** the workflow checks out current main for a safe append, but `--through` limits the git
+  range to the completed CI run's exact SHA. A later main push cannot be logged before its own CI completes.
+  Re-running for that same boundary adds no duplicate rows. The updater changes only the changelog CSV;
+  it does not generate frozen-replay validations or modify newsletter state.
 
 ## docs/engineering-validations.csv — one row per (commit, replay date)
 Each frozen-replay validation is its own row (e.g. the buyer-HQ commit has separate 07-02 and 07-30
 rows). `score_*` are from the **frozen replay**; where a production `quality-scores.csv` baseline
 differs (AI descriptions enriched at send time), the note records it (buyer-HQ 07-02: replay 77→89
 vs prod-CSV 70→82 — same +12). `run_id` is blank (replays use synthetic run ids).
+The 2026-10-22 row is a simulated next-edition replay executed on October 21, not an actual future send.
+It was independently reproduced with inputs from `86294b7`, an empty manual queue, and code `671ccc2`
+versus `cc7339d`: 75→82, People 0→1, other section IDs identical, zero network requests, nothing sent.
 
 ## docs/daily-logic-impact.csv — one row per production send
 - Auto from `quality-scores.csv`: `score, grade, coverage_score, freshness_score, supply_condition,

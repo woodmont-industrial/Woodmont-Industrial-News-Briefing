@@ -7,7 +7,8 @@
     "bug_class": "observability",
     "validation_level": "production-observed",
     "editorial_outcome": "no editorial change; daily-logic-impact.csv rows now committed every send",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "9884093c": {
     "change_name": "cron schedules 5 minutes earlier",
@@ -15,7 +16,8 @@
     "component": "workflows",
     "bug_class": "late-delivery",
     "risk_level": "low",
-    "notes": "superseded by the external scheduler (2026-09-28/30)"
+    "notes": "superseded by the external scheduler (2026-09-28/30)",
+    "production_status": "live"
   },
   "36e259f2": {
     "change_name": "delivery target 8:30 -> 7:30 AM ET",
@@ -23,14 +25,16 @@
     "component": "workflows",
     "bug_class": "late-delivery",
     "risk_level": "medium",
-    "notes": "target later moved to 8:00 AM ET (59eaf124)"
+    "notes": "target later moved to 8:00 AM ET (59eaf124)",
+    "production_status": "live"
   },
   "7dbc0201": {
     "change_name": "late_delivery penalty message for 7:30 target",
     "change_type": "diagnostics",
     "component": "newsletter-diagnostics.ts",
     "bug_class": "observability",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "b312d4a8": {
     "change_name": "cron latency probe",
@@ -39,28 +43,32 @@
     "bug_class": "observability",
     "validation_level": "production-observed",
     "risk_level": "low",
-    "notes": "measured GitHub schedule-event delay; evidence for the external-scheduler decision"
+    "notes": "measured GitHub schedule-event delay; evidence for the external-scheduler decision",
+    "production_status": "live"
   },
   "79e99035": {
     "change_name": "cron probe off-pattern minute",
     "change_type": "delivery-scheduling",
     "component": "cron-probe.yml",
     "bug_class": "observability",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "1b8c7d73": {
     "change_name": "send-state, delivery floor and dead-zone hardening",
     "change_type": "send-state",
     "component": "send-only.yml",
     "bug_class": "delivery-reliability",
-    "risk_level": "medium"
+    "risk_level": "medium",
+    "production_status": "live"
   },
   "2df7dc55": {
     "change_name": "semantic merge of shared send-state on push retry",
     "change_type": "send-state",
     "component": "commit-send-state.sh",
     "bug_class": "delivery-reliability",
-    "risk_level": "medium"
+    "risk_level": "medium",
+    "production_status": "live"
   },
   "98ee4c4d": {
     "change_name": "hard-fail on unmergeable send-state",
@@ -68,14 +76,16 @@
     "component": "commit-send-state.sh",
     "bug_class": "delivery-reliability",
     "risk_level": "medium",
-    "notes": "no ours-wins fallback"
+    "notes": "no ours-wins fallback",
+    "production_status": "live"
   },
   "9c728728": {
     "change_name": "pipeline-status articleCount from sent HTML",
     "change_type": "diagnostics",
     "component": "update-pipeline-status.mjs",
     "bug_class": "observability",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "4f7486a8": {
     "change_name": "sectionSupplyCondition + sectionsFilled telemetry",
@@ -83,14 +93,16 @@
     "component": "newsletter-diagnostics.ts",
     "bug_class": "observability",
     "editorial_outcome": "telemetry only; selection unchanged",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "58c4ba9f": {
     "change_name": "timezone-aware ET schedules",
     "change_type": "delivery-scheduling",
     "component": "workflows",
     "bug_class": "dst-schedule",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "6f8079c1": {
     "change_name": "retire three dead ingest endpoints",
@@ -98,7 +110,8 @@
     "component": "feeds.json",
     "bug_class": "source-drift",
     "editorial_outcome": "source-maintenance; no selection effect",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "c5a3e2f9": {
     "change_name": "Capital Markets Preview sandbox calibration",
@@ -162,21 +175,24 @@
     "change_type": "website",
     "component": "index.html",
     "bug_class": "site-parity",
-    "risk_level": "medium"
+    "risk_level": "medium",
+    "production_status": "live"
   },
   "42693355": {
     "change_name": "website/newsletter parity: eligibility, descriptions, publishers, regions",
     "change_type": "website",
     "component": "index.html",
     "bug_class": "site-parity",
-    "risk_level": "medium"
+    "risk_level": "medium",
+    "production_status": "live"
   },
   "81ca0e91": {
     "change_name": "website publisher mastheads and Preview summaries",
     "change_type": "website",
     "component": "index.html",
     "bug_class": "publisher-label",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "live"
   },
   "210bd822": {
     "change_name": "Capital Markets lookback in website UI",
@@ -275,7 +291,8 @@
     "validation_level": "production-observed",
     "editorial_outcome": "delivery-only; 10 of 10 weekday sends Oct 1-14 at 8:00 AM ET",
     "risk_level": "high",
-    "notes": "gate refused a stale receipt 2026-09-29; first unattended cycle 2026-09-30"
+    "notes": "gate refused a stale receipt 2026-09-29; first unattended cycle 2026-09-30",
+    "production_status": "live"
   },
   "187d5534": {
     "change_name": "watchlist data minimization + privacy CI",
@@ -300,7 +317,8 @@
     "component": "newsletter-diagnostics.ts",
     "bug_class": "score-calibration",
     "risk_level": "low",
-    "notes": "late_delivery scored against the deployed 8:00 send"
+    "notes": "late_delivery scored against the deployed 8:00 send",
+    "production_status": "live"
   },
   "340cd9f5": {
     "change_name": "construction completions; Lehigh Valley as TARGET",
@@ -316,7 +334,8 @@
     "change_type": "rendering-metadata",
     "component": "capital-markets.js",
     "bug_class": "publisher-label",
-    "risk_level": "low"
+    "risk_level": "low",
+    "production_status": "preview-only"
   },
   "fb66adff": {
     "change_name": "clear automatic watchlist loading",
@@ -339,7 +358,8 @@
     "change_type": "ingest-filter",
     "component": "region-data",
     "bug_class": "false-leak",
-    "risk_level": "medium"
+    "risk_level": "medium",
+    "production_status": "live"
   },
   "a6bfce80": {
     "change_name": "restore AI models + summary rendering",
@@ -349,7 +369,8 @@
     "validation_level": "production-observed",
     "editorial_outcome": "AI summaries 0/15 (10-14), 0/12 (10-15) -> 12/12 (10-16), 12/12 (10-19), 9/9 (10-20)",
     "risk_level": "medium",
-    "notes": "retired Groq/Cerebras models; descriptions had silently fallen back to headlines"
+    "notes": "retired Groq/Cerebras models; descriptions had silently fallen back to headlines",
+    "production_status": "live"
   },
   "cc7339d4": {
     "change_name": "role-qualified personnel joins",
@@ -362,6 +383,7 @@
     "replay_dates": "2026-10-22",
     "editorial_outcome": "frozen replay 2026-10-22: 75->82 (+7); People 0->1, all other sections identical",
     "risk_level": "low",
-    "notes": "measured on the 2026-10-20 feed: 2 of 203 People decisions changed"
+    "notes": "measured on the 2026-10-20 feed: 2 of 203 People decisions changed",
+    "production_status": "live"
   }
 }

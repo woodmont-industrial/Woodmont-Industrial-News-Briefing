@@ -15,7 +15,7 @@ on:
 
 permissions:
   contents: write
-  checks: read
+  actions: read
 
 concurrency:
   group: engineering-changelog
@@ -23,7 +23,10 @@ concurrency:
 
 jobs:
   append:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -34,10 +37,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Test updater and dataset contracts
+        run: node scripts/engineering-changelog.test.mjs
       - name: Append rows for unlogged production changes
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/engineering-changelog.mjs --append
+          COMPLETED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: node scripts/engineering-changelog.mjs --append --through "$COMPLETED_SHA"
       - name: Commit
         run: |
           if git diff --quiet -- docs/engineering-changelog.csv; then
