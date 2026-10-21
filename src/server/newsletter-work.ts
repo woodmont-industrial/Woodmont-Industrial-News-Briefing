@@ -155,10 +155,22 @@ export function buildWorkBriefing(
             // Also protect spaced unit/company/address abbreviations: "685,000 sq. ft. Florida
             // warehouse" split at "sq." and "ft.", and the two fragments used up a Transactions
             // summary's two-sentence budget ("Profeta sells 685,000 sq. ft." shipped 2026-10-21).
+            const protectAbbreviation = (abbreviation: string, offset: number, text: string): string => {
+                const following = text.slice(offset + abbreviation.length).trimStart();
+                // A unit followed by a location ("ft. Florida warehouse") continues
+                // the sentence. A new subject/clause ("ft. It sold...", "Inc. The
+                // buyer...", "Inc. Jane Doe leased...") retains its terminal period.
+                const newSubject = /^["'“‘(]*(?:It|Its|They|Their|The|This|That|These|Those|There|We|Our|He|She|A|An)\b/.test(following);
+                const titleOrPlace = /^(?:mr|mrs|ms|dr|st|mt)\.$/i.test(abbreviation)
+                    || (/^ft\.$/i.test(abbreviation) && !/\d[\d,]*(?:\s+sq\.?)?\s*$/i.test(text.slice(0, offset)));
+                const namedClause = !titleOrPlace && /^["'“‘(]*(?:[A-Z][A-Za-z'-]*\s+){1,3}(?:is|are|was|were|has|have|will|would|plans?|paid|sold|leased|bought|acquired|starts?|begins?|closed|opened|remains?)\b/.test(following);
+                const safe = abbreviation.replace(/\./g, '\u0000');
+                return !following || newSubject || namedClause ? safe.slice(0, -1) + '.' : safe;
+            };
             const safeDesc = rawDesc.replace(/(\d)\.(\d)/g, '$1\u0000$2')
-                .replace(/\b(?:[A-Za-z]\.){2,}/g, abbreviation => abbreviation.replace(/\./g, '\u0000'))
+                .replace(/\b(?:[A-Za-z]\.){2,}/g, protectAbbreviation)
                 .replace(/\b(?:sq|ft|inc|corp|co|ltd|llc|st|ave|rd|blvd|hwy|rte|mt|no|nos|approx|vs|mr|mrs|ms|dr|jr|sr)\.(?=\s|$)/gi,
-                    abbreviation => abbreviation.replace('.', '\u0000'));
+                    protectAbbreviation);
             const sentences = safeDesc.match(/[^.!?]+(?:[.!?]+|$)/g)?.map(s => s.replace(/\u0000/g, '.'));
             if (sentences && sentences.length > 0) {
                 description = sentences.slice(0, maxSentences).join('').trim();
