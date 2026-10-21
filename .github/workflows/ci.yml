@@ -38,6 +38,9 @@ jobs:
           node --import tsx src/server/people-rescue.test.ts
           node --import tsx src/server/people-corporate-verb.test.ts
 
+      - name: Test engineering changelog datasets
+        run: node scripts/engineering-changelog.test.mjs
+
   # Build verification
   build:
     runs-on: ubuntu-latest

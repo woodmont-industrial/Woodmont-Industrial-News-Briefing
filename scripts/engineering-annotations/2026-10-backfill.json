@@ -1,0 +1,389 @@
+{
+  "_comment": "Annotations for the 2026-08-27..2026-10-21 changelog backfill (scripts/engineering-changelog.mjs --annotations). Judgement fields only; numbers come from git and GitHub checks. Blank = not established from evidence. production_status: live | shadow (runs, never sends) | preview-only (website preview sandbox).",
+  "f8345683": {
+    "change_name": "persist daily logic impact from sends",
+    "change_type": "scoring-observability",
+    "component": "send-only.yml",
+    "bug_class": "observability",
+    "validation_level": "production-observed",
+    "editorial_outcome": "no editorial change; daily-logic-impact.csv rows now committed every send",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "9884093c": {
+    "change_name": "cron schedules 5 minutes earlier",
+    "change_type": "delivery-scheduling",
+    "component": "workflows",
+    "bug_class": "late-delivery",
+    "risk_level": "low",
+    "notes": "superseded by the external scheduler (2026-09-28/30)",
+    "production_status": "live"
+  },
+  "36e259f2": {
+    "change_name": "delivery target 8:30 -> 7:30 AM ET",
+    "change_type": "delivery-scheduling",
+    "component": "workflows",
+    "bug_class": "late-delivery",
+    "risk_level": "medium",
+    "notes": "target later moved to 8:00 AM ET (59eaf124)",
+    "production_status": "live"
+  },
+  "7dbc0201": {
+    "change_name": "late_delivery penalty message for 7:30 target",
+    "change_type": "diagnostics",
+    "component": "newsletter-diagnostics.ts",
+    "bug_class": "observability",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "b312d4a8": {
+    "change_name": "cron latency probe",
+    "change_type": "delivery-scheduling",
+    "component": "cron-probe.yml",
+    "bug_class": "observability",
+    "validation_level": "production-observed",
+    "risk_level": "low",
+    "notes": "measured GitHub schedule-event delay; evidence for the external-scheduler decision",
+    "production_status": "live"
+  },
+  "79e99035": {
+    "change_name": "cron probe off-pattern minute",
+    "change_type": "delivery-scheduling",
+    "component": "cron-probe.yml",
+    "bug_class": "observability",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "1b8c7d73": {
+    "change_name": "send-state, delivery floor and dead-zone hardening",
+    "change_type": "send-state",
+    "component": "send-only.yml",
+    "bug_class": "delivery-reliability",
+    "risk_level": "medium",
+    "production_status": "live"
+  },
+  "2df7dc55": {
+    "change_name": "semantic merge of shared send-state on push retry",
+    "change_type": "send-state",
+    "component": "commit-send-state.sh",
+    "bug_class": "delivery-reliability",
+    "risk_level": "medium",
+    "production_status": "live"
+  },
+  "98ee4c4d": {
+    "change_name": "hard-fail on unmergeable send-state",
+    "change_type": "send-state",
+    "component": "commit-send-state.sh",
+    "bug_class": "delivery-reliability",
+    "risk_level": "medium",
+    "notes": "no ours-wins fallback",
+    "production_status": "live"
+  },
+  "9c728728": {
+    "change_name": "pipeline-status articleCount from sent HTML",
+    "change_type": "diagnostics",
+    "component": "update-pipeline-status.mjs",
+    "bug_class": "observability",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "4f7486a8": {
+    "change_name": "sectionSupplyCondition + sectionsFilled telemetry",
+    "change_type": "scoring-observability",
+    "component": "newsletter-diagnostics.ts",
+    "bug_class": "observability",
+    "editorial_outcome": "telemetry only; selection unchanged",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "58c4ba9f": {
+    "change_name": "timezone-aware ET schedules",
+    "change_type": "delivery-scheduling",
+    "component": "workflows",
+    "bug_class": "dst-schedule",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "6f8079c1": {
+    "change_name": "retire three dead ingest endpoints",
+    "change_type": "source-maintenance",
+    "component": "feeds.json",
+    "bug_class": "source-drift",
+    "editorial_outcome": "source-maintenance; no selection effect",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "c5a3e2f9": {
+    "change_name": "Capital Markets Preview sandbox calibration",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "new-capability",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "a4ec3bc3": {
+    "change_name": "Capital Markets Preview competitor watch (browser-local)",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "new-capability",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "b7f38b3f": {
+    "change_name": "competitor watch false-attribution fixes",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "false-attribution",
+    "production_status": "preview-only",
+    "risk_level": "low",
+    "notes": "two defects found on real watchlist data"
+  },
+  "67921254": {
+    "change_name": "competitor watch dedupe and event precision",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "false-attribution",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "bc946d0d": {
+    "change_name": "geography reference wired into Capital Markets Preview",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "geography-mapping",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "ecce05ed": {
+    "change_name": "Capital Markets production-readiness calibration",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "score-calibration",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "6f4ccdfc": {
+    "change_name": "sales: exclude 'for sale'; strict thresholds",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "listing-vs-transaction",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "303613bb": {
+    "change_name": "website QA hotfix: generation, publisher parity, filters",
+    "change_type": "website",
+    "component": "index.html",
+    "bug_class": "site-parity",
+    "risk_level": "medium",
+    "production_status": "live"
+  },
+  "42693355": {
+    "change_name": "website/newsletter parity: eligibility, descriptions, publishers, regions",
+    "change_type": "website",
+    "component": "index.html",
+    "bug_class": "site-parity",
+    "risk_level": "medium",
+    "production_status": "live"
+  },
+  "81ca0e91": {
+    "change_name": "website publisher mastheads and Preview summaries",
+    "change_type": "website",
+    "component": "index.html",
+    "bug_class": "publisher-label",
+    "risk_level": "low",
+    "production_status": "live"
+  },
+  "210bd822": {
+    "change_name": "Capital Markets lookback in website UI",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "ui-defect",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "6a4622a5": {
+    "change_name": "competitor attribution repair + empty-state diagnostics",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "false-attribution",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "dd01bb2c": {
+    "change_name": "availability versus completed lease",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "listing-vs-transaction",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "81d5365c": {
+    "change_name": "ranked seven-day Week in Review",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "new-capability",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "fa00875b": {
+    "change_name": "extract Capital Markets module + synthetic test suites",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "testability",
+    "production_status": "preview-only",
+    "risk_level": "medium"
+  },
+  "bf81d39d": {
+    "change_name": "geography provenance and boundary fixtures",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "geography-mapping",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "17c8fcff": {
+    "change_name": "sanitize module examples; Municipal in Week in Review",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "data-minimization",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "ff5ef45e": {
+    "change_name": "Capital Markets newsletter shadow and canary rollout",
+    "change_type": "capital-markets",
+    "component": "capital-markets-delivery.ts",
+    "bug_class": "new-capability",
+    "production_status": "shadow",
+    "risk_level": "medium",
+    "notes": "productionEnabled false; shadow runs never send"
+  },
+  "2e0ae998": {
+    "change_name": "watchlist and source discovery hardening",
+    "change_type": "capital-markets",
+    "component": "capital-markets-competitor-sources.ts",
+    "bug_class": "data-minimization",
+    "production_status": "shadow",
+    "risk_level": "medium"
+  },
+  "ce744be5": {
+    "change_name": "municipal geography gate; structured finance",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "out-of-region-municipal",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "6defd2a1": {
+    "change_name": "thin Capital Markets previews; watchlist auto-load",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "supply",
+    "production_status": "preview-only",
+    "risk_level": "medium"
+  },
+  "1f26083d": {
+    "change_name": "external scheduler contract + build-receipt gate",
+    "change_type": "delivery-scheduling",
+    "component": "send-only.yml",
+    "bug_class": "late-delivery",
+    "validation_level": "production-observed",
+    "editorial_outcome": "delivery-only; 10 of 10 weekday sends Oct 1-14 at 8:00 AM ET",
+    "risk_level": "high",
+    "notes": "gate refused a stale receipt 2026-09-29; first unattended cycle 2026-09-30",
+    "production_status": "live"
+  },
+  "187d5534": {
+    "change_name": "watchlist data minimization + privacy CI",
+    "change_type": "capital-markets",
+    "component": "validate-capital-markets-privacy.mjs",
+    "bug_class": "data-minimization",
+    "production_status": "shadow",
+    "risk_level": "medium",
+    "notes": "blocking Watchlist Privacy CI job"
+  },
+  "c6214355": {
+    "change_name": "intel false positives; competitor watch gate",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "false-positive",
+    "production_status": "preview-only",
+    "risk_level": "medium"
+  },
+  "59eaf124": {
+    "change_name": "delivery target 8:00 AM ET as one shared constant",
+    "change_type": "delivery-scheduling",
+    "component": "newsletter-diagnostics.ts",
+    "bug_class": "score-calibration",
+    "risk_level": "low",
+    "notes": "late_delivery scored against the deployed 8:00 send",
+    "production_status": "live"
+  },
+  "340cd9f5": {
+    "change_name": "construction completions; Lehigh Valley as TARGET",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "geography-mapping",
+    "production_status": "preview-only",
+    "risk_level": "low",
+    "notes": "past-tense 'broke ground' still unrecognised (found 2026-10-21)"
+  },
+  "8faf25b1": {
+    "change_name": "real publisher behind Google News proxy",
+    "change_type": "rendering-metadata",
+    "component": "capital-markets.js",
+    "bug_class": "publisher-label",
+    "risk_level": "low",
+    "production_status": "preview-only"
+  },
+  "fb66adff": {
+    "change_name": "clear automatic watchlist loading",
+    "change_type": "capital-markets",
+    "component": "index.html",
+    "bug_class": "ui-defect",
+    "production_status": "preview-only",
+    "risk_level": "low"
+  },
+  "9eb8825f": {
+    "change_name": "event-specific deal classification",
+    "change_type": "capital-markets",
+    "component": "capital-markets.js",
+    "bug_class": "listing-vs-transaction",
+    "production_status": "preview-only",
+    "risk_level": "medium"
+  },
+  "82f3d679": {
+    "change_name": "region and asset evidence (quoted-regex phrases)",
+    "change_type": "ingest-filter",
+    "component": "region-data",
+    "bug_class": "false-leak",
+    "risk_level": "medium",
+    "production_status": "live"
+  },
+  "a6bfce80": {
+    "change_name": "restore AI models + summary rendering",
+    "change_type": "ai-pipeline",
+    "component": "ai-provider.ts",
+    "bug_class": "retired-model",
+    "validation_level": "production-observed",
+    "editorial_outcome": "AI summaries 0/15 (10-14), 0/12 (10-15) -> 12/12 (10-16), 12/12 (10-19), 9/9 (10-20)",
+    "risk_level": "medium",
+    "notes": "retired Groq/Cerebras models; descriptions had silently fallen back to headlines",
+    "production_status": "live"
+  },
+  "cc7339d4": {
+    "change_name": "role-qualified personnel joins",
+    "change_type": "categorization",
+    "component": "newsletter-filters",
+    "bug_class": "people-false-negative",
+    "validation_level": "replay-validated",
+    "historical_items_reviewed": "203",
+    "historical_items_affected": "2",
+    "replay_dates": "2026-10-22",
+    "editorial_outcome": "frozen replay 2026-10-22: 75->82 (+7); People 0->1, all other sections identical",
+    "risk_level": "low",
+    "notes": "measured on the 2026-10-20 feed: 2 of 203 People decisions changed",
+    "production_status": "live"
+  }
+}
