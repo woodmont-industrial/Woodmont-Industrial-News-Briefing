@@ -157,9 +157,9 @@ jobs:
               out.push('|---|---|---|---|---|');
               for (const h of r.hits) out.push('| ' + h.section + ' | ' + h.tier + ' | ' + (h.squareFeet ?? '-') + ' | ' + h.publishedAt.slice(0,10) + ' | [' + h.title.replace(/\|/g,'') .slice(0,70) + '](' + h.link + ') |');
               out.push('');
-              out.push('| source | outcome | articles |');
-              out.push('|---|---|---|');
-              for (const s of r.sources) out.push('| ' + s.name + ' | ' + s.outcome + ' | ' + s.articles + ' |');
+              const sh = r.sourceHealth;
+              out.push('- sources: ' + sh.attempted + ' attempted, ' + sh.ok + ' ok (' + sh.withArticles + ' with articles), '
+                + sh.refused + ' refused, ' + sh.transient + ' transient, ' + sh.cooling + ' cooling');
               console.log(out.join('\n'));
             " >> $GITHUB_STEP_SUMMARY
           else

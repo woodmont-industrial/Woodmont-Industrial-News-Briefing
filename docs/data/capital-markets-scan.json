@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "startedAt": "2026-10-12T20:37:08.427Z",
   "completedAt": "2026-10-12T20:37:32.775Z",
   "runtimeSeconds": 24,
@@ -7,216 +7,18 @@
   "requests": 41,
   "sources": [
     {
-      "name": "Hartz Mountain Industries, Inc.",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 0,
-      "articles": 0,
-      "url": "https://hartzmountain.com/"
-    },
-    {
-      "name": "Heller Industrial Parks, Inc.",
-      "outcome": "cooling",
-      "status": "refused",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-19T20:33:08.329Z",
-      "url": "https://hellerpark.com/"
-    },
-    {
-      "name": "Forsgate Industrial Partners",
-      "outcome": "cooling",
-      "status": "refused",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-19T20:33:08.329Z",
-      "url": "https://forsgate.com/"
-    },
-    {
-      "name": "Greek Real Estate Partners",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 3,
-      "articles": 0,
-      "url": "https://greekrep.com/"
-    },
-    {
-      "name": "Federal Business Centers",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 2,
-      "articles": 3,
-      "url": "https://federalbusinesscenters.com/"
-    },
-    {
-      "name": "Russo Development",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 1,
-      "articles": 0,
-      "url": "https://russodevelopment.com/"
-    },
-    {
       "name": "Seagis Property Group LP",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 3,
-      "articles": 25,
       "url": "https://seagisproperty.com/"
-    },
-    {
-      "name": "Matrix Development Group",
-      "outcome": "cooling",
-      "status": "transient",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-13T02:33:08.329Z",
-      "url": "https://matrixcompanies.com/"
-    },
-    {
-      "name": "Advance Realty Investors",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 3,
-      "articles": 10,
-      "url": "https://advancere.com/"
-    },
-    {
-      "name": "Palin Enterprises",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 0,
-      "articles": 0,
-      "url": "https://palinent.com/"
-    },
-    {
-      "name": "River  Terminal Development Company",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 1,
-      "articles": 4,
-      "url": "https://riverterminal.com/"
-    },
-    {
-      "name": "The Silverman Group",
-      "outcome": "cooling",
-      "status": "refused",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-19T20:33:08.329Z",
-      "url": "https://silvermangroup.net/"
-    },
-    {
-      "name": "The Morris Companies",
-      "outcome": "cooling",
-      "status": "transient",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-13T02:33:08.329Z",
-      "url": "https://morriscompanies.com/"
-    },
-    {
-      "name": "Lincoln Equities Group LLC",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 1,
-      "articles": 0,
-      "url": "https://lincolnequities.com/"
-    },
-    {
-      "name": "The Sudler Companies",
-      "outcome": "cooling",
-      "status": "transient",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-12T21:53:22.653Z",
-      "url": "https://sudlerco.com/"
-    },
-    {
-      "name": "Murray Construction Co, Inc.",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 0,
-      "articles": 0,
-      "url": "https://murrayconstruction.com/"
-    },
-    {
-      "name": "Adler Development",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 0,
-      "articles": 0,
-      "url": "https://adlerdev.com/"
-    },
-    {
-      "name": "The KRE Group",
-      "outcome": "cooling",
-      "status": "refused",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-19T20:33:08.329Z",
-      "url": "https://thekregroup.com/"
-    },
-    {
-      "name": "Summit Associates Inc.",
-      "outcome": "cooling",
-      "status": "refused",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-19T20:33:08.329Z",
-      "url": "https://sairealestate.com/"
-    },
-    {
-      "name": "Faropoint",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 2,
-      "articles": 6,
-      "url": "https://faropoint.com/"
-    },
-    {
-      "name": "Kessler Properties",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 0,
-      "articles": 0,
-      "url": "https://kesslerdevelopment.net/"
-    },
-    {
-      "name": "Safer Holding Corp",
-      "outcome": "cooling",
-      "status": "transient",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-13T02:33:08.329Z",
-      "url": "https://safertextiles.com/"
-    },
-    {
-      "name": "The STRO Companies",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 1,
-      "articles": 0,
-      "url": "https://stro.com/"
-    },
-    {
-      "name": "Elberon Development Group",
-      "outcome": "ok",
-      "status": "200",
-      "endpoints": 1,
-      "articles": 1,
-      "url": "https://elberon.com/"
-    },
-    {
-      "name": "Emmes Group Of Companies",
-      "outcome": "cooling",
-      "status": "transient",
-      "endpoints": 0,
-      "articles": 0,
-      "retryAfter": "2026-10-12T21:53:22.653Z",
-      "url": "https://emmesco.com/"
     }
   ],
+  "sourceHealth": {
+    "attempted": 25,
+    "ok": 15,
+    "refused": 0,
+    "transient": 0,
+    "cooling": 10,
+    "withArticles": 6
+  },
   "hits": [
     {
       "title": "Seagis Property Group Completes Class A Industrial Facility at 500 Belleville Turnpike in North Arlington, NJ",

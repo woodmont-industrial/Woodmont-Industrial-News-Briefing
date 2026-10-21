@@ -2966,7 +2966,9 @@
       );
 
       const fresh = new Set(scan.newSinceLastScan || []);
-      const failed = (scan.sources || []).filter(x => x.outcome !== 'ok');
+      // Public artifact carries aggregate source health only (2026-10-21).
+      const health = scan.sourceHealth || null;
+      const unavailable = health ? health.refused + health.transient + health.cooling : 0;
       return (
         <div className={card}>
           <div className="flex items-baseline justify-between flex-wrap gap-2 mb-3">
@@ -3020,20 +3022,11 @@
             </ul>
           )}
 
-          {failed.length > 0 && (
-            <details className="mt-3">
-              <summary className="text-xs text-slate-500 cursor-pointer">
-                {failed.length} source{failed.length === 1 ? '' : 's'} unavailable this run
-              </summary>
-              <ul className="mt-1 text-xs text-slate-500 space-y-0.5">
-                {failed.map((f, i) => (
-                  <li key={i}>
-                    {f.name} — {f.outcome}{f.status && f.status !== f.outcome ? ` (${f.status})` : ''}
-                    {f.retryAfter ? ` · retries after ${new Date(f.retryAfter).toLocaleDateString()}` : ''}
-                  </li>
-                ))}
-              </ul>
-            </details>
+          {health && (
+            <p className="mt-3 text-xs text-slate-500">
+              {health.attempted} source{health.attempted === 1 ? '' : 's'} checked · {health.withArticles} with recent articles
+              {unavailable > 0 ? ` · ${unavailable} unavailable this run` : ''}
+            </p>
           )}
         </div>
       );

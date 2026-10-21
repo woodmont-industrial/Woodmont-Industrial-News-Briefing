@@ -26,8 +26,8 @@ function approvedUrl(value, domain, label) {
 
 function validateScanResult(scan, rows) {
     shape(scan, ['version', 'startedAt', 'completedAt', 'runtimeSeconds', 'lookbackDays', 'requests',
-        'sources', 'hits', 'newSinceLastScan', 'counts', 'duplicatesCollapsed'], 'scan');
-    assert.equal(scan.version, 1, 'scan: unsupported version');
+        'sources', 'sourceHealth', 'hits', 'newSinceLastScan', 'counts', 'duplicatesCollapsed'], 'scan');
+    assert.equal(scan.version, 2, 'scan: unsupported version');
     date(scan.startedAt, 'scan start'); date(scan.completedAt, 'scan completion');
     assert.ok(Date.parse(scan.completedAt) >= Date.parse(scan.startedAt), 'scan: reversed dates');
     for (const field of ['runtimeSeconds', 'lookbackDays', 'requests', 'duplicatesCollapsed']) count(scan[field], field);
@@ -35,28 +35,31 @@ function validateScanResult(scan, rows) {
     assert.ok(Array.isArray(scan.sources) && scan.sources.length <= 500, 'scan: invalid sources');
     assert.ok(Array.isArray(scan.hits) && scan.hits.length <= 5000, 'scan: invalid hits');
     const companies = new Map(rows.map(row => [row['Company Name'], row['Website Domain']]));
+    // Public sources: name + approved homepage ONLY, and only a source that produced a hit.
+    // Per-source health (outcome, status, retry, article counts) is aggregate-only below.
     const sources = new Map();
-    const outcomes = ['ok', 'refused', 'transient', 'cooling'];
     for (const source of scan.sources) {
-        shape(source, ['name', 'url', 'outcome', 'status', 'endpoints', 'articles', 'retryAfter'], 'source', ['retryAfter']);
+        shape(source, ['name', 'url'], 'source');
         text(source.name, 'source name', 500);
         assert.ok(companies.has(source.name), 'source: identity absent from projection');
         approvedUrl(source.url, companies.get(source.name), 'source URL');
         assert.ok(!sources.has(source.name), 'source: duplicate identity');
         sources.set(source.name, source);
-        assert.ok(outcomes.includes(source.outcome), 'source: invalid outcome');
-        text(source.status, 'source status', 100);
-        count(source.endpoints, 'source endpoints'); count(source.articles, 'source articles');
-        if (source.retryAfter !== undefined) date(source.retryAfter, 'source retry');
     }
+    const health = scan.sourceHealth;
+    shape(health, ['attempted', 'ok', 'refused', 'transient', 'cooling', 'withArticles'], 'source health');
+    for (const field of Object.keys(health)) count(health[field], `source health ${field}`);
+    assert.equal(health.ok + health.refused + health.transient + health.cooling, health.attempted,
+        'source health: outcomes do not sum to attempted');
+    assert.ok(health.withArticles <= health.ok, 'source health: more sources with articles than succeeded');
+    assert.ok(scan.sources.length <= health.withArticles, 'source health: more named sources than produced articles');
     const sections = ['sales', 'leases', 'availabilities', 'construction', 'intel', 'municipal'];
     const totals = {};
     for (const hit of scan.hits) {
         shape(hit, ['title', 'link', 'publishedAt', 'source', 'section', 'tier', 'squareFeet', 'priceUsd',
             'evidence', 'evidenceSource', 'reason'], 'hit');
         text(hit.title, 'hit title', 1000); text(hit.source, 'hit source', 500);
-        const source = sources.get(hit.source);
-        assert.ok(source && source.outcome === 'ok' && source.articles > 0, 'hit: no successful public source');
+        assert.ok(sources.has(hit.source), 'hit: source not named in the public sources');
         approvedUrl(hit.link, companies.get(hit.source), 'hit URL');
         date(hit.publishedAt, 'hit publication');
         assert.ok(Date.parse(hit.publishedAt) <= Date.parse(scan.completedAt), 'hit: future publication');
@@ -71,6 +74,8 @@ function validateScanResult(scan, rows) {
         assert.ok(['feed', 'article page'].includes(hit.evidenceSource), 'hit: invalid evidence source');
         totals[hit.section] = (totals[hit.section] || 0) + 1;
     }
+    const cited = new Set(scan.hits.map(hit => hit.source));
+    assert.ok(scan.sources.every(source => cited.has(source.name)), 'source: named without a hit');
     shape(scan.counts, Object.keys(totals), 'section counts');
     assert.deepEqual(scan.counts, totals, 'scan: counts differ from hits');
     assert.ok(Array.isArray(scan.newSinceLastScan), 'scan: invalid new-hit references');

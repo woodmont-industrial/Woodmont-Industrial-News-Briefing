@@ -6,7 +6,7 @@
  */
 import {
     hostDeclared, classifyFailure, parseFeedArticles, parseNewsroomLinks, magnitudeUnit, evidenceSentence,
-    articleText, articleDate, loadScanConfig, runCapitalMarketsScan, httpFetcher, Fetcher,
+    articleText, articleDate, loadScanConfig, runCapitalMarketsScan, httpFetcher, Fetcher, SourceHealth,
 } from './capital-markets-scan.js';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -149,16 +149,23 @@ const stub: Fetcher = async (url) => {
     }
     return { ok: false, status: '403', body: '' };
 };
-const result = await runCapitalMarketsScan({ docsDir, fetcher: stub, write: false, lookbackDays: 30 });
+let detail: SourceHealth[] = [];
+const result = await runCapitalMarketsScan({ docsDir, fetcher: stub, write: false, lookbackDays: 30, onSourceHealth: h => { detail = h; } });
 check(result.hits.length === 1, `a qualifying construction item is found (${result.hits.length})`);
 check(result.hits[0]?.section === 'construction', `routed to construction (${result.hits[0]?.section})`);
 check(result.hits[0]?.tier === 'TARGET', `in a target market (${result.hits[0]?.tier})`);
 check(Boolean(result.hits[0]?.evidence), 'the evidence it judged is recorded');
 check(Boolean(result.hits[0]?.link), 'a direct link is recorded');
 check(result.newSinceLastScan.length === 1, 'with no prior scan, everything is new');
-const refused = result.sources.filter(s => s.outcome === 'refused');
+const refused = detail.filter(s => s.outcome === 'refused');
 check(refused.length > 0, `refused sources are recorded rather than dropped (${refused.length})`);
 check(refused.every(s => Boolean(s.retryAfter)), 'each refusal carries a retry time');
+// Public artifact (2026-10-21): only sources that produced a hit are named; health is aggregate.
+check(result.sources.length === new Set(result.hits.map(h => h.source)).size
+    && result.sources.every(s => Object.keys(s).sort().join() === 'name,url'),
+    `only hit-producing sources are named, as name + url (${result.sources.length})`);
+check(result.sourceHealth.attempted === detail.length && result.sourceHealth.refused === refused.length
+    && result.sourceHealth.withArticles >= result.sources.length, 'aggregate health matches the private per-source detail');
 check(result.runtimeSeconds >= 0 && result.requests > 0, 'runtime and request count are reported');
 
 console.log('=== the real scanner recovers missing facts and deduplicates developments ===');

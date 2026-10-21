@@ -91,14 +91,32 @@ export interface ScanHit {
     reason: string;
 }
 
+/** A source named in the PUBLIC artifact: only one that produced a qualifying hit. */
+export interface PublicSource {
+    name: string;
+    url: string;
+}
+
+/** Aggregate source health. Per-source detail (which company refused, timed out
+ *  or yielded nothing) stays out of the public artifact; see onSourceHealth. */
+export interface SourceHealthCounts {
+    attempted: number;
+    ok: number;
+    refused: number;
+    transient: number;
+    cooling: number;
+    withArticles: number;
+}
+
 export interface ScanResult {
-    version: 1;
+    version: 2;
     startedAt: string;
     completedAt: string;
     runtimeSeconds: number;
     lookbackDays: number;
     requests: number;
-    sources: SourceHealth[];
+    sources: PublicSource[];
+    sourceHealth: SourceHealthCounts;
     hits: ScanHit[];
     /** Hits not present in the previous scan, so a reader can see what is new. */
     newSinceLastScan: string[];
@@ -337,6 +355,8 @@ export interface RunScanOptions {
     docsDir?: string;
     lookbackDays?: number;
     fetcher?: Fetcher;
+    /** Receives per-source health. It is never written to the public artifact. */
+    onSourceHealth?: (health: SourceHealth[]) => void;
     /** Skip persistence — used by tests. */
     write?: boolean;
     now?: Date;
@@ -495,13 +515,29 @@ export async function runCapitalMarketsScan(options: RunScanOptions = {}): Promi
     const counts: Record<string, number> = {};
     for (const h of hits) counts[h.section] = (counts[h.section] || 0) + 1;
 
+    // Public artifact: name only the sources that produced a hit, plus aggregate
+    // health. Listing every source attempted (most with zero articles) published
+    // noise rather than findings.
+    const hitSources = new Set(hits.map(h => h.source));
+    const sourcesWithHits: PublicSource[] = health.filter(h => hitSources.has(h.name))
+        .map(h => ({ name: h.name, url: h.url }));
+    const sourceHealth: SourceHealthCounts = {
+        attempted: health.length,
+        ok: health.filter(h => h.outcome === 'ok').length,
+        refused: health.filter(h => h.outcome === 'refused').length,
+        transient: health.filter(h => h.outcome === 'transient').length,
+        cooling: health.filter(h => h.outcome === 'cooling').length,
+        withArticles: health.filter(h => h.outcome === 'ok' && h.articles > 0).length,
+    };
+    options.onSourceHealth?.(health);
+
     const completed = new Date();
     const result: ScanResult = {
-        version: 1,
+        version: 2,
         startedAt: new Date(started).toISOString(),
         completedAt: completed.toISOString(),
         runtimeSeconds: Math.round((Date.now() - started) / 1000),
-        lookbackDays, requests, sources: health, hits, newSinceLastScan, counts,
+        lookbackDays, requests, sources: sourcesWithHits, sourceHealth, hits, newSinceLastScan, counts,
         duplicatesCollapsed,
     };
 
