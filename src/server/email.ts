@@ -22,7 +22,7 @@ import {
 } from './newsletter-filters.js';
 import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
-import { indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
+import { editorialVerdictFields, indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
 import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
 
 // ---------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         .filter((a: any) => !excludedIds.has(a.id));
                     console.log(`📊 ${day}: ${dayArticles.length} articles${excludedIds.size > 0 ? ` (after excluded-IDs filter)` : ''}`);
                     for (const a of dayArticles) {
-                        allWeekArticles.push({
+                        const item = {
                             id: a.id,
                             title: a.title,
                             link: a.link || a.url,
@@ -1174,7 +1174,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             tags: a.region ? [a.region] : [],
                             date_published: a.date_published || day,
                             pubDate: a.date_published || day,
-                        } as NormalizedItem);
+                            ...editorialVerdictFields(a),
+                        } as NormalizedItem;
+                        if ((item.category || 'relevant') === 'relevant' && !passesRelevantVerdict(item)) continue;
+                        allWeekArticles.push(item);
                     }
                 }
 
@@ -1234,6 +1237,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // Fallback: scan feed for last 5 days
                 const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
                 weekInReview = fiveDayArticles
+                    .filter(a => a.category !== 'relevant' || passesRelevantVerdict(a))
                     .filter(isNotExcludedRegion)
                     .filter(a => !isPolitical(getText(a)))
                     .sort((a, b) => scoreArticle(b) - scoreArticle(a))

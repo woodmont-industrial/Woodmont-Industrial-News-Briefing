@@ -54,15 +54,18 @@ async function main() {
         const sections = Object.fromEntries(Object.keys(names).map(category => [category,
             picked.filter((trace: any) => trace.category === category).map((trace: any) => trace.id).sort()]));
         const rendered = picked.filter((trace: any) => sectionHtml(trace.category).includes(escapeHtml(trace.title)));
+        const weekly = traces.filter((trace: any) => trace.events.some((event: any) => event.stage === 'weekInReview'));
         const result = { frozenNowUtc: asOf, dryRun: true, networkRequests: requests,
             articleCount: metadata.articleCount, score: metadata.score,
             editorialScore: diagnostics.quality?.editorialQualityScore, sections,
             renderedIds: rendered.map((trace: any) => trace.id).sort(),
+            weekInReviewIds: weekly.map((trace: any) => trace.id).sort(),
             stages: Object.fromEntries(traces.filter((trace: any) => trace.id !== '__HTML__').map((trace: any) =>
                 [trace.id, trace.events.filter((event: any) => event.verdict === 'add').map((event: any) => event.stage)])),
         };
         assert.equal(requests, 0, 'no network or delivery transport may be called');
         assert.equal(result.renderedIds.length, picked.length, 'every selected article must appear in the correct HTML section');
+        assert.ok(weekly.every((trace: any) => html.includes(escapeHtml(trace.title))), 'weekly selections must appear in the HTML');
         fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
         fs.writeFileSync(output, JSON.stringify(result, null, 2) + '\n');
         log(`PASS: offline email rendered ${picked.length} articles; zero network requests`);

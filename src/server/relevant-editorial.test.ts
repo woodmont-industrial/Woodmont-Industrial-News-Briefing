@@ -51,7 +51,26 @@ try {
     assert.ok(result.sections.availabilities.includes('availability-control'), 'the advisory Availability item still ships');
     assert.ok(result.sections.relevant.includes('good-macro'), 'approved market context still ships');
     assert.equal(result.networkRequests, 0);
-    console.log('PASS: real offline send blocks rejected initial/backfill/router/reserve/manual items and renders advisory People and Availability');
+    const weeklyRejected = article('rejected-weekly', 'Florida industrial warehouse investment forecast');
+    const weeklyApproved = article('weekly-control', 'Pennsylvania industrial capital markets research', { _woodmontApprove: true });
+    fs.writeFileSync(path.join(scratch, 'weekly-top-articles.json'), JSON.stringify({ week: { '2026-10-22': [
+        weeklyRejected, weeklyApproved, { ...items.find(a => a.id === 'rejected-current-reserve'), _woodmontApprove: undefined },
+    ] } }));
+    execFileSync(process.execPath, ['--import', 'tsx', 'scripts/replay-editorial-email.ts', scratch, output, '2026-10-23T12:00:20Z'], {
+        cwd: process.cwd(), env: { PATH: process.env.PATH, TZ: 'America/New_York' }, stdio: 'pipe',
+    });
+    const friday = JSON.parse(fs.readFileSync(output, 'utf8'));
+    assert.ok(!friday.weekInReviewIds.includes('rejected-weekly'), 'weekly output respects its own stored verdict');
+    assert.ok(!friday.weekInReviewIds.includes('rejected-current-reserve'), 'weekly output cannot hide the current feed verdict');
+    assert.ok(friday.weekInReviewIds.includes('weekly-control'), 'approved weekly context still renders');
+    fs.unlinkSync(path.join(scratch, 'weekly-top-articles.json'));
+    execFileSync(process.execPath, ['--import', 'tsx', 'scripts/replay-editorial-email.ts', scratch, output, '2026-10-23T12:00:20Z'], {
+        cwd: process.cwd(), env: { PATH: process.env.PATH, TZ: 'America/New_York' }, stdio: 'pipe',
+    });
+    const fallback = JSON.parse(fs.readFileSync(output, 'utf8'));
+    const rejectedRelevant = new Set(items.filter((item: any) => item.category === 'relevant' && item._woodmontApprove === false).map(item => item.id));
+    assert.ok(!fallback.weekInReviewIds.some((id: string) => rejectedRelevant.has(id)), 'weekly feed fallback uses the same Relevant verdict');
+    console.log('PASS: real offline daily and Friday pipelines enforce Relevant verdicts and render advisory People and Availability');
 } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
 }

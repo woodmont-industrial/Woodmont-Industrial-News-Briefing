@@ -10,6 +10,7 @@ import { WOODMONT_RUBRIC_VERSION } from '../src/filter/woodmont-rubric.js';
 import { reviewEditorialCandidates, getEditorialReviewCandidates, writeEditorialFeed } from '../src/build/editorial-review.js';
 import { mapFeedItemsToArticles } from '../src/server/newsletter-filters.js';
 import { editorialRubricCases } from './editorial-rubric-cases.js';
+import { editorialVerdictFields } from '../src/filter/editorial-verdict.js';
 
 const BASE = 'd8497eb163c5bd2e6ef3f9ddb7add9a6e795f66d';
 const INSTANT = '2026-10-22T12:00:20Z';
@@ -63,27 +64,56 @@ async function main() {
         const result: any = { provider: provider.name, model: provider.model, requests: 0, statuses: {}, paired: [], success: false };
         report.providers.push(result); save();
         let lastRequest = 0;
+        let tokenState: { limit: number; remaining: number; at: number } | undefined;
+        let quotaExhausted = false;
         globalThis.fetch = async (url, init) => {
             assert.equal(String(url), provider.url, 'requests stay on the selected provider endpoint');
             assert.equal(init?.method, 'POST');
-            assert.ok(++result.requests <= 260, 'comparison request budget');
-            const wait = 2200 - (Date.now() - lastRequest);
+            if (quotaExhausted) throw new Error('Provider quota exhausted');
+            let wait = 2200 - (Date.now() - lastRequest);
+            if (provider.name === 'Groq' && lastRequest) {
+                // Groq's token header is TPM, whereas its request header is RPD.
+                // Account for prompt + reserved output, not just requests/minute.
+                const payload = JSON.parse(String(init?.body));
+                const estimated = Math.ceil(payload.messages.reduce((n: number, message: any) => n + message.content.length, 0) / 3.5)
+                    + payload.max_completion_tokens + 256;
+                wait = Math.max(wait, tokenState
+                    ? Math.max(0, estimated - tokenState.remaining) / tokenState.limit * 60000 - (Date.now() - tokenState.at)
+                    : 30000 - (Date.now() - lastRequest));
+            }
             if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
+            assert.ok(++result.requests <= 260, 'comparison request budget');
             lastRequest = Date.now();
             const response = await realFetch(url, init);
             result.statuses[response.status] = (result.statuses[response.status] || 0) + 1;
+            const limit = Number(response.headers.get('x-ratelimit-limit-tokens'));
+            const remaining = Number(response.headers.get('x-ratelimit-remaining-tokens'));
+            if (limit > 0 && Number.isFinite(remaining)) {
+                tokenState = { limit, remaining, at: Date.now() };
+                result.tokenLimitPerMinute = limit;
+            }
             // Daily quota exhaustion cannot justify sleeping a runner for hours.
             const retry = Number(response.headers.get('retry-after'));
-            if (response.status === 429 && retry > 60) throw new Error('Provider daily quota exhausted');
+            if (response.status === 429 && retry > 60) { quotaExhausted = true; throw new Error('Provider daily quota exhausted'); }
             return response;
         };
         try {
-            const cases = editorialRubricCases(new Date(INSTANT));
+            const realCases: Record<string, string> = {
+                'editorial-trade': '501b1a852a3e6a88b88032e85cbfed2a7cbe866c',
+                'pa-corridor-report': '3f26b26e0686a63f604c4d1cbdf236223c9108d8',
+                'nonprofit-warehouse': 'ea0f173089c0bf0d5cd7c792266dd2c0e2ea10d6',
+            };
+            const cases = editorialRubricCases(new Date(INSTANT)).map(test => ({ ...test,
+                article: realCases[test.article.id]
+                    ? originalItems.find(article => article.id === realCases[test.article.id])! : test.article }));
+            const phaseItems: Record<string, any[]> = {};
             for (const phase of ['old', 'new']) {
+                result.phase = `paired-${phase}`;
                 const input = cases.map(c => ({ ...c.article }));
-                const summary = await classifyWoodmontBatch(input, 1, 0, 150000, {
+                const summary = await classifyWoodmontBatch(input, 1, 0, provider.name === 'Groq' ? 360000 : 150000, {
                     asOf: new Date(INSTANT), ...(phase === 'old' ? { rubric: { version: oldVersion!, systemPrompt: oldPrompt! } } : {}),
                 });
+                phaseItems[phase] = input;
                 result.paired.push({ phase, summary, decisions: input.map((item: any, i) => ({
                     id: item.id, expected: cases[i].approve, approve: item._woodmontApprove ?? null,
                     correct: item._woodmontApprove === cases[i].approve,
@@ -91,11 +121,36 @@ async function main() {
                 })) });
                 save();
             }
-            assert.ok(result.paired[1].decisions.every((decision: any) => decision.correct),
+            assert.ok(result.paired[1].summary.classified === cases.length && result.paired[1].summary.failed === 0
+                && result.paired[1].decisions.every((decision: any) => decision.correct && decision.rubricVersion === WOODMONT_RUBRIC_VERSION),
                 'new rubric must retain editorial reports and reject paired listings, out-of-region events, charity and stale controls');
+            // Re-run the OLD prompt on the actual disputed corpus as well. Comparing
+            // only against cached verdicts would confound prompt and model changes.
+            result.phase = 'stored-old';
+            // The primary gets the entire disputed cohort. The fallback is tested
+            // on the same three real cases plus seven paired controls, within TPM.
+            const disputed = provider.name === 'Groq'
+                ? phaseItems.old.filter(item => Object.values(realCases).includes(item.id))
+                : structuredClone(originalItems.filter((item: any) => item.category === 'relevant' && item._woodmontApprove === false));
+            const oldReview = provider.name === 'Groq' ? { classified: disputed.length, targeted: true }
+                : await classifyWoodmontBatch(disputed, 1, 0, 180000,
+                    { asOf: new Date(INSTANT), rubric: { version: oldVersion!, systemPrompt: oldPrompt! } });
+            result.oldRejectedCohort = { summary: oldReview, decisions: disputed.map((item: any) => ({
+                id: item.id, approve: item._woodmontRubricVersion === oldVersion ? item._woodmontApprove : null,
+            })) };
+            save();
+            result.phase = 'stored-new';
             const updated = structuredClone(originalItems);
             // Exercise the real build's four-minute budget, not an unbounded experiment.
-            result.review = await reviewEditorialCandidates(updated, { asOf: new Date(INSTANT), maxConcurrent: 1, batchDelayMs: 0 });
+            if (provider.name === 'Groq') {
+                for (const item of phaseItems.new.filter(item => Object.values(realCases).includes(item.id))) {
+                    Object.assign(updated.find(article => article.id === item.id)!, editorialVerdictFields(item));
+                }
+                result.review = { mode: 'targeted fallback: three real articles', classified: 3,
+                    candidates: report.reviewCandidates, remaining: report.reviewCandidates - 3 };
+            } else {
+                result.review = await reviewEditorialCandidates(updated, { asOf: new Date(INSTANT), maxConcurrent: 1, batchDelayMs: 0 });
+            }
             const providerDocs = path.join(scratch, provider.name);
             fs.cpSync(docs, providerDocs, { recursive: true });
             writeEditorialFeed(updated, path.join(providerDocs, 'feed.json'));
@@ -107,6 +162,12 @@ async function main() {
                 return previous?._woodmontApprove !== item._woodmontApprove
                     ? [{ id: item.id, before: previous?._woodmontApprove ?? null, after: item._woodmontApprove }] : [];
             });
+            result.rejectedCohortComparison = disputed.map((item: any) => {
+                const next = stored.find((candidate: any) => candidate.id === item.id);
+                return { id: item.id, old: item._woodmontRubricVersion === oldVersion ? item._woodmontApprove : null,
+                    new: next?._woodmontRubricVersion === WOODMONT_RUBRIC_VERSION ? next._woodmontApprove : null };
+            });
+            result.phase = 'email-render';
             result.email = replay(providerDocs, process.cwd(), provider.name);
             const hireId = '54d72d5316e4ac01ebf45df8de17f5728d16cf0d';
             assert.ok(result.email.sections.people.includes(hireId) && result.email.renderedIds.includes(hireId), 'the queued hire still renders in People');
@@ -116,6 +177,7 @@ async function main() {
                 assert.equal(corrected?._woodmontApprove, true, 'fresh editorial research must not remain rejected as a listing or wrong region');
             }
             assert.equal(stored.find((item: any) => item.id === 'ea0f173089c0bf0d5cd7c792266dd2c0e2ea10d6')?._woodmontApprove, false);
+            result.phase = 'complete';
             result.success = true;
         } catch {
             result.error = 'COMPARISON_FAILED: inspect sanitized paired decisions and coverage';
@@ -123,7 +185,8 @@ async function main() {
         save();
         console.log(JSON.stringify({ provider: result.provider, model: result.model, success: result.success,
             requests: result.requests, statuses: result.statuses, paired: result.paired,
-            review: result.review, versionedInFeed: result.versionedInFeed, email: result.email }));
+            review: result.review, versionedInFeed: result.versionedInFeed, email: result.email,
+            phase: result.phase, rejectedCohortComparison: result.rejectedCohortComparison }));
     }
     assert.ok(report.providers.length === 2 && report.providers.every((provider: any) => provider.success),
         'Both providers must pass independently. No email or corpus is uploaded.');

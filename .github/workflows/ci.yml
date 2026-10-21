@@ -262,11 +262,14 @@ jobs:
 
   editorial-rubric-replay:
     name: Editorial Rubric Replay
+    concurrency:
+      group: editorial-rubric-provider-replay
+      cancel-in-progress: false
     if: >-
       github.event_name == 'pull_request' && github.head_ref == 'fix/relevant-rubric-enforcement' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:
