@@ -1,0 +1,56 @@
+name: Engineering Changelog
+
+# Keeps docs/engineering-changelog.csv (Power BI "engineering activity") current.
+# It was hand-maintained and silently stopped at 2026-08-26 while ~45 changes shipped.
+# Runs after CI finishes for a push to main, so the CI result can be recorded, and
+# appends one row per new production change with the automatic columns filled in.
+# Judgement columns (bug class, outcome, risk) are left for a person to annotate; the
+# row's notes say "auto-logged: annotation pending" until then.
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  checks: read
+
+concurrency:
+  group: engineering-changelog
+  cancel-in-progress: false
+
+jobs:
+  append:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Append rows for unlogged production changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/engineering-changelog.mjs --append
+      - name: Commit
+        run: |
+          if git diff --quiet -- docs/engineering-changelog.csv; then
+            echo "changelog already current"
+            exit 0
+          fi
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/engineering-changelog.csv
+          git commit -m "📒 Engineering changelog - $(date -u '+%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            sleep $((i * 10))
+          done
+          echo "::error::could not push the changelog after 3 attempts"
+          exit 1

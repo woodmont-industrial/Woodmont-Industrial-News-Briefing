@@ -16,6 +16,25 @@ editorial_outcome, risk_level, notes`.
 - `historical_items_*` are blank for office-led / People / DC because those replay counts were not
   re-run in the session that built this file (cite the commit + test suite instead).
 
+### Automatic updates (2026-10-21)
+The changelog was hand-maintained and stopped at 2026-08-26 while ~45 changes shipped, so the
+Power BI engineering pages showed nothing after August. `scripts/engineering-changelog.mjs` now
+appends rows, and `.github/workflows/engineering-changelog.yml` runs it after CI completes for every
+push to main.
+- **Which commits:** non-merge commits reachable from main, by a person, that touch anything other than
+  data or prose (send-state JSON, CSV datasets, archives, diagnostics and `*.md` are excluded).
+- **Auto columns:** `files_changed / lines_*` count code files only. `test_suite` lists the changed test files;
+  `tests_added` counts added assertion calls (`check`, `chk`, `assert*`, `expect*`, `keep`, `block`, …).
+  `ci_checks_passed` is `pass`, `fail`, or blank. Blank means every run was **cancelled** (superseded by a
+  newer push) or skipped. Website deployment runs (`build`, `deploy`, `report-build-status`) are not tests
+  and are ignored.
+- **Annotation:** rows the workflow appends carry `notes = auto-logged: annotation pending` until someone fills in
+  the judgement columns. The 2026-08-27..10-21 backfill was annotated from
+  `scripts/engineering-annotations/2026-10-backfill.json`.
+- **`production_status`** ∈ {`live`, `shadow` (runs but never sends), `preview-only` (website preview
+  sandbox)}. Most Capital Markets work is `preview-only` or `shadow`. Filter on `live` for changes that
+  affected the department newsletter.
+
 ## docs/engineering-validations.csv — one row per (commit, replay date)
 Each frozen-replay validation is its own row (e.g. the buyer-HQ commit has separate 07-02 and 07-30
 rows). `score_*` are from the **frozen replay**; where a production `quality-scores.csv` baseline
