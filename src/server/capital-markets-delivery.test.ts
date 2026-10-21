@@ -167,19 +167,27 @@ console.log("\n=== preview/shadow pool parity ===");
         includeWeekInReview: false,
         testBanner: true,
     });
-    const ids = new Set(feedItems.map((a: any) => String(a.id || "")).filter(Boolean));
-    const urls = new Set(feedItems.map((a: any) => String(a.link || a.url || "").toLowerCase()).filter(Boolean));
+    // Exclusions apply to feed.json as well as raw candidates. Count only
+    // visible feed entries; adding an exclusion must not look like pool drift.
+    const visibleFeedItems = feedItems.filter((a: any) => {
+        const id = String(a.id || ""), u = String(a.link || a.url || "").toLowerCase();
+        return !((id && excluded.ids.has(id)) || (u && excluded.urls.has(u)));
+    });
+    const ids = new Set(visibleFeedItems.map((a: any) => String(a.id || "")).filter(Boolean));
+    const urls = new Set(visibleFeedItems.map((a: any) => String(a.link || a.url || "").toLowerCase()).filter(Boolean));
     let uniqueRaw = 0;
     for (const r of rawItems as any[]) {
         const id = String(r.id || ""), u = String(r.u || "").toLowerCase();
         if ((id && ids.has(id)) || (u && urls.has(u))) continue;
         if ((id && excluded.ids.has(id)) || (u && excluded.urls.has(u))) continue;
         uniqueRaw++;
+        if (id) ids.add(id);
+        if (u) urls.add(u);
     }
-    check(live.summary.sourceArticles > feedItems.length,
-        "shadow pool exceeds feed.json alone (" + feedItems.length + " -> " + live.summary.sourceArticles + ")");
-    check(live.summary.sourceArticles === feedItems.length + uniqueRaw,
-        "shadow pool equals the page pool (feed " + feedItems.length + " + raw " + uniqueRaw + ")");
+    check(live.summary.sourceArticles > visibleFeedItems.length,
+        "shadow pool exceeds visible feed.json alone (" + visibleFeedItems.length + " -> " + live.summary.sourceArticles + ")");
+    check(live.summary.sourceArticles === visibleFeedItems.length + uniqueRaw,
+        "shadow pool equals the page pool (visible feed " + visibleFeedItems.length + " + raw " + uniqueRaw + ")");
     check(live.summary.watchlist.loaded > 500,
         "shadow auto-loads the committed watchlist (" + live.summary.watchlist.loaded + " companies)");
 }
