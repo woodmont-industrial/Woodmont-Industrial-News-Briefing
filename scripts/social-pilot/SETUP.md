@@ -1,6 +1,22 @@
 # Social-source pilot — setup (local machine only)
 
-A 30-day test of whether developer, brokerage and municipal accounts on X, Instagram and Facebook surface qualifying developments that the scanner and newsletter feed miss. Nothing here runs in GitHub Actions, writes to the repo, or publishes to the website.
+A 30-day test of whether developer, brokerage and municipal accounts on X, Instagram and Facebook surface qualifying developments that the scanner and newsletter feed miss. Collection and evaluation run on an approved local host; private data is never written to the repo or published to the website. GitHub runs the validation and reader-installation checks described below.
+
+## What can run through GitHub
+
+The `Social Pilot Checks` workflow runs the classifier fixtures, privacy checks,
+and installation/help checks for the pinned readers on an Ubuntu runner. It runs
+on pushes to this pilot branch and pull requests targeting either the scanner
+branch or `main`; the general CI workflow only covers pull requests to `main`.
+It receives no social credentials or account list and uploads no posts or reports.
+This proves tool installation and command startup on Linux, not live collection.
+
+The `collect`, `evaluate` and `status` commands remain local-only. A hosted runner
+does not inherit the dedicated Chrome profile, extension or logged-in Facebook
+and Instagram sessions. X can technically use explicit dedicated-account
+credentials on another approved host, but the current pilot does not include a
+cloud collection mode or a private destination for its account list and reports.
+Do not put those files in this public repository or a public Actions log.
 
 ## Ground rules
 - **Dedicated accounts only.** Use new X, Instagram and Facebook accounts made for this. Never your personal or Woodmont accounts: these readers use logged-in sessions, and the platforms can restrict accounts they detect doing so.
