@@ -76,6 +76,8 @@ async function main() {
             check(/BRIEFING TIME \(UTC\): \d{4}-\d{2}-\d{2}T/.test(summaryPrompt), selected + ' summary receives the briefing timestamp');
             check(summaryPrompt.includes('Do not add age warnings') && summaryPrompt.includes('Do not imply an event happened today'),
                 selected + ' summary separates date context from reader-facing age commentary');
+            check(summaryPrompt.includes('Preserve approval, proposal, construction and completion status')
+                && summaryPrompt.includes('what each metric measures'), selected + ' summary preserves event status and metric scope');
             malformedRubric = true;
             const bad = await classifyWoodmontBatch([{ ...item }], 1, 0, 30000);
             check(bad.failed === 1 && bad.rejected === 0, selected + ' malformed editorial JSON is a failure, not a rejection');

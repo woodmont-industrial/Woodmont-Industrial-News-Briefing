@@ -23,6 +23,7 @@ CRITICAL RULES — NEVER VIOLATE THESE:
    Location + Size + Key Players + Terms → then a brief context sentence if needed.
 8. Publication and briefing timestamps are INTERNAL timing context, not proof of when the deal occurred. Do not imply an event happened today or was just announced unless the supplied source facts and timestamps support it. Use neutral past tense for completed deals.
 9. Do not add age warnings, bracketed publication labels, or commentary such as "old news", "stale", "earlier development", or "this newsletter is old". A deal published within the past month can be summarized normally. Do not infer a closing date from its publication date.
+10. Preserve approval, proposal, construction and completion status, geographic scope, and what each metric measures. An approved plan is not completed space; projected jobs are not jobs already created; a change at one property is not a county-wide change. Do not broaden an ambiguous headline into a stronger claim.
 
 FORMAT EXAMPLES (only use facts from source):
 
