@@ -205,7 +205,12 @@ export const httpFetcher: Fetcher = async (url, timeoutMs, domains) => {
             if ([301, 302, 303, 307, 308].includes(res.status)) {
                 const location = res.headers.get('location');
                 if (!location) return { ok: false, body: '', status: 'missing-redirect', requestCount };
-                const next = new URL(location, current).toString();
+                const destination = new URL(location, current);
+                // Some publishers advertise a legacy HTTP canonical redirect
+                // from an HTTPS homepage. Request its HTTPS equivalent only;
+                // the declared-host, credentials and port checks still apply.
+                if (destination.protocol === 'http:') destination.protocol = 'https:';
+                const next = destination.toString();
                 // Validate BEFORE issuing the next request, not after reading
                 // an unapproved destination's content.
                 if (!hostDeclared(next, approved)) return { ok: false, body: '', status: 'unapproved-redirect', requestCount };

@@ -50,6 +50,27 @@ try {
     const followed = await httpFetcher('https://example-developer.test/start', 1000, ['example-developer.test']);
     check(followed.ok && followed.finalUrl === 'https://example-developer.test/release', 'an approved relative redirect succeeds');
     check(followed.requestCount === 2 && calls.length === 2, 'redirect hops are counted as HTTP requests');
+    calls.length = 0;
+    globalThis.fetch = async (url) => {
+        calls.push(String(url));
+        return calls.length === 1
+            ? new Response(null, { status: 301, headers: { location: 'http://www.example-developer.test/release' } })
+            : new Response('Approved release over HTTPS', { status: 200 });
+    };
+    const upgraded = await httpFetcher('https://example-developer.test/', 1000, ['example-developer.test']);
+    check(upgraded.ok && calls[1] === 'https://www.example-developer.test/release', 'a legacy canonical redirect is upgraded before its request');
+    check(calls.every(url => url.startsWith('https:')), 'no request uses insecure HTTP');
+    calls.length = 0;
+    globalThis.fetch = async (url) => {
+        calls.push(String(url));
+        return new Response(null, { status: 301, headers: { location: 'http://outside.test/release' } });
+    };
+    const externalLegacy = await httpFetcher('https://example-developer.test/', 1000, ['example-developer.test']);
+    check(!externalLegacy.ok && calls.length === 1, 'an HTTP redirect to another domain remains blocked');
+    calls.length = 0;
+    globalThis.fetch = async (url) => { calls.push(String(url)); return new Response(null, {status: 403}); };
+    const refused = await httpFetcher('https://example-developer.test/', 1000, ['example-developer.test']);
+    check(!refused.ok && refused.status === '403' && calls.length === 1, 'an access refusal is not retried through an alternate address');
     globalThis.fetch = async () => ({ ok: true, status: 200, url: 'https://outside.test/release',
         text: async () => 'Unapproved destination content' } as Response);
     const escaped = await httpFetcher('https://example-developer.test/start', 1000, ['example-developer.test']);
