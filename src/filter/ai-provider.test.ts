@@ -64,15 +64,24 @@ async function main() {
             const editorialItem = { ...item };
             const editorial = await classifyWoodmontBatch([editorialItem], 1, 0, 30000);
             check(editorial.approved === 1 && editorial.failed === 0, selected + ' editorial JSON is consumed');
-            const summaryItem = { ...item };
+            const publishedAt = new Date(Date.now() - 30 * 86400000).toISOString();
+            const summaryItem = { ...item, pubDate: publishedAt, date_modified: new Date().toISOString() };
             await generateDescriptions([summaryItem]);
             check(summaryItem.description?.includes('120,000 SF'), selected + ' a factual summary is consumed');
             check(calls.length === 4, selected + ' the four actual call paths were exercised');
             check(calls.slice(0, 3).every(c => c.response_format?.type === 'json_object'), selected + ' classifiers explicitly request JSON');
             check(!calls[3].response_format, selected + ' summaries retain their plain-text format');
+            const summaryPrompt = calls[3].messages.map((m: any) => m.content).join('\n');
+            check(summaryPrompt.includes('ARTICLE PUBLISHED (UTC): ' + publishedAt), selected + ' summary receives the publication date');
+            check(/BRIEFING TIME \(UTC\): \d{4}-\d{2}-\d{2}T/.test(summaryPrompt), selected + ' summary receives the briefing timestamp');
+            check(summaryPrompt.includes('Do not add age warnings') && summaryPrompt.includes('Do not imply an event happened today'),
+                selected + ' summary separates date context from reader-facing age commentary');
             malformedRubric = true;
             const bad = await classifyWoodmontBatch([{ ...item }], 1, 0, 30000);
             check(bad.failed === 1 && bad.rejected === 0, selected + ' malformed editorial JSON is a failure, not a rejection');
+            await generateDescriptions([{ ...item, pubDate: undefined, fetchedAt: new Date().toISOString() }]);
+            const undatedPrompt = calls[calls.length - 1].messages.map((m: any) => m.content).join('\n');
+            check(undatedPrompt.includes('ARTICLE PUBLISHED (UTC): Not provided'), selected + ' fetch time is never substituted for publication time');
         }
         console.log(`PASS: ${passed} AI provider recovery assertions`);
     } finally {
