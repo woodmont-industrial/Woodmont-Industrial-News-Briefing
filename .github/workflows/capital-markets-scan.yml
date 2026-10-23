@@ -63,6 +63,7 @@ jobs:
         run: node --import tsx rssfeed.ts --run-capital-markets-scan --scan-days "${{ inputs.lookback_days || '30' }}"
 
       - name: Validate public scan artifacts
+        id: validate_public
         run: npm run validate:cm-watchlist-privacy
 
       # The scan result is only "published" if it reaches the branch and path
@@ -103,7 +104,7 @@ jobs:
       # Always keep the result retrievable, including when the run was dispatched
       # from a branch Pages does not serve.
       - name: Upload the scan result
-        if: always()
+        if: always() && steps.validate_public.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: capital-markets-scan
@@ -113,6 +114,7 @@ jobs:
       # Prove the website serves THIS scan, rather than assuming the push was
       # enough. Compares completedAt on the live site with the local file.
       - name: Confirm the live site serves this scan
+        id: verify_live
         if: steps.publish.outputs.published == 'yes'
         run: |
           LOCAL=$(node -e "console.log(require('./docs/data/capital-markets-scan.json').completedAt)")
@@ -139,13 +141,19 @@ jobs:
           echo "## Capital Markets scan" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           case "${{ steps.publish.outputs.published }}" in
-            yes)           echo "- website: updated and verified live" >> $GITHUB_STEP_SUMMARY ;;
+            yes)
+              if [ "${{ steps.verify_live.outcome }}" = "success" ]; then
+                echo "- website: updated and verified live" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- website: push completed; live publication **not verified**" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
             none)          echo "- website: unchanged (this scan found nothing new)" >> $GITHUB_STEP_SUMMARY ;;
             wrong-branch)  echo "- website: **not updated** - this run was dispatched from '${GITHUB_REF_NAME}', and Pages serves 'main':/docs. Download the 'capital-markets-scan' artifact instead." >> $GITHUB_STEP_SUMMARY ;;
             *)             echo "- website: publish step did not complete" >> $GITHUB_STEP_SUMMARY ;;
           esac
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f docs/data/capital-markets-scan.json ]; then
+          if [ "${{ steps.validate_public.outcome }}" = "success" ] && [ -f docs/data/capital-markets-scan.json ]; then
             node -e "
               const r = require('./docs/data/capital-markets-scan.json');
               const out = [];
@@ -163,5 +171,5 @@ jobs:
               console.log(out.join('\n'));
             " >> $GITHUB_STEP_SUMMARY
           else
-            echo "no results file was produced" >> $GITHUB_STEP_SUMMARY
+            echo "no validated results are available" >> $GITHUB_STEP_SUMMARY
           fi
