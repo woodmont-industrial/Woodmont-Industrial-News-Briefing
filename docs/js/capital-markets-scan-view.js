@@ -26,7 +26,7 @@
   function formatAmount(hit) {
     if (hit.section === 'sales' && Number(hit.priceUsd) > 0) {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD',
-        notation: 'compact', maximumFractionDigits: 2 }).format(hit.priceUsd);
+        notation: 'compact', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(hit.priceUsd);
     }
     return Number(hit.squareFeet) > 0 ? Number(hit.squareFeet).toLocaleString('en-US') + ' SF' : 'Figure not stated';
   }
