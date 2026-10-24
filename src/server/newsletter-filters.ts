@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
+import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
@@ -357,9 +358,14 @@ function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext |
     return true;
 }
 
+/** Relevant's editorial policy is independent of optional diagnostic labels. */
+export function passesRelevantEditorialVerdict(article: NormalizedItem, diag?: DiagnosticContext): boolean {
+    return passesWoodmontRubric(article, diag, 'relevant');
+}
+
 export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string, diag?: DiagnosticContext, diagSection?: Section): NormalizedItem[] {
     const filtered = items.filter(article => {
-        if (diagSection && !passesWoodmontRubric(article, diag, diagSection)) return false;
+        if (!passesRelevantEditorialVerdict(article, diag)) return false;
         const text = getText(article);
         if (isPolitical(text)) {
             if (diag && diagSection) diag.recordReject(diagSection, 'POLITICAL_CONTENT');
@@ -423,12 +429,13 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
  * ARE real local deal-flow), the caller routes them into the 'relevant' section so the
  * newsletter carries actual regional deals instead of macro/reserve filler.
  *
- * Deliberately LIGHTER than applyTransactionFilter: no deal-size floor, no Woodmont-rubric
- * or approved-domain gate. Still requires target region + industrial + not-political +
+ * Deliberately LIGHTER than applyTransactionFilter: no deal-size floor or approved-domain
+ * gate. Relevant's editorial verdict still applies. Requires target region + industrial + not-political +
  * not-wrong-asset-class, and a concrete DEAL signal (an action word, an approval, a stated
  * size, or a dollar figure) so vague market commentary doesn't leak in.
  */
 export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
+    if (!passesRelevantEditorialVerdict(article)) return false;
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
     if (isPolitical(text)) return false;
@@ -1019,6 +1026,7 @@ export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
             category: a.category || 'relevant',
             regions: a.region ? [a.region] : [],
             keywords: a.keywords || [],
+            ...editorialVerdictFields(a),
         } as NormalizedItem));
     } catch (e) {
         console.warn('Could not load included-articles.json:', e);

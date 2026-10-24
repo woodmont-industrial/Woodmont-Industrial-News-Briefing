@@ -220,6 +220,8 @@ jobs:
           cache: npm
       - run: npm ci --prefer-offline --no-audit
       - run: node --import tsx src/filter/ai-provider.test.ts
+      - run: node --import tsx src/filter/editorial-review.test.ts
+      - run: node --import tsx src/server/relevant-editorial.test.ts
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts
 
@@ -258,11 +260,49 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+  editorial-rubric-replay:
+    name: Editorial Rubric Replay
+    concurrency:
+      group: editorial-rubric-provider-replay
+      cancel-in-progress: true
+    if: >-
+      github.event_name == 'pull_request' && github.head_ref == 'fix/relevant-rubric-enforcement' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - name: Compare providers serially and render offline emails
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_MODEL: ${{ vars.CEREBRAS_MODEL }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          DRY_RUN: '1'
+        run: node --import tsx scripts/compare-editorial-rubric.ts
+      - name: Upload counts and IDs only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editorial-rubric-${{ github.run_id }}
+          path: artifacts/editorial-rubric/result.json
+          retention-days: 3
+          if-no-files-found: error
+
   # Summary job - always runs
   ci-summary:
     runs-on: ubuntu-latest
     name: CI Summary
-    needs: [typecheck, build, python-tests, security-scan, geography-check, watchlist-privacy, ai-compatibility, ai-provider-smoke]
+    needs: [typecheck, build, python-tests, security-scan, geography-check, watchlist-privacy, ai-compatibility, ai-provider-smoke, editorial-rubric-replay]
     if: always()
     steps:
       - name: Check results
@@ -279,5 +319,6 @@ jobs:
           echo "| Watchlist Privacy | ${{ needs.watchlist-privacy.result }} |"
           echo "| AI Request Compatibility | ${{ needs.ai-compatibility.result }} |"
           echo "| AI Provider Smoke Test | ${{ needs.ai-provider-smoke.result }} |"
+          echo "| Editorial Rubric Replay | ${{ needs.editorial-rubric-replay.result }} |"
           echo ""
           echo "Note: Jobs with 'continue-on-error' may show as successful even with warnings."
