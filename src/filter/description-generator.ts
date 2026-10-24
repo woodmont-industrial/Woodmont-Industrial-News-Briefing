@@ -21,6 +21,9 @@ CRITICAL RULES — NEVER VIOLATE THESE:
 6. Write 1-2 sentences max. Be concise and scannable.
 7. ALWAYS lead with key deal fields in this order (skip any field not explicitly in the source):
    Location + Size + Key Players + Terms → then a brief context sentence if needed.
+8. Publication and briefing timestamps are INTERNAL timing context, not proof of when the deal occurred. Do not imply an event happened today or was just announced unless the supplied source facts and timestamps support it. Use neutral past tense for completed deals.
+9. Do not add age warnings, bracketed publication labels, or commentary such as "old news", "stale", "earlier development", or "this newsletter is old". A deal published within the past month can be summarized normally. Do not infer a closing date from its publication date.
+10. Preserve approval, proposal, construction and completion status, geographic scope, and what each metric measures. An approved plan is not completed space; projected jobs are not jobs already created; a change at one property is not a county-wide change. Do not broaden an ambiguous headline into a stronger claim.
 
 FORMAT EXAMPLES (only use facts from source):
 
@@ -47,6 +50,10 @@ CORRECT version:
 → "Town Lane expanded its retail centers portfolio through a new acquisition."`;
 
 const USER_PROMPT = `Summarize ONLY using facts from the title and description below. Do NOT invent any details.
+
+INTERNAL TIMING CONTEXT (do not reproduce as labels in the summary):
+BRIEFING TIME (UTC): {briefing_time}
+ARTICLE PUBLISHED (UTC): {published_at}
 
 TITLE: {title}
 SOURCE: {source}
@@ -237,7 +244,11 @@ async function generateSingleDescription(
         // Include any existing short description as context for the AI
         const existingDesc = (article.description || (article as any).content_text || '').trim();
 
+        const publishedRaw = (article as any).date_published || article.pubDate;
+        const publishedAt = publishedRaw ? Date.parse(String(publishedRaw)) : NaN;
         const prompt = USER_PROMPT
+            .replace('{briefing_time}', new Date().toISOString())
+            .replace('{published_at}', Number.isFinite(publishedAt) ? new Date(publishedAt).toISOString() : 'Not provided')
             .replace('{title}', article.title || 'No title')
             .replace('{source}', sourceName || 'Industry publication')
             .replace('{existing_desc}', existingDesc.length > 5 ? existingDesc.substring(0, 500) : 'None');
