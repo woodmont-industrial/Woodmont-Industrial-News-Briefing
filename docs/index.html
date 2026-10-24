@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/capital-markets.js"></script>
+  <script src="js/capital-markets-scan-view.js"></script>
   <script src="js/utils.js"></script>
 </head>
 <body>
@@ -58,6 +59,9 @@
                   <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
                     📍 Focus Markets: <strong className="ml-1">NJ • PA • FL</strong>
                   </span>
+                  <a href="?view=capital-markets-scan" className="inline-flex items-center px-4 py-2 rounded-full bg-white text-slate-900 text-base font-semibold hover:bg-blue-50">
+                    Capital Markets Scan
+                  </a>
                 </div>
               </div>
               <button
@@ -2715,6 +2719,12 @@
             </div>
           )}
 
+          {/* Scan results stand on their own: published by the scan workflow,
+              read straight from docs/data/capital-markets-scan.json. Mounting
+              this inside the `html &&` preview card hid every scan until a
+              preview had been generated. */}
+          {theme === 'capital-markets' && <CapitalMarketsScanPanel darkMode={darkMode} />}
+
           {html && (
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
@@ -2923,6 +2933,124 @@
         </div>
       );
     };
+
+    // Module scope, NOT inside App: NewsletterPreview renders this panel and
+    // is itself declared outside App, so a declaration inside App was never
+    // in scope - selecting the Capital Markets theme threw
+    // "CapitalMarketsScanPanel is not defined" and blanked the page.
+    // It must also sit AFTER the shared-helper block, which
+    // src/server/capital-markets-runtime.cjs extracts from this file by
+    // slicing up to "const NewsletterPreview = (" and evaluating it as plain
+    // JS - JSX inside that slice breaks every server-side Capital Markets run.
+    // ---- Capital Markets scan results -----------------------------------
+    // The scan runs in GitHub Actions ("Run Capital Markets Scan") and publishes
+    // docs/data/capital-markets-scan.json. This page READS that artifact: Pages
+    // is static, so the scan is triggered from the Actions tab and the result
+    // appears here once it finishes.
+    function CapitalMarketsScanPanel({ darkMode }) {
+      const [scan, setScan] = React.useState(null);
+      const [state, setState] = React.useState('loading');
+      const [section, setSection] = React.useState('');
+      const [tier, setTier] = React.useState('');
+      const [days, setDays] = React.useState('');
+      const [query, setQuery] = React.useState('');
+      React.useEffect(() => {
+        let active = true;
+        fetch('data/capital-markets-scan.json', { cache: 'no-store' })
+          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+          .then(d => { if (active) { setScan(d); setState('ready'); } })
+          .catch(() => { if (active) setState('none'); });
+        return () => { active = false; };
+      }, []);
+
+      const api = window.CapitalMarketsScanView;
+      const view = api ? api.buildView(scan, { section, tier, days, query }) : { valid: false };
+      const card = 'rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 md:p-7 mb-4';
+      if (state === 'loading') return <div className={card}><p className="text-sm text-slate-500">Loading scan results…</p></div>;
+      if (state === 'none' || !view.valid) return (
+        <div className={card}>
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Results are unavailable</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            A current scan could not be loaded. This does not establish that there were no market developments.
+          </p>
+          <a className="inline-block text-sm text-blue-700 underline mt-3" href="https://github.com/woodmont-industrial/Woodmont-Industrial-News-Briefing/actions/workflows/capital-markets-scan.yml" target="_blank" rel="noopener noreferrer">Open the owner’s scan controls</a>
+        </div>
+      );
+
+      const health = scan.sourceHealth || null;
+      const control = 'rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white min-w-0';
+      return (
+        <div className={card}>
+          <div className="flex items-baseline justify-between flex-wrap gap-2 mb-4">
+            <div>
+              <h2 className="font-semibold text-xl text-slate-900 dark:text-white">Latest collected developments</h2>
+              <p className="text-sm text-slate-500 mt-1">Collected {api.formatCollectedAt(scan.completedAt)} · publication window: {scan.lookbackDays} days</p>
+            </div>
+            <span className="text-xs font-semibold rounded-full bg-amber-100 text-amber-900 px-3 py-1">Research pilot</span>
+          </div>
+          {view.stale && <p role="status" className="rounded-lg bg-amber-50 text-amber-900 border border-amber-200 p-3 text-sm mb-4">These results were collected more than 24 hours ago. Refresh the scan before treating them as a current market briefing.</p>}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-5">
+            {Object.entries(api.sections).map(([key, label]) => <div key={key} className="rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 p-3"><div className="text-2xl font-bold text-slate-900 dark:text-white">{view.counts[key]}</div><div className="text-xs text-slate-600 dark:text-slate-400">{label}</div></div>)}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+            <input aria-label="Search scan findings" className={control} placeholder="Search place, company or keyword" value={query} onChange={e => setQuery(e.target.value)} />
+            <select aria-label="Development section" className={control} value={section} onChange={e => setSection(e.target.value)}><option value="">All sections</option>{Object.entries(api.sections).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
+            <select aria-label="Market tier" className={control} value={tier} onChange={e => setTier(e.target.value)}><option value="">All market tiers</option>{Object.entries(api.tiers).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
+            <select aria-label="Publication window" className={control} value={days} onChange={e => setDays(e.target.value)}><option value="">Full {scan.lookbackDays}-day scan window</option>{[7, 30, 60, 90].filter(n => n < scan.lookbackDays).map(n => <option key={n} value={String(n)}>Published within {n} days of scan</option>)}</select>
+          </div>
+          <p className="text-xs text-slate-500 mb-5">Showing {view.hits.length} of {view.total} findings. Filters refine the collected results; they do not launch another scan.</p>
+          {view.hits.length === 0 ? (
+            <p className="rounded-lg bg-slate-50 dark:bg-slate-900 p-4 text-sm text-slate-600 dark:text-slate-400">
+              {view.total ? 'No collected findings match these filters.' : 'No qualifying findings were collected in this scan window.'} Coverage gaps and unavailable sources can limit the results.
+            </p>
+          ) : (
+            <ul className="space-y-5">
+              {view.hits.map((h, i) => (
+                <li key={h.link + i} className="border-l-2 border-blue-500 pl-4 break-words">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                      {api.sections[h.section]} · {api.tiers[h.tier]}
+                    </span>
+                    {view.newTitles.has(h.title) && (
+                      <span className="text-xs rounded px-1.5 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        newly found
+                      </span>
+                    )}
+                  </div>
+                  <a href={h.link} target="_blank" rel="noopener noreferrer"
+                     className="block font-medium text-slate-900 dark:text-white hover:underline">
+                    {h.title}
+                  </a>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {h.source} · published {api.formatDate(h.publishedAt, 'UTC')} · {api.formatAmount(h)}
+                    {(h.squareFeet || h.priceUsd) ? ` · figure supported by ${h.evidenceSource}` : ''}
+                  </div>
+                  {h.evidence && (
+                    <details className="mt-2 text-sm text-slate-600 dark:text-slate-400"><summary className="cursor-pointer text-blue-700 dark:text-blue-300">Read source evidence</summary><p className="mt-2 italic">“{h.evidence}”</p></details>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {health && (
+            <p className="mt-3 text-xs text-slate-500">
+              {health.attempted} sources considered · {health.withArticles} yielded readable articles
+              {view.unavailable > 0 ? ` · ${view.unavailable} unavailable or cooling this run` : ''}
+            </p>
+          )}
+          <p className="mt-2 text-xs text-slate-500">Current coverage is a limited company-newsroom pilot, not a complete inventory of market activity. “Newly found” means new to the previous scan, not necessarily newly announced.</p>
+          <a className="inline-block text-sm text-blue-700 underline mt-4" href="https://github.com/woodmont-industrial/Woodmont-Industrial-News-Briefing/actions/workflows/capital-markets-scan.yml" target="_blank" rel="noopener noreferrer">Refresh scan · owner access required</a>
+        </div>
+      );
+    }
+
+    function CapitalMarketsScannerPage() {
+      return <main className="min-h-screen bg-slate-50 text-slate-900">
+        <header className="bg-[#0B223F] text-white"><div className="max-w-6xl mx-auto px-4 py-9 md:py-12"><p className="text-sm font-semibold tracking-widest uppercase text-blue-200">Woodmont Industrial Partners</p><h1 className="text-3xl md:text-4xl font-bold mt-2">Capital Markets · Development Scan</h1><p className="text-blue-100 mt-3 max-w-2xl">Review industrial sales, leases, availability and construction announcements with links to the original sources.</p><a href="./" className="inline-block mt-5 text-sm text-blue-100 underline">Back to the Industrial Briefing</a></div></header>
+        <section className="max-w-6xl mx-auto px-4 py-6"><CapitalMarketsScanPanel darkMode={false} /></section>
+      </main>;
+    }
 
     const App = () => {
       const [items, setItems] = useState([]);
@@ -3559,6 +3687,7 @@
     // reached only by explicit evidence (a named non-target US market, or
     // explicit nationwide framing). Everything else is UNMAPPED and is routed
     // to diagnostics for review, never admitted under a guessed threshold.
+
     // ---- Capital Markets Preview (extracted module) ----------------------
     // The classification, geography and competitor logic lives in
     // docs/js/capital-markets.js so it can be unit tested directly rather than
@@ -4294,7 +4423,8 @@
     };
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    const scannerView = new URLSearchParams(window.location.search).get('view') === 'capital-markets-scan';
+    root.render(scannerView ? <CapitalMarketsScannerPage /> : <App />);
   </script>
 </body>
 </html>

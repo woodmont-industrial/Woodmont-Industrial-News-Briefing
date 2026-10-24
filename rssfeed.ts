@@ -193,6 +193,40 @@ async function sendNewsletterWork(): Promise<void> {
  * Build the Capital Markets newsletter beside production. This writes local
  * review artifacts only; it has no email credentials or recipient path.
  */
+/**
+ * On-demand Capital Markets scan. Fetches publisher sources directly and
+ * reports what qualifies under Jacob's rules with evidence and a link.
+ * NEVER sends mail: it writes docs/data/capital-markets-scan.json and stops.
+ */
+async function runCapitalMarketsScanCmd(lookbackDays: number): Promise<void> {
+    console.log(`Running Capital Markets scan (${lookbackDays}-day lookback, no send)...`);
+    try {
+        const { runCapitalMarketsScan } = await import('./src/server/capital-markets-scan.js');
+        // Per-source detail is printed only on request (SCAN_VERBOSE=1, e.g. a local run):
+        // the public Actions log gets the same aggregate counts as the public artifact.
+        const verbose = process.env.SCAN_VERBOSE === '1';
+        const result = await runCapitalMarketsScan({ lookbackDays, onSourceHealth: health => {
+            if (!verbose) return;
+            for (const s of health) {
+                console.log(`  ${s.name.padEnd(30)} ${s.outcome.padEnd(10)} endpoints=${s.endpoints} articles=${s.articles}`);
+            }
+        } });
+        console.log(`Scan complete in ${result.runtimeSeconds}s — ${result.requests} requests, ` +
+            `${result.hits.length} qualifying, ${result.newSinceLastScan.length} new since last scan`);
+        const h = result.sourceHealth;
+        console.log(`Sources: ${h.attempted} attempted · ${h.ok} ok (${h.withArticles} with articles) · `
+            + `${h.refused} refused · ${h.transient} transient · ${h.cooling} cooling`);
+        for (const h of result.hits) {
+            console.log(`  [${h.section}/${h.tier}] ${h.title.slice(0, 84)}`);
+            console.log(`     ${h.publishedAt.slice(0, 10)} · SF=${h.squareFeet ?? '-'} (${h.evidenceSource}) · ${h.link.slice(0, 90)}`);
+        }
+        process.exit(0);
+    } catch (err) {
+        console.error('Capital Markets scan failed:', err);
+        process.exit(1);
+    }
+}
+
 async function buildCapitalMarketsShadowCmd(): Promise<void> {
     console.log('Building Capital Markets shadow newsletter (no send)...');
     try {
@@ -269,6 +303,10 @@ if (require.main === module) {
     } else if (args.includes('--send-newsletter-work')) {
         // Send Work newsletter (boss's preferred clean format)
         sendNewsletterWork();
+    } else if (args.includes('--run-capital-markets-scan')) {
+        const idx = args.indexOf('--scan-days');
+        const days = idx >= 0 ? parseInt(args[idx + 1], 10) : NaN;
+        runCapitalMarketsScanCmd(Number.isFinite(days) && days > 0 ? Math.min(days, 365) : 30);
     } else if (args.includes('--build-capital-markets-shadow')) {
         // Generate review artifacts only. Never sends email.
         buildCapitalMarketsShadowCmd();

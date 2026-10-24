@@ -4,16 +4,34 @@ import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.env.CM_PRIVACY_BASE || 'origin/main';
 const MAX_WATCHLIST_BYTES = 2_000_000;
+const { validateScanResult, validateScanState } = createRequire(import.meta.url)('../src/server/capital-markets-scan-artifacts.cjs');
 // Only the trimmed browser projection may carry watchlist terms. The source
 // workbook is no longer published: see data/capital-markets/README.md. The
 // validator ensures watchlist terms do not spread into code, comments, logs or
 // commit messages outside that one file.
 const AUTHORIZED_PUBLIC_FILES = new Set([
   'docs/data/capital-markets-watchlist.json',
+  // NARROW PUBLIC-SOURCE CONTRACT. The on-demand scanner reports only
+  // developments it read from a company's OWN public press release, so naming
+  // that company alongside the URL republishes what the publisher already
+  // published. That is not a second copy of the watchlist, and these two scan
+  // artifacts may therefore carry a company name - but only when:
+  //   * the name belongs to a source the scanner actually fetched;
+  //   * source health includes its approved public homepage, and each claim
+  //     links to that source's own approved domain;
+  //   * no ownership metric, contact or any other watchlist column travels
+  //     with it.
+  // Everything else stays off-limits - configs, code, tests, commit messages -
+  // which is why the scanner resolves its sources from the watchlist at
+  // runtime instead of listing them in a config of its own. State uses opaque
+  // identifiers. Both artifacts are schema-checked below before this exemption.
+  'docs/data/capital-markets-scan.json',
+  'docs/data/capital-markets-scan-state.json',
 ]);
 
 function fail(message) {
@@ -117,6 +135,14 @@ if (inputPath.toLowerCase().endsWith('.json')) {
   }
 } else {
   rows = parseCsv(inputText);
+}
+try {
+  const scanPath = path.join(REPO, 'docs/data/capital-markets-scan.json');
+  const statePath = path.join(REPO, 'docs/data/capital-markets-scan-state.json');
+  if (fs.existsSync(scanPath)) validateScanResult(JSON.parse(fs.readFileSync(scanPath, 'utf8')), rows);
+  if (fs.existsSync(statePath)) validateScanState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
+} catch (error) {
+  fail(`public scan artifact contract: ${error.message}`);
 }
 const names = [...new Set(rows.map(row => row['Company Name']).filter(Boolean))];
 const distinctiveNames = [...new Set(names.map(normalize).filter(value =>

@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'url';
 import { harness } from './load.mjs';
 
@@ -11,6 +13,7 @@ const h = harness('workflow safety');
 const shadow = read('.github/workflows/capital-markets-shadow.yml');
 const canary = read('.github/workflows/capital-markets-canary.yml');
 const production = read('.github/workflows/send-only.yml');
+const scan = read('.github/workflows/capital-markets-scan.yml');
 const competitorSources = read('src/server/capital-markets-competitor-sources.ts');
 const config = JSON.parse(read('config/capital-markets-newsletter.json'));
 
@@ -21,6 +24,47 @@ h.chk(!/WEBHOOK_URL|SMTP_HOST|SMTP_PASS|EMAIL_TO|CM_CANARY_TO/.test(shadow),
 h.chk(!/send:capital-markets-canary|--send-capital-markets-canary/.test(shadow),
   'shadow workflow cannot invoke a send command');
 h.chk(/build:capital-markets-shadow/.test(shadow), 'shadow workflow only builds review artifacts');
+
+h.section('scanner publication is validated before exposure');
+h.chk(/name: Validate public scan artifacts\s+id: validate_public/.test(scan),
+  'artifact validation exposes an explicit result');
+h.chk(/name: Upload the scan result\s+if: always\(\) && steps\.validate_public\.outcome == 'success'/.test(scan),
+  'public artifact uploads require successful privacy validation');
+const summaryRun = /- name: Summary\s+if: always\(\)\s+run: \|\n([\s\S]*)$/.exec(scan)[1]
+  .split('\n').map(line => line.replace(/^          /, '')).join('\n');
+const summaryDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cm-scan-summary-'));
+try {
+  for (const outcome of ['success', 'failure', 'skipped']) {
+    const output = path.join(summaryDir, outcome + '.md');
+    const script = summaryRun
+      .replaceAll('${{ steps.publish.outputs.published }}', 'yes')
+      .replaceAll('${{ steps.verify_live.outcome }}', outcome)
+      .replaceAll('${{ steps.validate_public.outcome }}', 'success');
+    const result = spawnSync('bash', ['-e', '-c', script], {
+      cwd: summaryDir, env: { ...process.env, GITHUB_STEP_SUMMARY: output }, encoding: 'utf8'
+    });
+    const text = fs.readFileSync(output, 'utf8');
+    h.chk(result.status === 0 && (outcome === 'success'
+      ? text.includes('updated and verified live')
+      : !text.includes('updated and verified live') && text.includes('not verified')),
+      `actual workflow summary matches live verification ${outcome}`);
+  }
+  fs.mkdirSync(path.join(summaryDir, 'docs/data'), { recursive: true });
+  fs.writeFileSync(path.join(summaryDir, 'docs/data/capital-markets-scan.json'), JSON.stringify({
+    completedAt: 'UNVALIDATED_RESULT_MARKER', runtimeSeconds: 1, requests: 1, lookbackDays: 30,
+    hits: [], newSinceLastScan: [], sourceHealth: {}
+  }));
+  const output = path.join(summaryDir, 'validation-failed.md');
+  const result = spawnSync('bash', ['-e', '-c', summaryRun
+    .replaceAll('${{ steps.publish.outputs.published }}', '')
+    .replaceAll('${{ steps.verify_live.outcome }}', 'skipped')
+    .replaceAll('${{ steps.validate_public.outcome }}', 'failure')], {
+    cwd: summaryDir, env: { ...process.env, GITHUB_STEP_SUMMARY: output }, encoding: 'utf8'
+  });
+  const text = fs.readFileSync(output, 'utf8');
+  h.chk(result.status === 0 && text.includes('no validated results') && !text.includes('UNVALIDATED_RESULT_MARKER'),
+    'a failed validation cannot publish scan details in the Actions summary');
+} finally { fs.rmSync(summaryDir, { recursive: true, force: true }); }
 
 h.section('canary is manual and test-only');
 h.chk(/^on:\s*\n\s+workflow_dispatch:/m.test(canary), 'canary is manual-dispatch only');

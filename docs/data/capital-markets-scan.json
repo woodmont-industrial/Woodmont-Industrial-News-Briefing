@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "startedAt": "2026-10-23T13:32:56.916Z",
+  "completedAt": "2026-10-23T13:36:07.784Z",
+  "runtimeSeconds": 191,
+  "lookbackDays": 60,
+  "requests": 77,
+  "sources": [
+    {
+      "name": "Seagis Property Group LP",
+      "url": "https://seagisproperty.com/"
+    }
+  ],
+  "sourceHealth": {
+    "attempted": 25,
+    "ok": 16,
+    "refused": 4,
+    "transient": 5,
+    "cooling": 0,
+    "withArticles": 8
+  },
+  "hits": [
+    {
+      "title": "Seagis Property Group Completes Class A Industrial Facility at 500 Belleville Turnpike in North Arlington, NJ",
+      "link": "https://www.seagisproperty.com/seagis-property-group-completes-class-a-industrial-facility-at-500-belleville-turnpike-in-north-arlington-nj/",
+      "publishedAt": "2026-09-22T16:22:24.000Z",
+      "source": "Seagis Property Group LP",
+      "section": "construction",
+      "tier": "TARGET",
+      "squareFeet": 53315,
+      "priceUsd": null,
+      "evidence": "Seagis Property Group announced the completion of a 53,315-square-foot warehouse at 500 Belleville Turnpike in North Arlington, NJ.",
+      "evidenceSource": "article page",
+      "reason": "TARGET industrial construction milestone — qualifies regardless of stated SF; TARGET via \"North Arlington, Belleville\" (all resolved locations TARGET (North Arlington, Belleville)) [MULTI_MARKET] [locations: North Arlington + Belleville] [GEO_CONFLICT: body suggests BROADER via \"North Arlington, Kearny, Conshohocken, Belleville, Lyndhurst\"; headline wins]"
+    }
+  ],
+  "newSinceLastScan": [],
+  "counts": {
+    "construction": 1
+  },
+  "duplicatesCollapsed": 0
+}
