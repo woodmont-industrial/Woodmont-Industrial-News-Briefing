@@ -8,7 +8,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
-import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
+import type { DiagnosticContext, Section, ReasonCode } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { dcPolicyVerdict, dcDollarsB, dcMW, nonTargetTokens } from '../shared/dc-policy.js';
@@ -357,6 +357,62 @@ function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext |
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// RELEVANT-SECTION EVIDENCE GUARDS
+//
+// Relevant required only: rubric, not-political, isStrictlyIndustrial, and one
+// keyword. That let three classes through on 2026-10-12: a defence-robotics
+// partnership ("Gecko Robotics partners with Anduril to aid submarine
+// manufacturing") on the bare word "manufacturing", an aggregator category page
+// ("Doral, FL Commercial Real Estate for Lease and Sale"), and a recruiter
+// listing. Legitimate market reports, entitlement news and specific property
+// listings are deliberately preserved.
+// ---------------------------------------------------------------------------
+
+/** A search-results page, not a story: a place plus an asset class plus "for
+ *  lease/sale", carrying no address, figure or company. */
+const AGGREGATOR_CATEGORY_PAGE_RE = /\b(?:commercial real estate|industrial (?:space|properties|real estate)|warehouses?|properties|listings?)\s+for\s+(?:lease|sale|rent)(?:\s+and\s+(?:lease|sale))?\b/i;
+/** Evidence of a real listing: a street address, a dollar figure or a size.
+ *  The street form matters — "3 Oak Ct" is as specific as "449 Blair Rd", so a
+ *  two-digit minimum would reject a perfectly good small-lot listing. */
+const STREET_ADDRESS_RE = /\b\d+\s+[A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*)?\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Dr|Drive|Ct|Court|Way|Ln|Lane|Pkwy|Parkway|Pl|Place|Hwy|Highway|Route|Rt|Turnpike|Terrace|Cir|Circle)\b\.?/;
+const LISTING_SPECIFICITY_RE = /\$\d|\b\d{1,3}(?:,\d{3})+\s*(?:sf|square)|\b\d+[Kk]\s*(?:sf|square)/i;
+/** Real-estate subject matter. */
+const PROPERTY_CONTEXT_RE = /\b(warehouses?|distribution cent\w+|logistics (?:facilit|cent|park)\w*|industrial park|cold storage|fulfillment cent\w+|data ?cent\w+|flex space|industrial space|building|facility|facilities|campus|site|portfolio|propert(?:y|ies)|acres?|square[- ]f[eo]{2}t|sq\.?\s*ft|lease[sd]?|leasing|sublease|acquisition|acquired|sold|sells|invests? in|purchase|development|construction|groundbreaking|breaks? ground|tenant|entitlement|zoning|planning board)\b/i;
+/** Market commentary — what keeps a legitimate industrial report eligible. */
+const MARKET_CONTEXT_RE = /\b(vacancy|absorption|rent growth|asking rents?|cap rates?|pipeline|market report|industrial market|warehouse market|logistics market|commercial real estate|cre|lending|lender|loan[- ]to[- ]value|supply|demand|inventory|deliveries|occupanc\w+|investment volume|forecast|outlook|market moves)\b/i;
+/** A vacancy to fill is not news. */
+const JOB_POSTING_RE = /\b(deputy general manager|general manager\s*[–-]|search partners|recruit\w*|hiring|job posting|careers?)\b/i;
+/** An event listing or a publisher index page is not a development.
+ *  "Summit" is also a New Jersey municipality, so it only reads as an event
+ *  when it is NOT followed by a state — otherwise a groundbreaking in Summit,
+ *  NJ gets thrown out as a conference. */
+const EVENT_OR_INDEX_RE = /\b(?:summit(?!\s*,?\s*(?:N\.?J\.?|New Jersey|P\.?A\.?|Pennsylvania|F\.?L\.?|Florida)\b)|conference|webinar|expo|awards?|symposium)\b|^[\w\s]*\bnews\b\s*[-–—]\s*\w+$/i;
+
+/** Why this item is not a relevant development, or null if it is one.
+ *
+ *  Exported and applied on EVERY route into the section — applyStrictFilter and
+ *  the sub-threshold regional-deal router both call it. The router was the gap:
+ *  it has its own gate and never saw this guard, so an aggregator category page
+ *  reached the newsletter even while the isolated filter tests passed. */
+export function relevantEvidenceFailure(title: string, fullText: string): string | null {
+    const specific = STREET_ADDRESS_RE.test(title) || LISTING_SPECIFICITY_RE.test(title);
+    if (AGGREGATOR_CATEGORY_PAGE_RE.test(title) && !specific) return 'AGGREGATOR_CATEGORY_PAGE';
+    if (JOB_POSTING_RE.test(title)) return 'JOB_POSTING_NOT_NEWS';
+    if (EVENT_OR_INDEX_RE.test(title)) return 'EVENT_OR_INDEX_PAGE';
+    // Some publisher feeds provide only a growth-report headline, without
+    // vacancy or rent figures. Require warehouse, market and growth evidence
+    // together; a software/equipment market is a different subject.
+    const warehouseGrowthReport = /\b(?:warehouses?|warehousing)\b/i.test(title)
+        && /\b(?:metros?|markets?|boomtowns?)\b/i.test(title)
+        && /\b(?:growth|grew|fastest|rank(?:ing|ed|s)?)\b/i.test(title)
+        && !/\b(?:software|robotics?|equipment|machinery)\b/i.test(title);
+    if (!PROPERTY_CONTEXT_RE.test(fullText) && !MARKET_CONTEXT_RE.test(fullText) && !warehouseGrowthReport) {
+        return 'NO_PROPERTY_OR_MARKET_CONTEXT';
+    }
+    return null;
+}
+
 export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string, diag?: DiagnosticContext, diagSection?: Section): NormalizedItem[] {
     const filtered = items.filter(article => {
         if (diagSection && !passesWoodmontRubric(article, diag, diagSection)) return false;
@@ -372,6 +428,13 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
         }
         if (!containsAny(text, keywords)) {
             if (diag && diagSection) diag.recordReject(diagSection, 'NO_RELEVANT_KEYWORDS');
+            return false;
+        }
+        // Evidence guard, applied on EVERY path into this section including the
+        // backfill tiers: a keyword alone is not a development.
+        const evidenceFailure = relevantEvidenceFailure(String(article.title || ''), text);
+        if (evidenceFailure) {
+            if (diag && diagSection) diag.recordReject(diagSection, evidenceFailure as ReasonCode);
             return false;
         }
         return true;
@@ -432,6 +495,9 @@ export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
     if (isPolitical(text)) return false;
+    // This router pushes straight into Relevant without applyStrictFilter, so it
+    // must apply the same evidence guard or the section has an unguarded door.
+    if (relevantEvidenceFailure(String(article.title || ''), text)) return false;
     if (hasWrongPropertyType(text) && !hasStrongIndustrialOverride(text)) return false;
     if (!isIndustrialProperty(text)) return false;
     return containsAny(text, TRANSACTION_ACTION_WORDS)
