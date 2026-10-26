@@ -23,23 +23,22 @@
         "name": "NJ Construction Industrial"
       },
       "_source": {
-        "name": "NJ Construction Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQYm1aeXVhZ0JUb200djdRbW40eVRRS0tzeHNOYXgxVEw4QXA2S3RoNDBaVlRDSGpLalZtOVI3aTBKb05iY2JNTDdhd2NvdDFJMUtZT3lTVDVfMEtHakluamxJWG5PQzZCcTZyYklOaVVNLV80OUtWWU1VMkdzNVIzR1RIOU1zZEMxdmdaaHZ2Qk81XzVJdVBwanZrUjhPU0tvYWlwZ3NEeHFqTEU3WHlfTTFqWQ?oc=5",
-        "feedName": "NJ Construction Industrial"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "NJ"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
       "_tier": "A",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction (1M SF logistics park) in target region, above size threshold, fresh date, and neutral pro-development framing (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Major industrial real estate transaction (1M SF logistics park) in New Jersey, well above the 100K SF threshold and within the target region, published within the last 7 days.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -70,9 +69,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Software/tech partnership — CMU and Lucas Systems are partnering on data management efforts, which falls under Rule 6 (Software / SaaS / Venture Funding) as it is not a real estate transaction or market report.",
+      "_woodmontReason": "Software/tech partnership — CMU and Lucas Systems are partnering on data management software/platforms, not a real estate transaction or industrial facility development, matches Rule 6",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -136,7 +135,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": true,
       "_woodmontReason": "Pro-development industrial market report from a recognized CRE source (Bisnow) discussing data center-driven demand in Southern markets (including FL), published within 7 days, with neutral/macro framing that fits the audience's interest in capital markets and supply-chain demand.",
       "_woodmontConfidence": 95,
@@ -171,7 +170,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title and below deal threshold (7,360 SF < 100K SF), matches Rule 13 and APPROVE criteria",
+      "_woodmontReason": "Listing aggregator without explicit region token in title and below transaction threshold (7,360 SF < 100K SF), matches Rule 13 and APPROVE criteria",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -202,9 +201,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "A",
+      "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class — the article is about a commercial real estate firm's office expansion and personnel change, not an industrial real estate transaction or market report, matching Rule 5",
+      "_woodmontReason": "Article is about a commercial real estate firm's internal personnel and office move, not an industrial real estate transaction or market report, matching Rule 5 (Wrong Asset Class) and failing the primary subject criteria for approval.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -235,9 +234,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction ($200M warehouse expansion) in Lakeland, Florida (target region), published within 7 days, matches APPROVE criteria",
+      "_woodmontReason": "Real industrial transaction ($200M warehouse expansion) in Lakeland, Florida (target region), published within 7 days, matching APPROVE criteria",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -336,7 +335,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial transaction in York, Pennsylvania (target region) involving 708,000 SF, which exceeds the 100K SF threshold, published within the last 7 days.",
+      "_woodmontReason": "Industrial transaction in York, Pennsylvania (target region) involving 708,000 SF, which exceeds the 100K SF threshold, and is within the 7-day freshness window.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -435,8 +434,8 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region token in title — title ends in ' - LoopNet' and while Secaucus is in NJ, the rule specifically targets listing aggregators; however, Rule 13 says reject if 'without an explicit NJ/PA/FL token in the title'. The title contains 'Secaucus, NJ', so it has an explicit NJ",
-      "_woodmontConfidence": 85,
+      "_woodmontReason": "Listing aggregator without explicit region token in title format matches Rule 13 (LoopNet listing pattern), and it is a lease availability rather than a transaction meeting the $25M/100K SF threshold",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -468,7 +467,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real NJ industrial transaction (East Rutherford warehouse) at $25M, meets target region and deal threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real NJ industrial transaction at $25M in East Rutherford, meets target region and deal threshold (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -501,7 +500,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Biopharmaceutical manufacturing facility in Pennsylvania is a valid industrial asset class in the target region, and the article is fresh (published 3 days ago), meeting all approval criteria.",
+      "_woodmontReason": "Biopharmaceutical manufacturing facility in Pennsylvania is a valid industrial asset class in the target region, and the article is fresh (published within 7 days), meeting all approval criteria.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -567,7 +566,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Industrial real estate personnel move at a NJ-based firm with direct relevance to FL market, fits target regions and asset class (Rule: APPROVE criteria met)",
+      "_woodmontReason": "Industrial real estate personnel move at a NJ-based firm targeting FL, relevant to Woodmont's target regions and asset class (Rule: APPROVE criteria met)",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -633,7 +632,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Cold storage is a valid industrial asset class, the transaction is in Florida (target region), and the $36M price exceeds the $25M threshold (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Cold storage transaction in Miami-Dade (FL) for $36M meets the target region and dollar threshold criteria.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -664,9 +663,9 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Relevant macro/REIT news regarding Blackstone's capital allocation and data center outlook, which is acceptable pro-development/neutral market intel (Rule: APPROVE criteria met, not Rule 3 anti-DC framing)",
+      "_woodmontReason": "Relevant macro/REIT news regarding Blackstone's capital allocation and bullish stance on data centers, which is acceptable pro-development/neutral market intel (Rule: APPROVE criteria met, not Rule 3 anti-DC framing)",
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
@@ -849,19 +848,18 @@
         "name": "Google News IOS"
       },
       "_source": {
-        "name": "Google News IOS",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE05S2hXMVhqX2N0WGNKM05TRmpLS0dQLWZFRUp5dlV0MmMxdVVzT3g2d0tBX0VVVEpkcVl2WUJiU1lBQzd1TlhTaHhPdw?oc=5",
-        "feedName": "Google News IOS"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
@@ -898,7 +896,7 @@
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region token in title (ends in ' - LoopNet') and source is a listing aggregator, matching Rule 13",
+      "_woodmontReason": "Listing aggregator without region token in title — title ends in ' - LoopNet' and lacks explicit NJ/PA/FL token in the title string itself (though Phillipsburg, NJ is in the description, the rule specifies the title), matches Rule 13",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -931,8 +929,8 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without region — source is commercialsearch.com and title lacks explicit NJ/PA/FL tokens, matching Rule 13",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Listing aggregator without region — title ends in ' - LoopNet' or similar aggregator pattern (source is commercialsearch.com) and lacks explicit NJ/PA/FL token, matching Rule 13",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -964,7 +962,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction (cold storage) in Florida (Miami) at 160K SF, exceeding the 100K SF threshold, published within the last 7 days (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial transaction (cold storage) in Florida (Miami) at 160K SF, which exceeds the 100K SF threshold, and is within the 7-day freshness window.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -982,16 +980,15 @@
         "name": "Google News citybiz Executive Moves"
       },
       "_source": {
-        "name": "Google News citybiz Executive Moves",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNd2pJME5sWHQzWlY4R1VTbWlxTzdheGRfSjFGWGtyWmwwbW4xQWFWN3FMZ1NJMDZCalY1WmVJTU5vS3lqQ19VVmpqYXBHWVQ5c3RhUVJmNnlSd2hNT3FiUy1jeTBjdk1tdFZYN2NLRDMyX2dPclBmR2hDWC1xQi12YTJZX1VyYWp6ajVBVllZekhEU3gwQWd4MVlkS2xhOHkycVhXcnl5WEhHSGE5UlRNZ2xlSElpeGl5TlkzV2MzMDFNNHcxa2s5eDRzMA?oc=5",
-        "feedName": "Google News citybiz Executive Moves"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -1031,7 +1028,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Manufacturing facility expansion in Pennsylvania (target region) by a major industrial tenant, fitting the 'adjacent industries' judgment call for real industrial facilities.",
+      "_woodmontReason": "Manufacturing facility expansion in Pennsylvania (target region) by a major industrial tenant, fitting the 'adjacent industries' judgment call for real industrial facilities",
       "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
@@ -1049,24 +1046,23 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFA3alptN2JWOFdDaThCek95d016b1h1NkszeXRUc0I0VUt2SWFpNDdoZEtuek5EcE9CZC01cVFJUlJRQzFYbHFwRW5lRHU3Z2pXd0I3V2YtWk5BWnZNbjFMZTR1dG9IbURRd1pIRVZuMzVMVzRkYXoyVG5MejZwdw?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "AVAIL_LOOPNET_LISTING",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title matches Rule 13 (LoopNet listing format)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Listing aggregator without explicit region token in title structure and source is LoopNet via Google News, matching Rule 13 (listing aggregator) and Rule 5 (wrong asset class if not clearly industrial, though 'Industrial for Lease' is present, the primary issue is the aggregator format which is typi",
+      "_woodmontConfidence": 85,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -1098,7 +1094,7 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction (cold storage facility) in Elizabeth, NJ (target region) with 146,000 SF size exceeding the 100K SF threshold, published within the last 7 days.",
+      "_woodmontReason": "Industrial real estate transaction (cold storage) in New Jersey (Elizabeth) with 146,000 SF size, meeting the 100K SF threshold and target region criteria.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1131,7 +1127,7 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-data-center framing — the headline highlights the rejection of an expansion ('said no to Project Tango expansion'), which matches Rule 3 regarding opposition to data center development.",
+      "_woodmontReason": "Anti-data-center framing — the headline highlights the county's rejection ('said no') of a data center expansion, matching Rule 3 which blocks articles with opposition or editorial framing regarding data center development.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1164,7 +1160,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real Florida industrial transaction (685,000 SF warehouse) significantly exceeds the 100K SF threshold and is within the target region, published within the last 7 days (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "Real industrial transaction in Florida (target region) involving a 685,000 sq. ft. warehouse, which exceeds the 100K SF threshold, and is fresh (published within 7 days).",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1494,7 +1490,7 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial transaction (160K SF cold storage) in Opa-Locka, Florida (target region) exceeding the 100K SF threshold, published within the last 7 days.",
+      "_woodmontReason": "Real industrial transaction (160K SF cold storage) in Opa-Locka, Florida (target region), exceeding the 100K SF threshold and published within the last 7 days.",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -1525,7 +1521,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -1753,8 +1749,8 @@
         "Transactions — Property Sales & Leases",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
@@ -2121,7 +2117,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Personnel news for Woodmont Industrial Partners (the audience's own firm) is directly relevant and not covered by rejection rules (not retail/military/software), and is within the 7-day freshness window",
+      "_woodmontReason": "Personnel news for Woodmont Industrial Partners (the audience's own firm) is directly relevant and does not fall under Rule 7 (retail company personnel) or other rejection criteria",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "cerebras"
     },
@@ -2469,16 +2465,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQbWt4X19HQXlDZkNKbTNOajJTY3NTR2FrcVlna1hVV3gzSFYwWWVYZHRxSHhObWFEOW8xbmR6OWRtMXRNeUFlaW8xNGNmLUZtOGFaSTRpN0lVb05GN19LeUxQelRCMFE5QUtpMk1TMHdwdjRlUDRvbVlCVFpjb0dCdDBwa01uOGR6Wnc?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -2853,6 +2848,40 @@
       "_woodmontClassifier": "cerebras"
     },
     {
+      "id": "136585cb87a327b5ce66a56cf9688042a1ea00a3",
+      "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9LYlNSaFhmTnJsR3Z2aXlCYXpqamZVbWQwempGNG1sT29XQm9GYVJJMVJ1UUFmUFpRVEREQXNyZVluWW0wN0pxUC1KaHpNMUxMOEZIQjFVbHl4UC1ETTZJVGJFNDNlaEZkeEhCeURnOU1tOUlp?oc=5",
+      "title": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
+      "content_html": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "content_text": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "summary": "5 Slater Dr, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
+      "date_published": "2026-10-14T07:00:00.000Z",
+      "date_modified": "2026-10-26T01:06:14.554Z",
+      "image": "https://picsum.photos/seed/ee9e31/640/360",
+      "author": {
+        "name": "Google News LoopNet NJ/PA/FL"
+      },
+      "_source": {
+        "name": "Google News LoopNet NJ/PA/FL",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9LYlNSaFhmTnJsR3Z2aXlCYXpqamZVbWQwempGNG1sT29XQm9GYVJJMVJ1UUFmUFpRVEREQXNyZVluWW0wN0pxUC1KaHpNMUxMOEZIQjFVbHl4UC1ETTZJVGJFNDNlaEZkeEhCeURnOU1tOUlp?oc=5",
+        "feedName": "Google News LoopNet NJ/PA/FL"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "AVAIL_LOOPNET_LISTING",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
       "id": "be8635046dc290e3680741f386b0a1143ddc7008",
       "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxObWFiRnVpMVRtQUYyNkFqeF9SZzFuckdIQWpUS1VNbHA0U29wWmthWTlLUVBKNDk4c21mSW5rd2xiUFVqNlFTWk1RQ1U1MUFoRTN4U3B2bnFqQ2dodzByS1hPeWhiYnFJaGVNQzlLWjAyQzZ5ZUJPOWJkb0lDRWtpTHRNdFVRQ05zdWlsZUd1Ny05MDBRQ3dJdUFGYUFoQ2xmVDlyblNNRUJJWXB3MjlPQ2c4TF9VUldEbVZaSjVVd0ZiQWFEVGo5TTAtUFdVMVNYUXU4U0p3TEVnUXBJZ2x1X0o0NFhNX2hyWU1PTUdwNjM?oc=5",
       "title": "200 Industrial Drive Sold for $7M - Traded",
@@ -3216,6 +3245,40 @@
       "_woodmontClassifier": "cerebras"
     },
     {
+      "id": "55cb5861fcd619dbc80a189bd19b6b82c70b07a1",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQYlMtb2Yza2lkMmxBaG9BTHh0ZFlCRzlLUUV1bHFHenhPaEJFemdFNUlvVEVsdWpOcjZoM0dTbTFqTTJoeHFNZ3RnRHZ5YmRoNjNXSmhyXzRpRVhxTENJNUtvMXZpR3lrQTQwSXVXQmgzYWd5bERtUF8xTVJhMnh4SWlvemd1X3FhTGthMkZya2M2YUlwbHhCNXJ3?oc=5",
+      "title": "Developers remain cautious as new industrial development cycle arrives - REJournals",
+      "content_html": "Developers remain cautious as new industrial development cycle arrives REJournals",
+      "content_text": "Developers remain cautious as new industrial development cycle arrives REJournals",
+      "summary": "Developers remain cautious as new industrial development cycle arrives REJournals",
+      "date_published": "2026-10-13T09:22:21.000Z",
+      "date_modified": "2026-10-26T01:06:14.747Z",
+      "image": "https://picsum.photos/seed/umva7j/640/360",
+      "author": {
+        "name": "Google News REJournals Industrial"
+      },
+      "_source": {
+        "name": "Google News REJournals Industrial",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQYlMtb2Yza2lkMmxBaG9BTHh0ZFlCRzlLUUV1bHFHenhPaEJFemdFNUlvVEVsdWpOcjZoM0dTbTFqTTJoeHFNZ3RnRHZ5YmRoNjNXSmhyXzRpRVhxTENJNUtvMXZpR3lrQTQwSXVXQmgzYWd5bERtUF8xTVJhMnh4SWlvemd1X3FhTGthMkZya2M2YUlwbHhCNXJ3?oc=5",
+        "feedName": "Google News REJournals Industrial"
+      },
+      "category": "availabilities",
+      "tags": [
+        "Availabilities — Properties for Sale or Lease",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "AVAIL_NEW_SUPPLY",
+      "_tier": "D",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null
+    },
+    {
       "id": "e4f9a3814e5736c862d6ed611b4436c209595419",
       "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE1aUGZuQkcxRXdXSGEwRU9DNkpSQXJYbnZDZ1ZaLXExRXNjSHlENmpycmZoNHNXWTNPcUZMNUtySWhhQzQ5ekF6YlJBWVNqSzkzWFR1TFFIMUhxYnZoUFB5SnJ6bEtZNUt0ei1fdmlBeHBLdmhJRFg2Tmc3UEtXOVk?oc=5",
       "title": "617 West Industrial Avenue Sold for $1.9M - Traded",
@@ -3442,8 +3505,8 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is 13 days old (published 2026-10-12, today is 2026-10-25), exceeding the 7-day freshness requirement (Rule 11)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Article is older than 7 days (published 2026-10-12, today is 2026-10-26), matches Rule 11 (STALE)",
+      "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -3691,16 +3754,15 @@
         "name": "Google News LoopNet Industrial"
       },
       "_source": {
-        "name": "Google News LoopNet Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBzMUhIVnhpT3hOQzI5WlV6N2REU0NVeGxfUFhqOGxBTDBVODRxamhsbVBsaGZqeFhsbnJSNjUtQXU3LU85aTBMRm1wVExkWmpJVmdOU3MydEF0NjFNT0tkOHNhYlBHQXZhTWlncXExV1lteWRhZE1CZmxQU2pTQQ?oc=5",
-        "feedName": "Google News LoopNet Industrial"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -3738,7 +3800,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -3771,7 +3833,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -4418,16 +4480,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOal9GcWtjbDZfLVBoWERJNDI0YlFtZHNtdVE4Mk1HQUxnMVJRMXE2bEU4aTkzaHI0djktakhNUXVJUzFiVXRmUGN6U2t2b1dTT2VXWXRTbkdKTDdfWTZ3ci1mUDZVbVM4eHIwd3ZiOEhFX0U1bVBMSHNIQkpjWE9tdQ?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -4797,8 +4858,8 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is a personnel announcement (president hire) for a logistics company, not an industrial real estate transaction or market report, and does not meet the deal threshold or primary subject criteria for approval",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "Article is about a personnel appointment (president) at a logistics company, not an industrial real estate transaction or market report, and does not meet the deal threshold or primary subject criteria for industrial CRE news (Rule 5/General Approval Criteria)",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "cerebras"
     },
     {
@@ -6183,7 +6244,7 @@
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article is older than 7 days (published 2026-10-01, today is 2026-10-25), matches Rule 11 (STALE)",
+      "_woodmontReason": "Article is stale, published on 2026-10-01 which is more than 7 days before today's date (2026-10-26), matching Rule 11",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "cerebras"
     },
@@ -7623,39 +7684,6 @@
         "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9SZXhsYWs3MVEyRWl1dTZUaGk5RlU0TWt6RlQ2eWZPYUo5d1BOMFVUVlBfbkFpLWVqS1ZfTTdVTFB2Q2JaSVl2c3EyNC1oc0FkWnRzSmxjdUVVNGVDZFFrbElNRTlaSTBMWF9hZFNuWGZpWXgwVWNiLWVmSDNVdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null
-    },
-    {
-      "id": "748446949e52cc9f62c10ddd2b31aa47896fc099",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBYZFRiQnI2T3pFLTNHY21sdTQzalFuN2VfYnp3SVA2MVY0Zi1ZR1doVi02V2RFX2xfNUpWUnQ3bk1Jemc5R0pLM2Yxa2tRNmpzUHpCbzE4bEdPM3ctZkRCR0t5SWhfNW5tU0lmQkxULUc0QmRlT1ZXMA?oc=5",
-      "title": "40 Brown Ave, Springfield, NJ 07081 - Industrial for Lease - LoopNet",
-      "content_html": "40 Brown Ave, Springfield, NJ 07081 - Industrial for Lease LoopNet",
-      "content_text": "40 Brown Ave, Springfield, NJ 07081 - Industrial for Lease LoopNet",
-      "summary": "40 Brown Ave, Springfield, NJ 07081 - Industrial for Lease LoopNet",
-      "date_published": "2026-09-24T22:11:14.000Z",
-      "date_modified": "2026-10-24T17:46:14.558Z",
-      "image": "https://picsum.photos/seed/tijdjm/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBYZFRiQnI2T3pFLTNHY21sdTQzalFuN2VfYnp3SVA2MVY0Zi1ZR1doVi02V2RFX2xfNUpWUnQ3bk1Jemc5R0pLM2Yxa2tRNmpzUHpCbzE4bEdPM3ctZkRCR0t5SWhfNW5tU0lmQkxULUc0QmRlT1ZXMA?oc=5",
         "feedName": "news.google.com"
       },
       "category": "availabilities",
