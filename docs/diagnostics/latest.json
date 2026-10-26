@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-23-1200",
-  "generatedAt": "2026-10-23T12:00:40.976Z",
-  "isFriday": true,
+  "runId": "2026-10-26-1200",
+  "generatedAt": "2026-10-26T12:00:39.418Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 229,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 230,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 5,
-      "supplyCandidates": 79,
+      "selected": 4,
+      "supplyCandidates": 80,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -26,51 +26,6 @@
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 9,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 229,
-      "inWindow": 8,
-      "regionPass": 7,
-      "industrialPass": 0,
-      "sectionPass": 2,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 6,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 4,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -81,76 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 2,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 1,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "availabilities": {
-      "loaded": 229,
-      "inWindow": 1,
-      "regionPass": 1,
-      "industrialPass": 0,
-      "sectionPass": 1,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 14,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 0,
+        "tier3_30d_deep": 4,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
-    "people": {
-      "loaded": 229,
-      "inWindow": 1,
-      "regionPass": 1,
+    "transactions": {
+      "loaded": 230,
+      "inWindow": 4,
+      "regionPass": 2,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -161,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -183,6 +93,97 @@
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "availabilities": {
+      "loaded": 230,
+      "inWindow": 2,
+      "regionPass": 2,
+      "industrialPass": 0,
+      "sectionPass": 2,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 2,
+      "supplyCandidates": 27,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "RUBRIC_ADVISORY_BYPASS": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "people": {
+      "loaded": 230,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 0,
+      "supplyCandidates": 0,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
   "perFeedBySection": {
@@ -190,31 +191,17 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 7,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 3,
-        "transactions": 4,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News PA Manufacturing Land": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 5,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 2,
-        "transactions": 0,
-        "availabilities": 0,
+        "transactions": 1,
+        "availabilities": 2,
         "people": 0
       }
     },
-    "Google News LoopNet Industrial": {
+    "Google News Data Centers NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -222,13 +209,13 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
+        "relevant": 1,
         "transactions": 0,
-        "availabilities": 1,
+        "availabilities": 0,
         "people": 0
       }
     },
-    "Google News Industrial RE": {
+    "areadevelopment.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -236,48 +223,48 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
+        "relevant": 1,
         "transactions": 0,
         "availabilities": 0,
-        "people": 1
+        "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
-    "score": 90,
-    "outOf10": 9,
-    "grade": "A",
-    "itemCount": 11,
-    "operationalScore": 90,
-    "operationalGrade": "A",
-    "editorialQualityScore": 90,
+    "score": 89,
+    "outOf10": 8.9,
+    "grade": "B",
+    "itemCount": 7,
+    "operationalScore": 89,
+    "operationalGrade": "B",
+    "editorialQualityScore": 92,
     "editorialGrade": "A",
-    "coverageSupplyScore": 100,
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "FILLED"
+      "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 4,
-    "sectionSupplyCondition": "FULL",
+    "sectionsFilled": 3,
+    "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 30,
-      "freshness": 14.9,
+      "coverage": 27,
+      "freshness": 17.4,
       "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 5,
-      "deep": 10,
-      "reserve": 1
+      "deep": 4,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
@@ -285,7 +272,9 @@
     },
     "supply": "Rich",
     "penalties": [],
-    "notes": []
+    "notes": [
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+    ]
   },
   "logicImpact": {
     "nearDuplicatesSuppressed": 0,
@@ -295,13 +284,73 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 113,
+    "crossDayPoolRepeatsSuppressed": 115,
     "audit": [
+      {
+        "id": "0cb67cbe174c424085536bfc6a595a12270d120d",
+        "title": "Terreno sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "9f24fd662ce6879b845e873b3a00f930d34efb33",
+        "title": "260 Secaucus Rd, Secaucus, NJ 07094 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "d04031ed82974d8202aac4ac585d7fda33ad468f",
         "title": "Terreno Realty sells East Rutherford warehouse for $25M - NJBIZ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "aa959ba651dc6cac990531e0fb257e67227e411d",
+        "title": "GSK plans to open biopharmaceutical manufacturing facility in Pennsylvania - Plant Services",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "46698df6859b788d3c979bea46374673007feec5",
+        "title": "Colliers facilitates new lease for SendCutSend’s Pennsylvania manufacturing expansion - Colliers",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "4861cb861b044aa2a4d23979006619e149ee7858",
+        "title": "News | New Jersey-based industrial firm taps exec to lead property acquisition efforts in Florida - CoStar",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "71b9c5d00a58feea06819f5e18d4b48813525925",
+        "title": "Miami-Dade cold storage facility sold for $36M - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "415b2438f02c2f92eb890fdc23a60497aa41fcf2",
+        "title": "SRS Real Estate Partners Announces the $133 Million Sale of a Single-Tenant Industrial Property Occupied by Sherwin-Will",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7974e5e11794de80a8080a833224a86e023dcf98",
+        "title": "JLL Arranges Acquisition Financing for Industrial Outdoor Storage Facility in Union, New Jersey - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7eabb9ccf89624e47207214e61a4d709f097acb8",
+        "title": "NAIDB: Heating, cooling company takes 26,000 sq. ft. at Meadowlands industrial buidling - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7857388a4c317949870545d7dda0001ec8cffa1b",
+        "title": "JLL: Low-coverage industrial site in Sayreville trades after capital improvements, lease-up - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "40c898d5797671b7d8188d210fcbaf40b4b188bf",
@@ -616,12 +665,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "7b95f5d584747f28e4484cf3a813139866d0888d",
-        "title": "Branchburg industrial building sells for $4.2 million - AOL.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_title"
-      },
-      {
         "id": "8df013b7b2454b07b13dc22dc5e9c32537ce8d02",
         "title": "DEP creates statewide data center permit tracker - Scranton Times-Tribune",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -840,60 +883,6 @@
       {
         "id": "600c29c966f9ec4d8a3ce39aed198ccb59013b0c",
         "title": "Nvidia Looks To Insurers To Shoulder Losses For Riskier AI Data Center Tenants",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "61249307dd89fea83e8c3388a52cf8454b98afaa",
-        "title": "STRO, KRE add 43,000 sq. ft. in Florida with new industrial sale-leaseback deal - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c5432bfcc81f45bec13a7f7d60af43c189c39c26",
-        "title": "Griffin Pays $1.1B for Miami Parcel, New Carnegie Mellon Campus on Way - Connect CRE",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "1e8981cdcb7be7ae9b36cd571db9bfc1063de76f",
-        "title": "New Jersey Firm Invests in Dulles Corridor Flex Space - LoudounNow.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a780c3d7ae1b39e7f145ca84a6151a1accc53962",
-        "title": "Crow Holdings adds to Philly portfolio with new 104,000 sq. ft. warehouse - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "45b8486f57c275d464f1b5fcec47586e46683ee9",
-        "title": "Terreno sells 31,000 sq. ft. Fairfield industrial building for $8.8 million - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2b42ee639c948bdd1b8887e702acf6b46f233832",
-        "title": "New Jersey Industrial Development Picks Up the Pace - CommercialSearch",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a640a30e9dd9588a8db13e17dc50876dcf7aa715",
-        "title": "Data Center Developer Offers $10K Checks To Skeptical Pennsylvania Residents",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e54ce12168158ea05010c6596a4ae9421857f693",
-        "title": "Bain: Data Center Spree's Payoff Hinges On $4.2T In AI Revenue That Doesn't Exist Yet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "37b2249016a52c94e5d694ad7016d7a60a60ecdf",
-        "title": "2000+ Acre Canoe Creek Road Data Center in Florida Sparks Fierce Opposition from Residents - Construction Review",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
