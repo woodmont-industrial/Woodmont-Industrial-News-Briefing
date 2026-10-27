@@ -1,14 +1,14 @@
 {
-  "runId": "2026-10-26-1200",
-  "generatedAt": "2026-10-26T12:00:39.418Z",
+  "runId": "2026-10-27-1200",
+  "generatedAt": "2026-10-27T12:00:32.081Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 230,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 237,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 7,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 230,
-      "inWindow": 4,
-      "regionPass": 2,
+      "loaded": 237,
+      "inWindow": 5,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 2,
+      "selected": 0,
+      "supplyCandidates": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -86,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -95,15 +95,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 230,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 237,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 27,
+      "selected": 1,
+      "supplyCandidates": 22,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -126,14 +126,13 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "RUBRIC_ADVISORY_BYPASS": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -141,7 +140,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 230,
+      "loaded": 237,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -187,45 +186,45 @@
     }
   },
   "perFeedBySection": {
+    "Bisnow National": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Industrial RE": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 5,
+      "selected": 3,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 2,
-        "transactions": 1,
-        "availabilities": 2,
-        "people": 0
-      }
-    },
-    "Google News Data Centers NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
         "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "areadevelopment.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
+        "availabilities": 1,
         "people": 0
       }
     }
@@ -238,32 +237,32 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 89,
-    "outOf10": 8.9,
-    "grade": "B",
-    "itemCount": 7,
-    "operationalScore": 89,
-    "operationalGrade": "B",
-    "editorialQualityScore": 92,
-    "editorialGrade": "A",
-    "coverageSupplyScore": 80,
+    "score": 69,
+    "outOf10": 6.9,
+    "grade": "D",
+    "itemCount": 5,
+    "operationalScore": 69,
+    "operationalGrade": "D",
+    "editorialQualityScore": 69,
+    "editorialGrade": "D",
+    "coverageSupplyScore": 47,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "FILLED",
+      "transactions": "QUALITY_REJECTED",
       "availabilities": "FILLED",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 3,
+    "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 27,
-      "freshness": 17.4,
-      "regional": 25,
+      "coverage": 17,
+      "freshness": 12.5,
+      "regional": 22,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
-      "deep": 4,
+      "fresh": 0,
+      "deep": 9,
       "reserve": 0
     },
     "delivery": {
@@ -271,8 +270,15 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"CBRE Expands Data Center Footprint With $1B Acqu\""
+      }
+    ],
     "notes": [
+      "Empty — fresh supply rejected by section gates (quality): transactions",
       "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
@@ -284,8 +290,44 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 115,
+    "crossDayPoolRepeatsSuppressed": 122,
     "audit": [
+      {
+        "id": "75a20051828cead617cee4402d3aca785dbcaadc",
+        "title": "As Florida opposition explodes, data center investment keeps flowing - Naples Daily News",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "cf1cc792331d25beb6c4c37d51c99ff4bd0c861e",
+        "title": "Greystar Breaks Ground on 1 Million-Square-Foot New Jersey Logistics Park - Construction Owners",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "6724cab00db47dcbaaa05a6c8e9e58840ba55d5a",
+        "title": "Industrial Outdoor Storage in New Jersey: Navigating Zoning Uncertainty - Law.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "4e3fbaff9be7007113acd10e285cb63850603658",
+        "title": "5301 Corwin Dr, Tallahassee, FL 32303 - 7,360 sqft Flex Warehouse | Tallahassee, FL - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "f72a804ebd29b8f07957ed7ec5e74c202ab66326",
+        "title": "Conair Expands Franklin, Pennsylvania, Production Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5abaef112437d57a19d1f43ae52773ea26165fa2",
+        "title": "First Industrial Leases 708,000 SF Building in York, Pennsylvania - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "0cb67cbe174c424085536bfc6a595a12270d120d",
         "title": "Terreno sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ",
@@ -349,6 +391,12 @@
       {
         "id": "7857388a4c317949870545d7dda0001ec8cffa1b",
         "title": "JLL: Low-coverage industrial site in Sayreville trades after capital improvements, lease-up - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "3a0ee91e4a216fb8a987586e05445c6c2acffc9c",
+        "title": "RMR refis warehouse, IOS portfolio in Clifton and Newton for $10.1 million, CBRE says - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -641,6 +689,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "d11829a5331f9882de9fd489f825bf9451f22c56",
+        "title": "1008 State Route 33, Freehold, NJ 07728 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
         "title": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -835,54 +889,6 @@
       {
         "id": "5422cb1c70e4b4b9e4b7dc90a7c16833dd9e6c7b",
         "title": "246 Industrial Way W, Eatontown, NJ 07724 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2252a7912e86ce6e2bb1e73d6b25ed5ac75068b1",
-        "title": "Tampa Firm Pays $4M for Sherwood Industrial Property (Real Deals) - Arkansas Business",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "149b2f5d986da85d6bb166093b2ac8f9ee844e1e",
-        "title": "INDUSTRIAL DEVELOPMENT MAKES FOR HOTTER PROPERTY - Orlando Sentinel",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "762d9e09646e50f119f8a9cf4c2f90f0d2d02053",
-        "title": "Global logistics firm to open downtown Tampa office as it eyes further expansion - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6d174e9e976949f3a1223f19cddb3a87e8423f17",
-        "title": "WareSpace Invests in Space-Constrained Industrial Markets",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "21bb0bd3369b6b27eb9b040d292b1e04a86430d8",
-        "title": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "625bb98ed8664b6801f801458d4b42f73246a9b8",
-        "title": "Loan-to-Value Ratios Climb as CRE Lender Competition Heats Up",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "fd6b8ab0698ca0a79fc2e220e6f451127ef32ae7",
-        "title": "Cushman & Wakefield arranges $6M sale in Union City of cold storage industrial facility - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "600c29c966f9ec4d8a3ce39aed198ccb59013b0c",
-        "title": "Nvidia Looks To Insurers To Shoulder Losses For Riskier AI Data Center Tenants",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
