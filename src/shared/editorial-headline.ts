@@ -11,6 +11,7 @@ export function isOppositionLedDataCenterHeadline(title: string): boolean {
 /** Buying an equipment/service business does not describe buying its buildings. */
 export function isServiceCompanyAcquisition(article:{title?:string;description?:string}):boolean {
     const title=article.title||'',text=title+' '+(article.description||'');
+    if(!/\bdata[ -]?cent(?:er|re)s?\b/i.test(title))return false;
     if(!/\b(?:acquir(?:es?|ed)|acquisition|buys?|bought)\b/i.test(title))return false;
     if(/\b(?:warehouse|industrial (?:building|property|portfolio)|logistics (?:facility|portfolio))\b/i.test(title))return false;
     return /\b(?:equipment (?:provider|supplier)|(?:firm|company) that (?:installs|services)|software (?:company|business)|IT services (?:company|business))\b/i.test(text);

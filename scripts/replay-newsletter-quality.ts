@@ -45,7 +45,7 @@ async function main(){
             const items=mapFeedItemsToArticles(JSON.parse(fs.readFileSync(path.join(docs,'feed.json'),'utf8')).items);
             const selected=items.filter(a=>refs.some(r=>r.articleId===a.id));
             const stats=await enrichNewsletterFacts(selected,{cachePath:path.join(root,'public-cache.json'),
-                now:new Date(),maxPages:2});
+                now:new Date(),maxPages:4});
             result.publicFacts={stats,recovered:selected.map((a:any)=>({id:a.id,hasFacts:!!a._newsletterFacts}))};
             const expected=selected.find(a=>a.id===refs[1].articleId) as any;
             assert.equal(expected?._newsletterFacts?.squareFeet,182255,'publisher page supplies the portfolio area');

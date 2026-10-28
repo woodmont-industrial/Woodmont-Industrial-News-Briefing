@@ -18,6 +18,8 @@ const page=(body:string,title=article().title)=>`<html><h1>${title}</h1><nav>Hom
     <p>The company manages 999 million SF from a New Jersey headquarters.</p></main></html>`;
 const html=page('Example Buyer has acquired a three-building, 182,255-square-foot industrial portfolio in Carlstadt, New Jersey, for $44.3 million.');
 const facts=extractNewsletterFacts(html,article(),source,now)!;
+assert.equal(extractNewsletterFacts('<script type="application/ld+json">{"datePublished":"2026-10-29T12:00:00Z"}</script>'+html,
+    article(),source,now),null,'future publisher pages do not substantiate current articles');
 assert.equal(facts.squareFeet,182255);assert.equal(facts.priceUsd,44300000);
 assert.ok(facts.propertyLocationEvidence?.includes('Carlstadt'));
 assert.ok(!facts.evidence.join(' ').includes('Menu'));assert.ok(!facts.evidence.join(' ').includes('headquarters'));
@@ -61,6 +63,16 @@ async function main(){
         await enrichNewsletterFacts([failed],{cachePath:failedPath,now,sourceReferences:refs,loader:bad});
         await enrichNewsletterFacts([failed],{cachePath:failedPath,now,sourceReferences:refs,loader:bad});
         assert.equal(failures,1,'publisher refusal cools down instead of being bypassed');
+        const alt=article('alternate');let origin=0,syndicated=0;
+        const approvedCopy='https://www.webull.com/news/123456789';
+        const alternateOptions={cachePath:path.join(root,'alternate.json'),now,sourceReferences:[{
+            articleId:alt.id,sourceUrl:source,alternateUrls:[approvedCopy]}],loader:async(url:string)=>{
+                if(url===source){origin++;throw Error('HTTP_403');}syndicated++;return{url,html};}};
+        await enrichNewsletterFacts([alt],alternateOptions);
+        assert.equal(alt._newsletterFacts.sourceUrl,approvedCopy);
+        await enrichNewsletterFacts([article('alternate')],alternateOptions);
+        assert.equal(origin,1,'a refused origin is not re-requested when using a vetted public copy');
+        assert.equal(syndicated,1,'the independently approved public copy is also cached');
         const future=article('future',{pubDate:'2026-10-29T12:00:00Z'});
         await enrichNewsletterFacts([future],{cachePath,now,sourceReferences:[{articleId:'future',sourceUrl:source}],loader});
         assert.equal(calls,2,'future articles do not get page extraction');

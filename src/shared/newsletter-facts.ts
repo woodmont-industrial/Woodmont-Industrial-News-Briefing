@@ -1,6 +1,6 @@
 import { hasNewsletterTargetRegion } from './newsletter-geography.js';
 
-export const FACT_SOURCE_DOMAINS = ['businesswire.com','rebusinessonline.com','bisnow.com','connectcre.com'];
+export const FACT_SOURCE_DOMAINS = ['businesswire.com','rebusinessonline.com','bisnow.com','connectcre.com','webull.com'];
 export type NewsletterFacts = { version:1; sourceUrl:string; checkedAt:string; evidence:string[];
     squareFeet:number|null; priceUsd:number|null; propertyLocationEvidence:string|null };
 

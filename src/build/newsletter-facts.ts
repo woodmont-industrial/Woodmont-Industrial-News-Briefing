@@ -17,14 +17,26 @@ const plain=(html:string)=>html.replace(/<[^>]*>/g,' ').replace(/&nbsp;/gi,' ').
 const topicWords=(s:string)=>new Set(s.toLowerCase().replace(/\b(?:business wire|connect cre|the business journals)\b/g,'')
     .split(/[^a-z0-9]+/).filter(t=>t.length>=3&&!/^(the|and|for|with|from|has|new|real|estate)$/.test(t)));
 
+function newsContainer(html:string):string|undefined {
+    const start=/<div\b[^>]*\bid=["']news["'][^>]*>/i.exec(html);
+    if(!start)return;
+    const rest=html.slice(start.index+start[0].length);let depth=1;
+    for(const tag of rest.matchAll(/<\/?div\b[^>]*>/gi)){
+        depth+=/^<\//.test(tag[0])?-1:1;
+        if(!depth)return rest.slice(0,tag.index);
+    }
+}
+
 export function extractNewsletterFacts(html:string, article:NormalizedItem, sourceUrl:string, now:Date):NewsletterFacts|null {
     if(!approvedFactUrl(sourceUrl)) return null;
+    const published=/["']datePublished["']\s*:\s*["']([^"']+)/i.exec(html)?.[1];
+    if(published && Date.parse(published)>now.getTime())return null;
     const title=plain(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(html)?.[1]||'');
     const wanted=topicWords(article.title||''),actual=topicWords(title);
     const common=[...wanted].filter(w=>actual.has(w)).length;
     if(common<3 || common/Math.max(1,Math.min(wanted.size,actual.size))<0.5) return null;
     let body=/<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(html)?.[1]
-        || /<article\b[^>]*>([\s\S]*?)<\/article>/i.exec(html)?.[1];
+        || /<article\b[^>]*>([\s\S]*?)<\/article>/i.exec(html)?.[1] || newsContainer(html);
     if(!body) return null;
     body=body.replace(/<(script|style|nav|header|footer|aside|form)\b[^>]*>[\s\S]*?<\/\1>/gi,' ');
     const paragraphs=body.replace(/<\/?(?:p|div|section|h[1-6]|li|br)\b[^>]*>/gi,'\n')
@@ -92,11 +104,11 @@ export async function loadApprovedFactPage(raw:string, signal:AbortSignal,
 
 export async function enrichNewsletterFacts(items:NormalizedItem[], options:{cachePath:string;now?:Date;
     maxPages?:number;budgetMs?:number;loader?:(url:string,signal:AbortSignal)=>Promise<Page>;
-    sourceReferences?:Array<{articleId:string;sourceUrl:string}>}) {
+    sourceReferences?:Array<{articleId:string;sourceUrl:string;alternateUrls?:string[]}>}) {
     const now=options.now||new Date(),started=Date.now(),budget=Math.min(45000,options.budgetMs??45000);
     let cache:Record<string,CacheEntry>={};
     try{if(fs.statSync(options.cachePath).size<1_000_000)cache=JSON.parse(fs.readFileSync(options.cachePath,'utf8'));}catch{}
-    const reference=new Map((options.sourceReferences||references).map(r=>[r.articleId,r.sourceUrl]));
+    const reference=new Map((options.sourceReferences||references).map(r=>[r.articleId,[r.sourceUrl,...(r.alternateUrls||[])]]));
     const stats={attempted:0,cached:0,enriched:0,unavailable:0,unresolved:0,noFacts:0,failures:{} as Record<string,number>};
     const candidates=[...items].sort((a,b)=>Number(reference.has(b.id||''))-Number(reference.has(a.id||''))
         ||Date.parse(b.pubDate||'')-Date.parse(a.pubDate||''));
@@ -107,27 +119,29 @@ export async function enrichNewsletterFacts(items:NormalizedItem[], options:{cac
         const hasRequiredQuantity=item.category==='availabilities'
             ?existing.some(q=>q.unit==='sf'):existing.some(q=>q.unit==='sf'||q.unit==='usd');
         if(!reference.has(item.id||'') && hasRequiredQuantity && hasNewsletterTargetRegion(item.title||''))continue;
-        const url=reference.get(item.id||'')||item.link||(item as any).url||'';
-        if(!approvedFactUrl(url)){stats.unresolved++;continue;}
-        const key=createHash('sha256').update(url+'\n'+item.title).digest('hex');const prior=cache[key];
-        const age=prior?now.getTime()-Date.parse(prior.checkedAt):Infinity;
+        const urls=reference.get(item.id||'')||[item.link||(item as any).url||''];
         let facts:NewsletterFacts|null=null;
-        if(age>=0 && age<(prior?.facts?7*86400000:86400000)) {stats.cached++;facts=prior.facts;}
-        else {
-            if(stats.attempted>=Math.min(8,options.maxPages??6)||Date.now()-started>=budget)continue;
-            stats.attempted++;
-            try{const page=await(options.loader||loadApprovedFactPage)(url,AbortSignal.timeout(Math.max(1,Math.min(10000,budget-(Date.now()-started)))));
-                if(!approvedFactUrl(page.url))throw Error('unapproved final source');
-                // Keep the validated public reference (stable newswire IDs need
-                // no company-name URL slug) while validating every fetched hop.
-                facts=extractNewsletterFacts(page.html,item,url,now);
-                if(!facts)stats.noFacts++;}
-            catch(error){stats.unavailable++;const e=error as Error;
-                const reason=/^HTTP_\d{3}$/.test(e.message)?e.message:e.name==='TimeoutError'?'timeout':
-                    /private|non-public/.test(e.message)?'non-public-address':
-                    /^(EAI_AGAIN|ENOTFOUND|ECONNRESET|ETIMEDOUT)$/.test((e as any).code)?(e as any).code:'download-failed';
-                stats.failures[reason]=(stats.failures[reason]||0)+1;}
-            cache[key]={checkedAt:now.toISOString(),facts};
+        for(const url of urls.slice(0,3)) {
+            if(!approvedFactUrl(url)){stats.unresolved++;continue;}
+            const key=createHash('sha256').update(url+'\n'+item.title).digest('hex');const prior=cache[key];
+            const age=prior?now.getTime()-Date.parse(prior.checkedAt):Infinity;
+            if(age>=0 && age<(prior?.facts?7*86400000:86400000)) {stats.cached++;facts=prior.facts;}
+            else {
+                if(stats.attempted>=Math.min(8,options.maxPages??6)||Date.now()-started>=budget)break;
+                stats.attempted++;
+                try{const page=await(options.loader||loadApprovedFactPage)(url,AbortSignal.timeout(Math.max(1,Math.min(10000,budget-(Date.now()-started)))));
+                    if(!approvedFactUrl(page.url))throw Error('unapproved final source');
+                    // Stable public references need no company-name URL slug.
+                    facts=extractNewsletterFacts(page.html,item,url,now);
+                    if(!facts)stats.noFacts++;}
+                catch(error){stats.unavailable++;const e=error as Error;
+                    const reason=/^HTTP_\d{3}$/.test(e.message)?e.message:e.name==='TimeoutError'?'timeout':
+                        /private|non-public/.test(e.message)?'non-public-address':
+                        /^(EAI_AGAIN|ENOTFOUND|ECONNRESET|ETIMEDOUT)$/.test((e as any).code)?(e as any).code:'download-failed';
+                    stats.failures[reason]=(stats.failures[reason]||0)+1;}
+                cache[key]={checkedAt:now.toISOString(),facts};
+            }
+            if(facts)break;
         }
         if(!facts || !newsletterFactFields({_newsletterFacts:facts})._newsletterFacts)continue;
         const normalized=[facts.squareFeet!==null?`${facts.squareFeet.toLocaleString('en-US')} SF`:null,

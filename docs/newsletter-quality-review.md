@@ -26,6 +26,9 @@ references keyed to an existing article ID. The two initial references in
 `src/feeds/article-source-references.json` repair observed cases; they are not a
 general Google News URL decoder or a new source-discovery service. Opaque proxies
 without an approved reference stay unchanged.
+Each reference may name an independently verified public distribution copy. A
+refused origin remains on cooldown; the alternate must separately pass the same
+domain, page-topic and factual-evidence checks.
 
 Limits per build: six candidate pages, 45 seconds total, 1 MB per page and at most
 two redirects per page. Every redirect must remain HTTPS on an approved publisher
