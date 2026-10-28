@@ -14,6 +14,7 @@ type FactArticle = NormalizedItem & { url?: string; _newsletterFacts?: Newslette
 type Page = { url: string; html: string };
 type CacheEntry = { checkedAt: string; facts: NewsletterFacts | null };
 type SourceReference = { articleId: string; sourceUrl: string; alternateUrls?: string[] };
+const EXTRACTION_CACHE_VERSION = 'property-facts-v2';
 
 interface FactRecoveryOptions {
     cachePath: string;
@@ -66,6 +67,15 @@ function newsContainer(html: string): string | undefined {
     }
 }
 
+function isAggregateLeasing(paragraph: string): boolean {
+    const explicitAggregate = /\b(?:total|overall|aggregate|combined)\s+(?:industrial\s+)?leasing\b/i.test(paragraph);
+    const groupActivity = /\b(?:businesses|companies|tenants|industries)\s+(?:have\s+)?leased\b/i.test(paragraph);
+    const marketContext = /\b(?:nationwide|nationally|market[- ]wide|across the country|quarter|year[- ]to[- ]date|year[- ]over[- ]year|between\s+Q[1-4])\b/i.test(paragraph);
+    // Keep the actor and reporting period for this check. Slicing at "leased"
+    // first would turn market-wide activity into an apparent property area.
+    return explicitAggregate || (groupActivity && marketContext);
+}
+
 export function extractNewsletterFacts(
     html: string,
     article: NormalizedItem,
@@ -95,6 +105,7 @@ export function extractNewsletterFacts(
     let primary = '';
     for (const paragraph of story) {
         if (!/\b(?:warehouse|industrial|distribution|logistics|portfolio)\b/i.test(paragraph)) continue;
+        if (isAggregateLeasing(paragraph)) continue;
         const action = /\b(?:has acquired|acquired|purchased|sold|leased|closing of|closed|begins? construction|breaks? ground)\b/i.exec(paragraph);
         if (!action) continue;
         const text = paragraph.slice(action.index).split(/(?<=[.!?])\s+(?=[A-Z])/)[0];
@@ -270,7 +281,8 @@ export async function enrichNewsletterFacts(
         let facts: NewsletterFacts | null = null;
         let deferred = false;
         for (const url of urls) {
-            const key = createHash('sha256').update(url + '\n' + item.title).digest('hex');
+            const key = createHash('sha256')
+                .update(EXTRACTION_CACHE_VERSION + '\n' + url + '\n' + item.title).digest('hex');
             const prior = cache[key];
             const age = prior ? now.getTime() - Date.parse(prior.checkedAt) : Infinity;
             if (age >= 0 && age < (prior?.facts ? 7 * 86400000 : 86400000)) {

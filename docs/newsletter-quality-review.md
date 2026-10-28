@@ -37,7 +37,9 @@ two redirects per page. Every redirect must remain HTTPS on an approved publishe
 domain; credentialed URLs, private DNS addresses and unapproved hosts fail. A
 publisher refusal is not bypassed. Approved public page text must match the
 article topic. Extraction excludes navigation and company boilerplate and declines
-ambiguous areas/prices rather than selecting the largest number.
+ambiguous areas/prices rather than selecting the largest number. Market-wide
+leasing statistics are not attached as a property's area. The extractor's cache
+version prevents reuse of entries accepted by the older parser.
 
 Only compact evidence and its public source URL reach the feed. Raw HTML stays
 out of the repository. The ignored cache holds at most 200 entries: successful

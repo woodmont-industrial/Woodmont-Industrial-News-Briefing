@@ -59,6 +59,7 @@ async function main(){
             writeEditorialFeed(automatic, path.join(automaticDocs, 'feed.json'));
             result.withoutReferences = {
                 stats: automaticStats,
+                recovered: automatic.filter(article => article._newsletterFacts).map(article => ({id: article.id})),
                 email: run(automaticDocs, process.cwd(), date, 'automatic-facts'),
             };
             assert.equal(automaticStats.referenced, 0);

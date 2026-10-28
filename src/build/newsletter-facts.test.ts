@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { createHash } from 'node:crypto';
 import { extractNewsletterFacts, enrichNewsletterFacts, loadApprovedFactPage } from './newsletter-facts.js';
 import { approvedFactUrl, hasVerifiedTargetProperty } from '../shared/newsletter-facts.js';
 import { isTargetRegion, applyTransactionFilter } from '../server/newsletter-filters.js';
@@ -27,6 +28,16 @@ const nestedArticle=`<h1>${article().title}</h1><main><p>Other Buyer acquired a 
     <article><p>Example Buyer has acquired a 182,255-square-foot industrial portfolio in Carlstadt NJ for $44.3 million.</p></article></main>`;
 assert.equal(extractNewsletterFacts(nestedArticle,article(),source,now)?.squareFeet,182255,
     'article body outranks unrelated recommendation paragraphs in the main container');
+for (const aggregate of [
+    'Between Q3 2024 and Q2 2026, data center-adjacent businesses leased 69M SF of large-block warehouse space, according to Example Research.',
+    'Industrial tenants leased 35 million square feet nationwide during the quarter.',
+    'Total industrial leasing volume reached 45 million SF as businesses leased warehouse space across the country.',
+]) {
+    assert.equal(extractNewsletterFacts(page(aggregate),article(),source,now),null,
+        'market-wide leasing statistics are not the area of a property transaction');
+}
+assert.equal(extractNewsletterFacts(page('Example Tenant leased a 120,000 SF industrial warehouse in Edison NJ during the third quarter.'),
+    article(),source,now)?.squareFeet,120000,'a dated lease by a specific tenant remains property evidence');
 assert.equal(extractNewsletterFacts(page('Example Buyer leased 12,000 SF in a 200,000 SF industrial warehouse in Edison NJ.'),article(),source,now),null);
 assert.equal(extractNewsletterFacts(page('Example Buyer has acquired a 200,000 SF industrial warehouse for $30M.','Different Retail Company Opens Shopping Mall'),article(),source,now),null);
 for(const url of ['http://www.businesswire.com/a','https://businesswire.com.evil.test/a',
@@ -73,6 +84,16 @@ async function main(){
         assert.equal(accounting.budgetDeferred,1);assert.equal(accounting.attempted,0);
         assert.equal(accounting.httpRequests,0);
         assert.equal(accounting.eligible,accounting.direct+accounting.referenced+accounting.unresolved);
+        const legacy=article('legacy');
+        const legacyPath=path.join(root,'legacy.json');
+        const legacyKey=createHash('sha256').update(source+'\n'+legacy.title).digest('hex');
+        fs.writeFileSync(legacyPath,JSON.stringify({[legacyKey]:{checkedAt:now.toISOString(),facts}}));
+        let checkedAgain=0;
+        stats=await enrichNewsletterFacts([legacy],{cachePath:legacyPath,now,
+            sourceReferences:[{articleId:legacy.id,sourceUrl:source}],loader:async()=>{
+                checkedAgain++;return{url:source,html:page('Industrial tenants leased 69M SF of warehouse space nationwide during the quarter.')};}});
+        assert.equal(checkedAgain,1,'the revised extractor does not reuse facts accepted by the old parser');
+        assert.equal(stats.enriched,0);assert.equal(legacy._newsletterFacts,undefined);
         const failed=article('failed');const refs=[{articleId:'failed',sourceUrl:source}];
         const failedPath=path.join(root,'failed.json');let failures=0;
         const bad=async()=>{failures++;throw Error('403');};
