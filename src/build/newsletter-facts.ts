@@ -77,7 +77,7 @@ export async function loadApprovedFactPage(raw:string, signal:AbortSignal,
             if(!location||redirects===2) throw Error('redirect limit');
             url=new URL(location,url).toString();continue;
         }
-        if(!response.ok) {await response.body?.cancel();throw Error('publisher unavailable');}
+        if(!response.ok) {await response.body?.cancel();throw Error('HTTP_'+response.status);}
         if(!response.headers.get('content-type')?.includes('text/html')||Number(response.headers.get('content-length'))>1_000_000){
             await response.body?.cancel();throw Error('invalid content');}
         const reader=response.body?.getReader();if(!reader)throw Error('empty page');
@@ -97,7 +97,7 @@ export async function enrichNewsletterFacts(items:NormalizedItem[], options:{cac
     let cache:Record<string,CacheEntry>={};
     try{if(fs.statSync(options.cachePath).size<1_000_000)cache=JSON.parse(fs.readFileSync(options.cachePath,'utf8'));}catch{}
     const reference=new Map((options.sourceReferences||references).map(r=>[r.articleId,r.sourceUrl]));
-    const stats={attempted:0,cached:0,enriched:0,unavailable:0,unresolved:0};
+    const stats={attempted:0,cached:0,enriched:0,unavailable:0,unresolved:0,noFacts:0,failures:{} as Record<string,number>};
     const candidates=[...items].sort((a,b)=>Number(reference.has(b.id||''))-Number(reference.has(a.id||''))
         ||Date.parse(b.pubDate||'')-Date.parse(a.pubDate||''));
     for(const item of candidates){
@@ -120,8 +120,13 @@ export async function enrichNewsletterFacts(items:NormalizedItem[], options:{cac
                 if(!approvedFactUrl(page.url))throw Error('unapproved final source');
                 // Keep the validated public reference (stable newswire IDs need
                 // no company-name URL slug) while validating every fetched hop.
-                facts=extractNewsletterFacts(page.html,item,url,now);}
-            catch{stats.unavailable++;}
+                facts=extractNewsletterFacts(page.html,item,url,now);
+                if(!facts)stats.noFacts++;}
+            catch(error){stats.unavailable++;const e=error as Error;
+                const reason=/^HTTP_\d{3}$/.test(e.message)?e.message:e.name==='TimeoutError'?'timeout':
+                    /private|non-public/.test(e.message)?'non-public-address':
+                    /^(EAI_AGAIN|ENOTFOUND|ECONNRESET|ETIMEDOUT)$/.test((e as any).code)?(e as any).code:'download-failed';
+                stats.failures[reason]=(stats.failures[reason]||0)+1;}
             cache[key]={checkedAt:now.toISOString(),facts};
         }
         if(!facts || !newsletterFactFields({_newsletterFacts:facts})._newsletterFacts)continue;

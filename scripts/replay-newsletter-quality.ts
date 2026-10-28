@@ -22,7 +22,8 @@ const run=(docs:string,cwd:string,date:string,label:string)=>{
     const output=path.join(root,date+'-'+label+'.json');
     execFileSync(process.execPath,['--import',path.resolve('node_modules/tsx/dist/loader.mjs'),replay,docs,output,date+'T12:00:20Z'],
         {cwd,env:{PATH:process.env.PATH,TZ:'America/New_York'},stdio:'pipe',timeout:120000});
-    return JSON.parse(fs.readFileSync(output,'utf8'));
+    const {stages,...result}=JSON.parse(fs.readFileSync(output,'utf8'));
+    return result;
 };
 async function main(){
     execFileSync('git',['worktree','add','--detach',baseline,'ca77b937d22943407cff4392cbd23b54c3bbd84c'],{stdio:'pipe'});
@@ -45,6 +46,7 @@ async function main(){
             const selected=items.filter(a=>refs.some(r=>r.articleId===a.id));
             const stats=await enrichNewsletterFacts(selected,{cachePath:path.join(root,'public-cache.json'),
                 now:new Date(),maxPages:2});
+            result.publicFacts={stats,recovered:selected.map((a:any)=>({id:a.id,hasFacts:!!a._newsletterFacts}))};
             const expected=selected.find(a=>a.id===refs[1].articleId) as any;
             assert.equal(expected?._newsletterFacts?.squareFeet,182255,'publisher page supplies the portfolio area');
             assert.equal(expected?._newsletterFacts?.priceUsd,44300000);
@@ -56,7 +58,7 @@ async function main(){
             }
             writeEditorialFeed(items,path.join(docs,'feed.json'));
             const enriched=run(docs,process.cwd(),date,'public-facts');
-            result.publicFacts={stats,email:enriched};
+            result.publicFacts.email=enriched;
             assert.ok(enriched.sections.transactions.includes(refs[date==='2026-10-27'?1:0].articleId),'verified facts reach the final Transactions section');
         }
     }

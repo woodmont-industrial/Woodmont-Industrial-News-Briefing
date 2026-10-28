@@ -6,6 +6,7 @@ import { extractNewsletterFacts, enrichNewsletterFacts, loadApprovedFactPage } f
 import { approvedFactUrl, hasVerifiedTargetProperty } from '../shared/newsletter-facts.js';
 import { isTargetRegion, applyTransactionFilter } from '../server/newsletter-filters.js';
 import { generateJSONFeed } from './feed-generators.js';
+import references from '../feeds/article-source-references.json' with {type:'json'};
 
 const now=new Date('2026-10-28T12:00:20Z');
 const source='https://www.businesswire.com/news/home/123456789/en/';
@@ -48,6 +49,9 @@ async function main(){
         const copy=article();stats=await enrichNewsletterFacts([copy],{cachePath,now,sourceReferences:[{articleId:copy.id,sourceUrl:source}],loader});
         assert.equal(stats.cached,1);assert.equal(calls,1,'fresh-run cache avoids a second page fetch');
         assert.equal(copy.description,a.description,'cached enrichment is stable');
+        const configured=article(references[0].articleId);
+        stats=await enrichNewsletterFacts([configured],{cachePath:path.join(root,'configured.json'),now,loader});
+        assert.equal(stats.enriched,1,'the configured canonical references work through the default import');
         const unresolved=article('unresolved');const text=unresolved.description;
         stats=await enrichNewsletterFacts([unresolved],{cachePath,now,sourceReferences:[],loader});
         assert.equal(stats.unresolved,1);assert.equal(unresolved.description,text,'opaque proxies stay unchanged without a verified canonical source');
@@ -59,7 +63,7 @@ async function main(){
         assert.equal(failures,1,'publisher refusal cools down instead of being bypassed');
         const future=article('future',{pubDate:'2026-10-29T12:00:00Z'});
         await enrichNewsletterFacts([future],{cachePath,now,sourceReferences:[{articleId:'future',sourceUrl:source}],loader});
-        assert.equal(calls,1,'future articles do not get page extraction');
+        assert.equal(calls,2,'future articles do not get page extraction');
         let bounded=0;
         const batch=Array.from({length:10},(_,i)=>article('bounded-'+i,{title:article().title+' '+i}));
         stats=await enrichNewsletterFacts(batch,{cachePath:path.join(root,'bounded.json'),now,maxPages:2,
