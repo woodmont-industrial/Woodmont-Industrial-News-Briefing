@@ -10,7 +10,7 @@ import { NormalizedItem } from '../types/index.js';
 import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
 import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition } from '../shared/editorial-headline.js';
-import { NEWSLETTER_TARGET_PATTERN, hasNewsletterTargetRegion, newsletterTargetCount } from '../shared/newsletter-geography.js';
+import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
@@ -18,7 +18,7 @@ import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsl
 import { getPublisherName } from '../shared/publisher-name.js';
 import { dcPolicyVerdict, dcDollarsB, dcMW, nonTargetTokens } from '../shared/dc-policy.js';
 import {
-    TARGET_REGIONS, CRE_COMPANY_NAMES, MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
+    MAJOR_EXCLUDE_REGIONS, INTERNATIONAL_EXCLUDE,
     EXCLUDE_POLITICAL, EXCLUDE_NON_INDUSTRIAL, INDUSTRIAL_PROPERTY_KEYWORDS,
     RELEVANT_KEYWORDS, PEOPLE_ACTION_KEYWORDS, INDUSTRIAL_CONTEXT_KEYWORDS,
     TRANSACTION_ACTION_WORDS, APPROVAL_KEYWORDS, EXCLUDE_FROM_PEOPLE,
@@ -26,9 +26,6 @@ import {
     isStrictlyIndustrial,
     hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent
 } from '../shared/region-data.js';
-
-// Geographic-only target regions (no CRE company names)
-const TARGET_REGIONS_GEO = TARGET_REGIONS.filter(r => !CRE_COMPANY_NAMES.includes(r));
 
 /** Count the same bounded geographic phrases used by the final email gate. */
 function countRegionMatches(text: string): [number, number] {
@@ -82,10 +79,6 @@ const NON_TARGET_US_STATE_RE = /\b(?:Alabama|Arizona|Arkansas|California|Colorad
 // is about a foreign deal and should fail Rule (c) regardless of mentions of NJ/PA/FL.
 const NON_TARGET_COUNTRY_RE = /\b(?:Norway|Sweden|Finland|Denmark|Iceland|Germany|France|Spain|Italy|U\.K\.|United Kingdom|Britain|England|Scotland|Wales|Ireland|Netherlands|Belgium|Switzerland|Austria|Poland|Greece|Portugal|Russia|Ukraine|Turkey|Israel|UAE|Saudi Arabia|Qatar|Egypt|South Africa|Nigeria|Kenya|Madagascar|Morocco|Australia|New Zealand|China|Japan|Korea|India|Pakistan|Bangladesh|Vietnam|Thailand|Malaysia|Singapore|Indonesia|Philippines|Mexico|Brazil|Argentina|Chile|Colombia|Canada)\b/i;
 
-// Earliest target-region phrase finder. Used to compare positional dominance
-// against non-target mentions (Rule c).
-const TARGET_REGION_PHRASE_RE = NEWSLETTER_TARGET_PATTERN;
-
 // Government-body pattern. "Industrial Development Agency / Authority / Commission /
 // Board / Corporation / District" — these are public-sector bodies that legitimately
 // have "industrial" in their name but rarely concern actual NJ/PA/FL property deals.
@@ -112,7 +105,7 @@ const GENERIC_LISTING_TITLE_RE = /^(?:For\s+Lease|For\s+Sale|FOR\s+LEASE|FOR\s+S
 const ACQUISITION_VERB_RE = /\b(?:buys|bought|buying|acquires?|acquired|acquiring|purchas(?:es|ed|ing)|snaps?\s+up|snapped\s+up|picks?\s+up|picked\s+up|scoops?\s+up|scooped\s+up|nabs?|nabbed|grabs?|grabbed)\b/i;
 
 // Target-region presence test for a raw text SEGMENT (used positionally in Rule a).
-// Mirrors isTargetRegion's substring approach against the geographic-only token set.
+// Uses the same qualified geographic evidence as the final email gate.
 function segmentHasTarget(segment: string): boolean {
     return hasNewsletterTargetRegion(segment);
 }
@@ -143,7 +136,7 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
 
     // Rule (b): government industrial-development body without target-region property
     if (GOV_INDUSTRIAL_BODY_RE.test(fullText)) {
-        if (!TARGET_REGION_PHRASE_RE.test(fullText)) {
+        if (!hasNewsletterTargetRegion(fullText)) {
             return { fails: true, reason: 'GOV_AGENCY_NO_TARGET_PROPERTY' };
         }
     }
@@ -153,7 +146,7 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
     // Preserves Huntingdon Valley PA, Jersey City NJ, Doral FL, etc.; kills Valencia
     // CA, Torrance CA, Santa Clarita CA, Morisset NSW, Numancia Spain, etc.
     if (LISTING_AGGREGATOR_SUFFIX_RE.test(title) || GENERIC_LISTING_TITLE_RE.test(title)) {
-        if (!TARGET_REGION_PHRASE_RE.test(fullText)) {
+        if (!hasNewsletterTargetRegion(fullText)) {
             return { fails: true, reason: 'SOURCE_LISTING_AGGREGATOR_NO_TARGET' };
         }
     }
@@ -161,13 +154,19 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
     // Rule (c): primary location is non-target. Find earliest non-target country
     // or non-target US state and earliest target phrase. If non-target appears
     // before target (or no target at all), reject.
-    const targetMatch = title.match(TARGET_REGION_PHRASE_RE);
-    const excludeStateMatch = title.match(NON_TARGET_US_STATE_RE);
-    const excludeCountryMatch = title.match(NON_TARGET_COUNTRY_RE);
+    const verbMatch = title.match(ACQUISITION_VERB_RE);
+    // A buyer's qualified home city is not the location of the acquired asset.
+    const assetText = verbMatch ? title.slice(verbMatch.index! + verbMatch[0].length) : title;
+    if (hasExplicitNonTargetCity(assetText)) {
+        return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
+    }
+    const targetMatch = newsletterTargetMatches(assetText)[0];
+    const excludeStateMatch = assetText.match(NON_TARGET_US_STATE_RE);
+    const excludeCountryMatch = assetText.match(NON_TARGET_COUNTRY_RE);
 
-    const targetIdx = targetMatch ? title.indexOf(targetMatch[0]) : Infinity;
-    const excludeStateIdx = excludeStateMatch ? title.indexOf(excludeStateMatch[0]) : Infinity;
-    const excludeCountryIdx = excludeCountryMatch ? title.indexOf(excludeCountryMatch[0]) : Infinity;
+    const targetIdx = targetMatch?.index ?? Infinity;
+    const excludeStateIdx = excludeStateMatch?.index ?? Infinity;
+    const excludeCountryIdx = excludeCountryMatch?.index ?? Infinity;
     const earliestExclude = Math.min(excludeStateIdx, excludeCountryIdx);
 
     if (earliestExclude !== Infinity && earliestExclude < targetIdx) {
@@ -183,7 +182,6 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
     // acquires Dallas portfolio". Requiring a target token BEFORE the verb keeps headlines
     // whose subject isn't a target market untouched ("Legacy, Commerce Park grab two
     // Moonachie industrial buildings" has no target token before "grab", so it never fires).
-    const verbMatch = title.match(ACQUISITION_VERB_RE);
     if (verbMatch) {
         const verbIdx = title.indexOf(verbMatch[0]);
         const buyerSeg = title.slice(0, verbIdx);

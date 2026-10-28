@@ -41,11 +41,33 @@ async function main(){
         const winterSale='b796663e4839029bdbf75bcc55975083830bbb97';
         assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
         assert.ok(!after.sections.relevant.includes('14f68ade960e1446c8f3ff94834a91b673293451'),'the rejected office/personnel item stays out');
+        if (date === '2026-10-28') {
+            assert.ok(after.sections.relevant.includes('7120f30eb46f5c0dc930404fbb49b745c51224e1'),
+                'the real Allentown groundbreaking renders in Relevant, including its former-company wording');
+        }
         if(live){
             const items=mapFeedItemsToArticles(JSON.parse(fs.readFileSync(path.join(docs,'feed.json'),'utf8')).items);
+            // Audit the entire normal-day feed, with separate caches for the
+            // automatic path and the explicit canonical-reference repairs.
+            const automatic = structuredClone(items);
+            const automaticStats = await enrichNewsletterFacts(automatic, {
+                cachePath: path.join(root, 'automatic-cache.json'),
+                now: new Date(), sourceReferences: [],
+            });
+            const automaticDocs = path.join(root, date + '-automatic-docs');
+            fs.cpSync(docs, automaticDocs, {recursive: true});
+            writeEditorialFeed(automatic, path.join(automaticDocs, 'feed.json'));
+            result.withoutReferences = {
+                stats: automaticStats,
+                email: run(automaticDocs, process.cwd(), date, 'automatic-facts'),
+            };
+            assert.equal(automaticStats.referenced, 0);
+            assert.equal(automaticStats.eligible,
+                automaticStats.direct + automaticStats.referenced + automaticStats.unresolved);
+            assert.ok(automaticStats.attempted <= 6 && automaticStats.httpRequests <= 18);
+            const stats=await enrichNewsletterFacts(items,{cachePath:path.join(root,'public-cache.json'),
+                now:new Date()});
             const selected=items.filter(a=>refs.some(r=>r.articleId===a.id));
-            const stats=await enrichNewsletterFacts(selected,{cachePath:path.join(root,'public-cache.json'),
-                now:new Date(),maxPages:4});
             result.publicFacts={stats,recovered:selected.map((a:any)=>({id:a.id,hasFacts:!!a._newsletterFacts}))};
             const expected=selected.find(a=>a.id===refs[1].articleId) as any;
             assert.equal(expected?._newsletterFacts?.squareFeet,182255,'publisher page supplies the portfolio area');

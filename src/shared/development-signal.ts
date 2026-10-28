@@ -8,13 +8,15 @@ export function isConstructionAnnouncement(article: Pick<NormalizedItem, 'title'
     // A completed transaction concerning a newly completed building stays a deal.
     if (/\b(?:acquir(?:es?|ed)|acquisition|purchase|bought|buys?|purchased|sells?|sold|leased|refinanc(?:es?|ed|ing)|securitization|CMBS|SASB)\b/i.test(title)) return false;
     if (/\b(?:available|for (?:lease|sale)|now leasing|listing|listed|offering|offered)\b/i.test(title)) return false;
-    if (/\b(?:parcels?|packages?|shipments?|trucks?|same[- ]day)\b/i.test(title)) return false;
+    const goodsMovement = /\b(?:parcels?|packages?|shipments?|trucks?|same[- ]day)\b/i.test(title);
     const milestone = /\b(?:(?:breaks?|broke|breaking)\s+ground|groundbreaking|(?:begins?|starts?|commences?)\s+(?:construction|development|work\s+(?:on|at))|(?:construction|development)\s+(?:begins?|starts?|underway)|under construction)\b/i.test(title)
         || /\b(?:building|launches?|announces?|starts?|begins?)\b.{0,35}\bexpansion\b/i.test(title)
         || /\binvest(?:s|ed|ing)?\b.{0,65}\b(?:warehouse|facility|campus|plant)\s+expansion\b/i.test(title);
     const completion = /\b(?:delivers?|delivered|completes?|completed)\b/i.test(title)
         && /\b(?:project|facility|building|warehouses?|park|center|centre)\b/i.test(title);
-    return milestone || completion;
+    // Goods wording disambiguates "delivers". It must not hide an explicit
+    // groundbreaking merely because the former property's company name has it.
+    return milestone || (completion && !goodsMovement);
 }
 
 export function newsletterCategory(article: NormalizedItem): NormalizedItem['category'] {

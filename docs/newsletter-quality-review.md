@@ -8,7 +8,9 @@ editorial cutoff and removes the inline age-warning labels.
 ## Geography and routing
 
 Early filtering, the final email gate and the last scrub call the same region
-resolver. City matching uses whole phrases. A company's home location cannot
+resolver. City matching uses whole phrases; explicit out-of-state qualifiers
+override shared city names, and state abbreviations need location context.
+A company's home location cannot
 relocate an explicitly out-of-state property. A verified portfolio location may
 establish NJ/PA/FL coverage when other properties are in different US markets.
 This does not change Capital Markets geography tiers or national-deal policy.
@@ -42,6 +44,14 @@ out of the repository. The ignored cache holds at most 200 entries: successful
 facts last seven days; failed attempts cool down for one day. The existing build
 workflows restore this cache. Rebuilding replaces the fact suffix instead of
 appending it repeatedly. Network failures leave the original feed facts intact.
+
+Coverage is measured separately from these two reference repairs. The public
+CI replay audits the entire stored feed with an empty reference list, then with
+the configured references. It reports eligible candidates, approved direct
+paths, unresolved proxy/direct links, cached/deferred pages, real HTTP attempts,
+and final rendered sections. Eligibility means a candidate needs facts, not that
+it qualifies for the newsletter. The two curated references do not demonstrate
+automatic discovery of tomorrow's proxy URLs.
 
 ## Editorial and summary behavior
 

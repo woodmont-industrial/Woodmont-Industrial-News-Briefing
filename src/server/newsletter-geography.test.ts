@@ -19,9 +19,24 @@ for (const place of ['Westchester','Lakelandia','Winter Havenbrook','Newarkshire
     assert.equal(hasNewsletterTargetRegion(place),false,'substring collision: '+place);
 }
 for (const title of ['New Jersey firm buys a Texas industrial warehouse for $30M',
-    'California logistics warehouse sold for $30M']) {
+    'California logistics warehouse sold for $30M',
+    'A 120,000 SF industrial warehouse in Lakewood, CO sells for $30M',
+    'A 120,000 SF industrial warehouse in Lakewood, Colorado sells for $30M',
+    'A 120,000 SF industrial warehouse in Lakewood, OH sells for $30M',
+    'A 120,000 SF industrial warehouse in Naples, Italy sells for $30M',
+    'A 120,000 SF industrial warehouse in Morrisville, NC sells for $30M',
+    'A 120,000 SF industrial warehouse in Morrisville, North Carolina sells for $30M',
+    'A 120,000 SF industrial warehouse in Carlisle, Massachusetts sells for $30M',
+    'New Jersey buyer acquires a warehouse in Lakewood, CO for $30M']) {
     assert.equal(isTargetRegion(article('negative',title)),false);
 }
+for (const place of ['Lakewood, NJ','Naples, FL','Morrisville, PA','Carlisle, PA','Limerick PA','Bonita Springs FL']) {
+    assert.equal(isTargetRegion(article('positive',`A 120,000 SF industrial warehouse in ${place} sells for $30M`)),true,place);
+}
+assert.equal(isTargetRegion(article('buyer-location','Lakewood, Colorado firm buys an industrial warehouse in Edison, NJ for $30M')),true);
+assert.equal(isTargetRegion(article('buyer-location-code','Lakewood, CO firm buys an industrial warehouse in Edison, NJ for $30M')),true);
+assert.equal(hasNewsletterTargetRegion('Industrial warehouse installs a PA system'),false,'PA is not automatically Pennsylvania');
+assert.equal(hasNewsletterTargetRegion('Industrial warehouse upgrades the FL software module'),false,'FL needs location context');
 assert.equal(hasGeographicFailure(article('comparison','Ohio and Pennsylvania take different approaches to data centers')).fails,true);
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'newsletter-geography-'));
@@ -31,7 +46,9 @@ try {
         article('lakeland-project','Example Developer building $175M expansion at Sarasota logistics campus'),
         article('lakeland-planned','Example Developer to invest $200M in Lakeland warehouse expansion'),
         article('winter-project','Example Developer starts work on 1.35M-SF Winter Haven spec warehouse','availabilities'),
-        article('allentown-project','Groundbreaking set for a new warehouse in Allentown','availabilities'),
+        article('allentown-project','Groundbreaking set for a new warehouse on the former Example Trucks property in Allentown','availabilities'),
+        article('wrong-lakewood','A 130,000 SF industrial warehouse in Lakewood, CO sells for $31M'),
+        article('wrong-morrisville','A 140,000 SF industrial warehouse in Morrisville, NC sells for $32M'),
     ];
     fs.writeFileSync(path.join(root,'feed.json'),JSON.stringify(generateJSONFeed(items)));
     const output=path.join(root,'result.json');
@@ -44,5 +61,7 @@ try {
         assert.ok(!result.sections.availabilities.includes(id));
     }
     assert.equal(result.networkRequests,0);
+    assert.ok(!result.renderedIds.includes('wrong-lakewood'));
+    assert.ok(!result.renderedIds.includes('wrong-morrisville'));
     console.log('PASS: one geography resolver, city boundaries, out-of-state controls and final rendered routing');
 } finally {fs.rmSync(root,{recursive:true,force:true});}

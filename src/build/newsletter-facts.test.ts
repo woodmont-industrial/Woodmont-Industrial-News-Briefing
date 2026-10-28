@@ -23,6 +23,10 @@ assert.equal(extractNewsletterFacts('<script type="application/ld+json">{"datePu
 assert.equal(facts.squareFeet,182255);assert.equal(facts.priceUsd,44300000);
 assert.ok(facts.propertyLocationEvidence?.includes('Carlstadt'));
 assert.ok(!facts.evidence.join(' ').includes('Menu'));assert.ok(!facts.evidence.join(' ').includes('headquarters'));
+const nestedArticle=`<h1>${article().title}</h1><main><p>Other Buyer acquired a 999,000 SF industrial warehouse in Edison NJ for $900M.</p>
+    <article><p>Example Buyer has acquired a 182,255-square-foot industrial portfolio in Carlstadt NJ for $44.3 million.</p></article></main>`;
+assert.equal(extractNewsletterFacts(nestedArticle,article(),source,now)?.squareFeet,182255,
+    'article body outranks unrelated recommendation paragraphs in the main container');
 assert.equal(extractNewsletterFacts(page('Example Buyer leased 12,000 SF in a 200,000 SF industrial warehouse in Edison NJ.'),article(),source,now),null);
 assert.equal(extractNewsletterFacts(page('Example Buyer has acquired a 200,000 SF industrial warehouse for $30M.','Different Retail Company Opens Shopping Mall'),article(),source,now),null);
 for(const url of ['http://www.businesswire.com/a','https://businesswire.com.evil.test/a',
@@ -57,6 +61,18 @@ async function main(){
         const unresolved=article('unresolved');const text=unresolved.description;
         stats=await enrichNewsletterFacts([unresolved],{cachePath,now,sourceReferences:[],loader});
         assert.equal(stats.unresolved,1);assert.equal(unresolved.description,text,'opaque proxies stay unchanged without a verified canonical source');
+        assert.equal(stats.unresolvedReasons.opaqueProxy,1);
+        const accounting=await enrichNewsletterFacts([
+            article('proxy'),article('direct',{link:'https://www.bisnow.com/synthetic-article'}),
+            article('supported',{title:'120,000 SF industrial warehouse in Edison NJ sells for $30M'}),
+            article('person',{category:'people'}),article('not-yet',{pubDate:'2026-10-29T12:00:00Z'}),
+        ],{cachePath:path.join(root,'accounting.json'),now,maxPages:0,sourceReferences:[],loader:async()=>{throw Error('No requests allowed');}});
+        assert.equal(accounting.inputArticles,5);assert.equal(accounting.eligible,2);
+        assert.equal(accounting.alreadySupported,1);assert.equal(accounting.excluded,2);
+        assert.equal(accounting.direct,1);assert.equal(accounting.unresolved,1);
+        assert.equal(accounting.budgetDeferred,1);assert.equal(accounting.attempted,0);
+        assert.equal(accounting.httpRequests,0);
+        assert.equal(accounting.eligible,accounting.direct+accounting.referenced+accounting.unresolved);
         const failed=article('failed');const refs=[{articleId:'failed',sourceUrl:source}];
         const failedPath=path.join(root,'failed.json');let failures=0;
         const bad=async()=>{failures++;throw Error('403');};
