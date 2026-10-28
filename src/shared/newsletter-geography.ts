@@ -32,10 +32,15 @@ const NON_TARGET_QUALIFIERS = [
 ];
 const NON_TARGET_CODES = new Set(('AL AK AZ AR CA CO CT DE GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO '
     + 'MT NE NV NH NM NY NC ND OH OK OR RI SC SD TN TX UT VT VA WA WV WI WY DC').split(' '));
+const NON_TARGET_NAME_PATTERN = NON_TARGET_QUALIFIERS
+    .sort((a,b) => b.length-a.length).map(escape).join('|');
 const QUALIFIER_PATTERN = new RegExp('^\\s*(?:,\\s*|\\(\\s*|in\\s+)?('
-    + NON_TARGET_QUALIFIERS.sort((a,b) => b.length-a.length).map(escape).join('|') + ')(?![a-z])', 'i');
+    + NON_TARGET_NAME_PATTERN + ')(?![a-z])', 'i');
+const PREFIX_QUALIFIER_PATTERN = new RegExp('(?<![a-z])(?:'
+    + NON_TARGET_NAME_PATTERN + ")[’']s?\\s+$", 'i');
 
 function hasNonTargetQualifier(text: string, match: RegExpMatchArray): boolean {
+    if (PREFIX_QUALIFIER_PATTERN.test(text.slice(0, match.index || 0))) return true;
     const tail = text.slice((match.index || 0) + match[0].length);
     if (QUALIFIER_PATTERN.test(tail)) return true;
     const code = /^\s*(?:,\s*|\(\s*|\s+)([a-z]{2})(?![a-z])/i.exec(tail);

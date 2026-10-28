@@ -9,7 +9,10 @@ editorial cutoff and removes the inline age-warning labels.
 
 Early filtering, the final email gate and the last scrub call the same region
 resolver. City matching uses whole phrases; explicit out-of-state qualifiers
-override shared city names, and state abbreviations need location context.
+override shared city names, including possessive prefixes such as
+"Colorado's Lakewood", and state abbreviations need location context. Bare,
+unqualified aliases keep the existing newsletter policy; the resolver is not
+a comprehensive city-disambiguation service.
 A company's home location cannot
 relocate an explicitly out-of-state property. A verified portfolio location may
 establish NJ/PA/FL coverage when other properties are in different US markets.

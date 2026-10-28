@@ -27,6 +27,11 @@ for (const title of ['New Jersey firm buys a Texas industrial warehouse for $30M
     'A 120,000 SF industrial warehouse in Morrisville, NC sells for $30M',
     'A 120,000 SF industrial warehouse in Morrisville, North Carolina sells for $30M',
     'A 120,000 SF industrial warehouse in Carlisle, Massachusetts sells for $30M',
+    "A 120,000 SF industrial warehouse in Colorado's Lakewood sells for $30M",
+    'A 120,000 SF industrial warehouse in Colorado’s Lakewood sells for $30M',
+    "A 120,000 SF industrial warehouse in Italy's Naples sells for $30M",
+    "A 120,000 SF industrial warehouse in North Carolina's Morrisville sells for $30M",
+    "A 120,000 SF industrial warehouse in Massachusetts' Carlisle sells for $30M",
     'New Jersey buyer acquires a warehouse in Lakewood, CO for $30M']) {
     assert.equal(isTargetRegion(article('negative',title)),false);
 }
@@ -35,6 +40,14 @@ for (const place of ['Lakewood, NJ','Naples, FL','Morrisville, PA','Carlisle, PA
 }
 assert.equal(isTargetRegion(article('buyer-location','Lakewood, Colorado firm buys an industrial warehouse in Edison, NJ for $30M')),true);
 assert.equal(isTargetRegion(article('buyer-location-code','Lakewood, CO firm buys an industrial warehouse in Edison, NJ for $30M')),true);
+assert.equal(isTargetRegion(article('buyer-prefix',"Colorado's Lakewood firm buys an industrial warehouse in Edison, NJ for $30M")),true);
+assert.equal(hasNewsletterTargetRegion('Lakewood'),true,'an unqualified city retains the existing newsletter policy');
+assert.equal(hasNewsletterTargetRegion("Colorado's Lakewood"),false);
+assert.equal(hasNewsletterTargetRegion('Colorado’s Lakewood'),false);
+assert.equal(hasNewsletterTargetRegion("Italy's Naples"),false);
+assert.equal(hasNewsletterTargetRegion("North Carolina's Morrisville"),false);
+assert.equal(hasNewsletterTargetRegion("Massachusetts' Carlisle"),false);
+assert.equal(hasNewsletterTargetRegion("New Jersey's Lakewood"),true);
 assert.equal(hasNewsletterTargetRegion('Industrial warehouse installs a PA system'),false,'PA is not automatically Pennsylvania');
 assert.equal(hasNewsletterTargetRegion('Industrial warehouse upgrades the FL software module'),false,'FL needs location context');
 assert.equal(hasGeographicFailure(article('comparison','Ohio and Pennsylvania take different approaches to data centers')).fails,true);
@@ -49,6 +62,7 @@ try {
         article('allentown-project','Groundbreaking set for a new warehouse on the former Example Trucks property in Allentown','availabilities'),
         article('wrong-lakewood','A 130,000 SF industrial warehouse in Lakewood, CO sells for $31M'),
         article('wrong-morrisville','A 140,000 SF industrial warehouse in Morrisville, NC sells for $32M'),
+        article('wrong-prefix',"A 150,000 SF industrial warehouse in Colorado's Lakewood sells for $33M"),
     ];
     fs.writeFileSync(path.join(root,'feed.json'),JSON.stringify(generateJSONFeed(items)));
     const output=path.join(root,'result.json');
@@ -63,5 +77,6 @@ try {
     assert.equal(result.networkRequests,0);
     assert.ok(!result.renderedIds.includes('wrong-lakewood'));
     assert.ok(!result.renderedIds.includes('wrong-morrisville'));
+    assert.ok(!result.renderedIds.includes('wrong-prefix'));
     console.log('PASS: one geography resolver, city boundaries, out-of-state controls and final rendered routing');
 } finally {fs.rmSync(root,{recursive:true,force:true});}
