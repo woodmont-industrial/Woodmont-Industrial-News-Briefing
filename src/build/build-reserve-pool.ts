@@ -1,3 +1,4 @@
+import { newsletterFactFields } from '../shared/newsletter-facts.js';
 /**
  * Reserve Pool Builder
  *
@@ -24,6 +25,7 @@ import {
 } from '../server/newsletter-filters.js';
 import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
 import { extractDealSignature, extractDealSignatures } from '../shared/url-utils.js';
+import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +52,7 @@ interface ReserveItem {
     // "not industrial". Title alone is insufficient signal for people-moves
     // and short-headline articles.
     description?: string;
+    [key: string]: unknown;
 }
 
 interface ReservePool {
@@ -173,6 +176,8 @@ function toReserveItem(a: NormalizedItem, score: number): ReserveItem {
         // Truncate to keep reserve-pool.json size sane; 800 chars is plenty for
         // FINAL GATE's industrial/region keyword checks.
         description: desc ? desc.slice(0, 800) : undefined,
+        ...editorialVerdictFields(a),
+        ...newsletterFactFields(a),
     };
 }
 
@@ -188,7 +193,7 @@ async function main() {
     const items: NormalizedItem[] = (feed.items || []).map((it: any) => ({
         ...it,
         link: it.url || it.link,
-        description: it.summary || it.description || '',
+        description: it.content_text || it.description || it.summary || '',
         pubDate: it.date_published || it.pubDate,
     }));
     console.log(`📰 Loaded ${items.length} items from feed.json`);

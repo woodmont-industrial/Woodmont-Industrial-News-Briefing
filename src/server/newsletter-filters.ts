@@ -7,6 +7,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
+import { editorialVerdictFields } from '../filter/editorial-verdict.js';
+import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
+import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition } from '../shared/editorial-headline.js';
+import { NEWSLETTER_TARGET_PATTERN, hasNewsletterTargetRegion, newsletterTargetCount } from '../shared/newsletter-geography.js';
+import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
@@ -25,36 +30,10 @@ import {
 // Geographic-only target regions (no CRE company names)
 const TARGET_REGIONS_GEO = TARGET_REGIONS.filter(r => !CRE_COMPANY_NAMES.includes(r));
 
-// Substring collisions: target terms that are substrings of exclude terms.
-// E.g., target "CHESTER" matches inside exclude "WESTCHESTER", inflating target count.
-// We pre-compute these pairs so countRegionMatches can correct for them.
-const SUBSTRING_COLLISIONS: Array<{ target: string; exclude: string }> = [];
-for (const t of TARGET_REGIONS_GEO) {
-    for (const e of MAJOR_EXCLUDE_REGIONS) {
-        if (e.includes(t) && e !== t) {
-            SUBSTRING_COLLISIONS.push({ target: t, exclude: e });
-        }
-    }
-}
-
-/**
- * Count region matches in text, correcting for substring collisions.
- * Returns [targetCount, excludeCount] with false positives subtracted.
- */
+/** Count the same bounded geographic phrases used by the final email gate. */
 function countRegionMatches(text: string): [number, number] {
-    let geoTargetCount = TARGET_REGIONS_GEO.reduce((count, r) => count + (text.split(r).length - 1), 0);
-    const excludeCount = MAJOR_EXCLUDE_REGIONS.reduce((count, r) => count + (text.split(r).length - 1), 0);
-
-    // Subtract false target hits caused by substring collisions
-    for (const { target, exclude } of SUBSTRING_COLLISIONS) {
-        const excludeHits = text.split(exclude).length - 1;
-        if (excludeHits > 0) {
-            // Each occurrence of the exclude term produces a false target hit
-            geoTargetCount -= excludeHits;
-        }
-    }
-
-    return [Math.max(0, geoTargetCount), excludeCount];
+    const excludes = MAJOR_EXCLUDE_REGIONS.reduce((n,r) => n + (text.split(r).length - 1),0);
+    return [newsletterTargetCount(text), excludes];
 }
 
 // =====================================================================
@@ -105,7 +84,7 @@ const NON_TARGET_COUNTRY_RE = /\b(?:Norway|Sweden|Finland|Denmark|Iceland|German
 
 // Earliest target-region phrase finder. Used to compare positional dominance
 // against non-target mentions (Rule c).
-const TARGET_REGION_PHRASE_RE = /\b(?:New Jersey|N\.J\.|NJ|Pennsylvania|PA|Florida|Fla\.|FL|Newark|Jersey City|Edison|Elizabeth|Carteret|Trenton|Bayonne|Linden|Secaucus|Piscataway|Woodbridge|Metuchen|Lehigh Valley|Allentown|Bethlehem|Easton|Philadelphia|Pittsburgh|Miami|Tampa|Orlando|Jacksonville|Hialeah|Doral|Pompano|Fort Lauderdale|West Palm|Boca Raton|Meadowlands|Greater Philadelphia|Delaware Valley|South Florida|Central Florida|North Jersey|South Jersey|Central Jersey|Bergen County|Hudson County|Middlesex County|Monmouth County|Ocean County|Burlington County|Camden County|Somerset County|Mercer County|Union County|Essex County|Morris County|Bucks County|Chester County|Montgomery County|Delaware County|Lehigh County|Northampton County|Miami-Dade|Broward|Palm Beach|Hillsborough|Duval)\b/i;
+const TARGET_REGION_PHRASE_RE = NEWSLETTER_TARGET_PATTERN;
 
 // Government-body pattern. "Industrial Development Agency / Authority / Commission /
 // Board / Corporation / District" — these are public-sector bodies that legitimately
@@ -135,8 +114,7 @@ const ACQUISITION_VERB_RE = /\b(?:buys|bought|buying|acquires?|acquired|acquirin
 // Target-region presence test for a raw text SEGMENT (used positionally in Rule a).
 // Mirrors isTargetRegion's substring approach against the geographic-only token set.
 function segmentHasTarget(segment: string): boolean {
-    const up = segment.toUpperCase();
-    return TARGET_REGIONS_GEO.some(r => up.includes(r));
+    return hasNewsletterTargetRegion(segment);
 }
 
 /**
@@ -234,6 +212,8 @@ export function isTargetRegion(article: NormalizedItem): boolean {
         if (!APPROVED_DOMAINS.some(d => hostname.includes(d))) return false;
     } catch { /* keep going if URL parse fails */ }
 
+    if (hasVerifiedTargetProperty(article)) return true;
+
     // INCLUDE if from a NJ/PA/FL regional source
     const isFromRegionalSource = REGIONAL_SOURCES.some(s => url.includes(s));
 
@@ -247,11 +227,11 @@ export function isTargetRegion(article: NormalizedItem): boolean {
     }
 
     if (article.regions && article.regions.length > 0) {
-        const hasTarget = article.regions.some(r => TARGET_REGIONS_GEO.some(tr => r.toUpperCase().includes(tr)));
+        const hasTarget = article.regions.some(r => hasNewsletterTargetRegion(r));
         if (hasTarget) return true;
     }
 
-    const hasGeoTarget = TARGET_REGIONS_GEO.some(r => text.includes(r));
+    const hasGeoTarget = hasNewsletterTargetRegion(text);
     if (hasGeoTarget && geoTargetCount >= excludeCount) return true;
 
     return hasGeoTarget && excludeCount === 0;
@@ -357,9 +337,18 @@ function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext |
     return true;
 }
 
+/** Relevant's editorial policy is independent of optional diagnostic labels. */
+export function passesRelevantEditorialVerdict(article: NormalizedItem, diag?: DiagnosticContext): boolean {
+    if (isOppositionLedDataCenterHeadline(article.title || '') || isServiceCompanyAcquisition(article)) {
+        if (diag) diag.recordReject('relevant', 'SECTION_RULE_FAILED');
+        return false;
+    }
+    return passesWoodmontRubric(article, diag, 'relevant');
+}
+
 export function applyStrictFilter(items: NormalizedItem[], keywords: string[], sectionName: string, diag?: DiagnosticContext, diagSection?: Section): NormalizedItem[] {
     const filtered = items.filter(article => {
-        if (diagSection && !passesWoodmontRubric(article, diag, diagSection)) return false;
+        if (!passesRelevantEditorialVerdict(article, diag)) return false;
         const text = getText(article);
         if (isPolitical(text)) {
             if (diag && diagSection) diag.recordReject(diagSection, 'POLITICAL_CONTENT');
@@ -423,12 +412,13 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
  * ARE real local deal-flow), the caller routes them into the 'relevant' section so the
  * newsletter carries actual regional deals instead of macro/reserve filler.
  *
- * Deliberately LIGHTER than applyTransactionFilter: no deal-size floor, no Woodmont-rubric
- * or approved-domain gate. Still requires target region + industrial + not-political +
+ * Deliberately LIGHTER than applyTransactionFilter: no deal-size floor or approved-domain
+ * gate. Relevant's editorial verdict still applies. Requires target region + industrial + not-political +
  * not-wrong-asset-class, and a concrete DEAL signal (an action word, an approval, a stated
  * size, or a dollar figure) so vague market commentary doesn't leak in.
  */
 export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
+    if (!passesRelevantEditorialVerdict(article)) return false;
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
     if (isPolitical(text)) return false;
@@ -442,6 +432,18 @@ export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
 
 export function applyAvailabilityFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (isConstructionAnnouncement(article)) {
+            if (diag) diag.recordReject('availabilities', 'CATEGORY_MISMATCH');
+            return false;
+        }
+        const statedSize = meetsDealThreshold(getText(article)).sizeSF;
+        // The smallest qualifying target-market lease/availability exceeds 15K SF.
+        // A known smaller space fails in every market; unknown-size entitled land
+        // and other existing availability policies are left to their own gates.
+        if (statedSize !== null && statedSize <= 15000) {
+            if (diag) diag.recordReject('availabilities', 'BELOW_DEAL_THRESHOLD');
+            return false;
+        }
         if (!passesWoodmontRubric(article, diag, 'availabilities')) return false;
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('availabilities', 'POLITICAL_CONTENT'); return false; }
@@ -454,8 +456,7 @@ export function applyAvailabilityFilter(items: NormalizedItem[], diag?: Diagnost
             'available', 'for sale', 'for lease', 'listing', 'on the market',
             'seeking buyer', 'buyer wanted', 'now leasing', 'now available',
             'seeking tenants', 'for sublease', 'sublease', 'space available',
-            'build-to-suit', 'vacant', 'vacancy', 'delivered', 'spec',
-            'under construction', 'breaks ground', 'groundbreaking', 'coming to market',
+            'build-to-suit', 'vacant', 'vacancy', 'spec', 'coming to market',
         ];
         if (containsAny(text, availabilityWords)) return true;
         if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('availabilities', 'NOT_INDUSTRIAL'); return false; }
@@ -907,6 +908,10 @@ export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
         return false;
     }
 
+    // A verified portfolio location is asset evidence even when the other
+    // properties are in more numerous US markets. Preserve the headline guard.
+    if (hasVerifiedTargetProperty(article) && !hasGeographicFailure(article).fails) return true;
+
     // Compare target vs exclude mentions in full text (title + description).
     // An article about "Wynwood, Miami" from a "NY brokerage" should pass because
     // FL target mentions outweigh the NY exclude mention.
@@ -930,6 +935,8 @@ export function postDescriptionRegionCheck(article: NormalizedItem): boolean {
 export function mapFeedItemsToArticles(feedItems: any[]): NormalizedItem[] {
     return feedItems.map((a: any) => ({
         ...a,
+        ...newsletterFactFields(a),
+        category: newsletterCategory(a),
         link: a.url || a.link,
         pubDate: a.date_published || a.pubDate,
         fetchedAt: a.date_modified || a.fetchedAt,
@@ -1019,6 +1026,7 @@ export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
             category: a.category || 'relevant',
             regions: a.region ? [a.region] : [],
             keywords: a.keywords || [],
+            ...editorialVerdictFields(a),
         } as NormalizedItem));
     } catch (e) {
         console.warn('Could not load included-articles.json:', e);

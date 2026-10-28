@@ -17,7 +17,9 @@ import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
-import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
+import { reviewEditorialCandidates, stampPredictedPublish, writeEditorialFeed } from './editorial-review.js';
+import { enrichNewsletterFacts } from './newsletter-facts.js';
+import { generateRSSXML, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 
 // =====================================================================
 // og:image extraction for articles missing real thumbnails
@@ -113,7 +115,7 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
 }
 
 // Directory for static output
-const DOCS_DIR = path.join(process.cwd(), 'docs');
+const DOCS_DIR = process.env.WOODMONT_DOCS_DIR || path.join(process.cwd(), 'docs');
 
 /**
  * Build static RSS/JSON feeds for GitHub Pages deployment
@@ -961,6 +963,15 @@ export async function buildStaticRSS(): Promise<void> {
             new Date(a.pubDate || a.date_published || a.fetchedAt || 0).getTime()
         );
 
+        // Recover bounded publisher facts before geography, routing and AI review.
+        // Page bodies/cache stay outside the published docs tree.
+        try {
+            const facts = await enrichNewsletterFacts(sortedItems, {
+                cachePath: path.join(process.cwd(), '.cache/newsletter-facts.json'),
+            });
+            log('info', 'Publisher fact recovery', facts);
+        } catch { log('warn', 'Publisher fact recovery unavailable; original feed facts retained'); }
+
         // Region filter: only keep NJ/PA/FL regional articles + national/macro (no excluded regions)
         // Also re-apply postDescriptionRegionCheck on existing articles that now have descriptions
         const regionFiltered = sortedItems.filter(a => {
@@ -1010,63 +1021,8 @@ export async function buildStaticRSS(): Promise<void> {
         // The SPA reads these to show predicted-publishable items by default and reveal
         // reasons with ?debug=1.
         try {
-            const { applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter } =
-                await import('../server/newsletter-filters.js');
-            const { RELEVANT_KEYWORDS } = await import('../shared/region-data.js');
-
-            const byCat: Record<string, NormalizedItem[]> = {
-                relevant: rssItems.filter(i => i.category === 'relevant'),
-                transactions: rssItems.filter(i => i.category === 'transactions'),
-                availabilities: rssItems.filter(i => i.category === 'availabilities'),
-                people: rssItems.filter(i => i.category === 'people'),
-            };
-
-            const publishedByCat: Record<string, NormalizedItem[]> = {
-                relevant: applyStrictFilter(byCat.relevant, RELEVANT_KEYWORDS, 'Relevant'),
-                transactions: applyTransactionFilter(byCat.transactions),
-                availabilities: applyAvailabilityFilter(byCat.availabilities),
-                people: applyPeopleFilter(byCat.people),
-            };
-
-            // Mirror the send-time MAX_PER_SECTION (=10, 5 for availabilities) from email.ts.
-            // Bumped 2026-06-10 to ship more strong industrial articles per day.
-            const CAPS: Record<string, number> = {
-                relevant: 10, transactions: 10, availabilities: 5, people: 10,
-            };
-
-            const publishedIds = new Set<string>();
-            const filterPassedIds = new Set<string>();
-            for (const [cat, list] of Object.entries(publishedByCat)) {
-                list.forEach(i => i.id && filterPassedIds.add(i.id));
-                const sorted = [...list].sort((a, b) =>
-                    new Date(b.pubDate || (b as any).date_published || 0).getTime() -
-                    new Date(a.pubDate || (a as any).date_published || 0).getTime()
-                );
-                sorted.slice(0, CAPS[cat] || 6).forEach(i => i.id && publishedIds.add(i.id));
-            }
-
-            let publishedCount = 0;
+            const publishedCount = stampPredictedPublish(rssItems);
             for (const item of rssItems) {
-                const id = item.id;
-                const classReason = (item as any)._classificationReason;
-                if (id && publishedIds.has(id)) {
-                    (item as any)._predictedPublish = true;
-                    (item as any)._predictedReason = 'WOULD_PUBLISH';
-                    publishedCount++;
-                } else if (id && filterPassedIds.has(id)) {
-                    (item as any)._predictedPublish = false;
-                    (item as any)._predictedReason = 'CAP_OVERFLOW';
-                } else if (classReason && classReason.startsWith('REJECT')) {
-                    (item as any)._predictedPublish = false;
-                    (item as any)._predictedReason = classReason;
-                } else if (item.category === 'exclude') {
-                    (item as any)._predictedPublish = false;
-                    (item as any)._predictedReason = 'EXCLUDED';
-                } else {
-                    (item as any)._predictedPublish = false;
-                    (item as any)._predictedReason = 'FAILED_PUBLISH_FILTER';
-                }
-
                 // Source-tier lookup: derive from feeds.json entry that produced this item.
                 const feedName = ((item as any)._source?.feedName || (item as any).source || '').toLowerCase();
                 let tier = 'C';
@@ -1085,46 +1041,12 @@ export async function buildStaticRSS(): Promise<void> {
         }
 
         // === STEP 4.6: Woodmont rubric LLM second-pass ===
-        // Only candidates that survived Path A get the LLM check (saves cost).
-        // The LLM applies the editorial rubric in src/filter/woodmont-rubric.ts
-        // and catches the leak classes that mutate too fast for regex:
-        //   - Anti-DC framing variants
-        //   - Cross-source duplicates of same story
-        //   - Sensitive content (mass shootings, war, tragedy)
-        //   - Novel software-M&A phrasings
-        //   - Wrong-region articles with sneaky abbreviations
-        //   - Negative editorial framing
-        // Result stamped per item:
-        //   _woodmontApprove: boolean
-        //   _woodmontReason: string
-        //   _woodmontConfidence: 0-100
-        //   _woodmontClassifier: 'groq' | 'cerebras'
-        // Items not stamped (failed LLM) fall back to _predictedPublish.
+        // Enrollment ignores stored verdicts on copies only. Rejected and overflow
+        // candidates can be reconsidered; failed calls preserve their old verdicts.
+        // The four-minute budget, providers and delivery policy are unchanged.
         try {
-            const { classifyWoodmontBatch } = await import('../filter/llm-classifier.js');
-            // Sort by recency so the freshest predicted-publishable items get the LLM
-            // verdict first. If budget exhausts, older items keep their _predictedPublish
-            // flag and fall through Path A — fresh news always gets the editorial gate.
-            const candidates = rssItems
-                .filter(i => (i as any)._predictedPublish === true)
-                .sort((a, b) => {
-                    const ad = new Date((a as any).pubDate || (a as any).date_published || 0).getTime();
-                    const bd = new Date((b as any).pubDate || (b as any).date_published || 0).getTime();
-                    return bd - ad;
-                });
-            if (candidates.length > 0) {
-                // 4-min wall-clock cap leaves ~6min for the rest of the build (image
-                // enrichment, file writes) under the workflow's 15-min step timeout.
-                // 2026-06-10: lowered concurrency 5→3 and bumped delay 500→1000ms after
-                // the prior run showed 100% Groq 429 failures. With Cerebras-first
-                // (separate quota from the upstream categorizer) and these gentler
-                // RPS, we should land in a sustainable ~90 RPM region with 429
-                // fallback catching spikes.
-                const result = await classifyWoodmontBatch(candidates, 3, 1000, 4 * 60 * 1000);
-                log('info', 'Woodmont LLM classification complete', result);
-            } else {
-                log('info', 'Woodmont LLM: no predicted-publish candidates to classify');
-            }
+            const result = await reviewEditorialCandidates(rssItems);
+            log('info', 'Woodmont LLM classification complete', result);
         } catch (e) {
             log('warn', 'Woodmont LLM classification failed: ' + (e as Error).message);
         }
@@ -1148,8 +1070,7 @@ export async function buildStaticRSS(): Promise<void> {
         const withoutDesc = rssItems.filter(i => !i.description || i.description.trim().length === 0).length;
         log('info', `Description check before JSON generation`, { withDesc, withoutDesc, sample: rssItems.slice(0, 3).map(i => ({ title: (i.title || '').substring(0, 30), descLen: (i.description || '').length })) });
 
-        const feedJSON = generateJSONFeed(rssItems);
-        fs.writeFileSync(path.join(DOCS_DIR, 'feed.json'), JSON.stringify(feedJSON, null, 2), 'utf8');
+        writeEditorialFeed(rssItems, path.join(DOCS_DIR, 'feed.json'));
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });
 
         // Generate Feed Health Report
