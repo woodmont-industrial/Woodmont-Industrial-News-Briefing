@@ -1,14 +1,14 @@
 {
-  "runId": "2026-10-27-1200",
-  "generatedAt": "2026-10-27T12:00:32.081Z",
+  "runId": "2026-10-28-1200",
+  "generatedAt": "2026-10-28T12:00:33.972Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 237,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 251,
+      "inWindow": 7,
+      "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 4
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 7,
-        "tier4_reserve": 0,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 237,
+      "loaded": 251,
       "inWindow": 5,
-      "regionPass": 1,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
+        "NO_TARGET_REGION_EVIDENCE": 5,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -95,11 +95,11 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 237,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 251,
+      "inWindow": 2,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
@@ -131,8 +131,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -140,8 +140,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 237,
-      "inWindow": 0,
+      "loaded": 251,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -150,7 +150,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -186,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "Bisnow National": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Industrial RE": {
+    "costar.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -218,11 +204,53 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 3,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "commercialobserver.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "NJ Construction Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
         "transactions": 0,
         "availabilities": 1,
         "people": 0
@@ -237,49 +265,42 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 69,
-    "outOf10": 6.9,
-    "grade": "D",
+    "score": 70,
+    "outOf10": 7,
+    "grade": "C",
     "itemCount": 5,
-    "operationalScore": 69,
-    "operationalGrade": "D",
-    "editorialQualityScore": 69,
+    "operationalScore": 70,
+    "operationalGrade": "C",
+    "editorialQualityScore": 67,
     "editorialGrade": "D",
     "coverageSupplyScore": 47,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "QUALITY_REJECTED",
       "availabilities": "FILLED",
-      "people": "NO_FRESH_SUPPLY"
+      "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 17,
-      "freshness": 12.5,
-      "regional": 22,
+      "freshness": 16.8,
+      "regional": 16,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 0,
-      "deep": 9,
-      "reserve": 0
+      "fresh": 5,
+      "deep": 3,
+      "reserve": 1
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"CBRE Expands Data Center Footprint With $1B Acqu\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): transactions",
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — fresh supply rejected by section gates (quality): transactions, people"
     ]
   },
   "logicImpact": {
@@ -290,8 +311,20 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 122,
+    "crossDayPoolRepeatsSuppressed": 128,
     "audit": [
+      {
+        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
+        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "b07fd37fbcc23ae50eec9fd6e6d638bd481a8db8",
+        "title": "Faropoint Expands Meadowlands Footprint with Acquisition of Three-Building Industrial Portfolio - Business Wire",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "75a20051828cead617cee4402d3aca785dbcaadc",
         "title": "As Florida opposition explodes, data center investment keeps flowing - Naples Daily News",
@@ -313,6 +346,12 @@
       {
         "id": "4e3fbaff9be7007113acd10e285cb63850603658",
         "title": "5301 Corwin Dr, Tallahassee, FL 32303 - 7,360 sqft Flex Warehouse | Tallahassee, FL - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "14f68ade960e1446c8f3ff94834a91b673293451",
+        "title": "Jacksonville commercial real estate firm adds partner, moves to larger office - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -425,6 +464,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "caddb3fbe43311c33691e82a596ad156ddb4f4cc",
+        "title": "1050 Elizabeth Ave, Elizabeth, NJ 07201 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "24fe65695fe41b6fa9a1aa6391d46eabfae98d50",
         "title": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -465,6 +510,12 @@
         "title": "Broward County moves toward moratorium on large-scale data center development - The Real Deal",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "793c91b4e5d03f294847b38d8be9a0bde4337006",
+        "title": "CBRE Expands Data Center Footprint With $1B Acquisition Of Onnec Group",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "419d7dc29a9adb9746dfc7ae822c088f48446b8e",
@@ -607,6 +658,12 @@
       {
         "id": "144d7ca1b259ddc14d3e64f0118a61c493b3299a",
         "title": "N.J.'s largest AI data center just got hit with another lawsuit — and the issues go deeper than noise - NJ.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "976c3be99c0c78be46e39a0de478cd70a5208b87",
+        "title": "Cushman & Wakefield Brokers $4.7M Sale of Industrial, Life Sciences Building in East Windsor, New Jersey - REBusinessOnl",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -853,42 +910,6 @@
       {
         "id": "ab9be9d463dc8b6c4dab7f5e308a692937d01bbf",
         "title": "Everflow Supplies takes 333,000 sq. ft. to fill last existing building at Linden Logistics Center - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f8f7699d5ac44d5d1d30f4b49bba3109619b5a95",
-        "title": "100 Linden Logistics Way Leased - Traded",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ee7601680765a468b729c1db395b96c640f722b2",
-        "title": "Blackstone Sells Fort Lauderdale Industrial For $57M: The South Florida Deal Sheet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c18417e1b8cf46cf7f5f5c565a1695361bfc7cb1",
-        "title": "Industrial Market Steadies as Supply and Demand Find Firmer Footing",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "66c23db2d27e9600809796dcf8bbbad2bd8e468b",
-        "title": "Yardi Matrix Industrial Reports",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f71e6ee6e187a49ece59a33b32d5ae191d4768f5",
-        "title": "Industrial Report: Industrial Market Moves Closer to Balance",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5422cb1c70e4b4b9e4b7dc90a7c16833dd9e6c7b",
-        "title": "246 Industrial Way W, Eatontown, NJ 07724 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
