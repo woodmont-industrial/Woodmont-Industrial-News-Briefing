@@ -61,9 +61,40 @@ function stateCodeHasContext(text: string, match: RegExpMatchArray): boolean {
         || /^(?:\s*[-–]\s*based|\s+(?:industrial|warehouse|logistics|real estate|property|manufacturing|distribution|development|office|brokerage|firm|team)\b)/i.test(after);
 }
 
+// A place token inside a career announcement's personal name is not location
+// evidence. These patterns describe grammar, not another list of towns.
+const NAME_WORD = "(?!(?:in|at|near|from|of|to|as|and|the|new|former|industrial|real|estate|broker|brokerage|team|office|county|capital|logistics|group|partners|properties|vice|president|director|chair|chairman|partner)\\b)[\\p{L}][\\p{L}'’.-]*";
+const PERSONAL_NAME = `(?:${NAME_WORD}\\s+){1,2}${NAME_WORD}`;
+const CAREER_NAME_PATTERNS = [
+    new RegExp(`\\b(${PERSONAL_NAME})\\s+(?:(?:has|have)\\s+)?join(?:s|ed|ing)?\\b`, 'giu'),
+    new RegExp(`\\b(?:hires?|hired|adds?|added|appoints?|appointed|promotes?|promoted|names?|named|welcomes?)\\s+(${PERSONAL_NAME})(?=\\s+(?:as|to|for|and)\\b|\\s*[,;.!?]|$)`, 'giu'),
+    new RegExp(`\\b(${PERSONAL_NAME})\\s+(?:(?:has|have)\\s+been|was|is)\\s+(?:hired|appointed|promoted|named)\\b`, 'giu'),
+    new RegExp(`\\b(${PERSONAL_NAME})\\s+as\\s+(?:an?\\s+)?(?:vice president|vp|senior associate|associate|managing director|director|industrial broker)\\b`, 'giu'),
+];
+
+function careerNameRanges(text: string): Array<{ start: number; end: number }> {
+    const names = [...new Set(CAREER_NAME_PATTERNS.flatMap(pattern =>
+        [...text.matchAll(pattern)].map(match => match[1])))];
+    return names.flatMap(name => {
+        const surname = name.split(/\s+/).pop()!;
+        const patterns = [new RegExp(`(?<![\\p{L}])${escape(name)}(?![\\p{L}])`, 'giu'),
+            new RegExp(`(?<![\\p{L}])${escape(surname)}(?![\\p{L}])(?=\\s+(?:has|had|is|was|will|joins?|joined|previously|currently|serves?|served|said|brings)\\b)`, 'giu')];
+        return patterns.flatMap(pattern => [...text.matchAll(pattern)].map(match =>
+            ({ start: match.index!, end: match.index! + match[0].length })));
+    });
+}
+
 export function newsletterTargetMatches(text: string): RegExpMatchArray[] {
+    const personNames = careerNameRanges(text);
     return [...text.matchAll(new RegExp(NEWSLETTER_TARGET_PATTERN.source, 'gi'))]
-        .filter(match => !hasNonTargetQualifier(text, match) && stateCodeHasContext(text, match));
+        .filter(match => {
+            const start = match.index!;
+            const end = start + match[0].length;
+            if (personNames.some(name => start >= name.start && end <= name.end)) return false;
+            // The regional industry label does not mean Atlantic County, NJ.
+            if (/^atlantic$/i.test(match[0]) && /\bmid[- ]$/i.test(text.slice(0, start))) return false;
+            return !hasNonTargetQualifier(text, match) && stateCodeHasContext(text, match);
+        });
 }
 
 export function hasExplicitNonTargetCity(text: string): boolean {

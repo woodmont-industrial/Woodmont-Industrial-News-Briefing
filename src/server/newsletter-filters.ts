@@ -533,6 +533,110 @@ export function isPersonnelJoin(title: string): boolean {
     return JOINS_AS_PARTNER_RE.test(title) && isPersonalName(joiner);
 }
 
+type CareerArticle = NormalizedItem & { _peopleCareerEvidence?: boolean };
+const CAREER_ROLE = new RegExp(`\\b(?:${PERSONAL_ROLE}|senior associate|associate|property manager)\\b`, 'i');
+
+function nonIndustrialCareerScope(article: NormalizedItem): boolean {
+    let title = article.title || '';
+    // A former office role must not override an explicitly industrial new job.
+    const former = /^former\b.+?\bjoins?\b\s+(.+)/i.exec(title);
+    if (former && industrialCareerContext({ ...article, title: former[1], description: '' })) title = former[1];
+    if (/\b(?:office|retail|residential|multifamily|hotel|hospitality)\b.{0,30}\b(?:brokers?|brokerage|leasing|team|market|services|agents?)\b/i.test(title)) return true;
+    if (/\b(?:charity|charitable|humanitarian|volunteer)\b/i.test(title)) return true;
+    return /\b(?:board|advisors?|foundation)\b/i.test(title)
+        && /\b(?:pediatric|medical research|children|charity|charitable|food bank|homeless)\b/i.test(title + ' ' + (article.description || '').slice(0, 400));
+}
+
+function industrialCareerContext(article: NormalizedItem): boolean {
+    const text = (article.title || '') + ' ' + (article.description || '').slice(0, 500);
+    return /\bindustrial\s+(?:real estate|brokers?|brokerage|leasing|acquisitions|developers?|development|propert(?:y|ies)|outdoor storage|service facilities)\b/i.test(text)
+        || (/\bindustrial\b/i.test(text)
+            && /\b(?:brokerage|acquisitions|occupier leasing|warehouse leasing|real estate|vice chair)\b/i.test(text));
+}
+
+function namedHiringTitle(article: NormalizedItem): boolean {
+    const move = /\b(?:hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|taps?|tapped|welcomes?|recruits?)\s+(.+)/i.exec(article.title || '');
+    if (!move) return false;
+    const names = move[1].split(/\s+(?:as|to|for)\b/i)[0]
+        .replace(/\s+(?:chief|vice|senior|managing|executive|president|director|partner)\b.*$/i, '')
+        .split(/\s*(?:,|\band\b|&)\s*/).filter(Boolean);
+    return names.length > 0 && names.length <= 3 && names.every(isPersonalName)
+        && CAREER_ROLE.test((article.title || '') + ' ' + (article.description || '').slice(0, 500));
+}
+
+function sourceNamesForJoinOrAdds(article: NormalizedItem): boolean {
+    const title = (article.title || '').split(/[:|]/).pop()!.trim();
+    const join = /^(.+?)\s+join(?:s|ed)?\b/i.exec(title);
+    const adds = /\badds?\s+(.+?)(?=\s+(?:to|as|for)\b|$)/i.exec(title);
+    const subject = join?.[1] || adds?.[1];
+    if (!subject || NON_PERSON_JOINER_RE.test(subject)) return false;
+    const names = subject.split(/\s*(?:,|\band\b|&)\s*/).filter(Boolean);
+    if (!names.length || names.length > 3 || names.some(name =>
+        !/^[A-Z][A-Za-z'’.-]*(?:\s+[A-Z][A-Za-z'’.-]*){0,2}$/.test(name))) return false;
+    const lead = (article.description || '').slice(0, 500);
+    return names.every(name => {
+        const surname = name.split(/\s+/).pop()!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Source evidence must identify the headline's subjects as people in
+        // career roles. A generic "adds" or a company joining a venture cannot.
+        const roleBefore = new RegExp('\\b(?:industrial\\s+)?(?:brokers?|advisors?|executives?)\\s+[^.!?]{0,140}\\b' + surname + '\\b', 'i');
+        const after = new RegExp('\\b' + surname + '\\s+as\\s+([^.!?]{1,65})', 'i').exec(lead);
+        return roleBefore.test(lead) || (!!after && CAREER_ROLE.test(after[1]));
+    });
+}
+
+function sourceCareerEvidence(article: NormalizedItem): boolean {
+    if (nonIndustrialCareerScope(article) || !industrialCareerContext(article)) return false;
+    // Career eligibility and the email gates use the same source-text resolver.
+    const sourceText = (article.title || '') + ' ' + (article.description || '').slice(0, 500);
+    if (!hasNewsletterTargetRegion(sourceText)) return false;
+    return namedHiringTitle(article) || isPersonnelJoin(article.title || '')
+        || sourceNamesForJoinOrAdds(article);
+}
+
+function hasIndustrialCareerEvidence(article: NormalizedItem): boolean {
+    const stored = (article as CareerArticle)._peopleCareerEvidence;
+    return typeof stored === 'boolean' ? stored : sourceCareerEvidence(article);
+}
+
+/** Capture supplied text before send-time AI summaries can alter its evidence. */
+export function preparePeopleArticle(article: NormalizedItem): NormalizedItem {
+    const prepared: CareerArticle = { ...article, _peopleCareerEvidence: sourceCareerEvidence(article) };
+    if (['relevant', 'transactions'].includes(prepared.category || '')
+        && prepared._peopleCareerEvidence && isTargetRegion(prepared)
+        && applyPeopleFilter([prepared]).length > 0) prepared.category = 'people';
+    return prepared;
+}
+
+/** Career announcements need industrial role evidence, not a property's size. */
+export function passesPeopleIndustrialCheck(article: NormalizedItem): boolean {
+    if (nonIndustrialCareerScope(article)) return false;
+    return isStrictlyIndustrial(getText(article)) || (hasIndustrialCareerEvidence(article)
+        && isTargetRegion(article) && applyPeopleFilter([article]).length > 0);
+}
+
+type ReserveCareerArticle = Partial<NormalizedItem> & { url?: string; date_published?: string };
+
+/** Re-bucket genuine hires before reserve minima choose which sections to scan. */
+export function preparePeopleReservePool<T extends { sections?: Record<string, ReserveCareerArticle[]> }>(reserve: T) {
+    const sections: Record<string, ReserveCareerArticle[]> = { people: [] };
+    for (const [bucket, rows] of Object.entries(reserve.sections || {})) {
+        sections[bucket] ||= [];
+        if (!Array.isArray(rows)) continue;
+        for (const row of rows) {
+            const prepared = preparePeopleArticle({ ...row, id: row.id || row.url || '',
+                title: row.title || '', link: row.link || row.url || '',
+                description: row.description || '', source: row.source || '',
+                pubDate: row.pubDate || row.date_published || '',
+                category: row.category || bucket, tier: row.tier || 'C' });
+            const target = prepared.category === 'people' && ['relevant', 'transactions'].includes(bucket)
+                ? 'people' : bucket;
+            sections[target] ||= [];
+            sections[target].push(prepared);
+        }
+    }
+    return { ...reserve, sections };
+}
+
 // A real person/role signal: an explicit title-level personnel verb, or a role/title keyword.
 function hasPersonRoleSignal(article: NormalizedItem): boolean {
     const titleUpper = (article.title || '').toUpperCase();
@@ -544,8 +648,12 @@ function hasPersonRoleSignal(article: NormalizedItem): boolean {
 // person/role signal is also present. `actionList` is the caller's action vocabulary.
 function hasGatedPeopleAction(article: NormalizedItem, actionList: string[]): boolean {
     const text = getText(article);
+    if (/\b(?:adds?|joins?|joined)\b/i.test(article.title || '') && !isPersonnelJoin(article.title || '')) {
+        return hasIndustrialCareerEvidence(article);
+    }
+    if (hasIndustrialCareerEvidence(article)) return true;
     if (isPersonnelJoin(article.title || '')) return true;
-    if (containsAny(text, actionList.filter(k => !PEOPLE_ACTION_AMBIGUOUS.includes(k)))) return true;
+    if (containsAny(text, actionList.filter(k => k !== 'adds' && !PEOPLE_ACTION_AMBIGUOUS.includes(k)))) return true;
     const ambiguous = actionList.filter(k => PEOPLE_ACTION_AMBIGUOUS.includes(k));
     return ambiguous.length > 0 && containsAny(text, ambiguous) && hasPersonRoleSignal(article);
 }
@@ -557,6 +665,7 @@ function hasIndustrialContextForPeople(text: string): boolean {
 
 export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (nonIndustrialCareerScope(article)) { if (diag) diag.recordReject('people', 'NOT_INDUSTRIAL'); return false; }
         if (!passesWoodmontRubric(article, diag, 'people')) return false;
         const text = getText(article);
         const url = ((article as any).url || article.link || '').toLowerCase();
@@ -569,7 +678,7 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
         // If title OR body has strong people signal, allow even if body mentions transactions
         const titleUpper = (article.title || '').toUpperCase();
         const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper)
-            || isPersonnelJoin(article.title || '') || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
+            || isPersonnelJoin(article.title || '') || hasIndustrialCareerEvidence(article) || titleUpper.startsWith('PEOPLE:') || titleUpper.startsWith('PEOPLE |');
         const bodyHasPeopleAction = containsAny(text, ['hired', 'appointed', 'promoted', 'named', 'elevated', 'tapped']);
         // If it's primarily a transaction (and neither title nor body indicate people), skip
         if (!titleHasPeopleSignal && !bodyHasPeopleAction && containsAny(text, TRANSACTION_ACTION_WORDS)) {
@@ -615,6 +724,7 @@ export function reCategorizeRelevantAsPeople(
     const keptTransactions: NormalizedItem[] = [];
 
     const rescueArticle = (article: NormalizedItem): boolean => {
+        if (nonIndustrialCareerScope(article)) return false;
         const text = getText(article);
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) return false;
         // Gated: ambiguous corporate verbs (award/recognized/honored) only count with a
@@ -625,7 +735,7 @@ export function reCategorizeRelevantAsPeople(
         const isPeoplePuff = containsAny(text, ['milestone', 'anniversary', 'retirement', 'retiring', 'marks milestone']);
         // Title-level people signal — very strong indicator
         const titleUpper = (article.title || '').toUpperCase();
-        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '') || hasIndustrialCareerEvidence(article);
         // An ACTION signal is now NECESSARY (2026-07-24), not just 2-of-3. Role + industrial
         // ALONE used to rescue "Greek Real Estate Partners Expands Bucks County …" — a company
         // whose NAME contains "Partners" (matched PERSON_ROLE_KEYWORDS) with a warehouse project,
@@ -643,7 +753,7 @@ export function reCategorizeRelevantAsPeople(
         const text = getText(article);
         // If it's a transaction AND doesn't have title-level people signal, keep in relevant
         const titleUpper = (article.title || '').toUpperCase();
-        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
+        const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '') || hasIndustrialCareerEvidence(article);
         if (!titleHasPeopleSignal && containsAny(text, TRANSACTION_ACTION_WORDS)) {
             keptRelevant.push(article);
             continue;
@@ -659,7 +769,7 @@ export function reCategorizeRelevantAsPeople(
     if (transactions) {
         for (const article of transactions) {
             const titleUpper = (article.title || '').toUpperCase();
-            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '');
+            const titleHasPeopleSignal = /\b(HIRED|APPOINTED|PROMOTED|NAMED|TAPS|WELCOMES|HIRES|APPOINTS|PROMOTES|NAMES)\b/.test(titleUpper) || isPersonnelJoin(article.title || '') || hasIndustrialCareerEvidence(article);
             if (titleHasPeopleSignal && rescueArticle(article)) {
                 movedToPeople.push(article);
             } else {
@@ -701,7 +811,7 @@ export const PEOPLE_TITLE_ACTION = /\b(hires?|hired|appoints?|appointed|promotes
  */
 export function qualifiesForPeopleRescue(article: NormalizedItem): boolean {
     const title = article.title || '';
-    if (!PEOPLE_TITLE_ACTION.test(title) && !isPersonnelJoin(title)) return false;
+    if (!PEOPLE_TITLE_ACTION.test(title) && !isPersonnelJoin(title) && !hasIndustrialCareerEvidence(article)) return false;
     if (!isTargetRegion(article)) return false;
     return applyPeopleFilter([article]).length > 0;
 }
@@ -990,7 +1100,7 @@ export function loadArticlesFromFeed(): { articles: NormalizedItem[]; feedPath: 
         if (removed > 0) console.log(`🚫 Excluded ${removed} article(s) from user exclude list`);
     }
 
-    return { articles, feedPath, docsDir };
+    return { articles: articles.map(preparePeopleArticle), feedPath, docsDir };
 }
 
 export function filterArticlesByTimeRange(articles: NormalizedItem[], hours: number): NormalizedItem[] {
@@ -1025,7 +1135,7 @@ export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
             regions: a.region ? [a.region] : [],
             keywords: a.keywords || [],
             ...editorialVerdictFields(a),
-        } as NormalizedItem));
+        } as NormalizedItem)).map(preparePeopleArticle);
     } catch (e) {
         console.warn('Could not load included-articles.json:', e);
         return [];
