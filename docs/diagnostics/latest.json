@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-28-1200",
-  "generatedAt": "2026-10-28T12:00:33.972Z",
+  "runId": "2026-10-29-1200",
+  "generatedAt": "2026-10-29T12:00:39.114Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 251,
+      "loaded": 262,
       "inWindow": 7,
       "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 80,
+      "supplyCandidates": 78,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,29 +36,29 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 4
+        "WOODMONT_RUBRIC_REJECT": 6
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 2,
-        "tier4_reserve": 1,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 251,
-      "inWindow": 5,
-      "regionPass": 0,
+      "loaded": 262,
+      "inWindow": 7,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 2,
+      "selected": 3,
+      "supplyCandidates": 7,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 5,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -86,24 +86,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 2,
         "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 251,
-      "inWindow": 2,
-      "regionPass": 2,
+      "loaded": 262,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 22,
+      "supplyCandidates": 24,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -131,7 +131,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -140,7 +140,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 251,
+      "loaded": 262,
       "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,35 +186,21 @@
     }
   },
   "perFeedBySection": {
-    "costar.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 5,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
+        "relevant": 2,
+        "transactions": 3,
         "availabilities": 0,
         "people": 0
       }
     },
-    "commercialobserver.com": {
+    "ir.prologis.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -228,7 +214,7 @@
         "people": 0
       }
     },
-    "credaily.com": {
+    "bisnow.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -242,7 +228,7 @@
         "people": 0
       }
     },
-    "NJ Construction Industrial": {
+    "Google News LoopNet NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -265,31 +251,31 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 70,
-    "outOf10": 7,
-    "grade": "C",
-    "itemCount": 5,
-    "operationalScore": 70,
-    "operationalGrade": "C",
-    "editorialQualityScore": 67,
-    "editorialGrade": "D",
-    "coverageSupplyScore": 47,
+    "score": 80,
+    "outOf10": 8,
+    "grade": "B",
+    "itemCount": 8,
+    "operationalScore": 80,
+    "operationalGrade": "B",
+    "editorialQualityScore": 77,
+    "editorialGrade": "C",
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "QUALITY_REJECTED",
+      "transactions": "FILLED",
       "availabilities": "FILLED",
       "people": "QUALITY_REJECTED"
     },
-    "sectionsFilled": 2,
+    "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 17,
-      "freshness": 16.8,
-      "regional": 16,
+      "coverage": 27,
+      "freshness": 16.2,
+      "regional": 16.9,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
+      "fresh": 4,
       "deep": 3,
       "reserve": 1
     },
@@ -300,7 +286,7 @@
     "supply": "Rich",
     "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): transactions, people"
+      "Empty — fresh supply rejected by section gates (quality): people"
     ]
   },
   "logicImpact": {
@@ -311,13 +297,43 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 128,
+    "crossDayPoolRepeatsSuppressed": 133,
     "audit": [
+      {
+        "id": "5e5b4eeac61d4610169c61d8efe8ede5e26a2474",
+        "title": "Forecast brightens for US industrial property as leasing recovers",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7120f30eb46f5c0dc930404fbb49b745c51224e1",
+        "title": "Groundbreaking set for new warehouse on former Mack Trucks property in Allentown - LehighValleyLive.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "1285d5ad5f2ed957591b968a0b9a2167f8a91aef",
+        "title": "NJEDA approves manufacturing award to boost Amneal Pharmaceuticals investment in state - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
         "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "88dd75157298ff5892814789e8ec6a571ebd4582",
+        "title": "CloudHQ CEO Hossein Fateh On What Could Curb the Data Center Boom",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "46f1f17af1148ec532d8bb7ae19dce271e70f3b2",
+        "title": "Industrial Outdoor Storage Rents Climb 32% on the Data Center Boom",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "b07fd37fbcc23ae50eec9fd6e6d638bd481a8db8",
@@ -458,6 +474,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "2c46301f144bf4374e8f9fc08d8f0df092b60ffd",
+        "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations - Area Development",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
+      },
+      {
         "id": "380035bbedcff4996ee5c868074c7d4b645d3672",
         "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -582,6 +604,12 @@
         "title": "Sitex Group buys logistics site leased by UPS in South Brunswick - ROI-NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "ec19570414edb09798a27ed5d5889c66ba47527a",
+        "title": "GSK Expands Montgomery County, Pennsylvania, Manufacturing Operations - Area Development",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
       },
       {
         "id": "4c949353f1125ffacec794f2d643263b3017c1b0",
@@ -870,54 +898,18 @@
         "title": "Industrial For Lease — 5400 Longleaf St, Jacksonville, FL 32209, USA | United States - Colliers",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "b7cfeeaeec0cf44b07390fcd9b795c92806773c2",
-        "title": "Fit Energy Plans Data Center and Natural-Gas Fuel-Cell Development in Pennsylvania - Construction Review",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c6563935ba75878f119420e97ab03a543fe07ceb",
-        "title": "Bethlehem passes new rules for future data center development - NBC10 Philadelphia",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "139c70aa624e8af123aecee8c9e79d7e94b7b7d1",
-        "title": "LS Power Raises $6B To Capitalize On Data Center Power Demand",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "1114525bd0a383448c8ef6b00cbc1f95bcad6fdb",
-        "title": "News | Dalfen Industrial buys fully leased warehouse near Miami airport - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "8cb83f15aa27899c5d5a2af9841d7025bc7f541a",
-        "title": "East Brunswick industrial building sells for $4.5M after six offers - Central New Jersey News",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f57bdbfd60505d8b36f983dea8ac69997d3d94c0",
-        "title": "BKM Pays $103M for Orlando Industrial Portfolio - Connect CRE",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ab9be9d463dc8b6c4dab7f5e308a692937d01bbf",
-        "title": "Everflow Supplies takes 333,000 sq. ft. to fill last existing building at Linden Logistics Center - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
       }
     ]
   },
   "dcPolicy": {
     "rejectedOutOfRegion": [],
     "nationalScaleAllowed": [],
-    "unknownLocationAllowed": []
+    "unknownLocationAllowed": [
+      {
+        "id": "5bdd289ebacb52e903312065a7501fe2df398522",
+        "title": "Anthropic Plans To Lease Its Own Data Centers, Cutting Reliance On Amazon, Google And Microsoft",
+        "unresolvedLocationTokens": []
+      }
+    ]
   }
 }
