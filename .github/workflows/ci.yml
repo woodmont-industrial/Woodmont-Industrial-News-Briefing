@@ -214,14 +214,36 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
       - run: npm ci --prefer-offline --no-audit
       - run: node --import tsx src/filter/ai-provider.test.ts
+      - run: node --import tsx src/filter/summary-quantities.test.ts
+      - run: node --import tsx src/server/availability-routing.test.ts
+      - run: node --import tsx src/server/listing-event.test.ts
+      - run: node --import tsx src/server/newsletter-content.test.ts
+      - run: node --import tsx src/server/newsletter-region-score.test.ts
+      - run: node --import tsx src/server/quality-method.test.ts
+      - name: Test send-state publication in disposable local repositories
+        run: bash .github/scripts/commit-send-state.test.sh
+      - run: node --import tsx src/server/newsletter-geography.test.ts
+      - run: node --import tsx src/build/newsletter-facts.test.ts
+      - run: node --import tsx src/filter/editorial-review.test.ts
+      - run: node --import tsx src/server/relevant-editorial.test.ts
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts
+
+      - name: Replay three archived sends without delivery
+        run: node --import tsx scripts/replay-newsletter-quality.ts
+      - name: Verify two approved public releases through the real loader
+        if: >-
+          github.event_name == 'pull_request' && github.head_ref == 'fix/newsletter-reader-quality' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        run: node --import tsx scripts/replay-newsletter-quality.ts --public-facts
 
   ai-provider-smoke:
     name: AI Provider Smoke Test

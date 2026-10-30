@@ -49,8 +49,8 @@ console.log('=== multi-word phrases are not wrapped in literal quotes ===');
 // "New Jersey" itself never matched its own target-region regex.
 const filters = fs.readFileSync(path.join(REPO, 'src', 'server', 'newsletter-filters.ts'), 'utf8');
 const regexLines = filters.split('\n').filter(l =>
-    /^\s*(?:export\s+)?const\s+(?:NON_TARGET_US_STATE_RE|NON_TARGET_COUNTRY_RE|TARGET_REGION_PHRASE_RE)\s*=/.test(l));
-check(regexLines.length === 3, `all three region regexes are present (${regexLines.length})`);
+    /^\s*(?:export\s+)?const\s+(?:NON_TARGET_US_STATE_RE|NON_TARGET_COUNTRY_RE)\s*=/.test(l));
+check(regexLines.length === 2, `both exclusion regexes are present (${regexLines.length}); target evidence uses the shared resolver`);
 for (const line of regexLines) {
     const name = (line.match(/const\s+(\w+)/) || [])[1];
     check(!line.includes('"'), `${name} contains no literal quote characters`);

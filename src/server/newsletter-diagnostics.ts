@@ -21,6 +21,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { hasNewsletterTargetRegion, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
+import { hasVerifiedTargetProperty } from '../shared/newsletter-facts.js';
 
 // =============================================================================
 // REASON CODES
@@ -171,6 +173,8 @@ export interface QualityBreakdown {
 }
 export interface QualityPenalty { type: string; points: number; detail: string; }
 export interface NewsletterQuality {
+    /** Absent on legacy saved diagnostics; versions identify measurement methods. */
+    scoringVersion?: string;
     score: number;        // Content Quality (headline), 0-100, clamped
     outOf10: number;      // score / 10
     grade: string;        // Content Quality grade A / B / C / D / F
@@ -286,11 +290,9 @@ const PENALTY = { broken: 8, dupInSend: 6, repeatCrossDay: 3, weak: 3, leak: 12,
 // scheduler took over (6:15 build -> 8:00 send).
 export const DELIVERY_TARGET = { hour: 8, minute: 0 };
 export const DELIVERY_TARGET_LABEL = '8:00 AM ET';
+export const QUALITY_SCORING_VERSION = '2026-10-30-shared-geography-v1';
 const TIMING = { graceMinutes: 30, minutesPerPoint: 15, lateCap: 10 };
 
-// Target regions (NJ/PA/FL) — major cities/counties + corridors. Subset of the
-// send pipeline's TARGET_REGION_PATTERN, kept compact on purpose.
-const REGION_RX = /\b(nj|new jersey|newark|edison|piscataway|robbinsville|trenton|camden|woodbridge|elizabeth|paterson|lakewood|middlesex|essex|bergen|hudson county|morris county|meadowlands|turnpike|bayonne|elmwood park|garfield|north brunswick|pa|pennsylvania|philadelphia|philly|allentown|lehigh|bucks county|montgomery county|chester county|pittsburgh|lancaster|harrisburg|carlisle|bethlehem|easton|king of prussia|fl|florida|miami|orlando|doral|jacksonville|tampa|clearwater|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|fort myers|ft\.?\s*myers|naples|sarasota|lakeland|deltona|st\.?\s*petersburg|brevard|volusia|space coast)\b/i;
 // National macro industrial framing (acceptable, partial credit).
 const MACRO_RX = /\b(industrial market|warehouse market|warehouse demand|logistics market|reit|supply chain|freight market|e-commerce|build-to-suit|spec development|industrial outlook|market report|national industrial|us industrial|u\.s\. industrial|industrial sector|industrial fund|industrial portfolio|industrial real estate|warehouse real estate|cold storage market|vacancy rate|absorption|data center)\b/i;
 // Concrete industrial-RE signal — its ABSENCE on a non-target item flags "weak".
@@ -332,7 +334,7 @@ export function isRegionLeak(it: any, section: Section, routedClean: boolean): b
     if (routedClean) return false;
     const titleCore = stripPublisherSuffix(it.title || '');
     const mixedComparison =
-        EXCLUDED_REGION_RX.test(titleCore) && REGION_RX.test(titleCore) &&
+        EXCLUDED_REGION_RX.test(titleCore) && hasNewsletterTargetRegion(titleCore) &&
         (COMPARE_CUE.test(titleCore) || MACRO_RX.test(text)) &&
         section === 'relevant';
     return !mixedComparison;
@@ -340,9 +342,10 @@ export function isRegionLeak(it: any, section: Section, routedClean: boolean): b
 function regionScoreOf(it: any): number {
     const tagged = [it.region, ...(it.regions || []), ...(it.tags || [])]
         .filter(Boolean).map(String).join(' ');
-    if (/\b(NJ|PA|FL)\b/.test(tagged)) return 1;
-    const text = itemText(it);
-    if (REGION_RX.test(text)) return 1;
+    const title = stripPublisherSuffix(it.title || '');
+    const text = itemText({ ...it, title });
+    if (hasVerifiedTargetProperty(it) || hasNewsletterTargetRegion(text)) return 1;
+    if (!hasExplicitNonTargetCity(title) && hasNewsletterTargetRegion(tagged)) return 1;
     if (MACRO_RX.test(text)) return 0.4;
     return 0;
 }
@@ -590,6 +593,7 @@ export function computeNewsletterScore(
         sectionsFilled === 4 ? 'FULL' : sectionsFilled >= 2 ? 'PARTIAL' : 'SPARSE';
 
     return {
+        scoringVersion: QUALITY_SCORING_VERSION,
         score, outOf10: round1(score / 10), grade, itemCount,
         operationalScore: score, operationalGrade: grade,
         editorialQualityScore, editorialGrade: gradeOf(editorialQualityScore),
@@ -815,6 +819,7 @@ const QUALITY_HISTORY_RETAIN = 90;
 export interface QualityHistoryEntry {
     date: string;       // YYYY-MM-DD
     runId: string;
+    scoringVersion?: string;
     score: number;
     outOf10: number;
     grade: string;
@@ -858,6 +863,14 @@ function entryToCsvRow(e: QualityHistoryEntry): string {
     return vals.join(',');
 }
 
+/** Separate lookup keeps existing Power BI CSV schemas and historical values stable. */
+function writeQualityMethods(docsDir: string, history: QualityHistoryEntry[]): void {
+    const rows = history.map(entry => [entry.date, entry.runId, entry.scoringVersion || 'legacy-unversioned']
+        .map(dliEscape).join(','));
+    fs.writeFileSync(path.join(docsDir, 'quality-score-methods.csv'),
+        ['date,runId,scoringVersion', ...rows].join('\n') + '\n', 'utf8');
+}
+
 /**
  * Append (or replace same-date) the day's quality score. Writes BOTH:
  *   - docs/quality-scores.json — rich record (breakdown + per-penalty detail)
@@ -877,6 +890,7 @@ export function writeQualityHistory(docsDir: string, date: string, runId: string
 
     const entry: QualityHistoryEntry = {
         date, runId,
+        scoringVersion: q.scoringVersion || 'legacy-unversioned',
         score: q.score, outOf10: q.outOf10, grade: q.grade, itemCount: q.itemCount,
         breakdown: q.breakdown,
         age: q.age,
@@ -897,6 +911,7 @@ export function writeQualityHistory(docsDir: string, date: string, runId: string
     // Flat CSV mirror for Power BI / Excel.
     const csv = [CSV_COLUMNS.join(','), ...hist.history.map(entryToCsvRow)].join('\n') + '\n';
     fs.writeFileSync(path.join(docsDir, 'quality-scores.csv'), csv, 'utf-8');
+    writeQualityMethods(docsDir, hist.history);
 }
 
 /**
@@ -911,6 +926,7 @@ export function regenerateQualityCsv(docsDir: string): void {
     const history: QualityHistoryEntry[] = Array.isArray(parsed.history) ? parsed.history : [];
     const csv = [CSV_COLUMNS.join(','), ...history.map(entryToCsvRow)].join('\n') + '\n';
     fs.writeFileSync(path.join(docsDir, 'quality-scores.csv'), csv, 'utf-8');
+    writeQualityMethods(docsDir, history);
 }
 
 // =============================================================================

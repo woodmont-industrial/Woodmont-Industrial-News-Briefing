@@ -96,6 +96,7 @@ const mergeCsv = (ours, theirs) => {
     return [header, ...rows.values()].join('\n') + '\n';
 };
 mergePair('docs/quality-scores.csv', mergeCsv);
+mergePair('docs/quality-score-methods.csv', mergeCsv);
 mergePair('docs/daily-logic-impact.csv', mergeCsv);
 
 if (failures > 0) {

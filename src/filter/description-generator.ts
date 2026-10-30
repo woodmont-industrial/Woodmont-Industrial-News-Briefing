@@ -8,6 +8,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
+import { hasUnsupportedSummaryQuantity } from './summary-quantities.js';
 import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
 
 const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
@@ -21,23 +22,26 @@ CRITICAL RULES — NEVER VIOLATE THESE:
 6. Write 1-2 sentences max. Be concise and scannable.
 7. ALWAYS lead with key deal fields in this order (skip any field not explicitly in the source):
    Location + Size + Key Players + Terms → then a brief context sentence if needed.
+8. Publication and briefing timestamps are INTERNAL timing context, not proof of when the deal occurred. Do not imply an event happened today or was just announced unless the supplied source facts and timestamps support it. Use neutral past tense for completed deals.
+9. Do not add age warnings, bracketed publication labels, or commentary such as "old news", "stale", "earlier development", or "this newsletter is old". A deal published within the past month can be summarized normally. Do not infer a closing date from its publication date.
+10. Preserve approval, proposal, construction and completion status, geographic scope, and what each metric measures. An approved plan is not completed space; projected jobs are not jobs already created; a change at one property is not a county-wide change. Do not broaden an ambiguous headline into a stronger claim.
 
 FORMAT EXAMPLES (only use facts from source):
 
-Title: "Prologis signs 250,000 SF lease in Edison, NJ with Amazon"
-→ "Edison, NJ — 250,000 SF lease. Prologis signed with Amazon as tenant."
+Title: "Example Tenant signs 250,000 SF lease in Edison, NJ"
+→ "Edison, NJ — Example Tenant signed a 250,000 SF lease."
 
-Title: "Seagis Property Group leases 25,000 sq. ft. at industrial building in Carlstadt"
-→ "Carlstadt, NJ — 25,000 SF. Seagis Property Group signed two new leases at an updated industrial building."
+Title: "Example Property Group leases 25,000 sq. ft. at an industrial building in Carlstadt"
+→ "Carlstadt — Example Property Group leased 25,000 SF at an industrial building."
 
 Title: "Manufacturer buys 50,000 sq. ft. Edison warehouse for $18 million"
-→ "Edison, NJ — 50,000 SF, $18M sale. A manufacturer purchased a modern industrial warehouse from NAI DiLeo-Bram."
+→ "Edison — A manufacturer purchased a 50,000 SF warehouse for $18M."
 
 Title: "Industrial vacancy rates decline in Q4"
-→ "Industrial vacancy rates declined in Q4, signaling tightening market conditions."
+→ "Industrial vacancy rates declined in Q4."
 
-Title: "Brian Godau joins NAI James E. Hanson as vice president"
-→ "Brian Godau joined NAI James E. Hanson as vice president in the firm's Parsippany office."
+Title: "Jane Doe joins Example Brokerage as vice president"
+→ "Jane Doe joined Example Brokerage as vice president."
 
 BAD (invents numbers not in title):
 Title: "Retail Centers Portfolio Expands With Town Lane Acquisition"
@@ -47,6 +51,10 @@ CORRECT version:
 → "Town Lane expanded its retail centers portfolio through a new acquisition."`;
 
 const USER_PROMPT = `Summarize ONLY using facts from the title and description below. Do NOT invent any details.
+
+INTERNAL TIMING CONTEXT (do not reproduce as labels in the summary):
+BRIEFING TIME (UTC): {briefing_time}
+ARTICLE PUBLISHED (UTC): {published_at}
 
 TITLE: {title}
 SOURCE: {source}
@@ -103,40 +111,13 @@ const GARBAGE_PATTERNS = [
 ];
 
 /**
- * Verify the AI description doesn't contain fabricated details.
- * Checks that specific numbers/names in the description actually appear in the source text.
+ * Reject unsupported SF, price and percentage quantities in the AI description.
+ * Other factual claims still rely on the source-only prompt and editorial review.
  */
 function containsFabrication(desc: string, title: string, existingDesc: string): boolean {
-    const sourceText = (title + ' ' + existingDesc).toLowerCase();
     const descLower = desc.toLowerCase();
 
-    // Extract dollar amounts from description — they must exist in source
-    const descDollars = descLower.match(/\$[\d,.]+\s*(?:million|billion|m|b|k)/gi) || [];
-    for (const amount of descDollars) {
-        // Check if this amount (or its core number) appears in source
-        const num = amount.replace(/[$,\s]/g, '').match(/[\d.]+/)?.[0];
-        if (num && !sourceText.includes(num)) {
-            return true; // Fabricated dollar amount
-        }
-    }
-
-    // Extract SF amounts from description — they must exist in source
-    const descSF = descLower.match(/[\d,.]+ ?(sf|square feet|sq\.?\s*ft)/gi) || [];
-    for (const sf of descSF) {
-        const num = sf.match(/[\d,.]+/)?.[0]?.replace(/,/g, '');
-        if (num && !sourceText.replace(/,/g, '').includes(num)) {
-            return true; // Fabricated SF amount
-        }
-    }
-
-    // Check for percentage figures
-    const descPct = descLower.match(/[\d.]+\s*%/g) || [];
-    for (const pct of descPct) {
-        const num = pct.replace(/\s*%/, '');
-        if (!sourceText.includes(num)) {
-            return true; // Fabricated percentage
-        }
-    }
+    if (hasUnsupportedSummaryQuantity(desc, title + ' ' + existingDesc)) return true;
 
     // Never mention "woodmont" — the AI shouldn't reference the reader's company
     if (descLower.includes('woodmont')) {
@@ -237,7 +218,11 @@ async function generateSingleDescription(
         // Include any existing short description as context for the AI
         const existingDesc = (article.description || (article as any).content_text || '').trim();
 
+        const publishedRaw = (article as any).date_published || article.pubDate;
+        const publishedAt = publishedRaw ? Date.parse(String(publishedRaw)) : NaN;
         const prompt = USER_PROMPT
+            .replace('{briefing_time}', new Date().toISOString())
+            .replace('{published_at}', Number.isFinite(publishedAt) ? new Date(publishedAt).toISOString() : 'Not provided')
             .replace('{title}', article.title || 'No title')
             .replace('{source}', sourceName || 'Industry publication')
             .replace('{existing_desc}', existingDesc.length > 5 ? existingDesc.substring(0, 500) : 'None');
