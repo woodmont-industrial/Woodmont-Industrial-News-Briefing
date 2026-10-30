@@ -237,6 +237,9 @@ jobs:
       - run: node --import tsx src/server/listing-event.test.ts
       - run: node --import tsx src/server/newsletter-content.test.ts
       - run: node --import tsx src/server/newsletter-region-score.test.ts
+      - run: node --import tsx src/server/quality-method.test.ts
+      - name: Test send-state publication in disposable local repositories
+        run: bash .github/scripts/commit-send-state.test.sh
       - run: node --import tsx src/server/newsletter-geography.test.ts
       - run: node --import tsx src/build/newsletter-facts.test.ts
       - run: node --import tsx src/filter/editorial-review.test.ts

@@ -1743,6 +1743,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 sentToRelay: success,
                 articleCount: relevant.length + transactions.length + availabilities.length + people.length,
                 score: dq?.score ?? null,
+                scoringVersion: dq?.scoringVersion ?? null,
                 grade: dq?.grade ?? null,
                 deliveryScore: dq?.delivery?.score ?? null,
                 supplyCondition: dq?.supply ?? null,
