@@ -45,6 +45,8 @@ The 11-point scoring difference on the last two rows is a measurement correction
 not an 11-point claim about better writing. The substantive evidence is the
 changed article IDs and placements. All comparisons use stored text/verdicts,
 with live AI and delivery disabled, so they are not provider-quality validation.
+New results record their scoring version, with a separate method lookup for
+Power BI and unchanged historical numeric scores. See `quality-scoring-methods.md`.
 
 Local verification: 33 functional suites, three synthetic feed/reserve/manual
 rendered paths, and archived-input replays for October 27, 28 and 30. Historical

@@ -46,6 +46,8 @@ async function main() {
         const html = fs.readFileSync(path.join(scratch, 'newsletter-archive/latest.html'), 'utf8');
         const metadata = JSON.parse(fs.readFileSync(path.join(scratch, 'newsletter-archive/latest.json'), 'utf8'));
         const diagnostics = JSON.parse(fs.readFileSync(path.join(scratch, 'diagnostics/latest.json'), 'utf8'));
+        assert.equal(metadata.scoringVersion, diagnostics.quality?.scoringVersion,
+            'the final archive preserves the exact scoring method recorded in diagnostics');
         const traces = tracer.all();
         const picked = traces.filter((trace: any) => trace.events.some((event: any) => event.stage === 'presentBeforeHTML'));
         const names: Record<string, string> = { relevant: 'Relevant Articles', transactions: 'Transactions',
