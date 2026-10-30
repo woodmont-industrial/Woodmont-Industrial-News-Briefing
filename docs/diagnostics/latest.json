@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-29-1200",
-  "generatedAt": "2026-10-29T12:00:39.114Z",
-  "isFriday": false,
+  "runId": "2026-10-30-1200",
+  "generatedAt": "2026-10-30T12:00:38.801Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 262,
-      "inWindow": 7,
-      "regionPass": 7,
+      "loaded": 271,
+      "inWindow": 9,
+      "regionPass": 9,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 78,
+      "supplyCandidates": 84,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 6
+        "WOODMONT_RUBRIC_REJECT": 4
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 5,
+        "tier3_30d_deep": 4,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 262,
+      "loaded": 271,
       "inWindow": 7,
-      "regionPass": 2,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 7,
+      "selected": 2,
+      "supplyCandidates": 4,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 5,
+        "NO_TARGET_REGION_EVIDENCE": 6,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 2,
         "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
@@ -95,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 262,
+      "loaded": 271,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 24,
+      "supplyCandidates": 29,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -126,7 +126,8 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "RUBRIC_ADVISORY_BYPASS": 1
       },
       "nearMisses": [],
       "tierFill": {
@@ -140,7 +141,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 262,
+      "loaded": 271,
       "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,49 +187,77 @@
     }
   },
   "perFeedBySection": {
+    "Google News Data Centers NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News ConnectCRE Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 5,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 2,
-        "transactions": 3,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "ir.prologis.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 2,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "bisnow.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
     },
     "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -244,21 +273,21 @@
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
-    "score": 80,
-    "outOf10": 8,
+    "score": 84,
+    "outOf10": 8.4,
     "grade": "B",
-    "itemCount": 8,
-    "operationalScore": 80,
+    "itemCount": 7,
+    "operationalScore": 84,
     "operationalGrade": "B",
-    "editorialQualityScore": 77,
-    "editorialGrade": "C",
+    "editorialQualityScore": 81,
+    "editorialGrade": "B",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
@@ -271,12 +300,12 @@
     "breakdown": {
       "coverage": 27,
       "freshness": 16.2,
-      "regional": 16.9,
+      "regional": 20.7,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 4,
-      "deep": 3,
+      "fresh": 6,
+      "deep": 6,
       "reserve": 1
     },
     "delivery": {
@@ -297,8 +326,32 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 133,
+    "crossDayPoolRepeatsSuppressed": 132,
     "audit": [
+      {
+        "id": "d22ff0f0b6382fe984a4b9fcbf9c7b1ecb63f33d",
+        "title": "Stockton Poll: N.J. Voters Split on Data Centers Nationally, Oppose Them Locally - Insider NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "eed940c17e855846fade07529a390bc3668ea8fa",
+        "title": "Faropoint adds 182,000 sq. ft. Meadowlands industrial portfolio in $44 million deal - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "7bd126cb99a06af3e12e45a0de5107fad5483054",
+        "title": "2027 Supply Chain Outlook: Fast Delivery & Energy Define Logistics Networks",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "dc16930ca9a0809568b93e83aa722cef0e9288ce",
+        "title": "Amneal Pharmaceuticals plans eight-building, 819,000 sq. ft. manufacturing hub in Piscataway with $61 million EDA tax cr",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "5e5b4eeac61d4610169c61d8efe8ede5e26a2474",
         "title": "Forecast brightens for US industrial property as leasing recovers",
@@ -318,10 +371,10 @@
         "reason": "sent_id"
       },
       {
-        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
-        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
+        "id": "addbd69e8fef8837a84f5acdfa64d3f38fe2aa56",
+        "title": "Amazon’s Same-Day Delivery Expansion Reignites Demand for Last-Mile Logistics - Commercial Observer",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
       },
       {
         "id": "88dd75157298ff5892814789e8ec6a571ebd4582",
@@ -336,6 +389,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "5bdd289ebacb52e903312065a7501fe2df398522",
+        "title": "Anthropic Plans To Lease Its Own Data Centers, Cutting Reliance On Amazon, Google And Microsoft",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "b07fd37fbcc23ae50eec9fd6e6d638bd481a8db8",
         "title": "Faropoint Expands Meadowlands Footprint with Acquisition of Three-Building Industrial Portfolio - Business Wire",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -344,6 +403,12 @@
       {
         "id": "75a20051828cead617cee4402d3aca785dbcaadc",
         "title": "As Florida opposition explodes, data center investment keeps flowing - Naples Daily News",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "49d66715797cddf278a0cd2805321155fe6f23f5",
+        "title": "456 Walker St, Fairview, NJ 07022 - 4,000 SF Warehouse with 16' Ceilings & Office - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -774,12 +839,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "d11829a5331f9882de9fd489f825bf9451f22c56",
-        "title": "1008 State Route 33, Freehold, NJ 07728 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
         "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
         "title": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -868,48 +927,12 @@
         "title": "Blackstone affiliate sells Bucks County warehouse for $53M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "a924d645007be3bd6c1d9bcbaa990a5367ea6887",
-        "title": "Kerry Opens Coffee-Derived Ingredients Manufacturing Facility in Pennsylvania - Food Safety Magazine",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9354ac4df1d548bdc6c130a74336ef5e33bcc696",
-        "title": "Davinci Micro Fulfillment Expands Network, Opens New eCommerce Support Facility in Pennsylvania - The Des Moines Registe",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e51c43e411a674f891f04a62e44dcb851b50cc00",
-        "title": "Pennsylvania data center moratorium pushed at Capitol rally - Erie Times-News",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e46989260a2f92dd695100aee58555d840a1462b",
-        "title": "Bergen Logistics of North Bergen names industry veteran Herman as president - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d5702b213127897295f99f01e5e98ed7514d079b",
-        "title": "Industrial For Lease — 5400 Longleaf St, Jacksonville, FL 32209, USA | United States - Colliers",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
       }
     ]
   },
   "dcPolicy": {
     "rejectedOutOfRegion": [],
     "nationalScaleAllowed": [],
-    "unknownLocationAllowed": [
-      {
-        "id": "5bdd289ebacb52e903312065a7501fe2df398522",
-        "title": "Anthropic Plans To Lease Its Own Data Centers, Cutting Reliance On Amazon, Google And Microsoft",
-        "unresolvedLocationTokens": []
-      }
-    ]
+    "unknownLocationAllowed": []
   }
 }
