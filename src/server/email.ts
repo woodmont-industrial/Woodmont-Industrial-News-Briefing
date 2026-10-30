@@ -15,7 +15,7 @@ import {
     dedupeByNearTitle, isNearTitleDuplicate,
     reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
-    sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
+    sortByDealThenDate, getValidDate, mapFeedItemsToArticles, prepareNewsletterReservePool,
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles,
     loadSentTitleKeys, normalizeTitleKey
@@ -24,7 +24,8 @@ import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, compute
 import { getActiveTracer } from './send-tracer.js';
 import { editorialVerdictFields, indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
 import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
-import { isConstructionAnnouncement } from '../shared/development-signal.js';
+import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
+import { isNonStoryArtifact } from '../shared/editorial-headline.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -693,7 +694,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
                     console.log(`🏪 Tier 4 reserve pool fallback (generated ${reserve.generatedAt})`);
                     const reserveFill = (
                         section: NormalizedItem[],
@@ -764,7 +765,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
                     const pool: any[] = reserve.sections?.relevant || [];
                     const before = relevant.length;
                     for (const r of pool) {
@@ -1042,6 +1043,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         const finalGate = (articles: NormalizedItem[], sectionName: string): NormalizedItem[] => {
             return articles.filter(a => {
+                if (isNonStoryArtifact(a.title || '')) return false;
                 if (sectionName === 'Relevant' && !passesRelevantVerdict(a)) return false;
                 const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
                 const url = (a.link || a.url || '').toLowerCase();
@@ -1163,6 +1165,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         .filter((a: any) => !excludedIds.has(a.id));
                     console.log(`📊 ${day}: ${dayArticles.length} articles${excludedIds.size > 0 ? ` (after excluded-IDs filter)` : ''}`);
                     for (const a of dayArticles) {
+                        if (isNonStoryArtifact(a.title || '')) continue;
                         const item = {
                             id: a.id,
                             title: a.title,
@@ -1237,6 +1240,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // Fallback: scan feed for last 5 days
                 const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
                 weekInReview = fiveDayArticles
+                    .filter(a => !isNonStoryArtifact(a.title || ''))
                     .filter(a => a.category !== 'relevant' || passesRelevantVerdict(a))
                     .filter(isNotExcludedRegion)
                     .filter(a => !isPolitical(getText(a)))
@@ -1532,6 +1536,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         }
 
         // Final section contract also covers reserve and manual-inclusion paths.
+        const listings = transactions.filter(a => newsletterCategory(a) === 'availabilities');
+        transactions = transactions.filter(a => newsletterCategory(a) !== 'availabilities');
+        for (const item of listings) {
+            if (!isTargetRegion(item) || !applyAvailabilityFilter([item]).length) continue;
+            item.category = 'availabilities';
+            if (!availabilities.some(a => (a.id || a.link) === (item.id || item.link))) availabilities.push(item);
+        }
         // Construction announcements belong in Relevant under the current layout.
         const construction = [...transactions, ...availabilities].filter(isConstructionAnnouncement);
         transactions = transactions.filter(a => !isConstructionAnnouncement(a));
@@ -1602,7 +1613,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             let reserveSections: any = {};
             try {
                 const rp = path.join(docsDir, 'preferences', 'reserve-pool.json');
-                if (fs.existsSync(rp)) reserveSections = JSON.parse(fs.readFileSync(rp, 'utf-8')).sections || {};
+                if (fs.existsSync(rp)) reserveSections = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(rp, 'utf-8'))).sections || {};
             } catch { /* reserve optional */ }
             // RAW qualifying gate — NOT the strict section filters. Using applyTransactionFilter
             // here made supply falsely read 0 on 2026-07-07 (run 28862837091): 15 real regional

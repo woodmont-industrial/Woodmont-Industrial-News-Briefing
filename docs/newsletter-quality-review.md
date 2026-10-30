@@ -5,6 +5,52 @@ with shared geography and bounded publisher fact recovery. It keeps the existing
 article windows and transaction floor; it adds no seven-day or fourteen-day
 editorial cutoff and removes the inline age-warning labels.
 
+## October 30 rendered-email correction
+
+The production-code replay reproduces all seven daily article IDs and the
+84 overall / 81 editorial scores from the October 30 send. At the earlier PR head,
+the same inputs produced nine items and 80 / 77. That replay showed that the
+previous listing rule still accepted a plain "warehouse for lease" headline as
+a completed transaction, and three non-story items survived the final email.
+
+The correction now:
+
+- Recognizes explicit property offers in the headline before the SF/deal bypass.
+  The build, feed reader, manual queue and reserve preparation share this rule.
+  Completed deals keep precedence; a body-only mention of another available
+  space cannot relocate a financing story.
+- Rejects catalog landing pages without a specific property, stock-price
+  headlines without a property event, and the demonstrated opposition headline.
+  The guards cover normal selection, fallback, manual and weekly output. They
+  preserve genuine listings, national industrial analyses and completed deals.
+- Uses the shared geographic resolver in regional scoring instead of a second
+  compact city list. Existing weights and macro partial credit are unchanged;
+  explicit conflicting city qualifiers still fail. Verified property-location
+  citations use the existing fact contract. Past score records are not rewritten.
+
+The corrected October 30 replay has four Relevant items, two Transactions, one
+Availability and no People item, plus five recap selections. The listing no
+longer reaches Transactions; the catalog, stock and opposition items are absent.
+The real report and manufacturing-lease story remain, and the recovered regional
+sale and construction announcement render. This does not claim more People supply.
+
+| October 30 offline replay | Daily items | Overall | Editorial |
+| --- | ---: | ---: | ---: |
+| Production code | 7 | 84 | 81 |
+| Previous PR code | 9 | 80 | 77 |
+| Corrected selection, old scorer | 7 | 73 | 70 |
+| Corrected selection, shared region scorer | 7 | 84 | 81 |
+
+The 11-point scoring difference on the last two rows is a measurement correction,
+not an 11-point claim about better writing. The substantive evidence is the
+changed article IDs and placements. All comparisons use stored text/verdicts,
+with live AI and delivery disabled, so they are not provider-quality validation.
+
+Local verification: 33 functional suites, three synthetic feed/reserve/manual
+rendered paths, and archived-input replays for October 27, 28 and 30. Historical
+replays are counterfactual evaluations of stored data, not replacements for the
+original delivered scores. CI runs the new regressions and all three replays.
+
 ## Geography and routing
 
 Early filtering, the final email gate and the last scrub call the same region
@@ -81,7 +127,7 @@ source facts. This is not proof that every nonnumeric generated claim is correct
 
 Regression tests exercise the actual rendered daily and Friday email pipelines
 with all network/delivery transports blocked. Fixed-input comparisons reproduce
-the two archived issues before applying changes. A separate CI check fetches only
+the three archived issues before applying changes. A separate CI check fetches only
 the approved public releases through the production page loader and verifies
 that the recovered facts reach Transactions. This check uses no provider or
 delivery credentials and uploads no artifacts. The existing provider smoke test

@@ -1,4 +1,5 @@
 import type { NormalizedItem } from '../types/index.js';
+import { isMarketingListingEvent } from './region-data.js';
 
 /** A construction milestone is news about a project, not an offer of space. */
 export function isConstructionAnnouncement(article: Pick<NormalizedItem, 'title'>): boolean {
@@ -20,6 +21,7 @@ export function isConstructionAnnouncement(article: Pick<NormalizedItem, 'title'
 }
 
 export function newsletterCategory(article: NormalizedItem): NormalizedItem['category'] {
-    return ['transactions', 'availabilities'].includes(article.category || '') && isConstructionAnnouncement(article)
-        ? 'relevant' : article.category;
+    if (['transactions', 'availabilities'].includes(article.category || '') && isConstructionAnnouncement(article)) return 'relevant';
+    if (article.category === 'transactions' && isMarketingListingEvent(article.title || '', { headline: true })) return 'availabilities';
+    return article.category;
 }
