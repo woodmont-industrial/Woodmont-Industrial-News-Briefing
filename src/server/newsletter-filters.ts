@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
-import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition } from '../shared/editorial-headline.js';
+import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact } from '../shared/editorial-headline.js';
 import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
@@ -337,7 +337,7 @@ function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext |
 
 /** Relevant's editorial policy is independent of optional diagnostic labels. */
 export function passesRelevantEditorialVerdict(article: NormalizedItem, diag?: DiagnosticContext): boolean {
-    if (isOppositionLedDataCenterHeadline(article.title || '') || isServiceCompanyAcquisition(article)) {
+    if (isNonStoryArtifact(article.title || '') || isOppositionLedDataCenterHeadline(article.title || '') || isServiceCompanyAcquisition(article)) {
         if (diag) diag.recordReject('relevant', 'SECTION_RULE_FAILED');
         return false;
     }
@@ -369,6 +369,10 @@ export function applyStrictFilter(items: NormalizedItem[], keywords: string[], s
 
 export function applyTransactionFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (isNonStoryArtifact(article.title || '')) {
+            if (diag) diag.recordReject('transactions', 'SECTION_RULE_FAILED');
+            return false;
+        }
         if (!passesWoodmontRubric(article, diag, 'transactions')) return false;
         const text = getText(article);
         if (isPolitical(text)) { if (diag) diag.recordReject('transactions', 'POLITICAL_CONTENT'); return false; }
@@ -383,11 +387,14 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
         // LISTING EVENT (2026-07-29): a property/site being listed/marketed/offered is an
         // availability, not a transaction — reject it here BEFORE the approval-keyword bypass and
         // the SF threshold so neither can re-admit it. Completed deals are excluded inside the helper.
-        if (isMarketingListingEvent(text)) { if (diag) diag.recordReject('transactions', 'LISTING_EVENT_NOT_DEAL'); return false; }
+        if (isMarketingListingEvent(article.title || '', { headline: true }) || isMarketingListingEvent(text)) {
+            if (diag) diag.recordReject('transactions', 'LISTING_EVENT_NOT_DEAL');
+            return false;
+        }
         // Project approvals/zoning are ALWAYS relevant (no threshold needed)
         if (containsAny(text, APPROVAL_KEYWORDS)) return true;
         // Transaction must clear the deal-size floor stated in the newsletter footer
-        // (≥100K SF or ≥$25M). Previously a TRANSACTION_ACTION_WORDS match alone bypassed
+        // (≥50K SF or ≥$10M). Previously a TRANSACTION_ACTION_WORDS match alone bypassed
         // this — that's how a $3.5M Metuchen sale slipped through on 2026-04-30.
         const hasAction = containsAny(text, TRANSACTION_ACTION_WORDS);
         const threshold = meetsDealThreshold(text);
@@ -417,6 +424,7 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
  */
 export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
     if (!passesRelevantEditorialVerdict(article)) return false;
+    if (isMarketingListingEvent(article.title || '', { headline: true }) || isMarketingListingEvent(getText(article))) return false;
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
     if (isPolitical(text)) return false;
@@ -430,6 +438,10 @@ export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
 
 export function applyAvailabilityFilter(items: NormalizedItem[], diag?: DiagnosticContext): NormalizedItem[] {
     const filtered = items.filter(article => {
+        if (isNonStoryArtifact(article.title || '')) {
+            if (diag) diag.recordReject('availabilities', 'SECTION_RULE_FAILED');
+            return false;
+        }
         if (isConstructionAnnouncement(article)) {
             if (diag) diag.recordReject('availabilities', 'CATEGORY_MISMATCH');
             return false;
@@ -1054,6 +1066,22 @@ export function mapFeedItemsToArticles(feedItems: any[]): NormalizedItem[] {
     }));
 }
 
+/** Re-route old reserve entries before section minima and caps are applied. */
+export function prepareNewsletterReservePool(reserve: {
+    generatedAt?: string; sections?: Partial<Record<Section, NormalizedItem[]>>;
+}): { generatedAt?: string; sections: Record<Section, NormalizedItem[]> } {
+    const sections: Record<Section, NormalizedItem[]> = { relevant: [], transactions: [], availabilities: [], people: [] };
+    for (const [category, pool] of Object.entries(reserve.sections || {})) {
+        if (!(category in sections) || !Array.isArray(pool)) continue;
+        for (const article of mapFeedItemsToArticles(pool.map(a => ({ ...a, category: a.category || category })))) {
+            if (isNonStoryArtifact(article.title || '')) continue;
+            const destination = (article.category || category) as Section;
+            if (destination in sections) sections[destination].push(article);
+        }
+    }
+    return { ...reserve, sections };
+}
+
 /**
  * Load user-excluded article IDs/URLs from docs/excluded-articles.json
  */
@@ -1124,7 +1152,7 @@ export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
         const articles = data.articles || [];
         if (articles.length === 0) return [];
         console.log(`📌 Loaded ${articles.length} manually included article(s)`);
-        return articles.map((a: any) => ({
+        return mapFeedItemsToArticles(articles.map((a: any) => ({
             id: a.id || a.url || '',
             title: a.title || '',
             link: a.url || '',
@@ -1135,7 +1163,7 @@ export function loadIncludedArticles(docsDir: string): NormalizedItem[] {
             regions: a.region ? [a.region] : [],
             keywords: a.keywords || [],
             ...editorialVerdictFields(a),
-        } as NormalizedItem)).map(preparePeopleArticle);
+        } as NormalizedItem))).map(preparePeopleArticle);
     } catch (e) {
         console.warn('Could not load included-articles.json:', e);
         return [];

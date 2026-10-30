@@ -21,6 +21,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { hasNewsletterTargetRegion, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
+import { hasVerifiedTargetProperty } from '../shared/newsletter-facts.js';
 
 // =============================================================================
 // REASON CODES
@@ -288,9 +290,6 @@ export const DELIVERY_TARGET = { hour: 8, minute: 0 };
 export const DELIVERY_TARGET_LABEL = '8:00 AM ET';
 const TIMING = { graceMinutes: 30, minutesPerPoint: 15, lateCap: 10 };
 
-// Target regions (NJ/PA/FL) — major cities/counties + corridors. Subset of the
-// send pipeline's TARGET_REGION_PATTERN, kept compact on purpose.
-const REGION_RX = /\b(nj|new jersey|newark|edison|piscataway|robbinsville|trenton|camden|woodbridge|elizabeth|paterson|lakewood|middlesex|essex|bergen|hudson county|morris county|meadowlands|turnpike|bayonne|elmwood park|garfield|north brunswick|pa|pennsylvania|philadelphia|philly|allentown|lehigh|bucks county|montgomery county|chester county|pittsburgh|lancaster|harrisburg|carlisle|bethlehem|easton|king of prussia|fl|florida|miami|orlando|doral|jacksonville|tampa|clearwater|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|fort myers|ft\.?\s*myers|naples|sarasota|lakeland|deltona|st\.?\s*petersburg|brevard|volusia|space coast)\b/i;
 // National macro industrial framing (acceptable, partial credit).
 const MACRO_RX = /\b(industrial market|warehouse market|warehouse demand|logistics market|reit|supply chain|freight market|e-commerce|build-to-suit|spec development|industrial outlook|market report|national industrial|us industrial|u\.s\. industrial|industrial sector|industrial fund|industrial portfolio|industrial real estate|warehouse real estate|cold storage market|vacancy rate|absorption|data center)\b/i;
 // Concrete industrial-RE signal — its ABSENCE on a non-target item flags "weak".
@@ -332,7 +331,7 @@ export function isRegionLeak(it: any, section: Section, routedClean: boolean): b
     if (routedClean) return false;
     const titleCore = stripPublisherSuffix(it.title || '');
     const mixedComparison =
-        EXCLUDED_REGION_RX.test(titleCore) && REGION_RX.test(titleCore) &&
+        EXCLUDED_REGION_RX.test(titleCore) && hasNewsletterTargetRegion(titleCore) &&
         (COMPARE_CUE.test(titleCore) || MACRO_RX.test(text)) &&
         section === 'relevant';
     return !mixedComparison;
@@ -340,9 +339,10 @@ export function isRegionLeak(it: any, section: Section, routedClean: boolean): b
 function regionScoreOf(it: any): number {
     const tagged = [it.region, ...(it.regions || []), ...(it.tags || [])]
         .filter(Boolean).map(String).join(' ');
-    if (/\b(NJ|PA|FL)\b/.test(tagged)) return 1;
-    const text = itemText(it);
-    if (REGION_RX.test(text)) return 1;
+    const title = stripPublisherSuffix(it.title || '');
+    const text = itemText({ ...it, title });
+    if (hasVerifiedTargetProperty(it) || hasNewsletterTargetRegion(text)) return 1;
+    if (!hasExplicitNonTargetCity(title) && hasNewsletterTargetRegion(tagged)) return 1;
     if (MACRO_RX.test(text)) return 0.4;
     return 0;
 }

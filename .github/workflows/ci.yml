@@ -234,6 +234,9 @@ jobs:
       - run: node --import tsx src/filter/ai-provider.test.ts
       - run: node --import tsx src/filter/summary-quantities.test.ts
       - run: node --import tsx src/server/availability-routing.test.ts
+      - run: node --import tsx src/server/listing-event.test.ts
+      - run: node --import tsx src/server/newsletter-content.test.ts
+      - run: node --import tsx src/server/newsletter-region-score.test.ts
       - run: node --import tsx src/server/newsletter-geography.test.ts
       - run: node --import tsx src/build/newsletter-facts.test.ts
       - run: node --import tsx src/filter/editorial-review.test.ts
@@ -241,7 +244,7 @@ jobs:
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts
 
-      - name: Replay both archived sends without delivery
+      - name: Replay three archived sends without delivery
         run: node --import tsx scripts/replay-newsletter-quality.ts
       - name: Verify two approved public releases through the real loader
         if: >-

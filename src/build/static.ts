@@ -495,7 +495,7 @@ export async function buildStaticRSS(): Promise<void> {
             // brought to market — an availability, NOT a transaction. Placed before the TXN branches so
             // it overrides TXN_SF_IN_TITLE and the SF+context deal fallback. The completed-deal guard is
             // inside isMarketingListingEvent, so a genuine deal ("sells and lists") still falls through.
-            if (isMarketingListingEvent(text) && hasPropertyType && !isNonIndustrial) {
+            if ((isMarketingListingEvent(item.title || '', { headline: true }) || isMarketingListingEvent(text)) && hasPropertyType && !isNonIndustrial) {
                 item.category = 'availabilities';
                 (item as any)._classificationReason = 'AVAIL_LISTING_EVENT';
                 return item;
