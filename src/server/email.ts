@@ -14,6 +14,7 @@ import {
     applyDataCenterPolicy, dcVerdictOf, isDcExceptionItem, type DcPolicyRecord,
     dedupeByNearTitle, isNearTitleDuplicate,
     reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
+    preparePeopleArticle, preparePeopleReservePool, passesPeopleIndustrialCheck,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles, prepareNewsletterReservePool,
     loadIncludedArticles, clearIncludedArticles,
@@ -694,7 +695,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
+                    const reserve = preparePeopleReservePool(prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8'))));
                     console.log(`🏪 Tier 4 reserve pool fallback (generated ${reserve.generatedAt})`);
                     const reserveFill = (
                         section: NormalizedItem[],
@@ -713,7 +714,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             // build-reserve-pool.ts) so FINAL GATE's isStrictlyIndustrial
                             // check has full text, not just title. Empty-fallback retained
                             // for legacy reserve pools written before the field was added.
-                            const item: NormalizedItem = {
+                            const item: NormalizedItem = preparePeopleArticle({
                                 id: r.id,
                                 title: r.title,
                                 link: r.url,
@@ -722,7 +723,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 source: r.source,
                                 pubDate: r.date_published,
                                 ...(r as any),
-                            } as NormalizedItem;
+                            } as NormalizedItem);
                             if (label === 'relevant' && !passesRelevantVerdict(item)) continue;
                             section.push(item);
                             usedIds.add(key);
@@ -765,17 +766,17 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
+                    const reserve = preparePeopleReservePool(prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8'))));
                     const pool: any[] = reserve.sections?.relevant || [];
                     const before = relevant.length;
                     for (const r of pool) {
                         if (editionTotal() >= TARGET_MIN_TOTAL || relevant.length >= MAX_PER_SECTION) break;
                         const key = r.id || r.url;
                         if (usedIds.has(key)) continue;
-                        const item = {
+                        const item = preparePeopleArticle({
                             id: r.id, title: r.title, link: r.url, description: r.description || '',
                             category: r.category, source: r.source, pubDate: r.date_published, ...(r as any),
-                        } as NormalizedItem;
+                        } as NormalizedItem);
                         if (!passesRelevantVerdict(item)) continue;
                         relevant.push(item);
                         usedIds.add(key);
@@ -1063,7 +1064,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 }
 
                 // Re-run the industrial content check (catches pharma, residential, restaurants)
-                if (!isStrictlyIndustrial(text)) {
+                if (!(sectionName === 'People' ? passesPeopleIndustrialCheck(a) : isStrictlyIndustrial(text))) {
                     console.log(`🚫 FINAL GATE blocked (not industrial): "${a.title?.substring(0, 60)}" [${sectionName}]`);
                     return false;
                 }
@@ -1471,7 +1472,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // Wrong asset class / non-industrial (retail, office, multifamily, pharma, etc.)
                 // — reuses the same gate the pipeline applies, so it only drops what should
                 // never have reached here (e.g. a post-description refill that bypassed it).
-                else if (!isStrictlyIndustrial(text)) bad = 'non-industrial / wrong-asset-class';
+                else if (!(section === 'people' ? passesPeopleIndustrialCheck(it) : isStrictlyIndustrial(text))) bad = 'non-industrial / wrong-asset-class';
                 // Wrong US region: names a non-target market (CA/TX/etc.) and NO NJ/PA/FL.
                 else if (OUT_OF_MARKET_KEYWORDS.some(k => text.toLowerCase().includes(k)) && !isTargetRegion(it)) bad = 'wrong US region (no NJ/PA/FL)';
                 if (bad) {
@@ -1613,7 +1614,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             let reserveSections: any = {};
             try {
                 const rp = path.join(docsDir, 'preferences', 'reserve-pool.json');
-                if (fs.existsSync(rp)) reserveSections = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(rp, 'utf-8'))).sections || {};
+                if (fs.existsSync(rp)) reserveSections = preparePeopleReservePool(prepareNewsletterReservePool(JSON.parse(fs.readFileSync(rp, 'utf-8')))).sections || {};
             } catch { /* reserve optional */ }
             // RAW qualifying gate — NOT the strict section filters. Using applyTransactionFilter
             // here made supply falsely read 0 on 2026-07-07 (run 28862837091): 15 real regional

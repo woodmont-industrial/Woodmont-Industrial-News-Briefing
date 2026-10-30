@@ -3,8 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main]
+  # Run the same non-sending checks for stacked PRs as for main-targeted PRs.
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -12,9 +12,13 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     name: TypeScript Check
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,6 +41,12 @@ jobs:
           node --import tsx src/server/people-join.test.ts
           node --import tsx src/server/people-rescue.test.ts
           node --import tsx src/server/people-corporate-verb.test.ts
+          node --import tsx src/server/people-career.test.ts
+
+      - name: Audit thirty days of People decisions and six rendered sends
+        env:
+          PEOPLE_AUDIT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/audit-people-history.cjs
 
       - name: Test engineering changelog datasets
         run: node scripts/engineering-changelog.test.mjs
