@@ -1,18 +1,18 @@
 {
-  "runId": "2026-10-30-1200",
-  "generatedAt": "2026-10-30T12:00:38.801Z",
-  "isFriday": true,
+  "runId": "2026-11-02-1300",
+  "generatedAt": "2026-11-02T13:00:41.151Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 271,
-      "inWindow": 9,
-      "regionPass": 9,
+      "loaded": 266,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 84,
+      "supplyCandidates": 92,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 4
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 271,
-      "inWindow": 7,
+      "loaded": 266,
+      "inWindow": 3,
       "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 4,
+      "selected": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 6,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,52 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "availabilities": {
+      "loaded": 266,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 1,
+      "supplyCandidates": 31,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -87,53 +132,7 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 1,
-        "tier5_manual_include": 0
-      },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
-    },
-    "availabilities": {
-      "loaded": 271,
-      "inWindow": 1,
-      "regionPass": 1,
-      "industrialPass": 0,
-      "sectionPass": 1,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 29,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "RUBRIC_ADVISORY_BYPASS": 1
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 0,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -141,8 +140,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 271,
-      "inWindow": 1,
+      "loaded": 266,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -151,7 +150,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -187,105 +186,77 @@
     }
   },
   "perFeedBySection": {
-    "Google News Data Centers NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Manufacturing NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News ConnectCRE Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 3,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 2,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "areadevelopment.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News LoopNet NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News LoopNet Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
         "transactions": 0,
-        "availabilities": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "commercialsearch.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Broward County FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
-    "score": 84,
-    "outOf10": 8.4,
-    "grade": "B",
-    "itemCount": 7,
-    "operationalScore": 84,
-    "operationalGrade": "B",
+    "score": 78,
+    "outOf10": 7.8,
+    "grade": "C",
+    "itemCount": 6,
+    "operationalScore": 78,
+    "operationalGrade": "C",
     "editorialQualityScore": 81,
     "editorialGrade": "B",
     "coverageSupplyScore": 80,
@@ -293,29 +264,35 @@
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "QUALITY_REJECTED"
+      "people": "NO_FRESH_SUPPLY"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 16.2,
-      "regional": 20.7,
+      "freshness": 16,
+      "regional": 18.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 6,
+      "fresh": 4,
       "deep": 6,
-      "reserve": 1
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"USDA to fund 8 fertilizer manufacturing projects\""
+      }
+    ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -326,8 +303,50 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 132,
+    "crossDayPoolRepeatsSuppressed": 123,
     "audit": [
+      {
+        "id": "bb878ecb0b3afaeef1c9e715560096e73899a110",
+        "title": "Should your neighborhood have data centers? These 2 N.J. towns will let voters decide. - NJ.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "cc3e0a316b1c4699232926e52256863ef1a08aac",
+        "title": "N.J. voters divided on data center development nationally, strongly opposed locally: Stockton poll - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "e26622640adf84365e04f833184ad8567ffeeaff",
+        "title": "Orlando Industrial Real Estate - Orlando Commercial Listings & Brokers - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c6439aedf30b6b28ce6a96c43c924c1f7c93aa6e",
+        "title": "'We've got grit': Pennsylvania residents win fight against data center planned on 37 acres - The Cool Down",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c8bd1d8cce5a3599acdf3607e8357f8236f9c291",
+        "title": "Glenmark stock: US distribution hub expands supply chain - ad-hoc-news.de",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "85943a55b76053a1d16b3c1081b88b2928d1a177",
+        "title": "Q3 2026 Industrial Market: Demand Hits Highs as Vacancy Eases - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "a26ea4986f40226022eb7629689c2b74983482de",
+        "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "d22ff0f0b6382fe984a4b9fcbf9c7b1ecb63f33d",
         "title": "Stockton Poll: N.J. Voters Split on Data Centers Nationally, Oppose Them Locally - Insider NJ",
@@ -449,22 +468,10 @@
         "reason": "sent_id"
       },
       {
-        "id": "0cb67cbe174c424085536bfc6a595a12270d120d",
-        "title": "Terreno sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
         "id": "9f24fd662ce6879b845e873b3a00f930d34efb33",
         "title": "260 Secaucus Rd, Secaucus, NJ 07094 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "d04031ed82974d8202aac4ac585d7fda33ad468f",
-        "title": "Terreno Realty sells East Rutherford warehouse for $25M - NJBIZ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "aa959ba651dc6cac990531e0fb257e67227e411d",
@@ -671,22 +678,16 @@
         "reason": "sent_id"
       },
       {
-        "id": "ec19570414edb09798a27ed5d5889c66ba47527a",
-        "title": "GSK Expands Montgomery County, Pennsylvania, Manufacturing Operations - Area Development",
+        "id": "0ee38aa53ef9b71a1dc03837c8f4312d37ece80c",
+        "title": "600 Markley St, Port Reading, NJ 07064 - ±90,956 SF Warehouse / Office for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_title"
+        "reason": "sent_id"
       },
       {
         "id": "4c949353f1125ffacec794f2d643263b3017c1b0",
         "title": "Supply Chain Pipeline Efficiency Fell 49% in Q2 - Material Handling & Logistics",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "c6821b7799dacbb6a5ebfe6d093adf1e81cbdf9d",
-        "title": "Terreno Realty Sells East Rutherford Industrial Property for $25 Million - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "ef0122dc2990a719436330c460d226fda5af80d6",
@@ -717,12 +718,6 @@
         "title": "Space Race: How The Private Sector's Orbital Aspirations Are Driving CRE On Earth",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "c3a9612ea659a54d4156dbe987a0f0b2a14c170c",
-        "title": "GSK Pledges $800M to Scale Biologics Manufacturing at Pa. Facility - Thomasnet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "13a5729de0b5fd5de9189c7c33c617d4f5c629d4",
@@ -907,24 +902,6 @@
       {
         "id": "5dc43f26e2351733bb78ee0aeaea752fef7ce9b7",
         "title": "Doral, FL Commercial Real Estate for Lease and Sale - PropertyShark",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e8a6a916103401736143ba68f2f7601d3db52399",
-        "title": "194 Atlantic St, Hackensack, NJ 07601 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ba02b8911423d13fe266f5e7c51aa8c49ad60e16",
-        "title": "237 Interstate Blvd, Sarasota, FL 34240 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7c6192d2fde6978a00fa086d79c22f4cd83d307d",
-        "title": "Blackstone affiliate sells Bucks County warehouse for $53M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
