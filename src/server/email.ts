@@ -26,6 +26,7 @@ import { editorialVerdictFields, indexEditorialVerdicts, withCurrentEditorialVer
 import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
 import { isNonStoryArtifact } from '../shared/editorial-headline.js';
+import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -463,8 +464,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const MIN_TRANSACTIONS = 4;   // 4-10 transactions
         const MIN_AVAILABILITIES = 1; // 1-5 availabilities (fewer listing-type articles exist)
         const MIN_PEOPLE = 2;         // 2-10 people articles
-        const MAX_PER_SECTION = 10;
-        const MAX_AVAILABILITIES = 3;   // 2026-07-08: tight cap — valid NJ/PA/FL for-lease listings belong here, but keep it 1-3 so it never becomes LoopNet listing-spam
+        const MAX_PER_SECTION = WORK_NEWSLETTER_LIMITS.relevant;
+        const MAX_AVAILABILITIES = WORK_NEWSLETTER_LIMITS.availabilities;
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;
@@ -1570,6 +1571,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = dedupeByNearTitle(transactions, scoreArticle, 'transactions');
         availabilities = dedupeByNearTitle(availabilities, scoreArticle, 'availabilities');
         people = dedupeByNearTitle(people, scoreArticle, 'people');
+        // Refills and final re-routing may have added items after the early cap.
+        // Final counts, sent-state and HTML must describe the same selected set.
+        relevant = relevant.slice(0, WORK_NEWSLETTER_LIMITS.relevant);
+        transactions = transactions.slice(0, WORK_NEWSLETTER_LIMITS.transactions);
+        availabilities = availabilities.slice(0, WORK_NEWSLETTER_LIMITS.availabilities);
+        people = people.slice(0, WORK_NEWSLETTER_LIMITS.people);
 
         // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
         // SELECTED item came from, by section — so we can see which feeds actually produce

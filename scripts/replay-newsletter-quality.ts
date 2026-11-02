@@ -15,12 +15,20 @@ const replay=path.resolve('scripts/replay-editorial-email.ts');
 const live=process.argv.includes('--public-facts');
 const dates=[['2026-10-27','83ab3d84aafc2ae4a12462bfeaae369abc329b36'],
     ['2026-10-28','a4ebfc468bae4d1459481c7bd0e3f795f9391029'],
-    ['2026-10-30','d7af65a713937c760528c00c0a717505e17ca0d3']];
+    ['2026-10-30','d7af65a713937c760528c00c0a717505e17ca0d3'],
+    ['2026-11-02','b6393703ebf928e2229d31bce0ae0ee9e02028d7']];
 // Optional local copy of the exact public send-time docs; CI reads the pinned git object.
 const localOct30At=process.argv.indexOf('--oct30-input');
 const localOct30=localOct30At<0?null:path.resolve(process.argv[localOct30At+1]);
 const localHistoryAt=process.argv.indexOf('--history-input');
 const localHistory=localHistoryAt<0?null:path.resolve(process.argv[localHistoryAt+1]);
+const localNov2At=process.argv.indexOf('--nov2-input');
+const localNov2=localNov2At<0?null:path.resolve(process.argv[localNov2At+1]);
+const nov2Published=[
+    '0cb67cbe174c424085536bfc6a595a12270d120d','72a67868280d5f4ee29d0ecc4640ebba9035e2a2',
+    '86f2658e6b9169e32fce35ef154e2af372251c92','b459ba4b50ad3cb167fd300592925fcca59c75e5',
+    'b89ffe613946d6c553a5647fb8480b03a8e6ca73','b6a8017e8448e7f13ab7d5bafd720dbfbc759090',
+].sort();
 const oct30Published=[
     '85943a55b76053a1d16b3c1081b88b2928d1a177','a26ea4986f40226022eb7629689c2b74983482de',
     'c6439aedf30b6b28ce6a96c43c924c1f7c93aa6e','c8bd1d8cce5a3599acdf3607e8357f8236f9c291',
@@ -32,7 +40,8 @@ const files=['feed.json','sent-articles.json','preferences/reserve-pool.json','s
 const report:any={publicPageCheck:live,results:[]};
 const run=(docs:string,cwd:string,date:string,label:string)=>{
     const output=path.join(root,date+'-'+label+'.json');
-    execFileSync(process.execPath,['--import',path.resolve('node_modules/tsx/dist/loader.mjs'),replay,docs,output,date+'T12:00:20Z'],
+    const instant=date+(date==='2026-11-02'?'T13:00:20Z':'T12:00:20Z'); // 08:00 Eastern after the DST change.
+    execFileSync(process.execPath,['--import',path.resolve('node_modules/tsx/dist/loader.mjs'),replay,docs,output,instant],
         {cwd,env:{PATH:process.env.PATH,TZ:'America/New_York'},stdio:'pipe',timeout:120000});
     const {stages,...result}=JSON.parse(fs.readFileSync(output,'utf8'));
     return result;
@@ -45,17 +54,17 @@ async function main(){
     for(const [date,ref] of dates){
         const docs=path.join(root,date);fs.mkdirSync(docs);
         for(const file of files){const output=path.join(docs,file);fs.mkdirSync(path.dirname(output),{recursive:true});
-            const localDocs=date==='2026-10-30'?localOct30:localHistory&&path.join(localHistory,date);
+            const localDocs=date==='2026-11-02'?localNov2:date==='2026-10-30'?localOct30:localHistory&&path.join(localHistory,date);
             fs.writeFileSync(output,localDocs?fs.readFileSync(path.join(localDocs,file)):
                 execFileSync('git',['show',`${ref}:docs/${file}`],{maxBuffer:32000000}));}
         const before=run(docs,baseline,date,'before');
-        assert.deepEqual(before.renderedIds,date==='2026-10-30'?oct30Published:actual.week[date].map((a:any)=>a.id).sort(),
+        assert.deepEqual(before.renderedIds,date==='2026-11-02'?nov2Published:date==='2026-10-30'?oct30Published:actual.week[date].map((a:any)=>a.id).sort(),
             'baseline reproduces the published issue');
         const after=run(docs,process.cwd(),date,'after');
         assert.equal(before.networkRequests,0);assert.equal(after.networkRequests,0);
         const result:any={date,before,after};report.results.push(result);
         const winterSale='b796663e4839029bdbf75bcc55975083830bbb97';
-        assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
+        if(date!=='2026-11-02')assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
         assert.ok(!after.sections.relevant.includes('14f68ade960e1446c8f3ff94834a91b673293451'),'the rejected office/personnel item stays out');
         if (date === '2026-10-28') {
             assert.ok(after.sections.relevant.includes('7120f30eb46f5c0dc930404fbb49b745c51224e1'),
@@ -70,6 +79,14 @@ async function main(){
             }
             for (const id of ['85943a55b76053a1d16b3c1081b88b2928d1a177','a26ea4986f40226022eb7629689c2b74983482de'])
                 assert.ok(after.sections.relevant.includes(id),'the real industrial report and manufacturing lease survive');
+        }
+        if (date === '2026-11-02') {
+            assert.equal(after.sections.relevant.length,7,'the seventh selected Relevant article reaches HTML');
+            assert.equal(after.articleCount,after.renderedIds.length,'every counted article is visible');
+            assert.ok(!after.sections.availabilities.includes('b6a8017e8448e7f13ab7d5bafd720dbfbc759090'),
+                'a construction announcement is not offered space');
+            assert.ok(!after.renderedIds.includes('0cb67cbe174c424085536bfc6a595a12270d120d'),
+                'the current cached editorial rejection remains blocking until a real reclassification');
         }
         if(live){
             const items=mapFeedItemsToArticles(JSON.parse(fs.readFileSync(path.join(docs,'feed.json'),'utf8')).items);
@@ -108,11 +125,11 @@ async function main(){
             writeEditorialFeed(items,path.join(docs,'feed.json'));
             const enriched=run(docs,process.cwd(),date,'public-facts');
             result.publicFacts.email=enriched;
-            if(date!=='2026-10-30')assert.ok(enriched.sections.transactions.includes(refs[date==='2026-10-27'?1:0].articleId),'verified facts reach the final Transactions section');
+            if(['2026-10-27','2026-10-28'].includes(date))assert.ok(enriched.sections.transactions.includes(refs[date==='2026-10-27'?1:0].articleId),'verified facts reach the final Transactions section');
         }
     }
     console.log(JSON.stringify(report));
-    console.log('PASS: three published baselines and corrected final email paths'+(live?', including approved publisher pages':''));
+    console.log('PASS: four published baselines and corrected final email paths'+(live?', including approved publisher pages':''));
 }
 main().catch(e=>{console.error(JSON.stringify(report));console.error('Replay incomplete:',e.message);process.exitCode=1;})
     .finally(()=>{const modules=path.join(baseline,'node_modules');if(fs.existsSync(modules)&&fs.lstatSync(modules).isSymbolicLink())fs.unlinkSync(modules);

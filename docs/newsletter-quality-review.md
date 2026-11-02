@@ -55,6 +55,33 @@ original delivered scores. CI runs the new regressions and all three replays.
 
 ## Geography and routing
 
+### November 2 replay
+
+The production-code baseline reproduces the six published daily IDs and 78
+overall / 81 editorial. Running the preceding draft on the same stored inputs
+exposed a selected-versus-rendered mismatch: nine items were counted but only
+eight appeared because Relevant selected seven while the template printed six.
+Selection and rendering now share the existing caps: ten Relevant, Transactions
+and People items, and three Availabilities. A final cap after refill/re-routing
+keeps sent-state, score counts and visible HTML aligned. The new full-input
+regression runs at 13:00 UTC (08:00 Eastern after the DST change).
+
+With that correction, all nine selected items render: seven Relevant, one
+Transaction, one Availability, zero People; stored-input scores are 75 / 78.
+This is not a demonstrated content-quality gain over the actual six-item send.
+The national funding headline remains. A legitimate sale's cached rejection
+also remains blocking; an input-only controlled approval moves it to
+Transactions, but that is not a live-model result or a production verdict edit.
+The construction record is normalized to Relevant but is not picked in this
+final lineup. Multiple reports of the same opening and weak fallback choices
+remain limitations.
+
+Live rubric validation must check real cached-decision recovery and the final
+email, not only successful provider JSON. Generated summaries also need checks
+that a former site occupant is not presented as the current project's developer.
+The replay and controlled input use no model or delivery credentials. No
+production input, archive or sent-state is changed.
+
 Early filtering, the final email gate and the last scrub call the same region
 resolver. City matching uses whole phrases; explicit out-of-state qualifiers
 override shared city names, including possessive prefixes such as
@@ -129,7 +156,7 @@ source facts. This is not proof that every nonnumeric generated claim is correct
 
 Regression tests exercise the actual rendered daily and Friday email pipelines
 with all network/delivery transports blocked. Fixed-input comparisons reproduce
-the three archived issues before applying changes. A separate CI check fetches only
+the four archived issues before applying changes. A separate CI check fetches only
 the approved public releases through the production page loader and verifies
 that the recovered facts reach Transactions. This check uses no provider or
 delivery credentials and uploads no artifacts. The existing provider smoke test

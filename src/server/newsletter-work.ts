@@ -7,6 +7,7 @@ import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 import { transactionFloorLabel } from '../shared/deal-threshold.js';
+import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
 
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
@@ -219,7 +220,7 @@ export function buildWorkBriefing(
         </li>`;
     };
 
-    const renderSection = (items: NormalizedItem[], maxItems: number = 6): string => {
+    const renderSection = (items: NormalizedItem[], maxItems: number): string => {
         if (!items || items.length === 0) {
             return '<p style="color: #666; font-style: italic; margin: 10px 0 20px 0;">No updated information provided for this section.</p>';
         }
@@ -277,25 +278,25 @@ export function buildWorkBriefing(
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             Relevant Articles
         </h2>
-        ${renderSection(relevant, 6)}
+        ${renderSection(relevant, WORK_NEWSLETTER_LIMITS.relevant)}
 
         <!-- Transactions -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             Transactions
         </h2>
-        ${renderSection(transactions, 6)}
+        ${renderSection(transactions, WORK_NEWSLETTER_LIMITS.transactions)}
 
         <!-- Availabilities -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             Availabilities
         </h2>
-        ${renderSection(availabilities, 6)}
+        ${renderSection(availabilities, WORK_NEWSLETTER_LIMITS.availabilities)}
 
         <!-- People News -->
         <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">
             People News
         </h2>
-        ${renderSection(people, 6)}
+        ${renderSection(people, WORK_NEWSLETTER_LIMITS.people)}
 
         ${weekInReviewHtml}
 
