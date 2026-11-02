@@ -66,6 +66,7 @@ async function main() {
                 [trace.id, trace.events.filter((event: any) => event.verdict === 'add').map((event: any) => event.stage)])),
         };
         assert.equal(requests, 0, 'no network or delivery transport may be called');
+        assert.equal(metadata.articleCount, picked.length, 'archive count agrees with the distinct selected articles');
         assert.equal(result.renderedIds.length, picked.length, 'every selected article must appear in the correct HTML section');
         assert.ok(weekly.every((trace: any) => html.includes(escapeHtml(trace.title))), 'weekly selections must appear in the HTML');
         fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
