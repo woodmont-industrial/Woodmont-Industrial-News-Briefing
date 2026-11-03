@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-02-1300",
-  "generatedAt": "2026-11-02T13:00:41.151Z",
+  "runId": "2026-11-03-1300",
+  "generatedAt": "2026-11-03T13:00:45.528Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 266,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 279,
+      "inWindow": 8,
+      "regionPass": 8,
       "industrialPass": 0,
       "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 92,
+      "supplyCandidates": 94,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 5
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 3,
-        "tier3_30d_deep": 5,
+        "tier3_30d_deep": 4,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,8 +50,8 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 266,
-      "inWindow": 3,
+      "loaded": 279,
+      "inWindow": 4,
       "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 1,
@@ -60,7 +60,7 @@
       "selected": 1,
       "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -95,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 266,
+      "loaded": 279,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -140,8 +140,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 266,
-      "inWindow": 0,
+      "loaded": 279,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -150,7 +150,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -186,59 +186,31 @@
     }
   },
   "perFeedBySection": {
+    "globest.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 3,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
+        "relevant": 3,
         "transactions": 0,
         "availabilities": 1,
-        "people": 0
-      }
-    },
-    "areadevelopment.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialsearch.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Broward County FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
         "people": 0
       }
     }
@@ -251,32 +223,32 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 78,
-    "outOf10": 7.8,
-    "grade": "C",
+    "score": 82,
+    "outOf10": 8.2,
+    "grade": "B",
     "itemCount": 6,
-    "operationalScore": 78,
-    "operationalGrade": "C",
-    "editorialQualityScore": 81,
-    "editorialGrade": "B",
+    "operationalScore": 82,
+    "operationalGrade": "B",
+    "editorialQualityScore": 79,
+    "editorialGrade": "C",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "NO_FRESH_SUPPLY"
+      "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 16,
+      "freshness": 16.4,
       "regional": 18.3,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 4,
-      "deep": 6,
+      "deep": 5,
       "reserve": 0
     },
     "delivery": {
@@ -284,15 +256,9 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"USDA to fund 8 fertilizer manufacturing projects\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — fresh supply rejected by section gates (quality): people"
     ]
   },
   "logicImpact": {
@@ -303,13 +269,37 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 123,
+    "crossDayPoolRepeatsSuppressed": 132,
     "audit": [
+      {
+        "id": "b89ffe613946d6c553a5647fb8480b03a8e6ca73",
+        "title": "BKM Capital buys 3rd Broward warehouse this year for $33M - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "b459ba4b50ad3cb167fd300592925fcca59c75e5",
+        "title": "Glenmark Pharmaceuticals Plans Allentown, Pennsylvania, Distribution Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "bb878ecb0b3afaeef1c9e715560096e73899a110",
         "title": "Should your neighborhood have data centers? These 2 N.J. towns will let voters decide. - NJ.com",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "72a67868280d5f4ee29d0ecc4640ebba9035e2a2",
+        "title": "USDA to fund 8 fertilizer manufacturing projects totaling more than $1.3B - Supply Chain Dive",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "86f2658e6b9169e32fce35ef154e2af372251c92",
+        "title": "Industrial Report: Construction Rebounds Despite Rising Development Costs",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "cc3e0a316b1c4699232926e52256863ef1a08aac",
@@ -344,6 +334,12 @@
       {
         "id": "a26ea4986f40226022eb7629689c2b74983482de",
         "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "b6a8017e8448e7f13ab7d5bafd720dbfbc759090",
+        "title": "Mack Trucks Site Allentown Warehouse Groundbreaking Oct. 30 - Hoodline",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -468,10 +464,22 @@
         "reason": "sent_id"
       },
       {
+        "id": "0cb67cbe174c424085536bfc6a595a12270d120d",
+        "title": "Terreno sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "9f24fd662ce6879b845e873b3a00f930d34efb33",
         "title": "260 Secaucus Rd, Secaucus, NJ 07094 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "d04031ed82974d8202aac4ac585d7fda33ad468f",
+        "title": "Terreno Realty sells East Rutherford warehouse for $25M - NJBIZ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "aa959ba651dc6cac990531e0fb257e67227e411d",
@@ -554,6 +562,12 @@
       {
         "id": "380035bbedcff4996ee5c868074c7d4b645d3672",
         "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "21bb0bd3369b6b27eb9b040d292b1e04a86430d8",
+        "title": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -688,6 +702,12 @@
         "title": "Supply Chain Pipeline Efficiency Fell 49% in Q2 - Material Handling & Logistics",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "c6821b7799dacbb6a5ebfe6d093adf1e81cbdf9d",
+        "title": "Terreno Realty Sells East Rutherford Industrial Property for $25 Million - citybiz",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "ef0122dc2990a719436330c460d226fda5af80d6",
@@ -848,60 +868,6 @@
       {
         "id": "82e328bcdbbb7a3572e159b461a8deadfe077e9d",
         "title": "Lehigh Valley Data Center Zoning Fight: 3-1 Vote [2026] - https://tech-insider.org/",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d04c1a867bf0e0c8a752b6bd3d78847c3c0eb7a3",
-        "title": "Branchburg industrial building sells for $4.2 million - Central New Jersey News",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "8df013b7b2454b07b13dc22dc5e9c32537ce8d02",
-        "title": "DEP creates statewide data center permit tracker - Scranton Times-Tribune",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bf07378f4b2f9c1f7e86d2d9097c63998d0fcf33",
-        "title": "Gecko Robotics partners with Anduril to aid submarine manufacturing - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bae5d621051ba27ef028b6422dddd6d544891aea",
-        "title": "Lehigh Valley township gets second data center proposal. Its developer brings zoning challenge - Yahoo",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9c4a0af3b1bac9b87c1add08c66955ffb5c8e27f",
-        "title": "New Jersey Community Capital Closes $10 Million Financing for Lassonde Manufacturing Facility in Seabrook - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "54f8370b232f3718076dcf9bc62ee1eb5b02345f",
-        "title": "Legacy Real Estate Developers completes sale of Totowa industrial property to food manufacturer - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ba873138abb5fc800e79277e40902b89ec830422",
-        "title": "Top permits: $46M North Miami Beach warehouse redevelopment; $14M office shell in West Kendall - The Real Deal",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9a4fa25d56ec2099140499114a304dc4558b31e0",
-        "title": "Industrial Property in Miami at 1171 Northwest 36th Street - Traded",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5dc43f26e2351733bb78ee0aeaea752fef7ce9b7",
-        "title": "Doral, FL Commercial Real Estate for Lease and Sale - PropertyShark",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
