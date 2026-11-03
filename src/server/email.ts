@@ -726,6 +726,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 ...(r as any),
                             } as NormalizedItem);
                             if (label === 'relevant' && !passesRelevantVerdict(item)) continue;
+                            // A reserve score is not proof of a regional qualifying deal.
+                            // Recheck the same gates used by normal Transaction selection.
+                            if (label === 'transactions' && (!isTargetRegion(item)
+                                || applyTransactionFilter([item], diag).length === 0)) continue;
                             section.push(item);
                             usedIds.add(key);
                         }

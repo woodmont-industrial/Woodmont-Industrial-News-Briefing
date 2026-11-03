@@ -248,7 +248,7 @@ jobs:
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts
 
-      - name: Replay four archived sends without delivery
+      - name: Replay five archived sends without delivery
         run: node --import tsx scripts/replay-newsletter-quality.ts
       - name: Verify two approved public releases through the real loader
         if: >-

@@ -15,7 +15,7 @@ for (const place of ['Winter Haven','Lakeland','Ft. Myers','Carlisle','Lehigh Va
     assert.equal(hasNewsletterTargetRegion(place),true,place);
     assert.equal(isTargetRegion(article(place,`A 120,000 SF industrial warehouse in ${place} sells for $30M`)),true,place);
 }
-for (const place of ['Westchester','Lakelandia','Winter Havenbrook','Newarkshire']) {
+for (const place of ['Westchester','Lakelandia','Winter Havenbrook','Newarkshire','experience']) {
     assert.equal(hasNewsletterTargetRegion(place),false,'substring collision: '+place);
 }
 for (const title of ['New Jersey firm buys a Texas industrial warehouse for $30M',

@@ -16,7 +16,8 @@ const live=process.argv.includes('--public-facts');
 const dates=[['2026-10-27','83ab3d84aafc2ae4a12462bfeaae369abc329b36'],
     ['2026-10-28','a4ebfc468bae4d1459481c7bd0e3f795f9391029'],
     ['2026-10-30','d7af65a713937c760528c00c0a717505e17ca0d3'],
-    ['2026-11-02','b6393703ebf928e2229d31bce0ae0ee9e02028d7']];
+    ['2026-11-02','b6393703ebf928e2229d31bce0ae0ee9e02028d7'],
+    ['2026-11-03','341ffeb1f6b34fb3175e68f21e82521060f1fbe8']];
 // Optional local copy of the exact public send-time docs; CI reads the pinned git object.
 const localOct30At=process.argv.indexOf('--oct30-input');
 const localOct30=localOct30At<0?null:path.resolve(process.argv[localOct30At+1]);
@@ -24,6 +25,13 @@ const localHistoryAt=process.argv.indexOf('--history-input');
 const localHistory=localHistoryAt<0?null:path.resolve(process.argv[localHistoryAt+1]);
 const localNov2At=process.argv.indexOf('--nov2-input');
 const localNov2=localNov2At<0?null:path.resolve(process.argv[localNov2At+1]);
+const localNov3At=process.argv.indexOf('--nov3-input');
+const localNov3=localNov3At<0?null:path.resolve(process.argv[localNov3At+1]);
+const nov3Published=[
+    '2d75705e68a9df33b57057ffaa162b28c170a0ec','6c0b824723b1bbf6e4bbf3bf6230ae76b1c515b4',
+    'e49f1b7bec26b71fc7ddc1ee68a977d6d29a263c','fb4150a5d322c2f9287613a1f009f8a20a5a4724',
+    'cabe8daf6b75f8fb147178cc47c55d3b4c16a3e5','476d638633670facc961f67e198412cb55e1960e',
+].sort();
 const nov2Published=[
     '0cb67cbe174c424085536bfc6a595a12270d120d','72a67868280d5f4ee29d0ecc4640ebba9035e2a2',
     '86f2658e6b9169e32fce35ef154e2af372251c92','b459ba4b50ad3cb167fd300592925fcca59c75e5',
@@ -40,7 +48,7 @@ const files=['feed.json','sent-articles.json','preferences/reserve-pool.json','s
 const report:any={publicPageCheck:live,results:[]};
 const run=(docs:string,cwd:string,date:string,label:string)=>{
     const output=path.join(root,date+'-'+label+'.json');
-    const instant=date+(date==='2026-11-02'?'T13:00:20Z':'T12:00:20Z'); // 08:00 Eastern after the DST change.
+    const instant=date+(date>='2026-11-02'?'T13:00:20Z':'T12:00:20Z'); // 08:00 Eastern for these fixed dates, including the DST change.
     execFileSync(process.execPath,['--import',path.resolve('node_modules/tsx/dist/loader.mjs'),replay,docs,output,instant],
         {cwd,env:{PATH:process.env.PATH,TZ:'America/New_York'},stdio:'pipe',timeout:120000});
     const {stages,...result}=JSON.parse(fs.readFileSync(output,'utf8'));
@@ -54,17 +62,17 @@ async function main(){
     for(const [date,ref] of dates){
         const docs=path.join(root,date);fs.mkdirSync(docs);
         for(const file of files){const output=path.join(docs,file);fs.mkdirSync(path.dirname(output),{recursive:true});
-            const localDocs=date==='2026-11-02'?localNov2:date==='2026-10-30'?localOct30:localHistory&&path.join(localHistory,date);
+            const localDocs=date==='2026-11-03'?localNov3:date==='2026-11-02'?localNov2:date==='2026-10-30'?localOct30:localHistory&&path.join(localHistory,date);
             fs.writeFileSync(output,localDocs?fs.readFileSync(path.join(localDocs,file)):
                 execFileSync('git',['show',`${ref}:docs/${file}`],{maxBuffer:32000000}));}
         const before=run(docs,baseline,date,'before');
-        assert.deepEqual(before.renderedIds,date==='2026-11-02'?nov2Published:date==='2026-10-30'?oct30Published:actual.week[date].map((a:any)=>a.id).sort(),
+        assert.deepEqual(before.renderedIds,date==='2026-11-03'?nov3Published:date==='2026-11-02'?nov2Published:date==='2026-10-30'?oct30Published:actual.week[date].map((a:any)=>a.id).sort(),
             'baseline reproduces the published issue');
         const after=run(docs,process.cwd(),date,'after');
         assert.equal(before.networkRequests,0);assert.equal(after.networkRequests,0);
         const result:any={date,before,after};report.results.push(result);
         const winterSale='b796663e4839029bdbf75bcc55975083830bbb97';
-        if(date!=='2026-11-02')assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
+        if(date<'2026-11-01')assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
         assert.ok(!after.sections.relevant.includes('14f68ade960e1446c8f3ff94834a91b673293451'),'the rejected office/personnel item stays out');
         if (date === '2026-10-28') {
             assert.ok(after.sections.relevant.includes('7120f30eb46f5c0dc930404fbb49b745c51224e1'),
@@ -87,6 +95,12 @@ async function main(){
                 'a construction announcement is not offered space');
             assert.ok(!after.renderedIds.includes('0cb67cbe174c424085536bfc6a595a12270d120d'),
                 'the current cached editorial rejection remains blocking until a real reclassification');
+        }
+        if (date === '2026-11-03') {
+            assert.ok(!after.sections.transactions.includes('cabe8daf6b75f8fb147178cc47c55d3b4c16a3e5'),
+                'a national venture cannot re-enter Transactions through reserves without property geography');
+            assert.equal(after.articleCount,after.renderedIds.length,'every counted article is visible');
+            assert.equal(after.sections.people.length,0,'this fix does not claim new People supply');
         }
         if(live){
             const items=mapFeedItemsToArticles(JSON.parse(fs.readFileSync(path.join(docs,'feed.json'),'utf8')).items);
@@ -129,7 +143,7 @@ async function main(){
         }
     }
     console.log(JSON.stringify(report));
-    console.log('PASS: four published baselines and corrected final email paths'+(live?', including approved publisher pages':''));
+    console.log('PASS: five published baselines and corrected final email paths'+(live?', including approved publisher pages':''));
 }
 main().catch(e=>{console.error(JSON.stringify(report));console.error('Replay incomplete:',e.message);process.exitCode=1;})
     .finally(()=>{const modules=path.join(baseline,'node_modules');if(fs.existsSync(modules)&&fs.lstatSync(modules).isSymbolicLink())fs.unlinkSync(modules);
