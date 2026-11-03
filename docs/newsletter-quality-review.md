@@ -55,6 +55,26 @@ original delivered scores. CI runs the new regressions and all three replays.
 
 ## Geography and routing
 
+### November 3 reserve gate
+
+The six-item production baseline reproduces 82 overall / 79 editorial. A national
+venture passed the old region check because an ordinary word contained a target
+city's name. The shared resolver already rejected that text, but the preceding
+draft then re-admitted the same record from the Transaction reserve. A trusted
+publication and a reserve score did not establish property geography.
+
+Transaction reserve fill now re-runs the same region and Transaction gates used
+by ordinary selection, including the existing size and editorial verdict rules.
+The new final-email regression fails on the preceding code, blocks unlocated,
+below-floor and rejected reserve deals, and preserves a qualifying 26-day-old
+regional sale. Existing article windows are unchanged.
+
+The corrected stored-input replay removes the unsupported Transaction and pads
+Relevant instead: eight Relevant, zero Transactions, one Availability, zero People.
+Its 70 / 67 scores are lower than the preceding draft's 78 / 75. This is a
+correctness repair, not a claim that the issue becomes more useful. Thin sections,
+weak padding and incomplete source evidence still require separate work.
+
 ### November 2 replay
 
 The production-code baseline reproduces the six published daily IDs and 78
@@ -156,7 +176,7 @@ source facts. This is not proof that every nonnumeric generated claim is correct
 
 Regression tests exercise the actual rendered daily and Friday email pipelines
 with all network/delivery transports blocked. Fixed-input comparisons reproduce
-the four archived issues before applying changes. A separate CI check fetches only
+the five archived issues before applying changes. A separate CI check fetches only
 the approved public releases through the production page loader and verifies
 that the recovered facts reach Transactions. This check uses no provider or
 delivery credentials and uploads no artifacts. The existing provider smoke test

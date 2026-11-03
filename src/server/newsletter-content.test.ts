@@ -93,7 +93,25 @@ try {
         assert.ok(result.sections.relevant.includes(control.id));
         assert.equal(result.networkRequests, 0);
     }
-    console.log('PASS: listing routing, catalog/stock/opposition guards, editorial controls and three non-sending rendered paths');
+    const reserveDeals = [
+        item('reserve-no-region', 'Example Investors form $200M joint venture for last-mile logistics assets', {
+            link: 'https://www.globest.com/synthetic-national-venture', source: 'globest.com',
+            description: 'Both firms bring years of experience in industrial real estate.',
+        }),
+        item('reserve-below-floor', 'Example Buyer buys an Edison NJ warehouse for $4M'),
+        item('reserve-ai-rejected', 'Example Buyer buys an Edison NJ warehouse for $30M', { _woodmontApprove: false }),
+        item('reserve-regional-control', 'Example Buyer buys a Carteret NJ warehouse for $31M', {
+            pubDate: '2026-10-04T10:00:00Z',
+        }),
+    ];
+    const reserveResult = replay([control], [], reserveDeals);
+    for (const id of ['reserve-no-region', 'reserve-below-floor', 'reserve-ai-rejected']) {
+        assert.ok(!reserveResult.sections.transactions.includes(id), `${id}: reserves cannot bypass Transaction gates`);
+    }
+    assert.ok(reserveResult.sections.transactions.includes('reserve-regional-control'),
+        'a qualifying 26-day-old regional deal still renders from reserves');
+    assert.equal(reserveResult.networkRequests, 0);
+    console.log('PASS: listing/content contracts, reserve Transaction gates and offline rendered paths');
 } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
 }
