@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { hasUnsupportedSummaryQuantity, summaryQuantities } from './summary-quantities.js';
 
 const same = [
+    ['A $68.5-million industrial sale', 'The property sold for $68,500,000.'],
     ['Example Buyer buys 160K SF industrial warehouse', 'The warehouse measures 160,000 SF.'],
     ['Example Builder breaks ground on a 1 Million-Square-Foot New Jersey logistics park', 'New Jersey — 1,000,000 SF logistics park.'],
     ['A 160,000-square-foot warehouse', 'The warehouse totals 160K SF.'],
