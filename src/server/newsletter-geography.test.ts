@@ -50,6 +50,22 @@ assert.equal(hasNewsletterTargetRegion("Massachusetts' Carlisle"),false);
 assert.equal(hasNewsletterTargetRegion("New Jersey's Lakewood"),true);
 assert.equal(hasNewsletterTargetRegion('Industrial warehouse installs a PA system'),false,'PA is not automatically Pennsylvania');
 assert.equal(hasNewsletterTargetRegion('Industrial warehouse upgrades the FL software module'),false,'FL needs location context');
+for (const name of ['Elizabeth Chen', 'Easton Reed', 'Edison Vale', 'Linden Bell', 'Jane Morris', 'Elizabeth García', 'Edison O’Connor']) {
+    for (const title of [`${name} joins Example as industrial broker`,
+        `Example hires ${name} as industrial brokerage managing director`,
+        `${name} was appointed as industrial acquisitions director`]) {
+        assert.equal(hasNewsletterTargetRegion(title), false, 'a personal name is not a location: ' + title);
+        assert.equal(hasNewsletterTargetRegion(title.toUpperCase()), false, 'uppercase region-count input');
+    }
+}
+assert.equal(hasNewsletterTargetRegion('Mid-Atlantic industrial brokerage'), false);
+for (const text of ['Elizabeth Chen joins a New Jersey industrial brokerage',
+    'Example hires Edison Vale for industrial acquisitions in Tampa, FL',
+    'Jane Doe joins an industrial brokerage in Elizabeth, NJ',
+    'Jane Doe joins an industrial brokerage in Edison',
+    'An Elizabeth warehouse sells for $30M', 'Industrial warehouse in Linden, NJ']) {
+    assert.equal(hasNewsletterTargetRegion(text), true, 'independent place evidence remains: ' + text);
+}
 assert.equal(hasGeographicFailure(article('comparison','Ohio and Pennsylvania take different approaches to data centers')).fails,true);
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'newsletter-geography-'));
