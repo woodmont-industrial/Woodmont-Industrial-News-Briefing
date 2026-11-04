@@ -33,7 +33,9 @@ function actors(text: string): Actor[] {
     const result: Actor[] = [];
     for (const match of text.matchAll(/\b[A-Z][A-Za-z'’-]{2,}(?:\s+[A-Z][A-Za-z'’-]{2,}){0,4}\b/g)) {
         for (const phrase of match[0].split(/\s+(?:And|With|From|For|The)\s+/)) {
-            const words = phrase.split(/\s+/).map(norm).filter(w => w && !STOP.has(w));
+            if (newsletterTargetMatches(phrase).length) continue;
+            const words = phrase.split(/\s+/).map(norm).filter(w => w && !STOP.has(w)
+                && !/^(?:globest|reuters|bisnow|costar|commercial|observer|daily|news|north|south|east|west|northern|southern|eastern|western|national|nationwide)$/.test(w));
             if (!words.length) continue;
             const full = words.join(' ');
             if (!result.some(a => a.full === hash(full))) result.push({ root: hash(words[0]), full: hash(full), words: words.length });
@@ -87,7 +89,7 @@ export function identifyNewsEvent(a: EventArticle): NewsEvent | null {
     return { version:1, kind:macro ? 'macro' : kind!, published,
         asset:/\bIOS\b|industrial outdoor storage/i.test(text) ? 'ios'
             : /\bwarehouse|distribution|logistics\b/i.test(text) ? 'industrial' : '',
-        locations, markets, addresses, actors:actors(text), party:party ? hash(norm(party)) : null,
+        locations, markets:unique(markets), addresses, actors:actors(text), party:party ? hash(norm(party)) : null,
         dollars:known(f?.priceUsd) ? f!.priceUsd : prices.length === 1 ? prices[0] : null,
         sf:known(f?.squareFeet) ? f!.squareFeet : sizes.length === 1 ? sizes[0] : null,
         acres:acreage.length === 1 ? acreage[0] : null,
@@ -129,7 +131,8 @@ export function compareNewsEvents(a: NewsEvent | null, b: NewsEvent | null): 'sa
     if (a.addresses.length && b.addresses.length && !sameSet(a.addresses,b.addresses)) return 'distinct';
     const matchedMetrics = (['dollars','sf','acres'] as const)
         .filter(k => known(a[k]) && known(b[k]) && near(a[k]!,b[k]!)).length;
-    if (a.addresses.length && sameSet(a.addresses,b.addresses) && matchedMetrics >= 1) return 'same';
+    if (a.addresses.length && sameSet(a.addresses,b.addresses) && matchedMetrics >= 1
+        && a.party && b.party && a.party === b.party) return 'same';
     if (a.locations.length && sameSet(a.locations,b.locations) && matchedMetrics >= 2
         && a.party && b.party && a.party === b.party) return 'same';
     return matchedMetrics >= 1 || a.locations.some(x => b.locations.includes(x))

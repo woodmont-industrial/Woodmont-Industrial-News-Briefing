@@ -4,7 +4,7 @@ Four published entries across November 3–4 represent two events. Two IOS repor
 
 ## Matching contract
 
-Property events match only within three publication days, with the same event and asset type and no conflicting buyer, property addresses or known quantities. A match requires either the same specific addresses and a compatible metric, or the same buyer, granular property locations and two compatible metrics. This publication-distance test is only for identifying duplicate coverage; it does not change any eligibility/backfill window. Rounded quantities tolerate up to 5% difference. Missing details, broad region overlap or price alone produce an advisory flag rather than removal. A financing is distinct from the sale it funds.
+Property events match only within three publication days, with the same event and asset type and no conflicting buyer, property addresses or known quantities. A match requires either the same buyer and specific addresses plus a compatible metric, or the same buyer, granular property locations and two compatible metrics. This publication-distance test is only for identifying duplicate coverage; it does not change any eligibility/backfill window. Rounded quantities tolerate up to 5% difference. Missing details, broad region overlap or price alone produce an advisory flag rather than removal. A financing is distinct from the sale it funds.
 
 The report rule is deliberately narrower than a general semantic classifier: AI/industrial-demand coverage must share two independently identified firms, the same skeptical/positive conclusion, and the same quantified/period facts. New results, reporting periods or a different conclusion stay separate. Other news topics retain existing rules; this is not universal semantic deduplication.
 
