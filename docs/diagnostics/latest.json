@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-03-1300",
-  "generatedAt": "2026-11-03T13:00:45.528Z",
+  "runId": "2026-11-04-1300",
+  "generatedAt": "2026-11-04T13:00:32.515Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 279,
+      "loaded": 291,
       "inWindow": 8,
       "regionPass": 8,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 94,
+      "supplyCandidates": 96,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 5
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 5,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,15 +50,15 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 279,
-      "inWindow": 4,
-      "regionPass": 1,
+      "loaded": 291,
+      "inWindow": 6,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 2,
+      "selected": 2,
+      "supplyCandidates": 4,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 2,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -95,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 279,
+      "loaded": 291,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 31,
+      "supplyCandidates": 29,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -140,8 +140,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 279,
-      "inWindow": 1,
+      "loaded": 291,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -150,7 +150,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -186,29 +186,99 @@
     }
   },
   "perFeedBySection": {
-    "globest.com": {
+    "Google News ConnectCRE NJ": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Bisnow National": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Data Centers NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Commercial Observer": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
         "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
     },
-    "news.google.com": {
+    "commercialobserver.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 3,
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
         "transactions": 0,
         "availabilities": 1,
         "people": 0
@@ -223,32 +293,32 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 82,
-    "outOf10": 8.2,
+    "score": 80,
+    "outOf10": 8,
     "grade": "B",
-    "itemCount": 6,
-    "operationalScore": 82,
+    "itemCount": 7,
+    "operationalScore": 80,
     "operationalGrade": "B",
-    "editorialQualityScore": 79,
-    "editorialGrade": "C",
+    "editorialQualityScore": 83,
+    "editorialGrade": "B",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "QUALITY_REJECTED"
+      "people": "NO_FRESH_SUPPLY"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 16.4,
-      "regional": 18.3,
+      "freshness": 17.2,
+      "regional": 19.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 4,
-      "deep": 5,
+      "fresh": 7,
+      "deep": 6,
       "reserve": 0
     },
     "delivery": {
@@ -256,9 +326,15 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Stock Sell-Off, Bond Market Jitters Signal Finan\""
+      }
+    ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -269,11 +345,47 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 132,
+    "crossDayPoolRepeatsSuppressed": 138,
     "audit": [
+      {
+        "id": "2d75705e68a9df33b57057ffaa162b28c170a0ec",
+        "title": "Economists Question How Long AI Can Fuel Industrial Real Estate Demand",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "6c0b824723b1bbf6e4bbf3bf6230ae76b1c515b4",
+        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations - Area Development",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "bb7b56351508e9fd6183d05314622cba10bee8df",
+        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
+      },
+      {
+        "id": "e49f1b7bec26b71fc7ddc1ee68a977d6d29a263c",
+        "title": "Data Centers on the Tax Rolls: Classification, Valuation, and the Real Property/Personal Property Divide Under New Jerse",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "fb4150a5d322c2f9287613a1f009f8a20a5a4724",
+        "title": "Salem Township Approves 4,466-Acre Data Center Overlay District in Northeast Pennsylvania - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "b89ffe613946d6c553a5647fb8480b03a8e6ca73",
         "title": "BKM Capital buys 3rd Broward warehouse this year for $33M - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "cabe8daf6b75f8fb147178cc47c55d3b4c16a3e5",
+        "title": "Last Mile $200M Joint Venture Forms for Logistic Assets",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -332,6 +444,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "78ccd5c481456be44fe02bb9ee24dce2ddd0198b",
+        "title": "4,500-Acre Data Center District Approved In Pennsylvania Town",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "a26ea4986f40226022eb7629689c2b74983482de",
         "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -384,6 +502,12 @@
         "title": "NJEDA approves manufacturing award to boost Amneal Pharmaceuticals investment in state - ROI-NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
+        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "addbd69e8fef8837a84f5acdfa64d3f38fe2aa56",
@@ -526,6 +650,12 @@
       {
         "id": "7857388a4c317949870545d7dda0001ec8cffa1b",
         "title": "JLL: Low-coverage industrial site in Sayreville trades after capital improvements, lease-up - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "476d638633670facc961f67e198412cb55e1960e",
+        "title": "555 Rt 57 W, Port Murray, NJ 07865 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -814,60 +944,6 @@
       {
         "id": "1c2cafb885bc4189428ed38234f000f739ea095c",
         "title": "Industrial Boomtowns: The U.S. Metros Where Logistics & Warehousing Grew Fastest",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d807985aea7af6ce4201fe269c4deecd22ec920b",
-        "title": "525 Main St, Belleville, NJ 07109 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9627bc9e4638b7ed57cc093b1b81050d1ca40def",
-        "title": "Is Entitlement Risk Reshaping Industrial Development?",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6cc2a117da7629849270f69d126d2697f9a953f6",
-        "title": "Commercial development roundup: $1.7M warehouse conversion tops list of new Duval permits - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "3e116badd1aa441e0d1b30ced10d7d23982c5a86",
-        "title": "Report: Pittsburgh falling behind in good-paying industrial jobs - WPXI",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "775d54b10c1474405fc2446b08fd766711c1d507",
-        "title": "Newmark Associates CRE: Pipeline strong after $55 million in sale, lease deals year to date - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ab9e8cec3a87b067a56ffb5d01fc74a0bcbde254",
-        "title": "Lehigh Valley town already facing data center zoning challenge now faces another. What we know - The Morning Call",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
-        "title": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6f9a8bb79ee006e6f79cbac6793465752f085d8f",
-        "title": "Industrial Construction Pipeline Rebounds as Regional Performance Diverges",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "82e328bcdbbb7a3572e159b461a8deadfe077e9d",
-        "title": "Lehigh Valley Data Center Zoning Fight: 3-1 Vote [2026] - https://tech-insider.org/",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
