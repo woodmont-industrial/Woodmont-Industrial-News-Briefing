@@ -14,7 +14,7 @@ type FactArticle = NormalizedItem & { url?: string; _newsletterFacts?: Newslette
 type Page = { url: string; html: string };
 type CacheEntry = { checkedAt: string; facts: NewsletterFacts | null };
 type SourceReference = { articleId: string; sourceUrl: string; alternateUrls?: string[] };
-const EXTRACTION_CACHE_VERSION = 'property-facts-v2';
+const EXTRACTION_CACHE_VERSION = 'property-facts-v3';
 
 interface FactRecoveryOptions {
     cachePath: string;
@@ -32,6 +32,8 @@ export interface FactRecoveryStats {
     excluded: number;
     referenced: number;
     direct: number;
+    publisherCandidates: number;
+    publisherVerified: number;
     unresolved: number;
     unresolvedReasons: { opaqueProxy: number; unapprovedDirect: number; missingUrl: number };
     budgetDeferred: number;
@@ -54,6 +56,23 @@ function topicWords(text: string): Set<string> {
         .replace(/\b(?:business wire|connect cre|the business journals)\b/g, '')
         .split(/[^a-z0-9]+/)
         .filter(word => word.length >= 3 && !/^(the|and|for|with|from|has|new|real|estate)$/.test(word)));
+}
+
+/** A publisher-specific candidate, never approval based on a proxy or publisher label. */
+export function publisherFactCandidate(article: NormalizedItem): string | null {
+    try {
+        const proxy = new URL(article.link || '');
+        if (proxy.protocol !== 'https:' || proxy.hostname !== 'news.google.com'
+            || proxy.username || proxy.password || proxy.port) return null;
+    } catch { return null; }
+    const title = article.title || '';
+    if (!/\s[-–—]\s*Connect\s+CRE\s*$/i.test(title)) return null;
+    const slug = title.replace(/\s[-–—]\s*Connect\s+CRE\s*$/i, '')
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        .replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (slug.length < 12 || slug.length > 190) return null;
+    const url = `https://www.connectcre.com/stories/${slug}/`;
+    return approvedFactUrl(url) ? url : null;
 }
 
 function newsContainer(html: string): string | undefined {
@@ -106,7 +125,7 @@ export function extractNewsletterFacts(
     for (const paragraph of story) {
         if (!/\b(?:warehouse|industrial|distribution|logistics|portfolio)\b/i.test(paragraph)) continue;
         if (isAggregateLeasing(paragraph)) continue;
-        const action = /\b(?:has acquired|acquired|purchased|sold|leased|closing of|closed|begins? construction|breaks? ground)\b/i.exec(paragraph);
+        const action = /\b(?:has acquired|acquired|purchased|sold|leased|closing of|closed|begins? construction|breaks? ground|arranged|brokered)\b/i.exec(paragraph);
         if (!action) continue;
         const text = paragraph.slice(action.index).split(/(?<=[.!?])\s+(?=[A-Z])/)[0];
         if (summaryQuantities(text).length) {
@@ -115,6 +134,9 @@ export function extractNewsletterFacts(
         }
     }
     if (!primary || primary.length > 1200) return null;
+    if (/\b(?:sale|sells?|sold|buys?|bought|acquires?|acquired|purchases?|purchased)\b/i.test(article.title || '')
+        && /\b(?:financing|loan|mortgage)\b/i.test(primary)
+        && !/\b(?:sale|sold|purchase price)\b/i.test(primary)) return null;
 
     const quantities = summaryQuantities(primary);
     const sizes = [...new Set(quantities.filter(quantity => quantity.unit === 'sf').map(quantity => quantity.value))];
@@ -130,6 +152,9 @@ export function extractNewsletterFacts(
         && hasNewsletterTargetRegion(primary) ? primary : null;
     const evidence = [primary, ...(market && market !== primary ? [market] : [])];
     if (evidence.join(' ').split(/\s+/).length > 160) return null;
+    const primaryParagraph = story.findIndex(paragraph => paragraph.includes(primary));
+    const lead = story.slice(Math.max(0, primaryParagraph), Math.max(0, primaryParagraph) + 2)
+        .join(' ').slice(0, 1200);
 
     return {
         version: 1,
@@ -139,6 +164,7 @@ export function extractNewsletterFacts(
         squareFeet: sizes[0] ?? null,
         priceUsd: prices[0] ?? null,
         propertyLocationEvidence: market || assetLocation,
+        lead,
     };
 }
 
@@ -237,7 +263,7 @@ export async function enrichNewsletterFacts(
         .map(entry => [entry.articleId, [entry.sourceUrl, ...(entry.alternateUrls || [])]]));
     const stats: FactRecoveryStats = {
         inputArticles: items.length, eligible: 0, alreadySupported: 0, excluded: 0,
-        referenced: 0, direct: 0, unresolved: 0, budgetDeferred: 0,
+        referenced: 0, direct: 0, publisherCandidates: 0, publisherVerified: 0, unresolved: 0, budgetDeferred: 0,
         attempted: 0, httpRequests: 0, cached: 0, enriched: 0, unavailable: 0,
         noFacts: 0, failures: {},
         unresolvedReasons: { opaqueProxy: 0, unapprovedDirect: 0, missingUrl: 0 },
@@ -249,7 +275,7 @@ export async function enrichNewsletterFacts(
     for (const item of candidates) {
         if (item.category === 'exclude' || item.category === 'people'
             || Date.parse(item.pubDate || '') > now.getTime()
-            || !/\b(?:warehouse|industrial|distribution|logistics)\b/i.test(item.title || '')) {
+            || !/\b(?:warehouse|industrial|distribution|logistics|IOS)\b/i.test(item.title || '')) {
             stats.excluded++;
             continue;
         }
@@ -264,7 +290,9 @@ export async function enrichNewsletterFacts(
         }
 
         stats.eligible++;
-        const urls = (reference.get(item.id) || [item.link || item.url || ''])
+        const candidate = !hasReference && !approvedFactUrl(item.link || item.url || '')
+            ? publisherFactCandidate(item) : null;
+        const urls = (reference.get(item.id) || [candidate || item.link || item.url || ''])
             .slice(0, 3).filter(approvedFactUrl);
         if (!urls.length) {
             stats.unresolved++;
@@ -276,6 +304,7 @@ export async function enrichNewsletterFacts(
             continue;
         }
         if (hasReference) stats.referenced++;
+        else if (candidate) stats.publisherCandidates++;
         else stats.direct++;
 
         let facts: NewsletterFacts | null = null;
@@ -302,7 +331,7 @@ export async function enrichNewsletterFacts(
                         : await loadApprovedFactPage(url, signal, undefined, () => { stats.httpRequests++; });
                     if (!approvedFactUrl(page.url)) throw Error('unapproved final source');
                     // Stable public references need no company-name URL slug.
-                    facts = extractNewsletterFacts(page.html, item, url, now);
+                    facts = extractNewsletterFacts(page.html, item, page.url, now);
                     if (!facts) stats.noFacts++;
                 } catch (error) {
                     stats.unavailable++;
@@ -315,6 +344,7 @@ export async function enrichNewsletterFacts(
         }
         if (deferred && !facts) stats.budgetDeferred++;
         if (!facts || !newsletterFactFields({ _newsletterFacts: facts })._newsletterFacts) continue;
+        if (candidate) stats.publisherVerified++;
 
         const normalized = [
             facts.squareFeet !== null ? `${facts.squareFeet.toLocaleString('en-US')} SF` : null,

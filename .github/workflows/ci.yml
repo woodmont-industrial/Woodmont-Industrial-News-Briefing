@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, 'fix/**']
   workflow_dispatch:
 
 jobs:
@@ -223,6 +223,8 @@ jobs:
       - run: npm ci --prefer-offline --no-audit
       - run: node --import tsx src/filter/ai-provider.test.ts
       - run: node --import tsx src/filter/summary-quantities.test.ts
+      - run: node --import tsx src/server/newsletter-events.test.ts
+      - run: node --import tsx src/server/newsletter-events-pipeline.test.ts
       - run: node --import tsx src/server/availability-routing.test.ts
       - run: node --import tsx src/server/listing-event.test.ts
       - run: node --import tsx src/server/newsletter-content.test.ts
@@ -238,8 +240,11 @@ jobs:
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts
 
-      - name: Replay five archived sends without delivery
+      - name: Replay six archived sends without delivery
         run: node --import tsx scripts/replay-newsletter-quality.ts
+      - name: Verify the generic publisher candidate through the real loader
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/newsletter-event-dedup'
+        run: node --import tsx scripts/replay-newsletter-quality.ts --public-candidate-only
       - name: Verify two approved public releases through the real loader
         if: >-
           github.event_name == 'pull_request' && github.head_ref == 'fix/newsletter-reader-quality' &&
