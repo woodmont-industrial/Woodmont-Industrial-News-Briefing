@@ -58,6 +58,48 @@ for (const changed of [
     {...rewrite,id:'old',pubDate:'2026-11-10T10:00:00Z'},
 ]) assert.notEqual(compareNewsEvents(identify(original),identify(changed)),'same',changed.id);
 
+// A development story retold days later under a new headline (November 3–4:
+// a sent township vote and a sent facility opening both reran).
+const planned = article('dev-plan','Examplecorp Plans Allentown, Pennsylvania, Distribution Operations',
+    'Examplecorp has established distribution operations in Allentown, Pennsylvania. The project is expected to create 45 jobs.',
+    {category:'relevant',pubDate:'2026-10-31T12:00:00Z'});
+const opened = article('dev-open','Examplecorp Opens Largest North American Distribution Center in PA','',{category:'relevant'});
+const vote = article('dev-vote','Example Township Approves 4,466-Acre Data Center Overlay District in Northeast Pennsylvania','',
+    {category:'relevant',pubDate:'2026-11-02T12:00:00Z'});
+const rumor = article('dev-rumor','4,500-Acre Data Center District Approved In Pennsylvania Town',
+    'The approval was hailed by Example Group, which assembled 194 families that own land in the district and aims to sell it for $1.4B.',
+    {category:'relevant',pubDate:'2026-10-29T12:00:00Z'});
+assert.equal(compareNewsEvents(identify(planned),identify(opened)),'same','the same firm, project and state, retold as an opening');
+assert.equal(compareNewsEvents(identify(vote),identify(rumor)),'same','rounded acreage of the same district vote, though the land-sale wording reads as an acquisition');
+for (const [base, changed] of [
+    [planned, {...opened,id:'other-state',title:opened.title.replace('in PA','in Florida')}],
+    [planned, {...planned,id:'other-town',title:planned.title.replace('Allentown','Pittsburgh'),description:planned.description.replace('Allentown','Pittsburgh'),pubDate:opened.pubDate}],
+    [planned, {...opened,id:'other-firm',title:opened.title.replace('Examplecorp','Othercorp')}],
+    [planned, {...opened,id:'months-later',pubDate:'2026-11-20T12:00:00Z'}],
+    [planned, {...opened,id:'financing',title:'Examplecorp secures $50 million loan for Allentown, Pennsylvania distribution center'}],
+    [vote, {...rumor,id:'other-acreage',title:rumor.title.replace('4,500','1,200')}],
+    [vote, {...rumor,id:'other-project',title:rumor.title.replace('Data Center','Warehouse Park')}],
+] as Array<[EventArticle, EventArticle]>) assert.notEqual(compareNewsEvents(identify(base),identify(changed)),'same',changed.id);
+
+// A sent deal retold without figures, 3+ days later (the October 19 send reran
+// through deep backfill on November 4).
+const sentDeal = article('sent-deal','Harborview Partners buys logistics site leased by a parcel carrier in South Brunswick','',
+    {pubDate:'2026-10-16T09:52:00Z'});
+const retold = article('retold','Harborview Partners Snaps Up South Brunswick Warehouse Fully Leased to a Parcel Carrier','',
+    {pubDate:'2026-10-19T16:46:00Z'});
+assert.equal(compareNewsEvents(identify(retold),identify(sentDeal),'history'),'same','same buyer and town as a sent deal');
+assert.notEqual(compareNewsEvents(identify(retold),identify(sentDeal)),'same','within one edition the metric rules still decide');
+for (const changed of [
+    {...retold,id:'other-town',title:retold.title.replace('South Brunswick','Cranbury')},
+    {...retold,id:'other-buyer',title:retold.title.replace('Harborview Partners','Otherview Partners')},
+    {...retold,id:'other-size',title:retold.title+' at 343,000 SF',description:''},
+    {...retold,id:'week-later',pubDate:'2026-10-27T12:00:00Z'},
+    {...retold,id:'lease',title:'Harborview Partners leases South Brunswick warehouse to a parcel carrier'},
+]) {
+    const base = changed.id === 'other-size' ? {...sentDeal,title:sentDeal.title+' for 120,000 SF'} : sentDeal;
+    assert.notEqual(compareNewsEvents(identify(changed),identify(base),'history'),'same',changed.id);
+}
+
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'newsletter-events-'));
 try {
     fs.writeFileSync(path.join(root,'sent-articles.json'),JSON.stringify({sent:[{id:original.id,sentAt:'2026-11-03'}]}));
@@ -72,5 +114,15 @@ try {
     assert.ok(!JSON.stringify(event).includes('Northwind'),'receipts store hashes, not company inventories');
     assert.equal(validNewsEvent({...event,actors:[null]}),false);
     assert.equal(validNewsEvent({...event,published:'invalid'}),false);
+    fs.writeFileSync(path.join(root,'sent-articles.json'),JSON.stringify({sent:[{id:planned.id,sentAt:'2026-11-02',event:identify(planned)}]}));
+    const devHistory=loadSentNewsEvents(root,[],new Date('2026-11-04T13:00:00Z'));
+    assert.equal(devHistory.length,1,'a development receipt with subject and project validates');
+    assert.equal(filterSentNewsEvents([opened],devHistory,{suppressed:[],possible:[]}).length,0,'a sent development story does not rerun');
+    assert.ok(!JSON.stringify(devHistory).includes('examplecorp'),'the subject firm is stored as a hash');
+    assert.equal(validNewsEvent({...identify(planned)!,project:'casino'}),false);
+    fs.writeFileSync(path.join(root,'sent-articles.json'),JSON.stringify({sent:[{id:sentDeal.id,sentAt:'2026-10-19T13:00:00Z'}]}));
+    const deep=loadSentNewsEvents(root,[sentDeal],new Date('2026-11-04T13:00:00Z'));
+    assert.equal(filterSentNewsEvents([retold],deep,{suppressed:[],possible:[]}).length,0,'a send 16 days old still blocks its deep-backfill rewrite');
+    assert.equal(loadSentNewsEvents(root,[sentDeal],new Date('2026-11-20T13:00:00Z')).length,0,'receipts expire after the 30-day backfill reach');
 } finally { fs.rmSync(root,{recursive:true,force:true}); }
-console.log('PASS: confirmed cross-section events, richer sources, ambiguity, distinct deals, paraphrased reports and sent receipts');
+console.log('PASS: confirmed cross-section events, richer sources, ambiguity, distinct deals, paraphrased reports, retold development stories and sent receipts');

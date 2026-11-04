@@ -15,6 +15,8 @@ export type NewsEvent = {
     locations: string[]; markets: string[]; addresses: string[]; actors: Actor[]; party: string | null;
     dollars: number | null; sf: number | null; acres: number | null;
     topic: string; stance: string; numbers: string[];
+    // Development stories: the headline's subject firm (hashed) and project type.
+    subject?: string | null; project?: string;
 };
 export type EventArticle = NormalizedItem & { _newsletterFacts?: NewsletterFacts; _eventSources?: EventSource[]; _eventOriginal?: string };
 export type SentEvent = { id: string; sentAt: string; event: NewsEvent };
@@ -81,9 +83,16 @@ export function identifyNewsEvent(a: EventArticle): NewsEvent | null {
         : /\b(?:accelerat|strengthen|surge|boom)\w*\b/i.test(text) ? 'positive-growth' : 'neutral';
     if (!macro && !kind) return null;
     const company = "([A-Z][A-Za-z0-9'’&.-]*(?:[ \\t]+[A-Z][A-Za-z0-9'’&.-]*){0,4})";
-    const titleParty = new RegExp('^' + company + '\\s+(?:[Aa]cquires?|[Bb]uys|[Bb]ought|[Pp]urchases?)\\b').exec(a.title || '')?.[1];
+    const titleParty = new RegExp('^' + company + '\\s+(?:[Aa]cquires?|[Bb]uys|[Bb]ought|[Pp]urchases?|(?:[Ss]naps|[Ss]coops|[Pp]icks)\\s+[Uu]p|[Nn]abs)\\b').exec(a.title || '')?.[1];
     const bodyParty = new RegExp('\\b(?:[Bb]uyer|[Pp]urchaser),?\\s+' + company).exec(text.replace(/(?<=[.!?])\s+(?=[A-Z])/g, '\n'))?.[1];
     const party = bodyParty || titleParty;
+    const lead = (a.title || '').split(/\s*\|\s*/).pop()!;
+    const first = norm(/^[A-Z][A-Za-z0-9'’&.-]{2,}/.exec(lead)?.[0] || '').split(' ')[0] || '';
+    const subject = first && !STOP.has(first) && !newsletterTargetMatches(first).length
+        && !/^(?:\d.*|developer|developers|township|county|city|state|governor|officials?|residents?|voters?|report|study|survey|data|plans?|proposed|major|largest|another)$/.test(first) ? first : '';
+    const project = /\bdata\s+cent(?:er|re)s?\b/i.test(text) ? 'data-center'
+        : /\b(?:distribution|fulfillment)\s+(?:center|centre|hub|facility|operations)\b|\bdistribution\s+hub\b/i.test(text) ? 'distribution'
+        : /\b(?:manufacturing|production)\s+(?:plant|facility|operations|campus)\b/i.test(text) ? 'manufacturing' : '';
     const periods = [...text.matchAll(/\b(?:Q[1-4]\s*20\d{2}|(?:first|second|third|fourth)\s+quarter(?:\s+20\d{2})?|20\d{2})\b/gi)]
         .map(m => 'period:' + norm(m[0]));
     return { version:1, kind:macro ? 'macro' : kind!, published,
@@ -95,6 +104,7 @@ export function identifyNewsEvent(a: EventArticle): NewsEvent | null {
         acres:acreage.length === 1 ? acreage[0] : null,
         topic:macro ? 'ai-industrial-demand' : '', stance:macro ? stance : '',
         numbers:unique([...quantities.map(q => `${q.unit}:${q.value}`),...periods]).sort(),
+        subject:subject ? hash(subject) : null, project,
     };
 }
 
@@ -111,10 +121,52 @@ export function validNewsEvent(value: unknown): value is NewsEvent {
         && v.actors.every(x => x && typeof x === 'object' && hashes([x.root,x.full]) && Number.isInteger(x.words) && x.words >= 1 && x.words <= 5)
         && [v.dollars,v.sf,v.acres].every(n => n === null || known(n))
         && typeof v.topic === 'string' && typeof v.stance === 'string'
+        && (v.subject == null || hashes([v.subject]))
+        && (v.project === undefined || ['','data-center','distribution','manufacturing'].includes(v.project))
         && Array.isArray(v.numbers) && v.numbers.length <= 60 && v.numbers.every(n => typeof n === 'string' && n.length < 80);
 }
 
-export function compareNewsEvents(a: NewsEvent | null, b: NewsEvent | null): 'same' | 'possible' | 'distinct' {
+/**
+ * One development story retold under a new headline: "<Firm> plans <town>
+ * distribution operations" then "<Firm> opens distribution center in PA", or a
+ * township's district vote reported with rounded acreage. Rewrites classify
+ * inconsistently (a vote that mentions a land sale reads as "acquire"), so the
+ * kinds need only include one development event.
+ */
+function sameDevelopmentStory(a: NewsEvent, b: NewsEvent): boolean {
+    const blocked = ['macro','finance','lease'];
+    if (blocked.includes(a.kind) || blocked.includes(b.kind)
+        || !(a.kind.startsWith('develop') || b.kind.startsWith('develop'))) return false;
+    if (!a.project || a.project !== b.project || !a.markets.some(m => b.markets.includes(m))) return false;
+    if (Math.abs(Date.parse(a.published) - Date.parse(b.published)) > 10 * 86400000) return false;
+    if (a.locations.length && b.locations.length && !a.locations.some(x => b.locations.includes(x))) return false;
+    const acres = known(a.acres) && known(b.acres) && Math.min(a.acres!, b.acres!) >= 100
+        && Math.abs(a.acres! - b.acres!) <= Math.max(a.acres!, b.acres!) * 0.02;
+    if (known(a.acres) && known(b.acres) && !acres) return false;
+    return acres || (!!a.subject && a.subject === b.subject);
+}
+
+/**
+ * Against an already-sent deal, a retelling often drops the figures ("<Buyer>
+ * snaps up <town> warehouse"). The same buyer and the same specific town, with
+ * nothing conflicting, is the story we sent. Within one edition the stricter
+ * metric rules still decide which copies merge.
+ */
+function sameSentDeal(a: NewsEvent, b: NewsEvent): boolean {
+    return ['acquire','lease','finance'].includes(a.kind) && a.kind === b.kind && a.asset === b.asset
+        && !!a.party && a.party === b.party && a.locations.length > 0 && sameSet(a.locations,b.locations)
+        && Math.abs(Date.parse(a.published) - Date.parse(b.published)) <= 7 * 86400000
+        && (['dollars','sf','acres'] as const).every(k => !known(a[k]) || !known(b[k]) || near(a[k]!,b[k]!))
+        && (!a.addresses.length || !b.addresses.length || sameSet(a.addresses,b.addresses));
+}
+
+export function compareNewsEvents(a: NewsEvent | null, b: NewsEvent | null, scope: 'edition' | 'history' = 'edition'): 'same' | 'possible' | 'distinct' {
+    if (a && b && sameDevelopmentStory(a, b)) return 'same';
+    const strict = compareStrict(a, b);
+    return strict !== 'same' && scope === 'history' && a && b && sameSentDeal(a, b) ? 'same' : strict;
+}
+
+function compareStrict(a: NewsEvent | null, b: NewsEvent | null): 'same' | 'possible' | 'distinct' {
     if (!a || !b || a.kind !== b.kind || Math.abs(Date.parse(a.published) - Date.parse(b.published)) > 3 * 86400000) return 'distinct';
     if (a.kind === 'macro') {
         if (a.topic !== b.topic || a.stance !== b.stance) return 'distinct';
@@ -196,7 +248,9 @@ export function loadSentNewsEvents(docsDir: string, articles: EventArticle[], no
         return (Array.isArray(raw.sent) ? raw.sent : []).flatMap((entry: {id:string;sentAt:string;event?:unknown}) => {
             if (!entry) return [];
             const age = now.getTime() - Date.parse(entry.sentAt);
-            if (!entry || !entry.id || !Number.isFinite(age) || age < 0 || age > 14 * 86400000) return [];
+            // As long as deep backfill reaches (30 days), or a rewrite of a story
+            // sent 15+ days ago returns through it unchecked.
+            if (!entry || !entry.id || !Number.isFinite(age) || age < 0 || age > 30 * 86400000) return [];
             const event = validNewsEvent(entry.event) ? entry.event : byId.has(entry.id) ? identifyNewsEvent(byId.get(entry.id)!) : null;
             return event && Date.parse(event.published) <= now.getTime() ? [{id:entry.id,sentAt:entry.sentAt,event}] : [];
         });
@@ -206,7 +260,7 @@ export function loadSentNewsEvents(docsDir: string, articles: EventArticle[], no
 export function filterSentNewsEvents(articles: EventArticle[], history: SentEvent[], audit: EventAudit): EventArticle[] {
     return articles.filter(a => {
         const event = identifyNewsEvent(a);
-        const prior = history.find(h => compareNewsEvents(event,h.event) === 'same');
+        const prior = history.find(h => compareNewsEvents(event,h.event,'history') === 'same');
         if (prior) {
             audit.suppressed.push({leftId:a.id,rightId:prior.id,reason:'previously-sent-event',scope:'history'});
             return false;
