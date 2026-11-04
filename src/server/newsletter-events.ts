@@ -80,9 +80,9 @@ export function identifyNewsEvent(a: EventArticle): NewsEvent | null {
     const stance = /\b(?:doubts?|questions?|peak|crest|payoff|durability)\b/i.test(text) ? 'questions-growth'
         : /\b(?:accelerat|strengthen|surge|boom)\w*\b/i.test(text) ? 'positive-growth' : 'neutral';
     if (!macro && !kind) return null;
-    const company = "([A-Z][A-Za-z0-9'’&.-]*(?:\\s+[A-Z][A-Za-z0-9'’&.-]*){0,4})";
+    const company = "([A-Z][A-Za-z0-9'’&.-]*(?:[ \\t]+[A-Z][A-Za-z0-9'’&.-]*){0,4})";
     const titleParty = new RegExp('^' + company + '\\s+(?:[Aa]cquires?|[Bb]uys|[Bb]ought|[Pp]urchases?)\\b').exec(a.title || '')?.[1];
-    const bodyParty = new RegExp('\\b(?:[Bb]uyer|[Pp]urchaser),?\\s+' + company).exec(text)?.[1];
+    const bodyParty = new RegExp('\\b(?:[Bb]uyer|[Pp]urchaser),?\\s+' + company).exec(text.replace(/(?<=[.!?])\s+(?=[A-Z])/g, '\n'))?.[1];
     const party = bodyParty || titleParty;
     const periods = [...text.matchAll(/\b(?:Q[1-4]\s*20\d{2}|(?:first|second|third|fourth)\s+quarter(?:\s+20\d{2})?|20\d{2})\b/gi)]
         .map(m => 'period:' + norm(m[0]));
