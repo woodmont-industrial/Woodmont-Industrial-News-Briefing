@@ -43,6 +43,7 @@ jobs:
           node --import tsx src/server/people-rescue.test.ts
           node --import tsx src/server/people-corporate-verb.test.ts
           node --import tsx src/server/people-career.test.ts
+          node --import tsx src/build/build-people-gate.test.ts
 
       - name: Audit thirty days of People decisions and six rendered sends
         env:

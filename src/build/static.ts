@@ -16,7 +16,7 @@ import { SCRAPER_CONFIGS } from '../scrapers/scraper-config.js';
 import { normalizeTitle, normalizeUrlForDedupe, extractDealSignature } from '../shared/url-utils.js';
 import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent } from '../shared/region-data.js';
-import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
+import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck, isIndustrialCareerMove } from '../server/newsletter-filters.js';
 import { reviewEditorialCandidates, stampPredictedPublish, writeEditorialFeed } from './editorial-review.js';
 import { enrichNewsletterFacts } from './newsletter-facts.js';
 import { generateRSSXML, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
@@ -275,16 +275,19 @@ export async function buildStaticRSS(): Promise<void> {
                 return false;
             }
 
-            // 3. EXCLUDE: Non-industrial property types — uses shared unified gate
+            // 3. EXCLUDE: Non-industrial property types — uses shared unified gate.
+            // A regional industrial career move rarely names a property, so it is
+            // judged by its career evidence instead (same rule as email People).
             const hasIndustrialContext = industrialKeywords.some(k => text.includes(k));
-            if (!isStrictlyIndustrial(text.toLowerCase())) {
+            const careerMove = isIndustrialCareerMove(item);
+            if (!careerMove && !isStrictlyIndustrial(text.toLowerCase())) {
                 log('info', `EXCLUDED (non-industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
 
             // 4. EXCLUDE: Pure people/hire announcements without industrial context
             const isPeopleFluff = /\b(WELCOMES|JOINS|APPOINTED|PROMOTED|HIRED|NEW HIRE|TAPS|RECRUITS|ELEVATED|MARKS MILESTONE|ANNIVERSARY)\b/.test(text);
-            if (isPeopleFluff && !hasIndustrialContext) {
+            if (isPeopleFluff && !hasIndustrialContext && !careerMove) {
                 log('info', `EXCLUDED (people fluff, no industrial): ${item.title?.substring(0, 60)}`);
                 return false;
             }
@@ -394,6 +397,15 @@ export async function buildStaticRSS(): Promise<void> {
             if (hasWrongPropertyType(text) && !hasStrongIndustrialOverride(text)) {
                 item.category = 'exclude';
                 (item as any)._classificationReason = 'REJECT_WRONG_PROPERTY_TYPE';
+                return item;
+            }
+
+            // A regional industrial career move is People news even when its role
+            // wording ("industrial leasing", "acquisitions") trips the listing or
+            // deal rules below.
+            if (isIndustrialCareerMove(item)) {
+                item.category = 'people';
+                (item as any)._classificationReason = 'PEOPLE_INDUSTRIAL_CAREER';
                 return item;
             }
 
@@ -916,7 +928,7 @@ export async function buildStaticRSS(): Promise<void> {
             }
 
             // Non-industrial content gate — retroactively clean existing articles too
-            if (!isStrictlyIndustrial(text)) {
+            if (!isStrictlyIndustrial(text) && !isIndustrialCareerMove(item)) {
                 log('info', `CLEANED (non-industrial): ${title.substring(0, 50)}`);
                 return false;
             }

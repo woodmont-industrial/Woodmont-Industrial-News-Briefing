@@ -571,10 +571,29 @@ function namedHiringTitle(article: NormalizedItem): boolean {
     const move = /\b(?:hires?|hired|appoints?|appointed|promotes?|promoted|names?|named|taps?|tapped|welcomes?|recruits?)\s+(.+)/i.exec(article.title || '');
     if (!move) return false;
     const names = move[1].split(/\s+(?:as|to|for)\b/i)[0]
+        // "Hires Veteran Industrial Broker Jane Doe" — the descriptor is not the name.
+        .replace(/^(?:(?:veteran|longtime|seasoned|former|top|industrial|cre|brokers?|executives?)\s+)+/i, '')
         .replace(/\s+(?:chief|vice|senior|managing|executive|president|director|partner)\b.*$/i, '')
         .split(/\s*(?:,|\band\b|&)\s*/).filter(Boolean);
-    return names.length > 0 && names.length <= 3 && names.every(isPersonalName)
-        && CAREER_ROLE.test((article.title || '') + ' ' + (article.description || '').slice(0, 500));
+    const title = article.title || '';
+    // Trade headlines often give only a surname ("Example Brokerage recruits Rowan to
+    // ..."). A single word counts when it reads as a name, not an acronym,
+    // organisation or place.
+    const surname = (w: string) => /^[A-Z][a-z'’-]+$/.test(w)
+        && !NON_PERSON_JOINER_RE.test(w) && !hasNewsletterTargetRegion(w);
+    if (!names.length || names.length > 3 || !names.every(n => isPersonalName(n) || surname(n))) return false;
+    const verb = move[0].split(/\s+/)[0];
+    // Firms are hired "as leasing broker" and named to deals, so a bare surname
+    // needs a verb whose object is a person.
+    if (!names.every(isPersonalName) && !/^(?:promote[sd]?|recruit(?:s|ed)?)$/i.test(verb)
+        && !teamHire(verb, title)) return false;
+    return CAREER_ROLE.test(title + ' ' + (article.description || '').slice(0, 500)) || teamHire(verb, title);
+}
+
+// No title given: recruiting someone onto a team is itself the career move.
+function teamHire(verb: string, title: string): boolean {
+    return /^(?:hires?|hired|recruit(?:s|ed)?|welcome[sd]?)$/i.test(verb)
+        && /\bto\s+(?:join|expand|lead|grow|build|head)\b[^.|]{0,60}\b(?:team|practice|division)\b/i.test(title);
 }
 
 function sourceNamesForJoinOrAdds(article: NormalizedItem): boolean {
@@ -602,8 +621,11 @@ function sourceCareerEvidence(article: NormalizedItem): boolean {
     // Career eligibility and the email gates use the same source-text resolver.
     const sourceText = (article.title || '') + ' ' + (article.description || '').slice(0, 500);
     if (!hasNewsletterTargetRegion(sourceText)) return false;
+    // "Doe, veteran CRE executive, joins Example as COO" — drop the aside so
+    // the join parser sees the name next to the verb.
+    const withoutAside = (article.title || '').replace(/^([^,]+),\s+[^,]{3,60},\s+(join(?:s|ed)?\b)/i, '$1 $2');
     return namedHiringTitle(article) || isPersonnelJoin(article.title || '')
-        || sourceNamesForJoinOrAdds(article);
+        || isPersonnelJoin(withoutAside) || sourceNamesForJoinOrAdds(article);
 }
 
 function hasIndustrialCareerEvidence(article: NormalizedItem): boolean {
@@ -618,6 +640,15 @@ export function preparePeopleArticle(article: NormalizedItem): NormalizedItem {
         && prepared._peopleCareerEvidence && isTargetRegion(prepared)
         && applyPeopleFilter([prepared]).length > 0) prepared.category = 'people';
     return prepared;
+}
+
+/**
+ * Build-time view of the same career evidence. The build's industrial gates
+ * require property wording, so without this a regional industrial hire is
+ * discarded before the email's People rules ever see it.
+ */
+export function isIndustrialCareerMove(article: NormalizedItem): boolean {
+    return sourceCareerEvidence(article);
 }
 
 /** Career announcements need industrial role evidence, not a property's size. */
