@@ -47,6 +47,8 @@ const original = article('original','Economists question how long AI can fuel in
     'Northwind sees the AI economic boost nearing a peak, while Baystone questions the benefits beyond big technology.',{category:'relevant'});
 const rewrite = article('rewrite','AI industrial demand faces doubts from Northwind and Baystone','',{category:'relevant',pubDate:'2026-11-04T10:00:00Z'});
 assert.equal(compareNewsEvents(identify(original),identify(rewrite)),'same','rewritten macro coverage shares two actors, a topic and a conclusion');
+assert.notEqual(compareNewsEvents(identify({...original,title:original.title+' - GlobeSt'}),
+    identify({...rewrite,title:rewrite.title.replace('Baystone','Otherstone')+' - GlobeSt'})),'same','a shared publisher is not a second named firm');
 for (const changed of [
     {...rewrite,id:'new-actor',title:rewrite.title.replace('Baystone','Otherstone')},
     {...rewrite,id:'new-results',description:'Northwind now reports a 7% increase in industrial demand.'},
