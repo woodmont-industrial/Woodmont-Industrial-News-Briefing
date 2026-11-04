@@ -8,7 +8,7 @@ import { extractNewsletterFacts } from '../build/newsletter-facts.js';
 import { escapeAttr } from '../shared/html-escape.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { dedupeEventEdition, eventSources, identifyNewsEvent, loadSentNewsEvents, type EventArticle } from './newsletter-events.js';
-import { saveSentArticles } from './newsletter-filters.js';
+import { normalizeTitleKey, saveSentArticles } from './newsletter-filters.js';
 import { repairSummaryFromEvidence, unusableSummary } from '../filter/summary-quality.js';
 
 const item = (id:string,title:string,description:string,extra={}):EventArticle => ({
@@ -38,7 +38,9 @@ try {
     for (const route of ['feed','reserve','manual']) {
         const feed=[proxy,detail,distinct1,distinct2,prior,garbled,...(route==='feed'?[rewrite]:[])];
         writeEditorialFeed(feed,path.join(root,'feed.json'));
-        fs.writeFileSync(path.join(root,'sent-articles.json'),JSON.stringify({sent:[{id:prior.id,sentAt:'2026-11-03'}]}));
+        fs.writeFileSync(path.join(root,'sent-articles.json'),JSON.stringify({sent:[{id:prior.id,sentAt:'2026-11-03'},
+            {id:'older-different-deal',sentAt:'2026-11-03',titleKey:normalizeTitleKey(distinct1.title),
+                event:identifyNewsEvent({...distinct2,title:distinct1.title})}]}));
         fs.writeFileSync(path.join(root,'included-articles.json'),JSON.stringify({articles:route==='manual'?[{...rewrite,url:rewrite.link,date_published:rewrite.pubDate}]:[]}));
         fs.writeFileSync(path.join(root,'preferences/reserve-pool.json'),JSON.stringify({sections:{relevant:route==='reserve'?[{...rewrite,url:rewrite.link,date_published:rewrite.pubDate}]:[]}}));
         const output=path.join(root,'result.json');
