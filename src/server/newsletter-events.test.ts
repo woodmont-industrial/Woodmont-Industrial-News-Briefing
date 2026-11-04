@@ -21,6 +21,7 @@ const proxy = article('proxy','Example Brokers arrange sale of Northern NJ IOS p
     });
 const identify = identifyNewsEvent;
 assert.equal(compareNewsEvents(identify(detail),identify(proxy)),'same','two independent metrics and the property locations confirm the IOS event');
+assert.equal(compareNewsEvents(identify(detail),identify({...proxy,_newsletterFacts:{...proxy._newsletterFacts!,lead:proxy._newsletterFacts!.lead+' Example Brokers represented the seller.'}})),'same','a buyer name stops at the sentence boundary before the next broker credit');
 assert.equal(compareNewsEvents(identify(detail),identify({...proxy,_newsletterFacts:undefined})),'possible','a metric-less market overlap is flagged, never merged');
 const audit: EventAudit = {suppressed:[],possible:[]};
 const result = dedupeEventEdition({relevant:[proxy],transactions:[detail],people:[],availabilities:[]},audit);
