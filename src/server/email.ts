@@ -433,7 +433,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
             if (sentArticleIds.has(id)) { recordCrossDayPoolRepeatSuppressed(a, 'sent_id'); return false; }
-            if (sentSigSet.size > 0 && !isPropertyDeal(a)) {
+            if (sentSigSet.size > 0 && !isPropertyDeal(a) && identifyNewsEvent(a)?.kind !== 'macro') {
                 const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
@@ -443,7 +443,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             }
             // Cross-day TITLE dedup: catches syndicated same-headline repeats with no deal
             // signature (e.g. "Florida … data center development" across 5 sources / 3 days).
-            if (sentTitleKeys.size > 0) {
+            if (sentTitleKeys.size > 0 && !isPropertyDeal(a) && identifyNewsEvent(a)?.kind !== 'macro') {
                 const tk = normalizeTitleKey(a.title || '');
                 if (tk.length >= 25 && sentTitleKeys.has(tk)) {
                     console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
@@ -1211,7 +1211,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // highest-scored variant of each story is the one kept.
                 const wirSigs = new Set<string>();
                 const wirIds = new Set<string>();
-                const sigsFor = (a: NormalizedItem) => [
+                const sigsFor = (a: NormalizedItem) => isPropertyDeal(a) ? [] : [
                     ...extractDealSignatures(a.title || '', a.description || ''),
                     ...extractCrossDayDedupSignatures(a.title || '', a.description || ''),
                 ];
@@ -1224,7 +1224,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     wirIds.add(a.id || a.link || '');
                     sigsFor(a).forEach(s => wirSigs.add(s));
                     const ek = extractEntityDealKey(a.title || '', a.description || '');
-                    if (ek) wirEntityKeys.push(ek);
+                    if (ek && !isPropertyDeal(a)) wirEntityKeys.push(ek);
                 }
                 const dedupedWeek = allWeekArticles.filter(a => {
                     if (wirIds.has(a.id || a.link || '')) {
@@ -1237,12 +1237,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         return false;
                     }
                     const ek = extractEntityDealKey(a.title || '', a.description || '');
-                    if (ek && wirEntityKeys.some(s => entityKeysSameDeal(s, ek))) {
+                    if (!isPropertyDeal(a) && ek && wirEntityKeys.some(s => entityKeysSameDeal(s, ek))) {
                         console.log(`🔁 Week-in-Review entity-key dedup removed: "${(a.title || '').substring(0, 55)}" (${ek.key})`);
                         return false;
                     }
                     sigs.forEach(s => wirSigs.add(s));
-                    if (ek) wirEntityKeys.push(ek);
+                    if (ek && !isPropertyDeal(a)) wirEntityKeys.push(ek);
                     return true;
                 });
                 weekInReview = dedupedWeek.slice(0, 5);
