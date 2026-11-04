@@ -6,6 +6,8 @@ import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
+import { unusableSummary, repairSummaryFromEvidence } from '../filter/summary-quality.js';
+import { identifyNewsEvent, compareNewsEvents, isPropertyDeal, loadSentNewsEvents, filterSentNewsEvents, dedupeEventEdition, eventSources, type EventArticle, type EventAudit } from './newsletter-events.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass } from '../shared/url-utils.js';
 import {
@@ -400,6 +402,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         resetLogicImpact(); // start-of-send: zero the diagnostics-only logic-impact counters
         const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
+        allLoadedArticles.forEach(a => { (a as EventArticle)._eventOriginal = a.description || ''; });
+        const eventAudit: EventAudit = { suppressed: [], possible: [] };
+        const sentEvents = loadSentNewsEvents(docsDir, allLoadedArticles);
+        const eventAllowed = (a: NormalizedItem) => filterSentNewsEvents([a], sentEvents, eventAudit).length === 1;
         const currentVerdicts = indexEditorialVerdicts(allLoadedArticles);
         const passesRelevantVerdict = (article: NormalizedItem) =>
             passesRelevantEditorialVerdict(withCurrentEditorialVerdict(article, currentVerdicts), diag);
@@ -427,7 +433,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const articles = allLoadedArticles.filter(a => {
             const id = a.id || a.link || '';
             if (sentArticleIds.has(id)) { recordCrossDayPoolRepeatSuppressed(a, 'sent_id'); return false; }
-            if (sentSigSet.size > 0) {
+            if (sentSigSet.size > 0 && !isPropertyDeal(a)) {
                 const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
@@ -445,7 +451,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     return false;
                 }
             }
-            return true;
+            return eventAllowed(a);
         });
         tracer?.diff(allLoadedArticles, articles, 'crossDayDedup');
         const dedupRemoved = allLoadedArticles.length - articles.length;
@@ -859,6 +865,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const withinSendRemovedDupes: NormalizedItem[] = [];
         const dedupeByDealSignature = (articles: NormalizedItem[], seenSigs: Set<string>): NormalizedItem[] => {
             return articles.filter(a => {
+                // Coarse sponsor/state/price signatures cannot prove a property event.
+                // Confirmed deal matches are resolved after the last refill, by event evidence.
+                if (isPropertyDeal(a)) return true;
                 // Merge deal signatures with the conservative cross-day news signals
                 // (dcpolicy/reit/expansion) + within-send developer-project signals so
                 // same-topic-same-state AND same-developer items can't STACK in one edition.
@@ -892,6 +901,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
             for (const section of allSections) {
                 for (let i = section.length - 1; i >= 0; i--) {
+                    if (isPropertyDeal(section[i])) continue; // final evidence-based pass chooses the richer copy
                     const norm = normalize(section[i].title || '');
                     const isDupe = seenTitles.some(prev => {
                         if (norm === prev) return true;
@@ -1261,6 +1271,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Clean URLs + generate AI descriptions
         const allNewsletterArticles = [...relevant, ...transactions, ...availabilities, ...people];
         allNewsletterArticles.forEach(cleanArticleUrl);
+        allNewsletterArticles.forEach(a => { (a as EventArticle)._eventOriginal ??= a.description || ''; });
         await generateDescriptions(allNewsletterArticles);
 
         // Post-description regional re-check
@@ -1388,6 +1399,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const entitySeen: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
         const dedupeByEntityKey = (articles: NormalizedItem[], label: string): NormalizedItem[] =>
             articles.filter(a => {
+                if (isPropertyDeal(a)) return true;
                 const ek = extractEntityDealKey(a.title || '', a.description || '');
                 if (!ek) return true;
                 if (entitySeen.some(s => entityKeysSameDeal(s, ek))) {
@@ -1576,6 +1588,51 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = dedupeByNearTitle(transactions, scoreArticle, 'transactions');
         availabilities = dedupeByNearTitle(availabilities, scoreArticle, 'availabilities');
         people = dedupeByNearTitle(people, scoreArticle, 'people');
+        // Every admission path, including queue/reserve/post-description refill, meets
+        // the same event check. A weekly recap may intentionally cover earlier sends.
+        relevant = relevant.filter(eventAllowed);
+        transactions = transactions.filter(eventAllowed);
+        availabilities = availabilities.filter(eventAllowed);
+        people = people.filter(eventAllowed);
+        const edition = dedupeEventEdition({ relevant, transactions, availabilities, people }, eventAudit);
+        ({ relevant, transactions, availabilities, people } = edition.sections);
+        withinSendRemovedDupes.push(...edition.removed);
+        if (weekInReview) {
+            weekInReview = dedupeEventEdition({ weekly: weekInReview }, eventAudit).sections.weekly;
+            const current = [...relevant, ...transactions, ...availabilities, ...people];
+            weekInReview = weekInReview.filter(a => {
+                const twin = current.find(b => compareNewsEvents(identifyNewsEvent(a), identifyNewsEvent(b)) === 'same');
+                if (!twin) return true;
+                (twin as EventArticle)._eventSources = [...eventSources(twin), ...eventSources(a)];
+                return false;
+            });
+        }
+
+        // Imported captions and headline copies must not bypass summary generation.
+        // Run after the LAST refill; never add replacement articles after this check.
+        const finalArticles = [...relevant, ...transactions, ...availabilities, ...people, ...(weekInReview || [])];
+        finalArticles.forEach(a => { (a as EventArticle)._eventOriginal ??= a.description || ''; });
+        await generateDescriptions(finalArticles);
+        const summaryRejected: Array<{ id: string; reason: string }> = [];
+        const thinSummaries: string[] = [];
+        const readable = (a: NormalizedItem) => {
+            repairSummaryFromEvidence(a);
+            const reason = unusableSummary(a);
+            // A source headline is a safe fallback when no lead/API is available,
+            // but is reported as thin rather than counted as a new AI summary.
+            if (reason === 'repeated-headline') { thinSummaries.push(a.id); return true; }
+            if (reason) summaryRejected.push({ id: a.id, reason });
+            return !reason;
+        };
+        relevant = relevant.filter(readable);
+        transactions = transactions.filter(readable);
+        availabilities = availabilities.filter(readable);
+        people = people.filter(readable);
+        if (weekInReview) weekInReview = weekInReview.filter(readable);
+        stageMark('eventAndSummaryGate');
+        console.log(`🔁 Event dedup: ${eventAudit.suppressed.length} suppression decisions, ${eventAudit.possible.length} possible matches retained`);
+        console.log(`📝 Final summary gate: ${summaryRejected.length} unusable summaries removed`);
+
         // Refills and final re-routing may have added items after the early cap.
         // Final counts, sent-state and HTML must describe the same selected set.
         relevant = relevant.slice(0, WORK_NEWSLETTER_LIMITS.relevant);
@@ -1687,7 +1744,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
 
         if (dcPolicyRecord) diag.recordDcPolicy(dcPolicyRecord);
         try {
-            writeNewsletterDiagnostics(docsDir, diag.toJSON());
+            writeNewsletterDiagnostics(docsDir, { ...diag.toJSON(), eventDedup: eventAudit, summaryQuality: { rejected: summaryRejected, thin: thinSummaries } } as ReturnType<typeof diag.toJSON>);
             console.log(`📊 Diagnostics written: docs/diagnostics/latest.json`);
             // Additive observability: append this send's row to daily-logic-impact.csv from the
             // SAME finalized diagnostics object. Isolated in its own try so a CSV hiccup can never
@@ -1730,6 +1787,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     id: a.id || a.link || '',
                     sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
                     titleKey: normalizeTitleKey(a.title || ''),
+                    event: identifyNewsEvent(a),
                 }))
                 .filter(item => item.id);
             saveSentArticles(docsDir, sentItems);

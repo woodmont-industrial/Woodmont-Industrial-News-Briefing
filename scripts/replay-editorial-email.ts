@@ -61,6 +61,8 @@ async function main() {
             articleCount: metadata.articleCount, score: metadata.score,
             editorialScore: diagnostics.quality?.editorialQualityScore, sections,
             renderedIds: rendered.map((trace: any) => trace.id).sort(),
+            additionalSourceCount: (html.match(/data-additional-source="1"/g) || []).length,
+            eventDedup: diagnostics.eventDedup || null, summaryQuality: diagnostics.summaryQuality || null,
             weekInReviewIds: weekly.map((trace: any) => trace.id).sort(),
             stages: Object.fromEntries(traces.filter((trace: any) => trace.id !== '__HTML__').map((trace: any) =>
                 [trace.id, trace.events.filter((event: any) => event.verdict === 'add').map((event: any) => event.stage)])),

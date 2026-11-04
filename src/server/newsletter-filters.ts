@@ -12,6 +12,7 @@ import { isConstructionAnnouncement, newsletterCategory } from '../shared/develo
 import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact } from '../shared/editorial-headline.js';
 import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
+import { isPropertyDeal, validNewsEvent } from './newsletter-events.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
@@ -953,6 +954,9 @@ function ntSourcePriority(a: NormalizedItem): number {
  *  conflicting deal metric. The single definition used by both dedupeByNearTitle (initial
  *  collapse) and the post-desc refill (so a freed slot isn't refilled with the same dup). */
 export function isNearTitleDuplicate(a: NormalizedItem, b: NormalizedItem): boolean {
+    // Property events need confirmed facts and a source-quality survivor choice.
+    // Defer them to the final event pass instead of merging on wording alone.
+    if (isPropertyDeal(a) || isPropertyDeal(b)) return false;
     const ta = a.title || '', tb = b.title || '';
     if (!titlesSimilar(normTitle(ta), normTitle(tb))) return false;
     if (ntLocationConflict(ta, tb)) return false;
@@ -1188,7 +1192,7 @@ export function clearIncludedArticles(docsDir: string): void {
 // SENT-ARTICLE DEDUP TRACKING
 // =====================================================================
 
-interface SentEntry { id: string; sentAt: string; sigs?: string[]; titleKey?: string }
+interface SentEntry { id: string; sentAt: string; sigs?: string[]; titleKey?: string; event?: import('./newsletter-events.js').NewsEvent }
 interface SentArticlesData {
     sent: SentEntry[];
     // Date (UTC YYYY-MM-DD) of the most recent successful send, stamped on EVERY
@@ -1291,7 +1295,7 @@ export function loadSentSignatures(docsDir: string): Set<string> {
  * Storing signatures alongside IDs enables cross-day fuzzy dedup so the same deal
  * reported by a different source on a later day won't ship twice.
  */
-export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string; sigs?: string[]; titleKey?: string }>): void {
+export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string; sigs?: string[]; titleKey?: string; event?: import('./newsletter-events.js').NewsEvent | null }>): void {
     const sentPath = path.join(docsDir, 'sent-articles.json');
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const thirtyDaysAgo = new Date();
@@ -1319,6 +1323,7 @@ export function saveSentArticles(docsDir: string, sentItems: Array<{ id: string;
             sentAt: today,
             ...(item.sigs && item.sigs.length > 0 ? { sigs: item.sigs } : {}),
             ...(item.titleKey ? { titleKey: item.titleKey } : {}),
+            ...(validNewsEvent(item.event) ? { event: item.event } : {}),
         }));
 
     // lastSendDate is stamped unconditionally: it is the send-happened marker,

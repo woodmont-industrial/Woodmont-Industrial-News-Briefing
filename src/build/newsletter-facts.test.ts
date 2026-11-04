@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
-import { extractNewsletterFacts, enrichNewsletterFacts, loadApprovedFactPage } from './newsletter-facts.js';
+import { extractNewsletterFacts, enrichNewsletterFacts, loadApprovedFactPage, publisherFactCandidate } from './newsletter-facts.js';
 import { approvedFactUrl, hasVerifiedTargetProperty } from '../shared/newsletter-facts.js';
 import { isTargetRegion, applyTransactionFilter } from '../server/newsletter-filters.js';
 import { generateJSONFeed } from './feed-generators.js';
@@ -119,6 +119,25 @@ async function main(){
             sourceReferences:batch.map(a=>({articleId:a.id,sourceUrl:source})),loader:async()=>{bounded++;return{url:source,html};}});
         assert.equal(bounded,2);assert.equal(stats.attempted,2);
         const realFetch=globalThis.fetch;let requested=0;
+        const candidate = article('publisher-shape',{title:'Example Brokers Arrange Sale of Northern NJ IOS Portfolio - Connect CRE'});
+        const candidateUrl = publisherFactCandidate(candidate)!;
+        assert.equal(candidateUrl,'https://www.connectcre.com/stories/example-brokers-arrange-sale-of-northern-nj-ios-portfolio/');
+        const candidateHtml = page('Example Brokers arranged the $68.5-million sale of an industrial outdoor storage portfolio located in Newark and Kearny, NJ. It arranged $52.2 million in financing for the 14.97-acre portfolio on behalf of the buyer, Example Buyer.',
+            candidate.title.replace(' - Connect CRE',''));
+        let candidateCalls=0;
+        const candidateOptions={cachePath:path.join(root,'publisher-candidate.json'),now,sourceReferences:[],loader:async(url:string)=>{
+            candidateCalls++;assert.equal(url,candidateUrl);return{url,html:candidateHtml};}};
+        const candidateStats=await enrichNewsletterFacts([candidate],candidateOptions);
+        assert.equal(candidateStats.publisherCandidates,1);
+        assert.equal(candidateStats.publisherVerified,1);
+        assert.equal(candidate._newsletterFacts.priceUsd,68500000,'sale price is not the acquisition-financing amount');
+        assert.match(candidate._newsletterFacts.lead,/14\.97-acre/);
+        assert.match(candidate._newsletterFacts.lead,/buyer, Example Buyer/);
+        await enrichNewsletterFacts([article('candidate-again',{title:candidate.title})],candidateOptions);
+        assert.equal(candidateCalls,1,'publisher paths use the same bounded cache');
+        assert.equal(publisherFactCandidate(article('spoof',{link:'https://news.google.com.evil.test/a',title:candidate.title})),null);
+        assert.equal(extractNewsletterFacts(page('Example Brokers arranged $52.2 million in acquisition financing for an industrial portfolio in Newark NJ.',candidate.title.replace(' - Connect CRE','')),
+            candidate,candidateUrl,now),null,'a financing-only sentence does not establish a sale price');
         try{
             globalThis.fetch=async()=>{requested++;return new Response('',{status:302,headers:{location:'http://127.0.0.1/private'}});};
             await assert.rejects(()=>loadApprovedFactPage(source,AbortSignal.timeout(5000),async()=>[{address:'8.8.8.8'}]));
