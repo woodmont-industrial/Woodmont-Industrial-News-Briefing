@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Woodmont Industrial News Briefing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <title>Woodmont Industrial News Feed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -42,36 +39,33 @@
         return "All Time";
       })();
 
-      const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
       return (
-        <header className="masthead">
-          <div className="masthead-inner">
-            <div className="flex items-center gap-4 min-w-0">
-              <span className="masthead-logo">
-                <img src="assets/woodmont-logo.jpg" alt="Woodmont Industrial Partners" />
-              </span>
-              <div className="min-w-0">
-                <div className="masthead-eyebrow">Woodmont Industrial Partners</div>
-                <h1 className="masthead-title">Industrial News Briefing</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="masthead-meta hidden sm:block">
-                <div>{today}</div>
-                <div>{period} &middot; NJ &middot; PA &middot; FL</div>
+        <header className="relative overflow-hidden">
+          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'dark' ? 'from-[#02060d] via-[#061a33] to-[#0B223F]' : 'from-[#020814] via-[#07203c] to-[#0B223F]'}`}></div>
+          <div className="relative px-6 py-10 text-center text-white">
+            <div className="flex items-center justify-center gap-6">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight drop-shadow-lg">
+                  🏢 Woodmont Industrial Partners
+                </h1>
+                <p className={`text-2xl md:text-3xl font-semibold mb-4 ${theme === 'dark' ? 'text-slate-300' : 'text-blue-100'}`}>
+                  Daily Real Estate News Briefing
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
+                    📅 {period}
+                  </span>
+                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
+                    📍 Focus Markets: <strong className="ml-1">NJ • PA • FL</strong>
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="icon-btn"
+                className="p-3 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all text-xl"
                 title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
               >
-                {theme === 'light' ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-                )}
+                {theme === 'light' ? '🌙' : '☀️'}
               </button>
             </div>
           </div>
@@ -81,7 +75,7 @@
 
     const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => (
       <>
-        <div className="max-w-6xl mx-auto px-4 pt-6 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex-1 flex gap-3 flex-wrap">
             <input
               className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
@@ -146,7 +140,7 @@
                   href="raw.html"
                   className="px-4 py-2 rounded-xl font-medium transition-all bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900 no-underline"
               >
-                  Raw
+                  📋 Raw
               </a>
               <button
                   onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
@@ -156,7 +150,7 @@
                       : "bg-[#0B223F] text-white"
                 }`}
               >
-                  {viewMode === "articles" ? "Newsletter" : "Articles"}
+                  {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
               </button>
               {!IS_STATIC && (
               <button
@@ -167,7 +161,7 @@
                       : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Admin
+                  ⚙️ Admin
               </button>
               )}
             </div>
@@ -183,7 +177,7 @@
                 </>
               ) : (
                 <>
-                  Refresh
+                  🔄 Refresh
                 </>
               )}
             </button>
@@ -236,6 +230,9 @@
 
     const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
       const category = item.category || 'relevant';
+      const fallback = getPlaceholderImage(category, item.title);
+      const [imgSrc, setImgSrc] = useState(item.image || fallback);
+      const [imgError, setImgError] = useState(false);
 
       const published = item.pubDate ? new Date(item.pubDate) : null;
       const isValidDate = published && !isNaN(published.getTime());
@@ -266,29 +263,17 @@
         onIgnoreArticle && onIgnoreArticle(item, reason);
       };
 
-      // Publisher masthead, never a reporter name or an internal feed label
-      const publisher = (() => {
-        let src = (typeof getPublisherName === 'function') ? getPublisherName(item) : '';
-        if (!src || src === 'Source') src = item.source || item.publisher || 'Source';
-        if (typeof src !== 'string') src = src.name || 'Source';
-        return src.replace(/^google\s+news\s+/i, '').trim() || 'Source';
-      })();
-
-      // Aggregated titles end in " - Publisher"; the publisher is already shown above the title
-      const displayTitle = (() => {
-        const t = item.title || '';
-        const segs = t.split(/\s+[-–—|]\s+/);
-        if (segs.length < 2) return t;
-        const last = segs[segs.length - 1].trim().toLowerCase();
-        return last === publisher.toLowerCase() ? t.slice(0, t.lastIndexOf(segs[segs.length - 1])).replace(/\s+[-–—|]\s*$/, '') : t;
-      })();
-      // Skip summaries that only repeat the headline
-      const norm = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-      const showSummary = item.description && !norm(item.description).startsWith(norm(displayTitle).slice(0, 60));
+      // Category colors for branded overlay
+      const categoryColors = {
+        transactions: 'from-amber-600/80',
+        availabilities: 'from-[#16406b]/80',
+        people: 'from-purple-600/80',
+        relevant: 'from-slate-700/80'
+      };
 
       return (
         <article
-          className={`brief-row section-${category} cursor-pointer ${isTracked ? 'tracked-highlight' : ''}`}
+          className={`card-anim bg-white dark:bg-slate-800 rounded-2xl overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-blue-400 dark:focus-within:ring-blue-600 cursor-pointer ${isTracked ? 'tracked-highlight' : ''}`}
           onClick={(e) => {
             // Don't trigger onClick if clicking the track menu
             if (!e.target.closest('.track-menu-container')) {
@@ -296,10 +281,59 @@
             }
           }}
         >
-          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-            <div className="brief-meta">
-              <span className="brief-publisher">{publisher}</span>
-              {isValidDate && <span>{published.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+          <div className="relative aspect-video bg-slate-200 dark:bg-slate-900 overflow-hidden">
+            <img
+              src={imgError ? fallback : (imgSrc || fallback)}
+              alt={item.title || 'Article image'}
+              className="img-anim w-full h-full object-cover"
+              loading="lazy"
+              onError={() => {
+                setImgError(true);
+                setImgSrc(fallback);
+              }}
+            />
+            {/* Gradient overlay with category color */}
+            <div className={`absolute inset-0 bg-gradient-to-t ${categoryColors[category] || categoryColors.relevant} via-transparent to-transparent pointer-events-none`}></div>
+            <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+              <span className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wide">
+                {(() => {
+                  // Prefer the resolved publisher; if that still has "Google News" prefix, strip it.
+                  let src = item.source || item.publisher;
+                  if (!src) src = (typeof getPublisherName === 'function') ? getPublisherName(item) : 'Source';
+                  if (typeof src !== 'string') src = src.name || 'Source';
+                  return src.replace(/^google\s+news\s+/i, '').trim() || 'Source';
+                })()}
+              </span>
+              {/* Author chip suppressed when it duplicates the source or is a Google News feed name */}
+              {item.author && (() => {
+                const authorStr = typeof item.author === 'string' ? item.author : (item.author.name || '');
+                if (!authorStr || /^google\s+news/i.test(authorStr)) return null;
+                const srcStr = (item.source || item.publisher || '').toString();
+                if (srcStr && authorStr.toLowerCase() === srcStr.toLowerCase()) return null;
+                return (
+                  <span className="bg-[#0B223F]/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
+                    By {authorStr}
+                  </span>
+                );
+              })()}
+            </div>
+          </div>
+          <div className="p-4 flex flex-col gap-3 flex-1">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
+              {isValidDate && <span>{published.toLocaleDateString()}</span>}
+              {item.category && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  item.category === 'transactions' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' :
+                  item.category === 'availabilities' ? 'bg-blue-100 dark:bg-amber-900/60 text-blue-800 dark:text-amber-300' :
+                  item.category === 'people' ? 'bg-purple-100 dark:bg-amber-900/60 text-purple-800 dark:text-amber-300' :
+                  'bg-slate-100 dark:bg-amber-900/60 text-slate-800 dark:text-amber-300'
+                }`}>
+                  {item.category === 'transactions' ? 'Transactions' :
+                   item.category === 'availabilities' ? 'Availabilities' :
+                   item.category === 'people' ? 'People News' :
+                   'Relevant'}
+                </span>
+              )}
               {/* Debug badges (?debug=1): predicted-publish reason + source tier + Woodmont LLM verdict */}
               {(() => {
                 if (typeof window === 'undefined') return null;
@@ -347,23 +381,31 @@
                 );
               })()}
             </div>
-            <h3 className="brief-title clamp-2">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight clamp-2">
               <a
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                {displayTitle}
+                {item.title}
               </a>
             </h3>
-            {showSummary && (
-              <p className="brief-summary clamp-2">
+            {item.description && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1 leading-relaxed">
                 {item.description}
               </p>
             )}
-          </div>
-          <div className="brief-actions">
+            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Read more →
+              </a>
 
               {/* Action Buttons — +/- prominent, everything else under ⋯ */}
               <div className="track-menu-container relative flex items-center gap-1.5">
@@ -374,7 +416,7 @@
                     e.preventDefault();
                     onAddToNewsletter && onAddToNewsletter(item);
                   }}
-                  className="row-btn row-btn-add"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-lg leading-none font-bold text-white bg-gradient-to-b from-[#16406b] to-[#0B223F] border border-blue-900/50 shadow-sm hover:from-[#1e5a94] hover:to-[#16406b] hover:shadow-md active:scale-95 transition-all cursor-pointer"
                   title="Add this article to the next newsletter"
                 >
                   +
@@ -387,7 +429,7 @@
                     e.preventDefault();
                     onRemoveFromNewsletter && onRemoveFromNewsletter(item);
                   }}
-                  className="row-btn row-btn-remove"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-lg leading-none font-bold text-white bg-gradient-to-b from-rose-500 to-rose-700 border border-rose-800/50 shadow-sm hover:from-rose-400 hover:to-rose-600 hover:shadow-md active:scale-95 transition-all cursor-pointer"
                   title="Exclude this article from the newsletter"
                 >
                   &minus;
@@ -401,14 +443,18 @@
                       e.preventDefault();
                       setShowMoreMenu(!showMoreMenu);
                     }}
-                    className={`row-btn ${isTracked ? 'row-btn-active' : ''}`}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-lg leading-none font-bold shadow-sm active:scale-95 transition-all cursor-pointer border ${
+                      isTracked
+                        ? 'text-white bg-gradient-to-b from-[#16406b] to-[#0B223F] border-blue-900/50'
+                        : 'text-slate-100 bg-gradient-to-b from-slate-600 to-slate-800 border-slate-900/50 hover:from-slate-500 hover:to-slate-700 hover:text-white hover:shadow-md'
+                    }`}
                     title="More actions"
                   >
                     ⋯
                   </button>
 
                   {showMoreMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-600 z-50 overflow-hidden">
+                    <div className="absolute right-0 bottom-full mb-2 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-600 z-50 overflow-hidden">
                       <div className="py-1">
                         {/* Track */}
                         <button
@@ -465,6 +511,7 @@
                 </div>
 
               </div>
+            </div>
           </div>
         </article>
       );
@@ -545,44 +592,20 @@
               <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-8 pb-12">
-              {/* Same section order as the emailed briefing; sort order is kept within each section */}
-              {[
-                { key: 'relevant', label: 'Relevant Articles' },
-                { key: 'transactions', label: 'Transactions' },
-                { key: 'availabilities', label: 'Availabilities' },
-                { key: 'people', label: 'People News' }
-              ].map(section => {
-                const sectionItems = visibleItems.filter(item =>
-                  section.key === 'relevant'
-                    ? !['transactions', 'availabilities', 'people'].includes(item.category)
-                    : item.category === section.key
-                );
-                if (sectionItems.length === 0) return null;
-                return (
-                  <section key={section.key}>
-                    <div className={`section-heading section-${section.key}`}>
-                      <h2>{section.label}</h2>
-                      <span>{sectionItems.length}</span>
-                    </div>
-                    <div className="brief-list">
-                      {sectionItems.map(item => (
-                        <ArticleCard
-                          key={item.id || item.link}
-                          item={item}
-                          onClick={onArticleClick}
-                          trackedMatches={getArticleMatches(item)}
-                          onTrackKeyword={onTrackKeyword}
-                          onIgnoreArticle={onIgnoreArticle}
-                          onSendToRaw={onSendToRaw}
-                          onAddToNewsletter={onAddToNewsletter}
-                          onRemoveFromNewsletter={onRemoveFromNewsletter}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {visibleItems.map(item => (
+                <ArticleCard
+                  key={item.id || item.link}
+                  item={item}
+                  onClick={onArticleClick}
+                  trackedMatches={getArticleMatches(item)}
+                  onTrackKeyword={onTrackKeyword}
+                  onIgnoreArticle={onIgnoreArticle}
+                  onSendToRaw={onSendToRaw}
+                  onAddToNewsletter={onAddToNewsletter}
+                  onRemoveFromNewsletter={onRemoveFromNewsletter}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -4150,7 +4173,7 @@
 
       return (
         <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
-          <div className="container app-shell">
+          <div className="container">
           <Header timeframe={timeframe} theme={theme} setTheme={setTheme} />
           <FiltersBar
             query={query} setQuery={setQuery}
