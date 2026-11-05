@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-04-1300",
-  "generatedAt": "2026-11-04T13:00:32.515Z",
+  "runId": "2026-11-05-1300",
+  "generatedAt": "2026-11-05T13:00:30.919Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 291,
-      "inWindow": 8,
-      "regionPass": 8,
+      "loaded": 297,
+      "inWindow": 11,
+      "regionPass": 11,
       "industrialPass": 0,
       "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 96,
+      "selected": 6,
+      "supplyCandidates": 101,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,7 +36,7 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 6
       },
       "nearMisses": [],
       "tierFill": {
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 291,
+      "loaded": 297,
       "inWindow": 6,
-      "regionPass": 3,
+      "regionPass": 6,
       "industrialPass": 0,
       "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 4,
+      "selected": 3,
+      "supplyCandidates": 8,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -81,22 +81,23 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 2,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 291,
-      "inWindow": 0,
+      "loaded": 297,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -105,7 +106,7 @@
       "selected": 1,
       "supplyCandidates": 29,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -140,7 +141,7 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 291,
+      "loaded": 297,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,101 +187,45 @@
     }
   },
   "perFeedBySection": {
-    "Google News ConnectCRE NJ": {
+    "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 7,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Bisnow National": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "credaily.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Data Centers NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Commercial Observer": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
+        "relevant": 5,
         "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialobserver.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News LoopNet NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 0,
         "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News RE-NJ Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "bisnow.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
         "people": 0
       }
     }
@@ -293,14 +238,14 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 80,
-    "outOf10": 8,
+    "score": 89,
+    "outOf10": 8.9,
     "grade": "B",
-    "itemCount": 7,
-    "operationalScore": 80,
+    "itemCount": 10,
+    "operationalScore": 89,
     "operationalGrade": "B",
-    "editorialQualityScore": 83,
-    "editorialGrade": "B",
+    "editorialQualityScore": 92,
+    "editorialGrade": "A",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
@@ -312,27 +257,21 @@
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 17.2,
-      "regional": 19.3,
+      "freshness": 16.5,
+      "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 7,
       "deep": 6,
-      "reserve": 0
+      "reserve": 1
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Stock Sell-Off, Bond Market Jitters Signal Finan\""
-      }
-    ],
+    "penalties": [],
     "notes": [
       "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
@@ -345,11 +284,47 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 138,
+    "crossDayPoolRepeatsSuppressed": 139,
     "audit": [
+      {
+        "id": "18d8694a8b417af687fc30cb2c0c1c7bb66246aa",
+        "title": "JLL, NAI Hanson Arrange Sale of Northern NJ IOS Portfolio - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d5159f84b493068d8daf71618898e7839baeca02",
+        "title": "Wells Fargo Supplies $133M Refi for Miami-Dade Industrial Campus",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "3a749d0878f48af89cfcd529489ad10c14d5ba88",
+        "title": "Stock Sell-Off, Bond Market Jitters Signal Financing Trouble For AI Data Centers",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "0ce607f89fbe8bbaa1d1b514277d9839710cdbb1",
+        "title": "AI Industrial Demand Faces Doubts From Goldman and Apollo",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "f8ebb4dea2a3d482d7dccc23999d86725763b62c",
+        "title": "Outpost Acquires Two IOS Facilities Near Shipping Corridors in New Jersey",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "2d75705e68a9df33b57057ffaa162b28c170a0ec",
         "title": "Economists Question How Long AI Can Fuel Industrial Real Estate Demand",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "980e15f04d17f2381557cd0792326bf1462a8116",
+        "title": "What to know about Pennsylvania’s data center tax exemption and the shifting attitudes surrounding it - WPSU",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -558,6 +533,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "c6199f35d11fbeff78dd0e8d2e6d522a032b99fa",
+        "title": "101 Industrial Ave, Little Ferry, NJ 07643 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "6724cab00db47dcbaaa05a6c8e9e58840ba55d5a",
         "title": "Industrial Outdoor Storage in New Jersey: Navigating Zoning Uncertainty - Law.com",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -684,12 +665,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "2c46301f144bf4374e8f9fc08d8f0df092b60ffd",
-        "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations - Area Development",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_title"
-      },
-      {
         "id": "380035bbedcff4996ee5c868074c7d4b645d3672",
         "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -742,12 +717,6 @@
         "title": "Parallax Holdings Announces Data Center Development in South Florida, Investing More Than $325 Million in Florida's Econ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "7b67a5350d42f6b20a883bc929a98df22aca2dfd",
-        "title": "Broward County moves toward moratorium on large-scale data center development - The Real Deal",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "793c91b4e5d03f294847b38d8be9a0bde4337006",
@@ -914,36 +883,6 @@
       {
         "id": "e2453fff04cc2a206f89ca37e8c87725eb6eee38",
         "title": "GSK Announces Drug Manufacturing Expansion In Pennsylvania - Pharmaceutical Online",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0d98ce5385e22031a6ca3d2658846c0fc87cce9e",
-        "title": "A 650,000-SF warehouse at Florida Gateway Logistics Park has been leased. - Hoodline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "88c8be8f4e33a38b23ffa1785cfb4d073b034351",
-        "title": "Starwood Property Trust Provides $238M Refi on N.C. Life Sciences Campus",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "1e4508dcc620bd98336e0f9ae943130abf369046",
-        "title": "Taylor Technology Campus Wins Approval for 1 GW Data Center",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5889ba4162da9fdc710d6b842f3aa22987e8e73b",
-        "title": "Industrial Sale-Leaseback on Florida’s Space Coast Draws Approximately 25 Offers, Closes at $10.2 Million - El Paso Time",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "1c2cafb885bc4189428ed38234f000f739ea095c",
-        "title": "Industrial Boomtowns: The U.S. Metros Where Logistics & Warehousing Grew Fastest",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
