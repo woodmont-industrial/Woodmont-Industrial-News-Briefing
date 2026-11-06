@@ -409,9 +409,9 @@
       return facts;
     };
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
+    const ArticleCard = ({ item, fallbackImage, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
       const category = item.category || 'relevant';
-      const fallback = getPlaceholderImage(category, item.title);
+      const fallback = fallbackImage || getPlaceholderImage(category, item.title);
       // picsum.photos images are random (beaches, forests); use the industrial set instead
       const hasArticleImage = Boolean(item.image) && !/(^|\.)picsum\.photos$/i.test((() => { try { return new URL(item.image).hostname; } catch (_) { return ''; } })());
       const [imgSrc, setImgSrc] = useState(hasArticleImage ? item.image : fallback);
@@ -474,7 +474,7 @@
         >
           <div className="relative aspect-video bg-slate-200 dark:bg-slate-900 overflow-hidden">
             <img
-              src={imgError ? fallback : (imgSrc || fallback)}
+              src={imgError || !hasArticleImage ? fallback : (imgSrc || fallback)}
               alt={item.title || 'Article image'}
               className="img-anim w-full h-full object-cover"
               loading="lazy"
@@ -496,8 +496,9 @@
               {item.author && (() => {
                 const authorStr = typeof item.author === 'string' ? item.author : (item.author.name || '');
                 if (!authorStr || /^google\s+news/i.test(authorStr)) return null;
-                const srcStr = publisher;
-                if (srcStr && authorStr.toLowerCase() === srcStr.toLowerCase()) return null;
+                // "Commercial Search" vs "commercialsearch.com" is the same name
+                const nameKey = (s) => String(s || '').toLowerCase().replace(/^www\./, '').replace(/\.(com|net|org|co)$/, '').replace(/[^a-z0-9]/g, '');
+                if (publisher && nameKey(authorStr) === nameKey(publisher)) return null;
                 return (
                   <span className="bg-[#0B223F]/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
                     By {authorStr}
@@ -749,6 +750,13 @@
             : item.category === section.key)
       })).filter(section => section.items.length > 0);
 
+      // Give each tile on the page its own stock photo while the pools last
+      const usedImages = new Set();
+      const fallbackImages = new Map();
+      sections.forEach(section => section.items.forEach(item => {
+        fallbackImages.set(item, getPlaceholderImage(item.category || 'relevant', item.title, usedImages));
+      }));
+
       return (
         <div className="max-w-6xl mx-auto px-4">
           {!loading && (
@@ -811,6 +819,7 @@
                       <ArticleCard
                         key={item.id || item.link}
                         item={item}
+                        fallbackImage={fallbackImages.get(item)}
                         onClick={onArticleClick}
                         trackedMatches={getArticleMatches(item)}
                         onTrackKeyword={onTrackKeyword}
