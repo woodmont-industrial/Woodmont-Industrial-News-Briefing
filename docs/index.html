@@ -95,14 +95,39 @@
           return;
         }
         setStatus({ state: 'running', text: 'Starting scan…' });
+        const api = 'https://api.github.com/repos/woodmont-industrial/Scanner/actions';
+        const headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' };
         try {
-          const resp = await fetch('https://api.github.com/repos/woodmont-industrial/Scanner/actions/workflows/scan.yml/dispatches', {
+          const startedAt = Date.now();
+          // Only lookback_days: the collection mode defaults to discovery-only, and older
+          // versions of the workflow reject inputs they do not declare (HTTP 422)
+          const resp = await fetch(api + '/workflows/scan.yml/dispatches', {
             method: 'POST',
-            headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' },
-            body: JSON.stringify({ ref: 'main', inputs: { lookback_days: days, collection_mode: 'discovery-only' } })
+            headers,
+            body: JSON.stringify({ ref: 'main', inputs: { lookback_days: days } })
           });
           if (resp.status === 204) {
-            setStatus({ state: 'ok', text: 'Scan started. The report is ready to download from the run in about 5 minutes.' });
+            setStatus({ state: 'progress', text: 'Scan started. Following its progress…' });
+            // Follow the run this dispatch created until it finishes
+            let run = null;
+            for (let i = 0; i < 90; i++) {
+              await new Promise(r => setTimeout(r, i === 0 ? 4000 : 15000));
+              const list = await fetch(api + '/workflows/scan.yml/runs?event=workflow_dispatch&per_page=1', { headers }).then(r => r.ok ? r.json() : null).catch(() => null);
+              const latest = list && list.workflow_runs && list.workflow_runs[0];
+              if (latest && new Date(latest.created_at).getTime() >= startedAt - 60000) run = latest;
+              if (!run) continue;
+              const mins = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+              if (run.status !== 'completed') {
+                setStatus({ state: 'progress', text: `Scan ${run.status === 'queued' ? 'queued' : 'running'} (${mins} min so far, usually about 5).`, url: run.html_url });
+              } else if (run.conclusion === 'success') {
+                setStatus({ state: 'ok', text: 'Scan finished. Download the report from the Artifacts section of the run.', url: run.html_url, link: 'Download report →' });
+                return;
+              } else {
+                setStatus({ state: 'error', text: `The scan ended without a report (${run.conclusion}).`, url: run.html_url, link: 'See what happened →' });
+                return;
+              }
+            }
+            setStatus({ state: 'info', text: 'Stopped following the scan here; it may still be running.', url: run && run.html_url });
           } else {
             setStatus({ state: 'error', text: 'GitHub refused the scan (' + resp.status + '). Your token needs Actions access to the Scanner repo; you can start it on GitHub instead.' });
           }
@@ -114,9 +139,9 @@
       return (
         <div className="scan-bar">
           <div className="scan-bar-inner">
-            <button className="scan-btn" onClick={runScan} disabled={status.state === 'running'}>
+            <button className="scan-btn" onClick={runScan} disabled={status.state === 'running' || status.state === 'progress'}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-              {status.state === 'running' ? 'Starting scan…' : 'Run Deal Scanner'}
+              {status.state === 'running' ? 'Starting scan…' : status.state === 'progress' ? 'Scan in progress…' : 'Run Deal Scanner'}
             </button>
             <label className="scan-days">
               Look back
@@ -127,7 +152,7 @@
             <div className={`scan-status scan-status-${status.state}`}>
               {status.text || 'Sales, leases and construction across NJ, PA and FL. Results arrive as a downloadable report.'}
               {status.state !== 'idle' && status.state !== 'running' && (
-                <> <a href={SCANNER_WORKFLOW_URL} target="_blank" rel="noopener noreferrer">Open scan runs →</a></>
+                <> <a href={status.url || SCANNER_WORKFLOW_URL} target="_blank" rel="noopener noreferrer">{status.link || (status.url ? 'Open this scan →' : 'Open scan runs →')}</a></>
               )}
             </div>
           </div>
