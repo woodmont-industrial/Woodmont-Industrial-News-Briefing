@@ -46,7 +46,21 @@ export function isAllowedLink(link: string): boolean {
     }
 }
 
+// Publisher pages that are not stories: service pages, report hubs, site furniture.
+// Matched against the last path segment so article slugs that merely contain these words pass.
+const NON_ARTICLE_SEGMENT = /^(?:about(?:-us)?|contact(?:-us)?|advertis(?:e|ing)|subscribe|newsletters?|search-partners|partners|careers|jobs|events|webinars|podcasts?|privacy(?:-policy)?|terms(?:-of-(?:use|service))?|research-center|[a-z0-9-]*-reports)$/i;
+
+export function isNonArticlePage(url: string): boolean {
+    try {
+        const segments = new URL(url).pathname.split('/').filter(Boolean);
+        return segments.length > 0 && NON_ARTICLE_SEGMENT.test(segments[segments.length - 1]);
+    } catch {
+        return false;
+    }
+}
+
 export function shouldRejectUrl(url: string): boolean {
+    if (isNonArticlePage(url)) return true;
     const rejectPatterns = [
         /utm_/i, /redirect/i, /cache/i, /preview/i,
         /bing\.com/i, /fbclid/i, /gclid/i, /mc_cid/i, /mc_eid/i

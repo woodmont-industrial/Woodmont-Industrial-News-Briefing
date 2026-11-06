@@ -8,6 +8,7 @@ import * as path from 'path';
 import axios from 'axios';
 import { log } from '../server/logging.js';
 import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySource } from '../feeds/fetcher.js';
+import { isNonArticlePage } from '../feeds/link-validation.js';
 import { NormalizedItem, FetchResult } from '../types/index.js';
 import { RSS_FEEDS } from '../feeds/config.js';
 import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
@@ -23,9 +24,46 @@ import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthRe
 // og:image extraction for articles missing real thumbnails
 // =====================================================================
 
-const OG_IMAGE_TIMEOUT_MS = 5000;
-const OG_IMAGE_BATCH_SIZE = 10;
-const OG_IMAGE_MAX_BYTES = 5000;
+const OG_IMAGE_TIMEOUT_MS = 8000;
+const OG_IMAGE_BATCH_SIZE = 8;
+// og:image sits in <head>, but some sites put 100KB+ of inline scripts ahead of it
+const OG_IMAGE_SCAN_CHARS = 400_000;
+// Whole enrichment step stays under this, leaving the build its time for file writes
+const OG_IMAGE_BUDGET_MS = 3 * 60 * 1000;
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+
+/**
+ * Google News RSS links (news.google.com/rss/articles/<id>) land on a Google page, not the
+ * article. Resolve them to the publisher URL the way the Google News web app does: read the
+ * signature and timestamp from the article page, then ask the batchexecute endpoint.
+ * Returns null on any failure; callers keep the placeholder.
+ */
+async function resolveGoogleNewsUrl(url: string): Promise<string | null> {
+    try {
+        const id = new URL(url).pathname.split('/').pop();
+        if (!id) return null;
+        const page = await axios.get(`https://news.google.com/articles/${id}`, {
+            timeout: OG_IMAGE_TIMEOUT_MS, responseType: 'text', headers: { 'User-Agent': BROWSER_UA },
+        });
+        const html = String(page.data);
+        const sig = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
+        const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
+        if (!sig || !ts) return null;
+        const inner = JSON.stringify(['garturlreq', [['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1], 'X', 'X', 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0], id, Number(ts), sig]);
+        const resp = await axios.post('https://news.google.com/_/DotsSplashUi/data/batchexecute',
+            'f.req=' + encodeURIComponent(JSON.stringify([[['Fbv4je', inner, null, 'generic']]])), {
+                timeout: OG_IMAGE_TIMEOUT_MS, responseType: 'text',
+                headers: { 'User-Agent': BROWSER_UA, 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+            });
+        const body = String(resp.data);
+        const at = body.indexOf('garturlres');
+        if (at < 0) return null;
+        const found = body.slice(at).match(/https?:[^"\\]+/);
+        return found ? found[0] : null;
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Check if an article has a real image (not a picsum placeholder and not empty)
@@ -36,24 +74,29 @@ function hasRealImage(item: NormalizedItem): boolean {
 }
 
 /**
- * Fetch the first ~5000 bytes of a URL and extract og:image meta tag
+ * Fetch an article page and extract its og:image (or twitter:image) meta tag
  */
 async function extractOgImage(url: string): Promise<string | null> {
     try {
+        if (/news\.google\./i.test(url)) {
+            const resolved = await resolveGoogleNewsUrl(url);
+            if (!resolved) return null;
+            url = resolved;
+        }
         const resp = await axios.get(url, {
             timeout: OG_IMAGE_TIMEOUT_MS,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': BROWSER_UA,
                 'Accept': 'text/html',
             },
-            maxContentLength: OG_IMAGE_MAX_BYTES * 4, // allow some overhead
+            // Full article pages run 100KB-1MB; a tight cap here made every fetch fail
+            maxContentLength: 3_000_000,
             responseType: 'text',
-            maxRedirects: 3,
+            maxRedirects: 5,
             validateStatus: (s: number) => s >= 200 && s < 400,
         });
 
-        // Only look at the first ~5000 chars (the <head> section)
-        const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_MAX_BYTES * 2) : '';
+        const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_SCAN_CHARS) : '';
 
         // Try og:image first, then twitter:image
         const ogMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']og:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
@@ -81,7 +124,13 @@ async function extractOgImage(url: string): Promise<string | null> {
  * Processes in batches to avoid overwhelming servers.
  */
 async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
-    const needsImage = items.filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'));
+    // Articles the briefing would publish first, then newest, so the time budget goes to tiles people see
+    const priority = (item: NormalizedItem) => ((item as any)._predictedPublish === false ? 1 : 0);
+    const time = (item: NormalizedItem) => new Date((item as any).pubDate || (item as any).date_published || 0).getTime() || 0;
+    const needsImage = items
+        .filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'))
+        .sort((a, b) => priority(a) - priority(b) || time(b) - time(a));
+    const deadline = Date.now() + OG_IMAGE_BUDGET_MS;
 
     if (needsImage.length === 0) {
         log('info', 'og:image enrichment: all articles already have real images');
@@ -94,6 +143,10 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
     let failed = 0;
 
     for (let i = 0; i < needsImage.length; i += OG_IMAGE_BATCH_SIZE) {
+        if (Date.now() > deadline) {
+            log('info', `og:image enrichment: time budget reached, ${needsImage.length - i} left for the next build`);
+            break;
+        }
         const batch = needsImage.slice(i, i + OG_IMAGE_BATCH_SIZE);
         const results = await Promise.allSettled(
             batch.map(async (item) => {
@@ -136,7 +189,8 @@ export async function buildStaticRSS(): Promise<void> {
                     .filter((a: any) => {
                         const hasValidUrl = a.url && a.url.startsWith('http');
                         const hasTitle = a.title && a.title.trim();
-                        return hasValidUrl && hasTitle;
+                        // Also drops non-story pages collected before the non-article URL check existed
+                        return hasValidUrl && hasTitle && !isNonArticlePage(a.url);
                     })
                     .map((a: any) => ({
                         ...a,
@@ -235,9 +289,20 @@ export async function buildStaticRSS(): Promise<void> {
             're-nj.com'             // RE-NJ
         ];
 
+        // Title + description for keyword checks. Google News titles end in " - Publisher" and the
+        // description repeats it, so a publisher such as "Connect CRE" or "Material Handling &
+        // Logistics" would otherwise count as CRE/industrial context for any story it runs.
+        const classificationText = (item: NormalizedItem): string => {
+            const text = `${item.title || ''} ${item.description || ''}`;
+            if (!/news\.google\./i.test(item.link || item.url || '')) return text;
+            const parts = (item.title || '').split(' - ');
+            const publisher = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+            return publisher ? text.split(publisher).join(' ') : text;
+        };
+
         // Check if article should be included — WIDENED GATE, let AI handle region+relevance
         const shouldIncludeArticle = (item: NormalizedItem): boolean => {
-            const text = `${item.title || ''} ${item.description || ''}`.toUpperCase();
+            const text = classificationText(item).toUpperCase();
             const url = (item.link || item.url || '').toLowerCase();
             const sourceName = (item.source || '').toLowerCase();
 
@@ -337,7 +402,7 @@ export async function buildStaticRSS(): Promise<void> {
 
         // Re-categorize articles based on content - REQUIRE CRE/INDUSTRIAL CONTEXT
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
-            const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+            const text = classificationText(item).toLowerCase();
 
             // SCRAPE ARTIFACT (2026-07-30): index/archive pages from category feeds ship as
             // "Tag: Logistics Real Estate - ROI-NJ" (a tag listing, not an article). Reject on the
