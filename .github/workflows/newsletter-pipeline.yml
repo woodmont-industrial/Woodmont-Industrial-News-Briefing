@@ -126,6 +126,13 @@ jobs:
         if: steps.dedup.outputs.skip != 'true' && inputs.skip_scrapers != 'true'
         run: npx playwright install chromium --with-deps
 
+      - name: Restore bounded public-article fact cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/newsletter-facts.json
+          key: newsletter-facts-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: newsletter-facts-${{ github.ref_name }}-
+
       # === STEP 1: SCRAPER BUILD ===
       - name: "Step 1: Run scrapers"
         id: scrapers

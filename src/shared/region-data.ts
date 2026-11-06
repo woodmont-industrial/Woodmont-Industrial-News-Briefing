@@ -671,8 +671,14 @@ export const COMPLETED_DEAL_ACTION_RE = /\b(acquires?|acquired|sells?|sold|buys?
 
 // True when text describes a property/site being listed/marketed/offered for sale or lease and
 // there is NO completed-deal action. This is the single source of truth for all three layers.
-export function isMarketingListingEvent(text: string): boolean {
-    return LISTING_EVENT_RE.test(text) && !COMPLETED_DEAL_ACTION_RE.test(text);
+export function isMarketingListingEvent(text: string, options: { headline?: boolean } = {}): boolean {
+    // Publisher names such as Traded are not completed transaction verbs.
+    const core = text.replace(/\s+[-–—]\s+(?:LoopNet|Crexi|Traded|CommercialSearch|PropertyShark)\b.*$/i, '');
+    // Headline offers are decisive; a body mention of another available space is not.
+    const explicitOffer = options.headline === true && /\b(?:for\s+(?:sublease|lease|sale)|available\s+for\s+(?:lease|sale)|now\s+leasing)\b/i.test(core)
+        && /\b(?:warehouses?|buildings?|facilit(?:y|ies)|properties|property|industrial|land|sites?|space)\b/i.test(core)
+        && !/\b(?:report|outlook|analysis|market trends|leasing trends)\b/i.test(core);
+    return (LISTING_EVENT_RE.test(core) || explicitOffer) && !COMPLETED_DEAL_ACTION_RE.test(core);
 }
 
 // Exclude from people news (residential/non-industrial)

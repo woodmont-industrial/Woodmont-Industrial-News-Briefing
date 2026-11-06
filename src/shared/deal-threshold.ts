@@ -5,6 +5,11 @@
 
 import { NormalizedItem } from '../types/index.js';
 
+export const TRANSACTION_MIN_SF = 50000;
+export const TRANSACTION_MIN_USD = 10000000;
+export const transactionFloorLabel = () =>
+    `Transactions: ≥${TRANSACTION_MIN_SF / 1000}K SF or ≥$${TRANSACTION_MIN_USD / 1000000}M`;
+
 export interface DealThreshold {
     meetsSF: boolean;
     meetsDollar: boolean;
@@ -45,8 +50,8 @@ export function meetsDealThreshold(text: string): DealThreshold {
     }
 
     return {
-        meetsSF: sizeSF !== null && sizeSF >= 50000,
-        meetsDollar: priceMillion !== null && priceMillion >= 10,
+        meetsSF: sizeSF !== null && sizeSF >= TRANSACTION_MIN_SF,
+        meetsDollar: priceMillion !== null && priceMillion >= TRANSACTION_MIN_USD / 1000000,
         sizeSF,
         priceMillion
     };

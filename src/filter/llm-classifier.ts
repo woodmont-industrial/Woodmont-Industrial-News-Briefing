@@ -15,12 +15,12 @@
  *   _woodmontApprove: boolean
  *   _woodmontReason: string         (citing rule from rubric)
  *   _woodmontConfidence: 0-100
- *   _woodmontClassifier: 'groq' | 'cerebras' | 'fallback' (which provider verdict came from)
+ *   _woodmontClassifier: 'groq' | 'cerebras'
+ *   _woodmontRubricVersion / _woodmontClassifiedAt / _woodmontModel: provenance
  *
  * Fallback behavior: if the LLM fails entirely (no providers available,
- * malformed JSON, network error), the item keeps its existing
- * _predictedPublish flag — better to ship the rule-filter result than
- * accidentally block everything on infrastructure failure.
+ * malformed JSON, network error), the item keeps its existing verdict and
+ * provenance. Previously unclassified items still use deterministic gates.
  */
 
 import { NormalizedItem } from '../types/index.js';
@@ -32,13 +32,22 @@ interface WoodmontVerdict {
     reason: string;
     confidence: number;
     classifier: string;
+    model: string;
+    modelApprove: boolean;
+    dateValidation: null;
+}
+
+/** A prompt and its version travel together, including in paired replay tests. */
+export interface EditorialReviewOptions {
+    rubric?: { version: string; systemPrompt: string };
+    asOf?: Date;
 }
 
 /**
  * Call the LLM with a single article and parse its verdict. Iterates through
  * available providers on 429 (mirrors classifyWithAI pattern).
  */
-async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerdict | null> {
+async function classifyOneArticle(article: NormalizedItem, options: EditorialReviewOptions): Promise<WoodmontVerdict | null> {
     // 2026-06-10: reversed provider order — Cerebras first, Groq fallback.
     // The upstream AI categorizer (filterArticlesWithAI in static.ts) drains
     // Groq's quota by the time we get to the Woodmont second-pass; reversing
@@ -58,7 +67,7 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
         url: (article as any).url || article.link,
         category: article.category,
         date_published: article.pubDate || (article as any).date_published,
-    });
+    }, options.asOf);
 
     for (let pIdx = 0; pIdx < providers.length; pIdx++) {
         const provider = providers[pIdx];
@@ -80,7 +89,7 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
                     body: JSON.stringify({
                         ...completionModelOptions(provider),
                         messages: [
-                            { role: 'system', content: WOODMONT_SYSTEM_PROMPT },
+                            { role: 'system', content: options.rubric?.systemPrompt ?? WOODMONT_SYSTEM_PROMPT },
                             { role: 'user', content: userPrompt }
                         ],
                         temperature: 0.1,
@@ -131,11 +140,16 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
                 if (!isLast) continue;
                 return null;
             }
+            // Selection already applies the configured windows. Editorial review must
+            // not impose another age cutoff on otherwise eligible backfill.
             return {
-                approve: parsed.approve === true,
+                approve: parsed.approve,
                 reason: String(parsed.reason || '').slice(0, 300),
                 confidence: Math.max(0, Math.min(100, Number(parsed.confidence) || 0)),
                 classifier: provider.name.toLowerCase(),
+                model: provider.model,
+                modelApprove: parsed.approve,
+                dateValidation: null,
             };
         } catch (err) {
             if (!isLast) continue;
@@ -154,12 +168,12 @@ async function classifyOneArticle(article: NormalizedItem): Promise<WoodmontVerd
  * classifyOneArticle catching any rate-limit spikes.
  *
  * Wall-clock budget enforced: if budgetMs elapses before the batch finishes,
- * any remaining items are left unstamped (no verdict). The build step has a
+ * any remaining items keep their stored verdict (or remain unclassified). The build step has a
  * 10-minute timeout; we cap the LLM at 5 to leave headroom for image
  * enrichment and feed.json writes.
  *
- * @param items   Items to classify. Typically the subset where
- *                _predictedPublish === true (saves LLM cost by 80%+).
+ * @param items   Deterministically eligible articles, including rejected/capped
+ *                items that may be reconsidered or selected by fallback paths.
  * @param maxConcurrent  How many parallel requests (default 5).
  * @param batchDelayMs   Pause between batches (default 500ms).
  * @param budgetMs       Hard wall-clock cap. Default 5 min (300_000ms).
@@ -168,7 +182,8 @@ export async function classifyWoodmontBatch(
     items: NormalizedItem[],
     maxConcurrent: number = 5,
     batchDelayMs: number = 500,
-    budgetMs: number = 5 * 60 * 1000
+    budgetMs: number = 5 * 60 * 1000,
+    options: EditorialReviewOptions = {}
 ): Promise<{ classified: number; approved: number; rejected: number; failed: number; budgetExhausted: boolean }> {
     const providers = getAIProviders();
     if (providers.length === 0 || items.length === 0) {
@@ -183,7 +198,8 @@ export async function classifyWoodmontBatch(
         return 0;
     });
     const start = Date.now();
-    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${sortedProviders[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${WOODMONT_RUBRIC_VERSION})`);
+    const rubricVersion = options.rubric?.version ?? WOODMONT_RUBRIC_VERSION;
+    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${sortedProviders[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${rubricVersion})`);
 
     let approved = 0;
     let rejected = 0;
@@ -196,12 +212,12 @@ export async function classifyWoodmontBatch(
         if (Date.now() - start >= budgetMs) {
             budgetExhausted = true;
             const remaining = items.length - i;
-            console.log(`[Woodmont LLM] Budget exhausted after ${Math.round((Date.now()-start)/1000)}s. ${remaining} items left unstamped (will fall back to _predictedPublish).`);
+            console.log(`[Woodmont LLM] Budget exhausted after ${Math.round((Date.now()-start)/1000)}s. ${remaining} items retain their existing verdicts.`);
             break;
         }
 
         const batch = items.slice(i, i + maxConcurrent);
-        const results = await Promise.all(batch.map(item => classifyOneArticle(item)));
+        const results = await Promise.all(batch.map(item => classifyOneArticle(item, options)));
 
         results.forEach((verdict, idx) => {
             processed++;
@@ -214,6 +230,11 @@ export async function classifyWoodmontBatch(
             (item as any)._woodmontReason = verdict.reason;
             (item as any)._woodmontConfidence = verdict.confidence;
             (item as any)._woodmontClassifier = verdict.classifier;
+            (item as any)._woodmontRubricVersion = rubricVersion;
+            (item as any)._woodmontClassifiedAt = new Date().toISOString();
+            (item as any)._woodmontModel = verdict.model;
+            (item as any)._woodmontModelApprove = verdict.modelApprove;
+            (item as any)._woodmontDateValidation = verdict.dateValidation;
             if (verdict.approve) approved++; else rejected++;
         });
 

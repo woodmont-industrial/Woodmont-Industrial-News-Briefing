@@ -27,5 +27,7 @@ the email downstream. Written on every run (success or failure); retained for th
 - `sentToRelay` — did the send to the Power Automate webhook / SMTP relay succeed (before anything downstream).
 - `triggerEvent` — `schedule` (normal cron), `workflow_dispatch` (manual), `workflow_run` (auto-recovery), or `repository_dispatch`.
 - `score` / `grade` — the quality score for that send (same as `docs/quality-scores.csv`).
+- `scoringVersion` — the measurement method for new sends. Missing on legacy
+  archives; do not infer the method from the publication or merge date.
 
 Populated starting with the first send after 2026-07-06. Written by `sendDailyNewsletterWork` in `src/server/email.ts`; committed by `.github/workflows/send-only.yml`.

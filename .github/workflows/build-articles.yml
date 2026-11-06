@@ -46,6 +46,13 @@ jobs:
         if: contains('1,2,3,4,5', github.event.schedule && '0') || github.event_name == 'workflow_dispatch'
         run: npx playwright install chromium --with-deps
 
+      - name: Restore bounded public-article fact cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/newsletter-facts.json
+          key: newsletter-facts-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: newsletter-facts-${{ github.ref_name }}-
+
       # Step 1: Scrapers (weekdays only)
       - name: "Step 1: Run scrapers"
         if: contains('1,2,3,4,5', github.event.schedule && '0') || github.event_name == 'workflow_dispatch'
