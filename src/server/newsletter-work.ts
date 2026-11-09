@@ -6,7 +6,6 @@
 import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
-import { transactionFloorLabel } from '../shared/deal-threshold.js';
 import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
 
 // Known paywalled sources
@@ -304,7 +303,8 @@ export function buildWorkBriefing(
         <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
         <p style="font-size: 11px; color: #888; margin: 0;">
             This briefing is automatically generated for Woodmont Industrial Partners.<br>
-            Focus regions: New Jersey, Pennsylvania, Florida | ${transactionFloorLabel()}
+            Curated industrial real estate news covering relevant markets, transactions, availabilities and industry developments.<br>
+            Focus regions: New Jersey, Pennsylvania, Florida
         </p>
 
     </div>

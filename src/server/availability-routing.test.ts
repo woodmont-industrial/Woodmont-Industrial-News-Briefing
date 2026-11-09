@@ -32,6 +32,8 @@ assert.equal(applyAvailabilityFilter([item('Broker lists Bergen County developme
     {description:'Bergen County New Jersey industrial warehouse development land being brought to market'})]).length, 1,
     'entitled industrial land with an unknown building size retains its existing policy');
 const html = buildWorkBriefing([],[],[],[],'October 26, 2026');
-assert.ok(html.includes(transactionFloorLabel()), 'the footer states the actual transaction threshold');
-assert.ok(!html.includes('Deals ≥100K SF or ≥$25M'));
+// Thresholds stay out of the footer until newsletter and Capital Markets policies are aligned
+const footer = html.slice(html.lastIndexOf('<!-- Footer -->'));
+assert.ok(footer.includes('Curated industrial real estate news'), 'the footer describes the briefing');
+assert.ok(!footer.includes(transactionFloorLabel()) && !/≥|\$\d|\d+K SF/.test(footer), 'the footer states no numeric deal threshold');
 console.log('PASS: construction routing, listing controls, strict 15K boundary, unknown-size land and shared footer');
