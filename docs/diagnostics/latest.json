@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-06-1300",
-  "generatedAt": "2026-11-06T13:00:30.172Z",
-  "isFriday": true,
+  "runId": "2026-11-09-1300",
+  "generatedAt": "2026-11-09T13:00:34.507Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 299,
-      "inWindow": 11,
-      "regionPass": 11,
+      "loaded": 289,
+      "inWindow": 6,
+      "regionPass": 6,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 97,
+      "selected": 4,
+      "supplyCandidates": 94,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 6
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "transactions": {
-      "loaded": 299,
-      "inWindow": 4,
-      "regionPass": 1,
+      "loaded": 289,
+      "inWindow": 3,
+      "regionPass": 2,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 3,
+      "selected": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -88,22 +88,68 @@
         "tier1_24h": 0,
         "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 299,
-      "inWindow": 1,
-      "regionPass": 0,
+      "loaded": 289,
+      "inWindow": 4,
+      "regionPass": 4,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 3,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 3,
+      "supplyCandidates": 41,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 1,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "RUBRIC_ADVISORY_BYPASS": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 3,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "people": {
+      "loaded": 289,
+      "inWindow": 2,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 28,
+      "supplyCandidates": 2,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -131,52 +177,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "people": {
-      "loaded": 299,
-      "inWindow": 0,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 0,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -186,94 +187,126 @@
     }
   },
   "perFeedBySection": {
-    "commercialsearch.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News CRE Transactions": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 5,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 3,
+        "transactions": 1,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "commercialobserver.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 1,
-        "transactions": 2,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News LoopNet Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
         "availabilities": 1,
         "people": 0
+      }
+    },
+    "Google News LoopNet NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News Industrial RE": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 1
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
-    "score": 84,
-    "outOf10": 8.4,
+    "score": 87,
+    "outOf10": 8.7,
     "grade": "B",
-    "itemCount": 6,
-    "operationalScore": 84,
+    "itemCount": 9,
+    "operationalScore": 87,
     "operationalGrade": "B",
     "editorialQualityScore": 87,
     "editorialGrade": "B",
-    "coverageSupplyScore": 80,
+    "coverageSupplyScore": 100,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "NO_FRESH_SUPPLY"
+      "people": "FILLED"
     },
-    "sectionsFilled": 3,
-    "sectionSupplyCondition": "PARTIAL",
+    "sectionsFilled": 4,
+    "sectionSupplyCondition": "FULL",
     "breakdown": {
-      "coverage": 27,
-      "freshness": 16.5,
-      "regional": 20.8,
+      "coverage": 30,
+      "freshness": 17.9,
+      "regional": 22.2,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 6,
+      "fresh": 8,
       "deep": 5,
-      "reserve": 1
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
-    "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
-    ]
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"GridPoint Co-Founder Adrian De Luca Returns as C\""
+      }
+    ],
+    "notes": []
   },
   "logicImpact": {
     "nearDuplicatesSuppressed": 0,
@@ -283,8 +316,32 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 139,
+    "crossDayPoolRepeatsSuppressed": 134,
     "audit": [
+      {
+        "id": "c832e45f8c264ea9fd5ca8a86d4dc89624e62a89",
+        "title": "Terreno buys 18,000 sq. ft. Carlstadt facility, inks 82,000 sq. ft. lease in Avenel - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "3b62d628c292b66a2734a01a1a6d1a24cca0dbe4",
+        "title": "Does Florida Tax Commercial Rent? What Fort Myers and Cape Coral Warehouse Tenants Should Know - PRLog",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "097f60db5471f2a1c4099c80857bf482d50625e3",
+        "title": "C&W: Penwood inks 276,000 sq. ft. industrial lease in Bordentown with racking, shelving firm - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "773407d2cc847b2389f03ee52a0a584ab9493294",
+        "title": "Data center planned for existing warehouse in Auburndale | Exclusive - Lakeland Ledger",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "5b223ee8b4d9fbc1cacc79041066bf5f4a89c49c",
         "title": "Deluccia: Window, door installer acquires 9,900 sq. ft. Branchburg industrial building - Real Estate NJ",
@@ -718,6 +775,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "21bb0bd3369b6b27eb9b040d292b1e04a86430d8",
+        "title": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "a01f107108ff354836f5a5d4b660b41bf7918bb5",
         "title": "245-247 Elizabeth Ave, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -854,48 +917,12 @@
         "title": "Terreno Realty Sells East Rutherford Industrial Property for $25 Million - citybiz",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
-      },
-      {
-        "id": "ef0122dc2990a719436330c460d226fda5af80d6",
-        "title": "Amazing Savings Signs 173,475 SF Industrial Lease in Mine Hill, New Jersey - REBusinessOnline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7835282d9a13ddeef929eae37b5ab0bad401d2e9",
-        "title": "Terreno Realty Sells New Jersey Industrial Property for $25 Million - Yahoo Finance",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f5d447d70441f6aff519155dbe55d07c8419b332",
-        "title": "BKM pushes into Florida with $174M industrial blitz despite “turbulent” market - The Real Deal",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "008e08c76896dd8e64524b7a9bc4f5f734fc13b7",
-        "title": "Elberon lands $11 million loan for 223,000 sq. ft. Elizabeth warehouse, Wilcox says - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "59356e83ab4580aed036abd30e33fcdad43cc073",
-        "title": "Space Race: How The Private Sector's Orbital Aspirations Are Driving CRE On Earth",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
       }
     ]
   },
   "dcPolicy": {
     "rejectedOutOfRegion": [],
     "nationalScaleAllowed": [],
-    "unknownLocationAllowed": [
-      {
-        "id": "773407d2cc847b2389f03ee52a0a584ab9493294",
-        "title": "Data center planned for existing warehouse in Auburndale | Exclusive - Lakeland Ledger",
-        "unresolvedLocationTokens": []
-      }
-    ]
+    "unknownLocationAllowed": []
   }
 }
