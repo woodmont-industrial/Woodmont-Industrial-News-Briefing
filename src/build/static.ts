@@ -5,7 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { log } from '../server/logging.js';
 import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySource } from '../feeds/fetcher.js';
 import { isNonArticlePage } from '../feeds/link-validation.js';
@@ -32,23 +32,50 @@ const OG_IMAGE_SCAN_CHARS = 400_000;
 const OG_IMAGE_BUDGET_MS = 3 * 60 * 1000;
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 
+/** Why one image lookup ended the way it did; aggregated per build for diagnosis. */
+interface ImageLookup {
+    image: string | null;
+    /** 'ok', or a failure such as 'google:no-signature', 'publisher:http-403-cloudflare', 'publisher:no-og-tag' */
+    outcome: string;
+    /** Publisher host once known (Google News links resolve to it), else the link's host */
+    host: string;
+}
+
+const hostOf = (url: string): string => {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'invalid-url'; }
+};
+
+/** Classify an axios failure without retrying or working around it */
+function failureReason(stage: 'google' | 'publisher', err: unknown): string {
+    const e = err as AxiosError;
+    const status = e?.response?.status;
+    if (status) {
+        const headers = (e.response?.headers || {}) as Record<string, string>;
+        const cloudflare = String(headers['server'] || '').toLowerCase() === 'cloudflare' || 'cf-mitigated' in headers;
+        return `${stage}:http-${status}${cloudflare ? '-cloudflare' : ''}`;
+    }
+    if (e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT' || /timeout/i.test(e?.message || '')) return `${stage}:timeout`;
+    if (/maxContentLength/i.test(e?.message || '')) return `${stage}:too-large`;
+    return `${stage}:network-${e?.code || 'error'}`;
+}
+
 /**
  * Google News RSS links (news.google.com/rss/articles/<id>) land on a Google page, not the
  * article. Resolve them to the publisher URL the way the Google News web app does: read the
  * signature and timestamp from the article page, then ask the batchexecute endpoint.
- * Returns null on any failure; callers keep the placeholder.
+ * On failure, returns the reason; callers keep the placeholder.
  */
-async function resolveGoogleNewsUrl(url: string): Promise<string | null> {
+async function resolveGoogleNewsUrl(url: string): Promise<{ url: string } | { reason: string }> {
     try {
         const id = new URL(url).pathname.split('/').pop();
-        if (!id) return null;
+        if (!id) return { reason: 'google:no-article-id' };
         const page = await axios.get(`https://news.google.com/articles/${id}`, {
             timeout: OG_IMAGE_TIMEOUT_MS, responseType: 'text', headers: { 'User-Agent': BROWSER_UA },
         });
         const html = String(page.data);
         const sig = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
         const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
-        if (!sig || !ts) return null;
+        if (!sig || !ts) return { reason: /consent\.google|before you continue/i.test(html) ? 'google:consent-page' : 'google:no-signature' };
         const inner = JSON.stringify(['garturlreq', [['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1], 'X', 'X', 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0], id, Number(ts), sig]);
         const resp = await axios.post('https://news.google.com/_/DotsSplashUi/data/batchexecute',
             'f.req=' + encodeURIComponent(JSON.stringify([[['Fbv4je', inner, null, 'generic']]])), {
@@ -57,11 +84,11 @@ async function resolveGoogleNewsUrl(url: string): Promise<string | null> {
             });
         const body = String(resp.data);
         const at = body.indexOf('garturlres');
-        if (at < 0) return null;
+        if (at < 0) return { reason: 'google:no-url-in-response' };
         const found = body.slice(at).match(/https?:[^"\\]+/);
-        return found ? found[0] : null;
-    } catch {
-        return null;
+        return found ? { url: found[0] } : { reason: 'google:no-url-in-response' };
+    } catch (err) {
+        return { reason: failureReason('google', err) };
     }
 }
 
@@ -74,15 +101,18 @@ function hasRealImage(item: NormalizedItem): boolean {
 }
 
 /**
- * Fetch an article page and extract its og:image (or twitter:image) meta tag
+ * Fetch an article page and extract its og:image (or twitter:image) meta tag.
+ * A refusal (403, challenge, timeout) is recorded, never retried or worked around.
  */
-async function extractOgImage(url: string): Promise<string | null> {
+async function extractOgImage(url: string): Promise<ImageLookup> {
+    let host = hostOf(url);
+    if (/news\.google\./i.test(url)) {
+        const resolved = await resolveGoogleNewsUrl(url);
+        if ('reason' in resolved) return { image: null, outcome: resolved.reason, host: 'news.google.com' };
+        url = resolved.url;
+        host = hostOf(url);
+    }
     try {
-        if (/news\.google\./i.test(url)) {
-            const resolved = await resolveGoogleNewsUrl(url);
-            if (!resolved) return null;
-            url = resolved;
-        }
         const resp = await axios.get(url, {
             timeout: OG_IMAGE_TIMEOUT_MS,
             headers: {
@@ -97,25 +127,21 @@ async function extractOgImage(url: string): Promise<string | null> {
         });
 
         const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_SCAN_CHARS) : '';
+        if (/<title>\s*Just a moment|cf-browser-verification|challenge-platform/i.test(html)) {
+            return { image: null, outcome: 'publisher:cloudflare-challenge', host };
+        }
 
         // Try og:image first, then twitter:image
         const ogMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']og:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
             || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']og:image["']/i);
-        if (ogMatch && ogMatch[1]) {
-            const imgUrl = ogMatch[1].trim();
-            if (imgUrl.startsWith('http')) return imgUrl;
-        }
-
         const twMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']twitter:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
             || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']twitter:image["']/i);
-        if (twMatch && twMatch[1]) {
-            const imgUrl = twMatch[1].trim();
-            if (imgUrl.startsWith('http')) return imgUrl;
-        }
-
-        return null;
-    } catch {
-        return null;
+        const candidate = ((ogMatch && ogMatch[1]) || (twMatch && twMatch[1]) || '').trim();
+        if (!candidate) return { image: null, outcome: 'publisher:no-og-tag', host };
+        if (!candidate.startsWith('http')) return { image: null, outcome: 'publisher:relative-image-url', host };
+        return { image: candidate, outcome: 'ok', host };
+    } catch (err) {
+        return { image: null, outcome: failureReason('publisher', err), host };
     }
 }
 
@@ -131,6 +157,7 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
         .filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'))
         .sort((a, b) => priority(a) - priority(b) || time(b) - time(a));
     const deadline = Date.now() + OG_IMAGE_BUDGET_MS;
+    const startedAt = Date.now();
 
     if (needsImage.length === 0) {
         log('info', 'og:image enrichment: all articles already have real images');
@@ -139,8 +166,9 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
 
     log('info', `og:image enrichment: ${needsImage.length} articles need images, fetching in batches of ${OG_IMAGE_BATCH_SIZE}`);
 
-    let found = 0;
-    let failed = 0;
+    const outcomes: Record<string, number> = {};
+    const byHost: Record<string, { ok: number; failed: Record<string, number> }> = {};
+    let attempted = 0;
 
     for (let i = 0; i < needsImage.length; i += OG_IMAGE_BATCH_SIZE) {
         if (Date.now() > deadline) {
@@ -148,21 +176,44 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
             break;
         }
         const batch = needsImage.slice(i, i + OG_IMAGE_BATCH_SIZE);
-        const results = await Promise.allSettled(
+        await Promise.allSettled(
             batch.map(async (item) => {
-                const ogImage = await extractOgImage(item.link);
-                if (ogImage) {
-                    item.image = ogImage;
-                    item.thumbnailUrl = ogImage;
-                    found++;
+                const lookup = await extractOgImage(item.link);
+                attempted++;
+                outcomes[lookup.outcome] = (outcomes[lookup.outcome] || 0) + 1;
+                const h = (byHost[lookup.host] ||= { ok: 0, failed: {} });
+                if (lookup.image) {
+                    item.image = lookup.image;
+                    item.thumbnailUrl = lookup.image;
+                    h.ok++;
                 } else {
-                    failed++;
+                    h.failed[lookup.outcome] = (h.failed[lookup.outcome] || 0) + 1;
                 }
             })
         );
     }
 
-    log('info', `og:image enrichment complete: ${found} found, ${failed} failed (still placeholder), ${items.length - needsImage.length} already had images`);
+    const found = outcomes['ok'] || 0;
+    log('info', `og:image enrichment complete: ${found} found, ${attempted - found} failed (still placeholder), ${items.length - needsImage.length} already had images`);
+    log('info', 'og:image failure reasons', outcomes);
+    const hosts = Object.entries(byHost)
+        .map(([host, h]) => ({ host, ok: h.ok, failed: Object.values(h.failed).reduce((a, b) => a + b, 0), reasons: h.failed }))
+        .sort((a, b) => b.failed - a.failed || b.ok - a.ok);
+    log('info', 'og:image results by publisher', { hosts: hosts.slice(0, 25) });
+
+    // Kept in docs/ so each build's result can be reviewed without the Actions logs.
+    // Publisher hosts and counts only; no article text or URLs.
+    try {
+        fs.writeFileSync(path.join(DOCS_DIR, 'image-diagnostics.json'), JSON.stringify({
+            generatedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedAt,
+            needed: needsImage.length, attempted, found,
+            alreadyHadImages: items.length - needsImage.length,
+            outcomes, hosts,
+        }, null, 2) + '\n', 'utf8');
+    } catch (e) {
+        log('warn', 'Could not write image-diagnostics.json: ' + (e as Error).message);
+    }
 }
 
 // Directory for static output
