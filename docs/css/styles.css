@@ -379,3 +379,14 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; b
   .sent-frame { min-height: 480px; }
   .masthead-inner { padding: 12px 16px; }
 }
+
+/* Section chips: filter the one mixed feed by briefing section */
+.section-all { --sec: var(--wm-blue); }
+.section-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.section-chip {
+  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--sec, var(--wm-blue)); color: var(--wm-ink); background: transparent;
+  cursor: pointer; transition: background-color .15s, color .15s;
+}
+.section-chip:hover { background: color-mix(in srgb, var(--sec, var(--wm-blue)) 12%, transparent); }
+.section-chip-on, .section-chip-on:hover { background: var(--sec, var(--wm-blue)); color: var(--wm-surface) !important; }

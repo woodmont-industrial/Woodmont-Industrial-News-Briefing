@@ -204,7 +204,14 @@
 
     const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => {
       const [showMore, setShowMore] = useState(false);
-      const moreActive = [category, source, sort !== 'newest' ? sort : ''].filter(Boolean).length;
+      const moreActive = [source, sort !== 'newest' ? sort : ''].filter(Boolean).length;
+      const sectionChips = [
+        { key: '', label: 'All' },
+        { key: 'relevant', label: 'Relevant' },
+        { key: 'transactions', label: 'Transactions' },
+        { key: 'availabilities', label: 'Availabilities' },
+        { key: 'people', label: 'People News' },
+      ];
       const field = "rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white";
       const builtAt = formatEastern(stats.builtAt);
 
@@ -293,15 +300,20 @@
                 <span aria-hidden="true">{showMore ? '▴' : '▾'}</span>
               </button>
             </div>
+            <div className="section-chips" role="group" aria-label="Section">
+              {sectionChips.map(c => (
+                <button
+                  key={c.key || 'all'}
+                  className={`section-chip section-${c.key || 'all'} ${category === c.key ? 'section-chip-on' : ''}`}
+                  aria-pressed={category === c.key}
+                  onClick={() => setCategory(c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
             {showMore && (
               <div className="flex gap-3 flex-wrap items-center">
-                <select className={`${field} w-48`} value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category">
-                  <option value="">All categories</option>
-                  <option value="relevant">Relevant</option>
-                  <option value="transactions">Transactions</option>
-                  <option value="availabilities">Availabilities</option>
-                  <option value="people">People News</option>
-                </select>
                 <select className={`${field} w-56`} value={source} onChange={(e) => setSource(e.target.value)} aria-label="Source">
                   <option value="">All sources</option>
                   {sources.map(s => <option key={s} value={s}>{s}</option>)}
@@ -311,7 +323,7 @@
                   <option value="oldest">Oldest first</option>
                 </select>
                 {moreActive > 0 && (
-                  <button className="link-btn" onClick={() => { setCategory(''); setSource(''); setSort('newest'); }}>
+                  <button className="link-btn" onClick={() => { setSource(''); setSort('newest'); }}>
                     Reset
                   </button>
                 )}
@@ -746,54 +758,38 @@
       //     - the LLM rubric did not explicitly reject (_woodmontApprove !== false)
       //   Items without the LLM field stamped (rubric failed, or item is from before
       //   the classifier was wired in) pass through — better to show than blackhole.
-      //   "Show all candidates" toggle: bypass both filters and show every collected item.
+      //   Every collected item shows by default; the toggle narrows to briefing candidates.
       //   ?debug=1 in URL: reveals _predictedReason + _tier + LLM verdict badges on each card.
       const isDebugMode = typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('debug') === '1';
-      const [showAllCandidates, setShowAllCandidates] = React.useState(false);
+      const [showAllCandidates, setShowAllCandidates] = React.useState(true);
 
       let visibleItems = items.filter(item => !isArticleIgnored(item));
       const totalBeforePredict = visibleItems.length;
-      if (!showAllCandidates) {
-        visibleItems = visibleItems.filter(item =>
-          item._predictedPublish !== false && item._woodmontApprove !== false
-        );
-      }
-      const hiddenByPredictCount = totalBeforePredict - visibleItems.length;
+      const isBriefingPick = item => item._predictedPublish !== false && item._woodmontApprove !== false;
+      const notPickedCount = visibleItems.filter(item => !isBriefingPick(item)).length;
+      if (!showAllCandidates) visibleItems = visibleItems.filter(isBriefingPick);
       const hiddenCount = items.length - totalBeforePredict;
-
-      const sections = [
-        { key: 'relevant', label: 'Relevant Articles' },
-        { key: 'transactions', label: 'Transactions' },
-        { key: 'availabilities', label: 'Availabilities' },
-        { key: 'people', label: 'People News' }
-      ].map(section => ({
-        ...section,
-        items: visibleItems.filter(item =>
-          section.key === 'relevant'
-            ? !['transactions', 'availabilities', 'people'].includes(item.category)
-            : item.category === section.key)
-      })).filter(section => section.items.length > 0);
 
       // Give each tile on the page its own stock photo while the pools last
       const usedImages = new Set();
       const fallbackImages = new Map();
-      sections.forEach(section => section.items.forEach(item => {
+      visibleItems.forEach(item => {
         fallbackImages.set(item, getPlaceholderImage(item.category || 'relevant', item.title, usedImages));
-      }));
+      });
 
       return (
         <div className="max-w-6xl mx-auto px-4">
           {!loading && (
             <div className="feed-counts">
               <span className="feed-counts-main">{visibleItems.length} shown</span>
-              {(hiddenByPredictCount > 0 || showAllCandidates) && (
+              {notPickedCount > 0 && (
                 <span>
                   · {showAllCandidates
-                      ? 'including articles the briefing rules filter out'
-                      : `${hiddenByPredictCount} filtered out by the briefing rules`}
+                      ? `${totalBeforePredict - notPickedCount} eligible briefing candidates`
+                      : `${notPickedCount} hidden by the briefing rules`}
                   <button onClick={() => setShowAllCandidates(prev => !prev)} className="link-btn">
-                    {showAllCandidates ? 'Hide them' : 'Show them'}
+                    {showAllCandidates ? 'Show candidates only' : 'Show all'}
                   </button>
                 </span>
               )}
@@ -814,7 +810,7 @@
                 </span>
               )}
               {typeof collectedTotal === 'number' && (
-                <span className="feed-counts-secondary">{collectedTotal} collected in total</span>
+                <span className="feed-counts-secondary">{collectedTotal} collected · the feed keeps about 31 days of history</span>
               )}
               {isDebugMode && (
                 <span className="text-amber-600 dark:text-amber-400">· debug mode on: reasons and tier shown on tiles</span>
@@ -831,16 +827,10 @@
               <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-8 pb-12">
-              {/* Same section order as the emailed briefing; sort order is kept within each section */}
-              {sections.map(section => (
-                <section key={section.key}>
-                  <div className={`section-heading section-${section.key}`}>
-                    <h2>{section.label}</h2>
-                    <span>{section.items.length}</span>
-                  </div>
+            <div className="pb-12">
+              {/* One mixed feed in the chosen sort order; the section chips above narrow it */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {section.items.map(item => (
+                    {visibleItems.map(item => (
                       <ArticleCard
                         key={item.id || item.link}
                         item={item}
@@ -855,8 +845,6 @@
                       />
                     ))}
                   </div>
-                </section>
-              ))}
             </div>
           )}
         </div>
@@ -3185,7 +3173,7 @@
       const [category, setCategory] = useState("");
       const [source, setSource] = useState("");
       const [sort, setSort] = useState("newest");
-      const [timeframe, setTimeframe] = useState("1"); // 24h default: Header chip, selector and query all agree
+      const [timeframe, setTimeframe] = useState("90"); // 90-day default so the page never looks empty; Header chip, selector and query all agree
       const [lastUpdated, setLastUpdated] = useState("");
       // When the feed itself was built (build receipt), as opposed to when this page loaded it
       const [feedBuiltAt, setFeedBuiltAt] = useState(null);
