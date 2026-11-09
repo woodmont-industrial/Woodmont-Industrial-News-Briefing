@@ -30,7 +30,8 @@ const OG_IMAGE_BATCH_SIZE = 8;
 const OG_IMAGE_SCAN_CHARS = 400_000;
 // Whole enrichment step stays under this, leaving the build its time for file writes
 const OG_IMAGE_BUDGET_MS = 3 * 60 * 1000;
-const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+const IMAGE_DIAGNOSTICS_DIR = path.join(process.cwd(), '.build-diagnostics');
+const BROWSER_UA ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 
 /** Why one image lookup ended the way it did; aggregated per build for diagnosis. */
 interface ImageLookup {
@@ -201,10 +202,12 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
         .sort((a, b) => b.failed - a.failed || b.ok - a.ok);
     log('info', 'og:image results by publisher', { hosts: hosts.slice(0, 25) });
 
-    // Kept in docs/ so each build's result can be reviewed without the Actions logs.
-    // Publisher hosts and counts only; no article text or URLs.
+    // Private: written outside docs/ (the public Pages site) and gitignored. The build-only
+    // workflows upload this folder as an Actions artifact. One file per build step.
     try {
-        fs.writeFileSync(path.join(DOCS_DIR, 'image-diagnostics.json'), JSON.stringify({
+        fs.mkdirSync(IMAGE_DIAGNOSTICS_DIR, { recursive: true });
+        const file = `image-diagnostics-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        fs.writeFileSync(path.join(IMAGE_DIAGNOSTICS_DIR, file), JSON.stringify({
             generatedAt: new Date().toISOString(),
             durationMs: Date.now() - startedAt,
             needed: needsImage.length, attempted, found,
@@ -212,7 +215,7 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
             outcomes, hosts,
         }, null, 2) + '\n', 'utf8');
     } catch (e) {
-        log('warn', 'Could not write image-diagnostics.json: ' + (e as Error).message);
+        log('warn', 'Could not write image diagnostics: ' + (e as Error).message);
     }
 }
 
