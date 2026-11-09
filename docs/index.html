@@ -758,7 +758,7 @@
       //     - the LLM rubric did not explicitly reject (_woodmontApprove !== false)
       //   Items without the LLM field stamped (rubric failed, or item is from before
       //   the classifier was wired in) pass through — better to show than blackhole.
-      //   Every collected item shows by default; the toggle narrows to briefing picks.
+      //   Every collected item shows by default; the toggle narrows to briefing candidates.
       //   ?debug=1 in URL: reveals _predictedReason + _tier + LLM verdict badges on each card.
       const isDebugMode = typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('debug') === '1';
@@ -786,10 +786,10 @@
               {notPickedCount > 0 && (
                 <span>
                   · {showAllCandidates
-                      ? `${totalBeforePredict - notPickedCount} picked for the email briefing`
+                      ? `${totalBeforePredict - notPickedCount} eligible briefing candidates`
                       : `${notPickedCount} hidden by the briefing rules`}
                   <button onClick={() => setShowAllCandidates(prev => !prev)} className="link-btn">
-                    {showAllCandidates ? 'Briefing picks only' : 'Show all'}
+                    {showAllCandidates ? 'Show candidates only' : 'Show all'}
                   </button>
                 </span>
               )}
@@ -810,7 +810,7 @@
                 </span>
               )}
               {typeof collectedTotal === 'number' && (
-                <span className="feed-counts-secondary">{collectedTotal} collected in total</span>
+                <span className="feed-counts-secondary">{collectedTotal} collected · the feed keeps about 31 days of history</span>
               )}
               {isDebugMode && (
                 <span className="text-amber-600 dark:text-amber-400">· debug mode on: reasons and tier shown on tiles</span>
