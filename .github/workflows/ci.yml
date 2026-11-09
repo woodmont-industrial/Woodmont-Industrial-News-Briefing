@@ -232,6 +232,7 @@ jobs:
       - name: Test send-state publication in disposable local repositories
         run: bash .github/scripts/commit-send-state.test.sh
       - run: node --import tsx src/server/newsletter-geography.test.ts
+      - run: node --import tsx src/server/november-send-regressions.test.ts
       - run: node --import tsx src/build/newsletter-facts.test.ts
       - run: node --import tsx src/filter/editorial-review.test.ts
       - run: node --import tsx src/server/relevant-editorial.test.ts

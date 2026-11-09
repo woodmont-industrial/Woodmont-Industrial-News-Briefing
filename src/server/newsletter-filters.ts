@@ -104,6 +104,8 @@ const GENERIC_LISTING_TITLE_RE = /^(?:For\s+Lease|For\s+Sale|FOR\s+LEASE|FOR\s+S
 // is passive, with the target token naming the ASSET, not a seller.
 const ACQUISITION_VERB_RE = /\b(?:buys|bought|buying|acquires?|acquired|acquiring|purchas(?:es|ed|ing)|snaps?\s+up|snapped\s+up|picks?\s+up|picked\s+up|scoops?\s+up|scooped\s+up|nabs?|nabbed|grabs?|grabbed)\b/i;
 
+const SITE_SEARCH_VERB_RE = /\b(?:seeks?|seeking|eyes|eyeing|scouts?|scouting|hunts?\s+for|looks?\s+for)\s+(?:a\s+|new\s+|more\s+)?(?:property|properties|site|sites|land|location|space)\b/i;
+
 // Target-region presence test for a raw text SEGMENT (used positionally in Rule a).
 // Uses the same qualified geographic evidence as the final email gate.
 function segmentHasTarget(segment: string): boolean {
@@ -186,6 +188,17 @@ export function hasGeographicFailure(article: NormalizedItem): { fails: boolean;
         const verbIdx = title.indexOf(verbMatch[0]);
         const buyerSeg = title.slice(0, verbIdx);
         const assetSeg = title.slice(verbIdx + verbMatch[0].length);
+        if (segmentHasTarget(buyerSeg) && !segmentHasTarget(assetSeg)) {
+            return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
+        }
+    }
+    // Same shape for a site search: "Florida company seeks property in South Bend" names the
+    // searcher's home, not the property. Limited to a sought property/site/space, so
+    // "Miami landlord seeks tenants" is untouched.
+    const searchMatch = title.match(SITE_SEARCH_VERB_RE);
+    if (searchMatch) {
+        const buyerSeg = title.slice(0, searchMatch.index!);
+        const assetSeg = title.slice(searchMatch.index! + searchMatch[0].length);
         if (segmentHasTarget(buyerSeg) && !segmentHasTarget(assetSeg)) {
             return { fails: true, reason: 'PRIMARY_LOCATION_NON_TARGET' };
         }
@@ -278,6 +291,10 @@ export function isNotExcludedRegion(article: NormalizedItem): boolean {
 
     // Block international
     if (INTERNATIONAL_EXCLUDE.some(term => text.includes(term))) return false;
+
+    // A headline that places the property outside the region is not national news
+    // ("Florida company seeks property in South Bend")
+    if (hasGeographicFailure(article).fails) return false;
 
     const [geoTargetCount, excludeCount] = countRegionMatches(text);
     const extraExcludeCount = EXCLUDE_CITIES_EXTRA.reduce((count, r) => count + (text.split(r).length - 1), 0);

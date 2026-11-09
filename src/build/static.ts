@@ -20,6 +20,7 @@ import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from 
 import { reviewEditorialCandidates, stampPredictedPublish, writeEditorialFeed } from './editorial-review.js';
 import { enrichNewsletterFacts } from './newsletter-facts.js';
 import { generateRSSXML, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
+import { isCompletedHeadlineDeal } from '../shared/development-signal.js';
 
 // =====================================================================
 // og:image extraction for articles missing real thumbnails
@@ -451,7 +452,8 @@ export async function buildStaticRSS(): Promise<void> {
             // Check if availability signal is in the TITLE (stronger signal than body)
             const titleLower = (item.title || '').toLowerCase();
             const titleHasAvailability = /\b(for\s*lease|for\s*sale|now\s*leasing|now\s*available|for\s*sublease|on\s*the\s*market|space\s*available|vacant|delivers|delivered|breaks\s*ground|groundbreaking|under\s*construction)\b/i.test(titleLower);
-            const titleHasCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(titleLower);
+            const titleHasCompletedDeal = /\b(sold|acquired|bought|purchased|leased|closed|signed|inked|secured|landed)\b/i.test(titleLower)
+                || isCompletedHeadlineDeal(item.title || ''); // present tense: "Buyer grabs vacant warehouse"
 
             // 1. STRONG AVAILABILITIES - Title says "for lease/sale" and title doesn't say "sold/leased"
             if (titleHasAvailability && hasPropertyType && !titleHasCompletedDeal) {
