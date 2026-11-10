@@ -42,6 +42,22 @@ const staticTs = fs.readFileSync(path.join(repo, 'src/build/static.ts'), 'utf8')
 assert.ok(!/readFileSync\([^)]*archive/.test(staticTs), 'the build never reads archive.json');
 assert.ok(staticTs.indexOf('writeSiteArchive(') > staticTs.indexOf("'feed.json'"), 'archive is written after feed.json');
 
+// Only public feed metadata reaches the archive: nothing the site build imports, directly or
+// transitively, may load the Capital Markets modules that hold ownership enrichment
+function importGraph(entry: string, seen = new Set<string>()): Set<string> {
+    if (seen.has(entry) || !fs.existsSync(entry)) return seen;
+    seen.add(entry);
+    const src = fs.readFileSync(entry, 'utf8');
+    // import x from, export x from, import('...'), and bare import '...'
+    for (const m of src.matchAll(/(?:from\s+|import\s*\(\s*|import\s+)['"](\.{1,2}\/[^'"]+)['"]/g)) {
+        importGraph(path.resolve(path.dirname(entry), m[1]).replace(/\.js$/, '.ts'), seen);
+    }
+    return seen;
+}
+const buildGraph = [...importGraph(path.join(repo, 'src/build/static.ts'))].map(f => path.relative(repo, f).split(path.sep).join('/'));
+assert.ok(buildGraph.includes('src/build/site-archive.ts') && buildGraph.length > 10, 'the import graph walk reached the build modules');
+assert.deepEqual(buildGraph.filter(f => /capital-markets/i.test(f)), [], 'the site build never loads Capital Markets enrichment');
+
 // In the page, archived stories reach only the Article Feed's browse list
 const page = fs.readFileSync(path.join(repo, 'docs/index.html'), 'utf8');
 const previewStart = page.indexOf('const NewsletterPreview = (');

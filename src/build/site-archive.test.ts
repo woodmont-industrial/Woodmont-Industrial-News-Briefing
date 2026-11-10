@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { ARCHIVE_FIELDS, mergeSiteArchive, toArchiveItem, validateArchiveItem } from './site-archive.js';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { ARCHIVE_FIELDS, hasEnrichment, mergeSiteArchive, toArchiveItem, validateArchiveItem, writeArchiveFile, writeSiteArchive } from './site-archive.js';
 
 const DAY = 864e5;
 const now = new Date('2026-11-10T12:00:00Z');
@@ -58,4 +61,38 @@ assert.deepEqual(merged.map(i => i.id), []);
 merged = mergeSiteArchive([item('x', 'Example Builder buys Edison warehouse', 40)], [item('y', 'Example Builder buys Edison warehouse', 3)], now, none);
 assert.deepEqual(merged.map(i => i.id), ['y']);
 
-console.log('PASS: site archive keeps public metadata only, grows past 31 days to 90, honours exclusions and dedupes titles');
+// An item carrying Capital Markets enrichment is refused whole, not stripped, because the
+// enrichment is appended to its text fields
+const cmEnriched = item('cm', 'Example Builder buys Edison warehouse', 2, {
+    content_text: 'Public story text. Owner: Example Holdings (watchlist)', _cmEnrichment: { source: 'public-page-metadata' },
+});
+assert.equal(hasEnrichment(cmEnriched), true);
+assert.equal(toArchiveItem(cmEnriched), null);
+assert.deepEqual(mergeSiteArchive([cmEnriched], [], now, none), []);
+
+// A failed write publishes nothing: the previous archive stays byte-for-byte
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'site-archive-'));
+const file = path.join(dir, 'archive.json');
+writeArchiveFile(file, [toArchiveItem(item('ok', 'Example story', 1))!], now);
+const before = fs.readFileSync(file, 'utf8');
+assert.throws(() => writeArchiveFile(file, [{ ...toArchiveItem(item('bad', 'Example story two', 1))!, _woodmontReason: 'x' }], now), /left unchanged/);
+assert.equal(fs.readFileSync(file, 'utf8'), before, 'invalid records never reach the file');
+assert.ok(!fs.existsSync(file + '.tmp'), 'no partial file is left behind');
+// An unreadable archive is an error, not an empty archive (which would silently drop history)
+fs.writeFileSync(file, '{"items": "not a list"}');
+assert.throws(() => writeSiteArchive(dir, [item('n', 'Example story three', 1)], now), /left unchanged/);
+assert.equal(fs.readFileSync(file, 'utf8'), '{"items": "not a list"}');
+fs.rmSync(dir, { recursive: true, force: true });
+
+// Whatever archive is committed must already meet the same rules
+const published = path.join(process.cwd(), 'docs/archive.json');
+if (fs.existsSync(published)) {
+    const items = JSON.parse(fs.readFileSync(published, 'utf8')).items;
+    assert.ok(Array.isArray(items), 'docs/archive.json has an items array');
+    items.forEach((record: any) => {
+        validateArchiveItem(record);
+        assert.equal(hasEnrichment(record), false);
+    });
+}
+
+console.log('PASS: site archive keeps public metadata only, refuses enriched items, never publishes a failed write, grows past 31 days to 90');

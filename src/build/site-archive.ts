@@ -9,7 +9,8 @@
  *
  * Records hold public article metadata only: no pipeline or AI reasoning
  * fields, no ownership or research enrichment. validateArchiveItem enforces
- * that on every write.
+ * that on every write, and a failed validation leaves the previous file in
+ * place rather than publishing anything partial.
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -53,9 +54,16 @@ const isHttpUrl = (value: unknown): value is string => {
 const text = (value: unknown, limit = TEXT_LIMIT): string | undefined =>
     typeof value === 'string' && value.trim() ? value.slice(0, limit) : undefined;
 
+// Capital Markets enrichment appends ownership metadata to an article's text and marks it
+// with _cmEnrichment (src/server/capital-markets-enrichment.ts). Such an item is refused
+// whole: dropping the marker alone would keep the enriched text.
+const ENRICHMENT_MARKER = /^_cm/i;
+export const hasEnrichment = (source: Record<string, any>): boolean => Object.keys(source).some(k => ENRICHMENT_MARKER.test(k));
+
 /** Copy only the approved public fields from a feed item; null if it is not a publishable article */
 export function toArchiveItem(source: Record<string, any>): ArchiveItem | null {
-    if (!source || typeof source.id !== 'string' || !text(source.title) || !isHttpUrl(source.url)) return null;
+    if (!source || hasEnrichment(source)) return null;
+    if (typeof source.id !== 'string' || !text(source.title) || !isHttpUrl(source.url)) return null;
     const published = new Date(source.date_published || 0);
     if (isNaN(published.getTime()) || published.getTime() === 0) return null;
     const category = String(source.category || 'relevant').toLowerCase();
@@ -156,23 +164,41 @@ function loadExclusions(docsDir: string): ArchiveExclusions {
     }
 }
 
-/** Read docs/archive.json, fold in this build's feed items, validate, write it back */
-export function writeSiteArchive(docsDir: string, feedItems: Record<string, any>[], now = new Date()): { count: number; oldest: string | null } {
-    const file = path.join(docsDir, 'archive.json');
-    let archived: Record<string, any>[] = [];
-    try {
-        if (fs.existsSync(file)) archived = JSON.parse(fs.readFileSync(file, 'utf-8')).items || [];
-    } catch {
-        archived = [];
+/**
+ * Validate every record, then replace the file in one step. Any invalid record
+ * throws before anything is written, so the previously published archive stays.
+ */
+export function writeArchiveFile(file: string, items: Record<string, any>[], now = new Date()): void {
+    const problems: string[] = [];
+    for (const item of items) {
+        try { validateArchiveItem(item); } catch (e) { problems.push((e as Error).message); }
     }
-    const items = mergeSiteArchive(archived, feedItems, now, loadExclusions(docsDir));
-    items.forEach(validateArchiveItem);
-    fs.writeFileSync(file, JSON.stringify({
+    if (problems.length) {
+        throw new Error(`${problems.length} invalid archive record(s); archive.json left unchanged. First: ${problems[0]}`);
+    }
+    const body = JSON.stringify({
         version: 1,
         description: `Website archive: up to ${SITE_ARCHIVE_DAYS} days of public feed article metadata. Not read by the newsletter.`,
         updatedAt: now.toISOString(),
         retentionDays: SITE_ARCHIVE_DAYS,
         items,
-    }) + '\n', 'utf8');
+    }) + '\n';
+    const tmp = file + '.tmp';
+    fs.writeFileSync(tmp, body, 'utf8');
+    fs.renameSync(tmp, file);
+}
+
+/** Read docs/archive.json, fold in this build's feed items, validate, write it back */
+export function writeSiteArchive(docsDir: string, feedItems: Record<string, any>[], now = new Date()): { count: number; oldest: string | null } {
+    const file = path.join(docsDir, 'archive.json');
+    let archived: Record<string, any>[] = [];
+    if (fs.existsSync(file)) {
+        // An unreadable archive is an error, not an empty one: starting over would silently drop history
+        const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'));
+        if (!parsed || !Array.isArray(parsed.items)) throw new Error('archive.json has no items array; left unchanged');
+        archived = parsed.items;
+    }
+    const items = mergeSiteArchive(archived, feedItems, now, loadExclusions(docsDir));
+    writeArchiveFile(file, items, now);
     return { count: items.length, oldest: items.length ? items[items.length - 1].date_published : null };
 }

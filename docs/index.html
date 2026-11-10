@@ -3207,8 +3207,17 @@
           .then(r => r.ok ? r.json() : null)
           .then(data => {
             if (!data || !Array.isArray(data.items)) return;
-            setArchiveItems(data.items.map(item => ({
-              ...item,
+            // Copy the approved public fields only; anything else in a record is ignored
+            setArchiveItems(data.items.filter(item => item && item.id && item.title && item.url && item.date_published).map(item => ({
+              id: item.id,
+              title: item.title,
+              url: item.url,
+              image: item.image,
+              author: item.author,
+              tags: item.tags,
+              summary: item.summary,
+              content_text: item.content_text,
+              date_published: item.date_published,
               link: item.url,
               pubDate: item.date_published,
               description: item.content_text || item.summary || '',

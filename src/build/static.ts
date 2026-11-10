@@ -1218,12 +1218,16 @@ export async function buildStaticRSS(): Promise<void> {
         fs.writeFileSync(path.join(DOCS_DIR, 'feed.json'), JSON.stringify(feedJSON, null, 2), 'utf8');
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });
 
-        // Website-only 90-day archive; the newsletter keeps reading feed.json alone
+        // Website-only 90-day archive; the newsletter keeps reading feed.json alone.
+        // A failure leaves the last valid archive.json untouched and is reported as an
+        // error, but does not stop the build: the send workflow runs this same build.
         try {
             const archive = writeSiteArchive(DOCS_DIR, (feedJSON as any).items || []);
             log('info', 'Updated docs/archive.json', { itemCount: archive.count, oldestArticle: archive.oldest });
         } catch (e) {
-            log('warn', 'Could not update archive.json: ' + (e as Error).message);
+            const message = 'Website archive NOT updated; the previous archive.json is unchanged: ' + (e as Error).message;
+            log('error', message);
+            if (process.env.GITHUB_ACTIONS) console.log(`::error title=Website archive not updated::${message.replace(/\r?\n/g, ' ')}`);
         }
 
         // Generate Feed Health Report
