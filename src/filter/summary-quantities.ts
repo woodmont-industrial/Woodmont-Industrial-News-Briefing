@@ -12,7 +12,7 @@ export function summaryQuantities(text: string): SummaryQuantity[] {
         const value = Number((Number(raw.replace(/,/g, '')) * multiplier(scale)).toPrecision(15));
         if (Number.isFinite(value)) out.push({ unit, value });
     };
-    const dollars = new RegExp('(?:US\\s*)?\\$\\s*(' + NUMBER + ')\\s*' + SCALE + '?\\b', 'gi');
+    const dollars = new RegExp('(?:US\\s*)?\\$\\s*(' + NUMBER + ')\\s*[-–]?\\s*' + SCALE + '?\\b', 'gi');
     const sf = new RegExp('(?<![\\w.])(' + NUMBER + ')[\\s-]*' + SCALE
         + '?[\\s-]*(?:sf|sq\\.?\\s*ft\\.?|square[\\s-]*(?:feet|foot))\\b', 'gi');
     const percent = new RegExp('(?<![\\w.])(' + NUMBER + ')\\s*(?:%|percent\\b)', 'gi');

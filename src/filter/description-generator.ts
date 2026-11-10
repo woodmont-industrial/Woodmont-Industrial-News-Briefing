@@ -9,6 +9,7 @@
 
 import { NormalizedItem } from '../types/index.js';
 import { hasUnsupportedSummaryQuantity } from './summary-quantities.js';
+import { unusableSummary, repairSummaryFromEvidence } from './summary-quality.js';
 import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
 
 const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
@@ -131,6 +132,8 @@ function containsFabrication(desc: string, title: string, existingDesc: string):
  * Generate descriptions for articles missing them
  */
 export async function generateDescriptions(articles: NormalizedItem[]): Promise<void> {
+    articles.forEach(a => { (a as NormalizedItem & { _eventOriginal?: string })._eventOriginal ??= a.description || ''; });
+    articles.forEach(repairSummaryFromEvidence);
     const provider = getAIProvider();
     if (!provider) {
         console.log('[AI Desc] No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping description generation');
@@ -138,6 +141,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
     }
 
     const needsDesc = articles.filter(a => {
+        if (unusableSummary(a)) return true;
         const desc = (a.description || '').trim();
         const title = (a.title || '').trim();
         // Has a real description (not just the title repeated)
@@ -183,7 +187,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
                     if (containsFabrication(desc, batch[j].title || '', existingDesc)) {
                         console.log(`[AI Desc] REJECTED fabrication for "${batch[j].title?.substring(0, 50)}": ${desc.substring(0, 80)}...`);
                         rejected++;
-                    } else {
+                    } else if (!unusableSummary({ ...batch[j], description: desc })) {
                         batch[j].description = desc;
                         generated++;
                     }

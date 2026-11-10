@@ -7,6 +7,7 @@ import { NormalizedItem } from '../types/index.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 import { escapeHtml, escapeAttr, safeUrl } from '../shared/html-escape.js';
 import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
+import { eventSources, type EventArticle } from './newsletter-events.js';
 
 // Known paywalled sources
 const PAYWALLED_SOURCES = [
@@ -213,9 +214,11 @@ export function buildWorkBriefing(
         const sourceHref = safeUrl(url);
         const trackHref = safeUrl(trackUrl);
         const ignoreHref = safeUrl(ignoreUrl);
+        const additionalSources = eventSources(item as EventArticle).filter(s => s.url !== url)
+            .map(s => ` <a data-additional-source="1" href="${escapeAttr(safeUrl(s.url))}" style="color: #2563eb; text-decoration: underline;">${escapeHtml(s.publisher || 'Additional source')}</a>`).join('');
 
         return `<li style="margin-bottom: 14px; line-height: 1.5; color: #333;">
-            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
+            ${displayText} ${publisherTag}${hasValidUrl ? `<a href="${escapeAttr(sourceHref)}" style="color: #2563eb; text-decoration: underline;">Source</a>` : '<span style="color: #999;">(Source unavailable)</span>'}${additionalSources} <a href="${escapeAttr(trackHref)}" style="color: #10b981; text-decoration: none;">[Track]</a> <a href="${escapeAttr(ignoreHref)}" style="color: #dc2626; text-decoration: none;">[Ignore]</a>
         </li>`;
     };
 
