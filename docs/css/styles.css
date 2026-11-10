@@ -462,3 +462,8 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; b
   font-size: 13px; line-height: 1.5; color: var(--wm-muted) !important; margin: 0;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
+.scan-report {
+  background: var(--wm-surface); border: 1px solid var(--wm-line); border-radius: 16px;
+  padding: 16px 18px; margin: 0; max-height: 480px; overflow: auto;
+  font-size: 12.5px; line-height: 1.55; color: var(--wm-ink) !important; white-space: pre-wrap; overflow-wrap: anywhere;
+}

@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/capital-markets.js"></script>
   <script src="js/capital-markets-scan-view.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="js/zip-reader.js"></script>
   <script src="js/utils.js"></script>
 </head>
 <body>
@@ -191,15 +191,18 @@
       const artifact = ((await r.json()).artifacts || []).find(a => a.name.startsWith('capital-markets-scan'));
       if (!artifact) throw new Error('missing');
       if (artifact.expired) throw new Error('expired');
-      // GitHub answers with a redirect to signed storage; the browser drops the token on that hop
-      const zipResp = await fetch(artifact.archive_download_url, { headers: scannerHeaders(token) });
+      // The token only ever goes to GitHub's API for this repo's artifacts. GitHub answers with
+      // a redirect to signed storage, and the browser drops the token on that cross-origin hop.
+      const download = String(artifact.archive_download_url || '');
+      if (!download.startsWith(SCANNER_API + '/artifacts/')) throw new Error('download');
+      const zipResp = await fetch(download, { headers: scannerHeaders(token) });
       if (!zipResp.ok) throw new Error('download');
-      const zip = await JSZip.loadAsync(await zipResp.arrayBuffer());
-      const file = (suffix) => Object.values(zip.files).find(f => f.name.endsWith(suffix));
-      const data = file('data/capital-markets-scan.json');
+      const zip = await zipResp.arrayBuffer();
+      const data = await window.ZipReader.readZipText(zip, 'data/capital-markets-scan.json');
       if (!data) throw new Error('missing');
-      const report = file('report.html');
-      return { scan: JSON.parse(await data.async('string')), reportHtml: report ? await report.async('string') : null };
+      // The Markdown report, shown as plain text; the HTML report is never rendered here
+      const reportText = await window.ZipReader.readZipText(zip, 'report.md');
+      return { scan: JSON.parse(data), reportText };
     };
 
     const SCAN_ERRORS = {
@@ -262,12 +265,7 @@
         setToken(t);
       };
 
-      const openReport = () => {
-        if (!result || !result.reportHtml) return;
-        const url = URL.createObjectURL(new Blob([result.reportHtml], { type: 'text/html' }));
-        window.open(url, '_blank', 'noopener');
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      };
+      const [showReport, setShowReport] = useState(false);
 
       if (!token) {
         return (
@@ -275,6 +273,7 @@
             <div className="scan-dash-panel scan-connect">
               <h2>Deal Scanner results</h2>
               <p>Scan results stay private in the Woodmont Scanner repo on GitHub. Connect a GitHub token with access to it and this page fetches and lays them out here. The token lives only in this browser tab and is forgotten when you close it.</p>
+              <p>Use a fine-grained token limited to the <strong>woodmont-industrial/Scanner</strong> repository with <strong>Actions: Read-only</strong> to view results, or <strong>Actions: Read and write</strong> to also start scans, and a short expiry.</p>
               <div className="scan-connect-row">
                 <input
                   type="password"
@@ -312,9 +311,16 @@
                   {runs.map((r, i) => <option key={r.id} value={r.id}>{i === 0 ? 'Latest · ' : ''}{formatEastern(r.created_at)}</option>)}
                 </select>
               )}
-              {result && result.reportHtml && <button className="scan-dash-btn scan-dash-btn-quiet" onClick={openReport}>Full report</button>}
+              {result && result.reportText && (
+                <button className="scan-dash-btn scan-dash-btn-quiet" onClick={() => setShowReport(s => !s)} aria-expanded={showReport}>
+                  {showReport ? 'Hide full report' : 'Full report'}
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Rendered as plain text: nothing from the artifact is interpreted as HTML */}
+          {showReport && result && result.reportText && <pre className="scan-report">{result.reportText}</pre>}
 
           {error && <div className="scan-dash-panel scan-dash-error">{error}</div>}
           {runs && runs.length === 0 && !error && <div className="scan-dash-panel">No finished scans yet. Use Run Deal Scanner above to start one.</div>}
