@@ -746,7 +746,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, collectedTotal, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter, ignoredTopics, ignoredArticles }) => {
+    const ArticleGrid = ({ items, collectedTotal, historySince, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -810,7 +810,7 @@
                 </span>
               )}
               {typeof collectedTotal === 'number' && (
-                <span className="feed-counts-secondary">{collectedTotal} collected · the feed keeps about 31 days of history</span>
+                <span className="feed-counts-secondary">{collectedTotal} collected{historySince ? ` since ${historySince.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</span>
               )}
               {isDebugMode && (
                 <span className="text-amber-600 dark:text-amber-400">· debug mode on: reasons and tier shown on tiles</span>
@@ -3198,6 +3198,38 @@
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
       const [manualTitle, setManualTitle] = useState('');
       const [manualUrl, setManualUrl] = useState('');
+      // Older stories from the website archive. Browsing only: the newsletter draft keeps using `items`
+      const [archiveItems, setArchiveItems] = useState([]);
+
+      useEffect(() => {
+        if (!IS_STATIC) return;
+        fetch('archive.json?' + Date.now())
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data || !Array.isArray(data.items)) return;
+            // Copy the approved public fields only; anything else in a record is ignored
+            setArchiveItems(data.items.filter(item => item && item.id && item.title && item.url && item.date_published).map(item => ({
+              id: item.id,
+              title: item.title,
+              url: item.url,
+              image: item.image,
+              author: item.author,
+              tags: item.tags,
+              summary: item.summary,
+              content_text: item.content_text,
+              date_published: item.date_published,
+              link: item.url,
+              pubDate: item.date_published,
+              description: item.content_text || item.summary || '',
+              source: (item.author && item.author.name) || 'Unknown',
+              category: item.category || 'relevant',
+              // Only the live feed supplies briefing candidates
+              _predictedPublish: false,
+              _fromArchive: true,
+            })));
+          })
+          .catch(() => {});
+      }, []);
       const [manualSummary, setManualSummary] = useState('');
       const [manualCategory, setManualCategory] = useState('relevant');
       const [manualSource, setManualSource] = useState('');
@@ -4362,13 +4394,28 @@
         return () => clearInterval(interval);
       }, [fetchItems, fetchLastFetchInfo, viewMode]);
 
+      // The live feed plus archived stories it no longer carries (same story = same id or title)
+      const browseItems = useMemo(() => {
+        if (!archiveItems.length) return items;
+        const key = (t) => (t || '').toLowerCase().replace(/\s+[-–—|]\s+[^-–—|]{1,50}$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        const ids = new Set(items.map(i => i.id));
+        const titles = new Set(items.map(i => key(i.title)));
+        return items.concat(archiveItems.filter(a => !ids.has(a.id) && !titles.has(key(a.title))));
+      }, [items, archiveItems]);
+
+      // How far back the browsable history reaches; the archive fills toward 90 days build by build
+      const historySince = useMemo(() => {
+        const times = browseItems.map(i => new Date(i.pubDate).getTime()).filter(t => t > 0);
+        return times.length ? new Date(Math.min(...times)) : null;
+      }, [browseItems]);
+
       const sources = useMemo(() => {
-        const uniqueSources = new Set(items.map(publisherOf).filter(s => s && s !== 'Source'));
+        const uniqueSources = new Set(browseItems.map(publisherOf).filter(s => s && s !== 'Source'));
         return Array.from(uniqueSources).sort();
-      }, [items]);
+      }, [browseItems]);
 
       const filtered = useMemo(() => {
-        let list = [...items];
+        let list = [...browseItems];
         
         // Filter out articles with "not relevant", "excluded", and "blacklisted" categories
         list = list.filter(it => it.category !== 'not relevant' && it.category !== 'excluded' && it.category !== 'blacklisted');
@@ -4412,7 +4459,7 @@
         }
 
         return list;
-      }, [items, query, region, category, source, sort, timeframe]);
+      }, [browseItems, query, region, category, source, sort, timeframe]);
 
       return (
         <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
@@ -4452,7 +4499,8 @@
                 </div>
                 <ArticleGrid
                   items={filtered}
-                  collectedTotal={items.length}
+                  collectedTotal={browseItems.length}
+                  historySince={historySince}
                   loading={loading || refreshLoading}
                   onArticleClick={handleArticleClick}
                   trackedTopics={trackedTopics}

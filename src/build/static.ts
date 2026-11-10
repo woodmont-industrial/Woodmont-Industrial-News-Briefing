@@ -19,6 +19,7 @@ import { meetsDealThreshold } from '../shared/deal-threshold.js';
 import { TARGET_REGIONS, MAJOR_EXCLUDE_REGIONS, EXCLUDE_POLITICAL, INTERNATIONAL_EXCLUDE, INDUSTRIAL_PROPERTY_KEYWORDS, REGIONAL_SOURCES, EXCLUDE_NON_INDUSTRIAL, isStrictlyIndustrial, hasWrongPropertyType, hasStrongIndustrialOverride, isMarketingListingEvent } from '../shared/region-data.js';
 import { isTargetRegion, isNotExcludedRegion, postDescriptionRegionCheck } from '../server/newsletter-filters.js';
 import { generateRSSXML, generateJSONFeed, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
+import { writeSiteArchive } from './site-archive.js';
 
 // =====================================================================
 // og:image extraction for articles missing real thumbnails
@@ -1270,6 +1271,18 @@ export async function buildStaticRSS(): Promise<void> {
         const feedJSON = generateJSONFeed(rssItems);
         fs.writeFileSync(path.join(DOCS_DIR, 'feed.json'), JSON.stringify(feedJSON, null, 2), 'utf8');
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });
+
+        // Website-only 90-day archive; the newsletter keeps reading feed.json alone.
+        // A failure leaves the last valid archive.json untouched and is reported as an
+        // error, but does not stop the build: the send workflow runs this same build.
+        try {
+            const archive = writeSiteArchive(DOCS_DIR, (feedJSON as any).items || []);
+            log('info', 'Updated docs/archive.json', { itemCount: archive.count, oldestArticle: archive.oldest });
+        } catch (e) {
+            const message = 'Website archive NOT updated; the previous archive.json is unchanged: ' + (e as Error).message;
+            log('error', message);
+            if (process.env.GITHUB_ACTIONS) console.log(`::error title=Website archive not updated::${message.replace(/\r?\n/g, ' ')}`);
+        }
 
         // Generate Feed Health Report
         // Load previous health report for reliability history

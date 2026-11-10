@@ -38,6 +38,11 @@ jobs:
           node --import tsx src/server/people-rescue.test.ts
           node --import tsx src/server/people-corporate-verb.test.ts
 
+      - name: Test website archive (public fields, growth, newsletter isolation)
+        run: |
+          node --import tsx src/build/site-archive.test.ts
+          node --import tsx src/build/site-archive-isolation.test.ts
+
       - name: Test engineering changelog datasets
         run: node scripts/engineering-changelog.test.mjs
 
