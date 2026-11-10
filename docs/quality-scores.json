@@ -1,40 +1,6 @@
 {
-  "updatedAt": "2026-11-09T13:00:38.925Z",
+  "updatedAt": "2026-11-10T13:00:38.977Z",
   "history": [
-    {
-      "date": "2026-07-07",
-      "runId": "2026-07-07-1131",
-      "score": 68,
-      "outOf10": 6.8,
-      "grade": "D",
-      "itemCount": 2,
-      "breakdown": {
-        "coverage": 19,
-        "freshness": 10.4,
-        "regional": 25,
-        "relevanceIntegrity": 20
-      },
-      "age": {
-        "fresh": 1,
-        "deep": 3,
-        "reserve": 6
-      },
-      "delivery": {
-        "score": 100,
-        "grade": "A"
-      },
-      "supply": "Thin",
-      "penalties": [
-        {
-          "type": "repeat_cross_day",
-          "points": 3
-        },
-        {
-          "type": "repeat_cross_day",
-          "points": 3
-        }
-      ]
-    },
     {
       "date": "2026-07-08",
       "runId": "2026-07-08-1201",
@@ -2681,6 +2647,31 @@
           "points": 3
         }
       ]
+    },
+    {
+      "date": "2026-11-10",
+      "runId": "2026-11-10-1300",
+      "score": 80,
+      "outOf10": 8,
+      "grade": "B",
+      "itemCount": 6,
+      "breakdown": {
+        "coverage": 27,
+        "freshness": 14.7,
+        "regional": 18.3,
+        "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 2,
+        "deep": 6,
+        "reserve": 0
+      },
+      "delivery": {
+        "score": 100,
+        "grade": "A"
+      },
+      "supply": "Rich",
+      "penalties": []
     }
   ]
 }

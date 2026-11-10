@@ -1,14 +1,14 @@
 {
-  "runId": "2026-11-09-1300",
-  "generatedAt": "2026-11-09T13:00:34.507Z",
+  "runId": "2026-11-10-1300",
+  "generatedAt": "2026-11-10T13:00:34.242Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 289,
-      "inWindow": 6,
-      "regionPass": 6,
+      "loaded": 290,
+      "inWindow": 3,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -36,12 +36,12 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 3,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -50,7 +50,7 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 289,
+      "loaded": 290,
       "inWindow": 3,
       "regionPass": 2,
       "industrialPass": 0,
@@ -95,63 +95,17 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 289,
-      "inWindow": 4,
-      "regionPass": 4,
+      "loaded": 290,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
-      "sectionPass": 3,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 41,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "RUBRIC_ADVISORY_BYPASS": 1
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "people": {
-      "loaded": 289,
-      "inWindow": 2,
-      "regionPass": 1,
-      "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 2,
+      "supplyCandidates": 35,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -177,7 +131,52 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "people": {
+      "loaded": 290,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 0,
+      "supplyCandidates": 0,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -187,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 5,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 3,
-        "transactions": 1,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "commercialobserver.com": {
+    "commercialsearch.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -215,21 +200,21 @@
         "people": 0
       }
     },
-    "Google News LoopNet Industrial": {
+    "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 1,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
+        "relevant": 3,
         "transactions": 0,
         "availabilities": 1,
         "people": 0
       }
     },
-    "Google News LoopNet NJ/PA/FL": {
+    "commercialobserver.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -238,23 +223,9 @@
       "rejections": {},
       "bySection": {
         "relevant": 0,
-        "transactions": 0,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "Google News Industrial RE": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 0,
+        "transactions": 1,
         "availabilities": 0,
-        "people": 1
+        "people": 0
       }
     }
   },
@@ -266,32 +237,32 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 87,
-    "outOf10": 8.7,
+    "score": 80,
+    "outOf10": 8,
     "grade": "B",
-    "itemCount": 9,
-    "operationalScore": 87,
+    "itemCount": 6,
+    "operationalScore": 80,
     "operationalGrade": "B",
-    "editorialQualityScore": 87,
+    "editorialQualityScore": 83,
     "editorialGrade": "B",
-    "coverageSupplyScore": 100,
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "FILLED"
+      "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 4,
-    "sectionSupplyCondition": "FULL",
+    "sectionsFilled": 3,
+    "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 30,
-      "freshness": 17.9,
-      "regional": 22.2,
+      "coverage": 27,
+      "freshness": 14.7,
+      "regional": 18.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 8,
-      "deep": 5,
+      "fresh": 2,
+      "deep": 6,
       "reserve": 0
     },
     "delivery": {
@@ -299,14 +270,10 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"GridPoint Co-Founder Adrian De Luca Returns as C\""
-      }
-    ],
-    "notes": []
+    "penalties": [],
+    "notes": [
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+    ]
   },
   "logicImpact": {
     "nearDuplicatesSuppressed": 0,
@@ -316,8 +283,50 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 134,
+    "crossDayPoolRepeatsSuppressed": 137,
     "audit": [
+      {
+        "id": "0688c129454d5700eb8a9f9e0894d65faf1312dc",
+        "title": "Newmark Associates hires industrial, flex property specialist Tomlin - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "ce6c8ffd35584bcdf7324c2c41a9556421d4c79c",
+        "title": "North Jersey industrial outdoor storage space sells for $68.5M - NJ.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "81b855b0f35fd0ab5a2c1602a84b3599aae0b60e",
+        "title": "3045 Lown St N, Saint Petersburg, FL 33713 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "233b69a217f1a6c59023baccbeb9b00283c05eb4",
+        "title": "Florida company seeks property in South Bend for proposed data center development - WNDU",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "0a7a121d1bf5488e77e291b334d9d47f25835bd1",
+        "title": "Industrial developments rising in Lake County as need for flex space spurs new projects - Orlando Sentinel",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "b636396dc9f79529a67613b3990f2fdf80594c3b",
+        "title": "4240 W Tilghman St, Allentown, PA 18104 - Office/ Warehouse- Flex Property For Sale!!! - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "30adaa82d6b8a3fd87b440a83bfd0221f62fc5e8",
+        "title": "Seagis grabs vacant 171,000 sq. ft. warehouse adjacent to Port Newark Container Terminal - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "c832e45f8c264ea9fd5ca8a86d4dc89624e62a89",
         "title": "Terreno buys 18,000 sq. ft. Carlstadt facility, inks 82,000 sq. ft. lease in Avenel - Real Estate NJ",
@@ -357,6 +366,12 @@
       {
         "id": "badc3ca48703f313a9945dfa773cf062c3b50314",
         "title": "Daytona Beach REIT snags 50-acre Jacksonville industrial site at $1M discount - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "bc57e12171e242a5f2abd9ec2b369e9136bcf921",
+        "title": "GridPoint Co-Founder Adrian De Luca Returns as CEO to Power New Battery Product",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -401,6 +416,12 @@
         "title": "Stock Sell-Off, Bond Market Jitters Signal Financing Trouble For AI Data Centers",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "31acb678c23fb54cc22d7f9b9954388d4f201b12",
+        "title": "Industrial developments rising in Lake County as need for flex space spurs new projects - GrowthSpotter",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
       },
       {
         "id": "1a9d096415c349bf7f65477ed2bce3b1a2e9ac74",
@@ -489,6 +510,12 @@
       {
         "id": "86f2658e6b9169e32fce35ef154e2af372251c92",
         "title": "Industrial Report: Construction Rebounds Despite Rising Development Costs",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "138e59501f6352c1669a289e080345b40b67865d",
+        "title": "AY: Moving, logistics firm takes 94,000 sq. ft. at new Link Logistics warehouse in Carteret - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -857,66 +884,6 @@
         "title": "Industrial vacancy up along I-78/I-81 corridor, but market remains strong - Lehigh Valley Business",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "1baae8b69c5b4ba6ba2fe00205852d978295349b",
-        "title": "Workforce Readiness is Bottleneck for Supply Chain AI Adoption - Material Handling & Logistics",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9f0491e25b082b0733cbe500c29b5085a5361c7f",
-        "title": "Kerry opens coffee extraction manufacturing facility in Pennsylvania - Plant Services",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0a58c5bf28ec3b4c279ee40a8c2c31dd2bbba7f6",
-        "title": "CesiumAstro to Add Manufacturing Facility in Melbourne, Florida - Via Satellite",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0547317d18acae53d49254ca0ddcd99b25a89a2d",
-        "title": "GSK Expands Montgomery County, Pennsylvania, Manufacturing Operations",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "54d72d5316e4ac01ebf45df8de17f5728d16cf0d",
-        "title": "Rosen joins Woodmont Industrial Partners as vice president of acquisitions - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a204fd9b58ab0f4f6c2d53c267134882e6fc72ec",
-        "title": "Sitex Group Acquires 343 KSF NJ Logistics Facility - CommercialSearch",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "96b3f455c5f5174659bf50168dcd6380cdee78d6",
-        "title": "Sitex Group buys logistics site leased by UPS in South Brunswick - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0ee38aa53ef9b71a1dc03837c8f4312d37ece80c",
-        "title": "600 Markley St, Port Reading, NJ 07064 - ±90,956 SF Warehouse / Office for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "4c949353f1125ffacec794f2d643263b3017c1b0",
-        "title": "Supply Chain Pipeline Efficiency Fell 49% in Q2 - Material Handling & Logistics",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c6821b7799dacbb6a5ebfe6d093adf1e81cbdf9d",
-        "title": "Terreno Realty Sells East Rutherford Industrial Property for $25 Million - citybiz",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       }
     ]
   },
