@@ -168,6 +168,17 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         timeout-minutes: 15
 
+      # Private photo-lookup diagnostics (publisher hosts and failure counts). Kept out of
+      # docs/, which is the public Pages site.
+      - name: Upload image diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-diagnostics-${{ github.run_id }}
+          path: .build-diagnostics/
+          retention-days: 30
+          if-no-files-found: ignore
+
       # === COMMIT ===
       - name: Commit updated data
         if: steps.dedup.outputs.skip != 'true'
