@@ -16,6 +16,8 @@
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/capital-markets.js"></script>
+  <script src="js/capital-markets-scan-view.js"></script>
+  <script src="js/zip-reader.js"></script>
   <script src="js/utils.js"></script>
 </head>
 <body>
@@ -80,9 +82,8 @@
       );
     };
 
-    // Starts the private Capital Markets scan in the Scanner repo. The report is
-    // downloaded from the run's Actions artifacts; nothing is published here.
-    const SCANNER_WORKFLOW_URL = 'https://github.com/woodmont-industrial/Scanner/actions/workflows/scan.yml';
+    // Starts the private Capital Markets scan in the Scanner repo. Results are read back
+    // from the run's Actions artifacts onto the Deal Scanner tab; nothing is published here.
     const ScanBar = () => {
       const [days, setDays] = useState('30');
       const [status, setStatus] = useState({ state: 'idle', text: '' });
@@ -90,8 +91,8 @@
       const runScan = async () => {
         const token = window.WoodmontUtils && window.WoodmontUtils.getGitHubToken();
         if (!token) {
-          window.open(SCANNER_WORKFLOW_URL, '_blank', 'noopener');
-          setStatus({ state: 'info', text: 'Opened GitHub. Click "Run workflow" there, or connect a GitHub token in Settings to start scans from here.' });
+          window.dispatchEvent(new CustomEvent('woodmont:open-scanner'));
+          setStatus({ state: 'info', text: 'Connect a GitHub token on the Deal Scanner tab to run scans and see results here.' });
           return;
         }
         setStatus({ state: 'running', text: 'Starting scan…' });
@@ -118,16 +119,17 @@
               if (!run) continue;
               const mins = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
               if (run.status !== 'completed') {
-                setStatus({ state: 'progress', text: `Scan ${run.status === 'queued' ? 'queued' : 'running'} (${mins} min so far, usually about 5).`, url: run.html_url });
+                setStatus({ state: 'progress', text: `Scan ${run.status === 'queued' ? 'queued' : 'running'} (${mins} min so far, usually about 3).` });
               } else if (run.conclusion === 'success') {
-                setStatus({ state: 'ok', text: 'Scan finished. Download the report from the Artifacts section of the run.', url: run.html_url, link: 'Download report →' });
+                window.dispatchEvent(new CustomEvent('woodmont:scan-finished'));
+                setStatus({ state: 'ok', text: 'Scan finished.', action: 'view' });
                 return;
               } else {
                 setStatus({ state: 'error', text: `The scan ended without a report (${run.conclusion}).`, url: run.html_url, link: 'See what happened →' });
                 return;
               }
             }
-            setStatus({ state: 'info', text: 'Stopped following the scan here; it may still be running.', url: run && run.html_url });
+            setStatus({ state: 'info', text: 'Stopped following the scan here; it may still be running. Its results will appear on the Deal Scanner tab when it finishes.' });
           } else {
             setStatus({ state: 'error', text: 'GitHub refused the scan (' + resp.status + '). Your token needs Actions access to the Scanner repo; you can start it on GitHub instead.' });
           }
@@ -150,9 +152,13 @@
               </select>
             </label>
             <div className={`scan-status scan-status-${status.state}`}>
-              {status.text || 'Sales, leases and construction across NJ, PA and FL. Results arrive as a downloadable report.'}
-              {status.state !== 'idle' && status.state !== 'running' && (
-                <> <a href={status.url || SCANNER_WORKFLOW_URL} target="_blank" rel="noopener noreferrer">{status.link || (status.url ? 'Open this scan →' : 'Open scan runs →')}</a></>
+              {status.text || 'Sales, leases and construction across NJ, PA and FL. Results appear on the Deal Scanner tab.'}
+              {status.action === 'view' && (
+                <> <button className="scan-view-btn" onClick={() => window.dispatchEvent(new CustomEvent('woodmont:open-scanner'))}>View results →</button></>
+              )}
+              {/* A failed run is the one case worth GitHub's own log */}
+              {status.state === 'error' && status.url && (
+                <> <a href={status.url} target="_blank" rel="noopener noreferrer">{status.link || 'See what happened →'}</a></>
               )}
             </div>
           </div>
@@ -165,6 +171,226 @@
       const d = iso ? new Date(iso) : null;
       if (!d || isNaN(d.getTime())) return '';
       return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
+    };
+
+    // Capital Markets scan results, read straight from the private Scanner repo's run
+    // artifacts with the viewer's own GitHub token. Nothing is stored or published here.
+    const SCANNER_API = 'https://api.github.com/repos/woodmont-industrial/Scanner/actions';
+    const scannerHeaders = (token) => ({ 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' });
+    const decodeEntities = (s) => { const t = document.createElement('textarea'); t.innerHTML = String(s || ''); return t.value; };
+
+    const loadScanRuns = async (token) => {
+      const r = await fetch(SCANNER_API + '/workflows/scan.yml/runs?status=success&per_page=10', { headers: scannerHeaders(token) });
+      if (!r.ok) throw new Error(r.status === 401 || r.status === 403 || r.status === 404 ? 'access' : 'http');
+      return ((await r.json()).workflow_runs || []);
+    };
+
+    const loadScanResult = async (token, runId) => {
+      const r = await fetch(`${SCANNER_API}/runs/${runId}/artifacts`, { headers: scannerHeaders(token) });
+      if (!r.ok) throw new Error('http');
+      const artifact = ((await r.json()).artifacts || []).find(a => a.name.startsWith('capital-markets-scan'));
+      if (!artifact) throw new Error('missing');
+      if (artifact.expired) throw new Error('expired');
+      // The token only ever goes to GitHub's API for this repo's artifacts. GitHub answers with
+      // a redirect to signed storage, and the browser drops the token on that cross-origin hop.
+      const download = String(artifact.archive_download_url || '');
+      if (!download.startsWith(SCANNER_API + '/artifacts/')) throw new Error('download');
+      const zipResp = await fetch(download, { headers: scannerHeaders(token) });
+      if (!zipResp.ok) throw new Error('download');
+      const zip = await zipResp.arrayBuffer();
+      const data = await window.ZipReader.readZipText(zip, 'data/capital-markets-scan.json');
+      if (!data) throw new Error('missing');
+      // The Markdown report, shown as plain text; the HTML report is never rendered here
+      const reportText = await window.ZipReader.readZipText(zip, 'report.md');
+      return { scan: JSON.parse(data), reportText };
+    };
+
+    const SCAN_ERRORS = {
+      access: 'GitHub refused access. The token needs read access to the Scanner repo\'s Actions.',
+      expired: 'This scan\'s results have expired (GitHub keeps them for 14 days). Pick a newer scan or run a new one.',
+      missing: 'This scan finished without a results file.',
+      download: 'The results could not be downloaded from GitHub. Try again in a minute.',
+      http: 'Could not reach GitHub. Try again in a minute.',
+    };
+
+    const ScanDashboard = () => {
+      const view = window.CapitalMarketsScanView;
+      const [token, setToken] = useState(() => (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) || '');
+      const [tokenInput, setTokenInput] = useState('');
+      const [runs, setRuns] = useState(null);
+      const [runId, setRunId] = useState(null);
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [section, setSection] = useState('');
+      const [tier, setTier] = useState('');
+      const [query, setQuery] = useState('');
+      const [refreshKey, setRefreshKey] = useState(0);
+
+      // A scan started from the bar above reloads the list when it finishes
+      useEffect(() => {
+        const onFinished = () => { setRunId(null); setRefreshKey(k => k + 1); };
+        window.addEventListener('woodmont:scan-finished', onFinished);
+        return () => window.removeEventListener('woodmont:scan-finished', onFinished);
+      }, []);
+
+      useEffect(() => {
+        if (!token) return;
+        let cancelled = false;
+        setError('');
+        loadScanRuns(token)
+          .then(list => { if (!cancelled) { setRuns(list); if (list.length) setRunId(id => id || list[0].id); } })
+          .catch(e => { if (!cancelled) setError(SCAN_ERRORS[e.message] || SCAN_ERRORS.http); });
+        return () => { cancelled = true; };
+      }, [token, refreshKey]);
+
+      useEffect(() => {
+        if (!token || !runId) return;
+        let cancelled = false;
+        setLoading(true);
+        setError('');
+        setResult(null);
+        loadScanResult(token, runId)
+          .then(r => { if (!cancelled) setResult(r); })
+          .catch(e => { if (!cancelled) setError(SCAN_ERRORS[e.message] || SCAN_ERRORS.download); })
+          .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+      }, [token, runId]);
+
+      const connect = () => {
+        const t = tokenInput.trim();
+        if (!t) return;
+        window.WoodmontUtils && window.WoodmontUtils.setGitHubToken(t);
+        setTokenInput('');
+        setToken(t);
+      };
+
+      const [showReport, setShowReport] = useState(false);
+
+      if (!token) {
+        return (
+          <div className="max-w-6xl mx-auto px-4 pb-12">
+            <div className="scan-dash-panel scan-connect">
+              <h2>Deal Scanner results</h2>
+              <p>Scan results stay private in the Woodmont Scanner repo on GitHub. Connect a GitHub token with access to it and this page fetches and lays them out here. The token lives only in this browser tab and is forgotten when you close it.</p>
+              <p>Use a fine-grained token limited to the <strong>woodmont-industrial/Scanner</strong> repository with <strong>Actions: Read-only</strong> to view results, or <strong>Actions: Read and write</strong> to also start scans, and a short expiry.</p>
+              <div className="scan-connect-row">
+                <input
+                  type="password"
+                  autoComplete="off"
+                  placeholder="GitHub token"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') connect(); }}
+                  aria-label="GitHub token"
+                />
+                <button className="scan-dash-btn" onClick={connect} disabled={!tokenInput.trim()}>Connect</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const scan = result && result.scan;
+      const v = scan && view ? view.buildView(scan, { section, tier, query }) : null;
+      const health = (scan && scan.sourceHealth) || {};
+      const run = runs && runs.find(r => r.id === runId);
+
+      return (
+        <div className="max-w-6xl mx-auto px-4 pb-12 scan-dash">
+          <div className="scan-dash-head">
+            <div>
+              <h2>Capital Markets Deal Scan</h2>
+              <div className="scan-dash-meta">
+                {scan ? <>Collected {view.formatCollectedAt(scan.completedAt)} · {scan.lookbackDays}-day lookback</> : run ? <>Scan from {formatEastern(run.created_at)}</> : 'Loading scans…'}
+              </div>
+            </div>
+            <div className="scan-dash-actions">
+              {runs && runs.length > 0 && (
+                <select value={runId || ''} onChange={(e) => setRunId(Number(e.target.value))} aria-label="Scan">
+                  {runs.map((r, i) => <option key={r.id} value={r.id}>{i === 0 ? 'Latest · ' : ''}{formatEastern(r.created_at)}</option>)}
+                </select>
+              )}
+              {result && result.reportText && (
+                <button className="scan-dash-btn scan-dash-btn-quiet" onClick={() => setShowReport(s => !s)} aria-expanded={showReport}>
+                  {showReport ? 'Hide full report' : 'Full report'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Rendered as plain text: nothing from the artifact is interpreted as HTML */}
+          {showReport && result && result.reportText && <pre className="scan-report">{result.reportText}</pre>}
+
+          {error && <div className="scan-dash-panel scan-dash-error">{error}</div>}
+          {runs && runs.length === 0 && !error && <div className="scan-dash-panel">No finished scans yet. Use Run Deal Scanner above to start one.</div>}
+          {loading && <div className="scan-dash-panel">Fetching results from GitHub…</div>}
+          {scan && !v.valid && <div className="scan-dash-panel scan-dash-error">This scan's results are in a format this page does not recognise.</div>}
+
+          {v && v.valid && (
+            <>
+              {v.stale && <div className="scan-dash-panel scan-dash-warn">These results are more than a day old. Run a new scan for current activity.</div>}
+              <div className="scan-kpis">
+                <div className="scan-kpi"><strong>{v.total}</strong><span>Qualifying findings</span></div>
+                <div className="scan-kpi"><strong>{(scan.newSinceLastScan || []).length}</strong><span>New since the previous scan</span></div>
+                <div className="scan-kpi"><strong>{health.withArticles ?? '–'}</strong><span>Sources with articles ({health.ok ?? '–'} of {health.attempted ?? '–'} reached)</span></div>
+                <div className="scan-kpi"><strong>{Math.round((scan.runtimeSeconds || 0) / 60) || '<1'} min</strong><span>Scan time · {scan.requests || 0} requests</span></div>
+              </div>
+
+              <div className="scan-dash-filters">
+                <div className="section-chips" role="group" aria-label="Section">
+                  <button className={`section-chip section-all ${!section ? 'section-chip-on' : ''}`} aria-pressed={!section} onClick={() => setSection('')}>All {v.total}</button>
+                  {Object.entries(view.sections).map(([key, label]) => (
+                    <button
+                      key={key}
+                      className={`section-chip scan-sec-${key} ${section === key ? 'section-chip-on' : ''}`}
+                      aria-pressed={section === key}
+                      disabled={!v.counts[key]}
+                      onClick={() => setSection(section === key ? '' : key)}
+                    >
+                      {label} {v.counts[key] || 0}
+                    </button>
+                  ))}
+                </div>
+                <div className="scan-dash-search">
+                  <select value={tier} onChange={(e) => setTier(e.target.value)} aria-label="Market">
+                    <option value="">All markets</option>
+                    {Object.entries(view.tiers).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  </select>
+                  <input placeholder="Search findings" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search findings" />
+                </div>
+              </div>
+
+              {v.hits.length === 0 ? (
+                <div className="scan-dash-panel">No findings match these filters.</div>
+              ) : (
+                <div className="scan-hits">
+                  {v.hits.map(hit => (
+                    <article key={hit.link} className={`scan-hit scan-sec-${hit.section}`}>
+                      <div className="scan-hit-tags">
+                        <span className="scan-hit-section">{view.sections[hit.section]}</span>
+                        <span className={`scan-hit-tier scan-tier-${hit.tier}`}>{view.tiers[hit.tier]}</span>
+                        {v.newTitles.has(hit.title) && <span className="scan-hit-new">New</span>}
+                        <span className="scan-hit-date">{view.formatDate(hit.publishedAt)}</span>
+                      </div>
+                      <h3>
+                        {view.safeLink(hit.link)
+                          ? <a href={hit.link} target="_blank" rel="noopener noreferrer">{decodeEntities(hit.title)}</a>
+                          : decodeEntities(hit.title)}
+                      </h3>
+                      <div className="scan-hit-facts">
+                        <span className="scan-hit-amount">{view.formatAmount(hit)}</span>
+                        <span>{hit.source}</span>
+                      </div>
+                      {hit.evidence && <p className="scan-hit-evidence">{decodeEntities(hit.evidence)}</p>}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      );
     };
 
     // The briefing exactly as it was last emailed, from the send pipeline's archive
@@ -200,6 +426,7 @@
       { key: 'articles', label: 'Article Feed' },
       { key: 'newsletter', label: 'Draft Preview' },
       { key: 'sent', label: 'Latest Sent Briefing' },
+      { key: 'scanner', label: 'Deal Scanner' },
     ];
 
     const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => {
@@ -3198,6 +3425,12 @@
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
       const [manualTitle, setManualTitle] = useState('');
       const [manualUrl, setManualUrl] = useState('');
+
+      useEffect(() => {
+        const open = () => setViewMode('scanner');
+        window.addEventListener('woodmont:open-scanner', open);
+        return () => window.removeEventListener('woodmont:open-scanner', open);
+      }, []);
       // Older stories from the website archive. Browsing only: the newsletter draft keeps using `items`
       const [archiveItems, setArchiveItems] = useState([]);
 
@@ -4513,6 +4746,8 @@
                   onRemoveFromNewsletter={handleRemoveFromNewsletter}
                 />
               </>
+            ) : viewMode === "scanner" ? (
+              <ScanDashboard />
             ) : viewMode === "sent" ? (
               <SentBriefing />
             ) : viewMode === "newsletter" ? (
