@@ -89,6 +89,17 @@ jobs:
         # enrichment needs the full 15 min. Match weekdays so weekends stop failing.
         timeout-minutes: 15
 
+      # Private photo-lookup diagnostics (publisher hosts and failure counts). Kept out of
+      # docs/, which is the public Pages site.
+      - name: Upload image diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-diagnostics-${{ github.run_id }}
+          path: .build-diagnostics/
+          retention-days: 30
+          if-no-files-found: ignore
+
       # Commit
       - name: Commit updated feed
         run: |

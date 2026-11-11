@@ -6,7 +6,9 @@
     "source": "Real Estate NJ",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-11-05 — Cloudflare blocks GitHub Actions IPs (200 from a local machine, challenge on Actions; Playwright fallback also fails). Covered by Google News RE-NJ Industrial and Google News RE-NJ Deals. Re-enable if the block lifts."
   },
   {
     "url": "https://commercialsearch.com/news/feed",
@@ -898,7 +900,9 @@
     "type": "industrial-news",
     "timeout": 30000,
     "headers": "browser",
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-11-05 — 403 on GitHub Actions IPs (200 from a local machine). Covered by Google News ROI-NJ Industrial, People and Real Estate."
   },
   {
     "url": "https://news.google.com/rss/search?q=%22Matrix+Development%22+OR+%22Heller+Industrial%22+OR+%22Sitex+Group%22+New+Jersey&hl=en-US&gl=US&ceid=US:en",
@@ -1790,7 +1794,7 @@
     "type": "availabilities",
     "timeout": 30000,
     "_note": "CommercialSearch availability listings (Cloudflare backup)",
-    "enabled": true,
+    "enabled": false,
     "tier": "D",
     "active": false,
     "deactivatedReason": "Listing aggregator or global news with no NJ/PA/FL filter — was source of international leaks (Norway/Austria/Madagascar/Australia/UK).",
@@ -2102,7 +2106,7 @@
     "type": "industrial-news",
     "timeout": 30000,
     "_note": "Proxy for commercialsearch.com industrial (Cloudflare blocked)",
-    "enabled": true,
+    "enabled": false,
     "tier": "D",
     "active": false,
     "deactivatedReason": "Listing aggregator or global news with no NJ/PA/FL filter — was source of international leaks (Norway/Austria/Madagascar/Australia/UK).",
@@ -2218,7 +2222,9 @@
     "source": "Real Estate NJ",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-11-05 — Cloudflare blocks GitHub Actions IPs. Covered by Google News RE-NJ People."
   },
   {
     "url": "https://njbiz.com/category/people-on-the-move/feed/",
@@ -2238,7 +2244,9 @@
     "source": "ROI-NJ",
     "type": "industrial-news",
     "timeout": 30000,
-    "tier": "A"
+    "tier": "A",
+    "enabled": false,
+    "_note": "Disabled 2026-11-05 — endpoint gone: deterministic 404 and no tracking category exists in the ROI-NJ category API. Covered by Google News ROI-NJ Real Estate."
   },
   {
     "url": "https://news.google.com/rss/search?q=(Prologis+OR+%22Link+Logistics%22+OR+%22Bridge+Industrial%22+OR+Rexford+OR+%22Stag+Industrial%22+OR+%22First+Industrial%22+OR+EastGroup+OR+Terreno+OR+%22Centerpoint%22+OR+%22Duke+Realty%22)+(%22joins%22+OR+%22hired%22+OR+%22promoted%22+OR+%22appointed%22+OR+%22named%22+OR+%22executive+vice+president%22+OR+%22senior+vice+president%22)&hl=en-US&gl=US&ceid=US:en",
@@ -2309,6 +2317,24 @@
     "region": "NJ",
     "source": "Real Estate NJ",
     "type": "people",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News RE-NJ Deals",
+    "url": "https://news.google.com/rss/search?q=site%3Are-nj.com%20(%22sq.%20ft.%22%20OR%20buys%20OR%20acquires%20OR%20sells%20OR%20sale%20OR%20lease%20OR%20financing%20OR%20%22breaks%20ground%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "Real Estate NJ",
+    "type": "industrial-news",
+    "timeout": 30000,
+    "tier": "A"
+  },
+  {
+    "name": "Google News ROI-NJ Real Estate",
+    "url": "https://news.google.com/rss/search?q=site%3Aroi-nj.com%20(%22sq.%20ft.%22%20OR%20%22square%20feet%22%20OR%20warehouse%20OR%20lease%20OR%20acquires%20OR%20%22real%20estate%22)&hl=en-US&gl=US&ceid=US:en",
+    "region": "NJ",
+    "source": "ROI-NJ",
+    "type": "industrial-news",
     "timeout": 30000,
     "tier": "A"
   },

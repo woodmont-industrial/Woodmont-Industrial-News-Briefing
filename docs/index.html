@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Woodmont Industrial News Feed</title>
+  <title>Woodmont Industrial News Briefing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,6 +16,8 @@
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/capital-markets.js"></script>
+  <script src="js/capital-markets-scan-view.js"></script>
+  <script src="js/zip-reader.js"></script>
   <script src="js/utils.js"></script>
 </head>
 <body>
@@ -39,135 +44,444 @@
         return "All Time";
       })();
 
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
       return (
-        <header className="relative overflow-hidden">
-          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'dark' ? 'from-[#02060d] via-[#061a33] to-[#0B223F]' : 'from-[#020814] via-[#07203c] to-[#0B223F]'}`}></div>
-          <div className="relative px-6 py-10 text-center text-white">
-            <div className="flex items-center justify-center gap-6">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight drop-shadow-lg">
-                  🏢 Woodmont Industrial Partners
-                </h1>
-                <p className={`text-2xl md:text-3xl font-semibold mb-4 ${theme === 'dark' ? 'text-slate-300' : 'text-blue-100'}`}>
-                  Daily Real Estate News Briefing
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
-                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
-                    📅 {period}
-                  </span>
-                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-base font-medium">
-                    📍 Focus Markets: <strong className="ml-1">NJ • PA • FL</strong>
-                  </span>
-                </div>
+        <header className="masthead">
+          <div className="masthead-inner">
+            <div className="flex items-center gap-4 min-w-0">
+              <span className="masthead-logo">
+                <img src="assets/woodmont-logo.jpg" alt="Woodmont Industrial Partners" />
+              </span>
+              <div className="min-w-0">
+                <div className="masthead-eyebrow">Woodmont Industrial Partners</div>
+                <h1 className="masthead-title">Industrial News Briefing</h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="masthead-meta hidden sm:block">
+                <div>{today}</div>
+                <div>{period} &middot; NJ &middot; PA &middot; FL</div>
               </div>
               <button
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-3 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all text-xl"
+                className="icon-btn"
                 title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
               >
-                {theme === 'light' ? '🌙' : '☀️'}
+                {theme === 'light' ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                )}
               </button>
             </div>
           </div>
+          <ScanBar />
         </header>
       );
     };
 
-    const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => (
-      <>
-        <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1 flex gap-3 flex-wrap">
-            <input
-              className="w-full md:w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
-              placeholder="Search title or summary"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <select
-              className="w-36 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              {regions.map(r => <option key={r} value={r === "All" ? "" : r}>{r}</option>)}
-            </select>
-            <select
-              className="w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Category: All</option>
-              <option value="relevant">Relevant</option>
-              <option value="transactions">Transactions</option>
-              <option value="availabilities">Availabilities</option>
-              <option value="people">People News</option>
-            </select>
-            <select
-              className="w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-            >
-              <option value="">Source: All</option>
-              {sources.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select
-              className="w-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-            </select>
-            <select
-              className="w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-            >
-              <option value="1">Last 24 hours</option>
-              <option value="2">Last 48 hours</option>
-              <option value="3">Last 3 days</option>
-              <option value="7">Last 7 days</option>
-              <option value="14">Last 14 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-            </select>
-          </div>
-          <div className="flex gap-3 items-center">
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              {stats.filtered} of {stats.total} articles • Updated {stats.updated}
-            </div>
-              <div className="flex gap-2">
-              <a
-                  href="raw.html"
-                  className="px-4 py-2 rounded-xl font-medium transition-all bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900 no-underline"
-              >
-                  📋 Raw
-              </a>
-              <button
-                  onClick={() => setViewMode(viewMode === "articles" ? "newsletter" : "articles")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                  viewMode === "articles"
-                      ? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-                      : "bg-[#0B223F] text-white"
-                }`}
-              >
-                  {viewMode === "articles" ? "📧 Newsletter" : "📰 Articles"}
-              </button>
-              {!IS_STATIC && (
-              <button
-                  onClick={() => setViewMode(viewMode === "admin" ? "articles" : "admin")}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    viewMode === "admin"
-                      ? "bg-purple-500 text-white"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  ⚙️ Admin
-              </button>
+    // Starts the private Capital Markets scan in the Scanner repo. Results are read back
+    // from the run's Actions artifacts onto the Deal Scanner tab; nothing is published here.
+    const ScanBar = () => {
+      const [days, setDays] = useState('30');
+      const [status, setStatus] = useState({ state: 'idle', text: '' });
+
+      const runScan = async () => {
+        const token = window.WoodmontUtils && window.WoodmontUtils.getGitHubToken();
+        if (!token) {
+          window.dispatchEvent(new CustomEvent('woodmont:open-scanner'));
+          setStatus({ state: 'info', text: 'Connect a GitHub token on the Deal Scanner tab to run scans and see results here.' });
+          return;
+        }
+        setStatus({ state: 'running', text: 'Starting scan…' });
+        const api = 'https://api.github.com/repos/woodmont-industrial/Scanner/actions';
+        const headers = { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' };
+        try {
+          const startedAt = Date.now();
+          // Only lookback_days: the collection mode defaults to discovery-only, and older
+          // versions of the workflow reject inputs they do not declare (HTTP 422)
+          const resp = await fetch(api + '/workflows/scan.yml/dispatches', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ ref: 'main', inputs: { lookback_days: days } })
+          });
+          if (resp.status === 204) {
+            setStatus({ state: 'progress', text: 'Scan started. Following its progress…' });
+            // Follow the run this dispatch created until it finishes
+            let run = null;
+            for (let i = 0; i < 90; i++) {
+              await new Promise(r => setTimeout(r, i === 0 ? 4000 : 15000));
+              const list = await fetch(api + '/workflows/scan.yml/runs?event=workflow_dispatch&per_page=1', { headers }).then(r => r.ok ? r.json() : null).catch(() => null);
+              const latest = list && list.workflow_runs && list.workflow_runs[0];
+              if (latest && new Date(latest.created_at).getTime() >= startedAt - 60000) run = latest;
+              if (!run) continue;
+              const mins = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+              if (run.status !== 'completed') {
+                setStatus({ state: 'progress', text: `Scan ${run.status === 'queued' ? 'queued' : 'running'} (${mins} min so far, usually about 3).` });
+              } else if (run.conclusion === 'success') {
+                window.dispatchEvent(new CustomEvent('woodmont:scan-finished'));
+                setStatus({ state: 'ok', text: 'Scan finished.', action: 'view' });
+                return;
+              } else {
+                setStatus({ state: 'error', text: `The scan ended without a report (${run.conclusion}).`, url: run.html_url, link: 'See what happened →' });
+                return;
+              }
+            }
+            setStatus({ state: 'info', text: 'Stopped following the scan here; it may still be running. Its results will appear on the Deal Scanner tab when it finishes.' });
+          } else {
+            setStatus({ state: 'error', text: 'GitHub refused the scan (' + resp.status + '). Your token needs Actions access to the Scanner repo; you can start it on GitHub instead.' });
+          }
+        } catch (_) {
+          setStatus({ state: 'error', text: 'Could not reach GitHub. You can start the scan on GitHub instead.' });
+        }
+      };
+
+      return (
+        <div className="scan-bar">
+          <div className="scan-bar-inner">
+            <button className="scan-btn" onClick={runScan} disabled={status.state === 'running' || status.state === 'progress'}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              {status.state === 'running' ? 'Starting scan…' : status.state === 'progress' ? 'Scan in progress…' : 'Run Deal Scanner'}
+            </button>
+            <label className="scan-days">
+              Look back
+              <select value={days} onChange={(e) => setDays(e.target.value)}>
+                {['7', '30', '60', '90'].map(d => <option key={d} value={d}>{d} days</option>)}
+              </select>
+            </label>
+            <div className={`scan-status scan-status-${status.state}`}>
+              {status.text || 'Sales, leases and construction across NJ, PA and FL. Results appear on the Deal Scanner tab.'}
+              {status.action === 'view' && (
+                <> <button className="scan-view-btn" onClick={() => window.dispatchEvent(new CustomEvent('woodmont:open-scanner'))}>View results →</button></>
+              )}
+              {/* A failed run is the one case worth GitHub's own log */}
+              {status.state === 'error' && status.url && (
+                <> <a href={status.url} target="_blank" rel="noopener noreferrer">{status.link || 'See what happened →'}</a></>
               )}
             </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Times are shown in Eastern, where the briefing is built and sent
+    const formatEastern = (iso) => {
+      const d = iso ? new Date(iso) : null;
+      if (!d || isNaN(d.getTime())) return '';
+      return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
+    };
+
+    // Capital Markets scan results, read straight from the private Scanner repo's run
+    // artifacts with the viewer's own GitHub token. Nothing is stored or published here.
+    const SCANNER_API = 'https://api.github.com/repos/woodmont-industrial/Scanner/actions';
+    const scannerHeaders = (token) => ({ 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github+json' });
+    const decodeEntities = (s) => { const t = document.createElement('textarea'); t.innerHTML = String(s || ''); return t.value; };
+
+    const loadScanRuns = async (token) => {
+      const r = await fetch(SCANNER_API + '/workflows/scan.yml/runs?status=success&per_page=10', { headers: scannerHeaders(token) });
+      if (!r.ok) throw new Error(r.status === 401 || r.status === 403 || r.status === 404 ? 'access' : 'http');
+      return ((await r.json()).workflow_runs || []);
+    };
+
+    const loadScanResult = async (token, runId) => {
+      const r = await fetch(`${SCANNER_API}/runs/${runId}/artifacts`, { headers: scannerHeaders(token) });
+      if (!r.ok) throw new Error('http');
+      const artifact = ((await r.json()).artifacts || []).find(a => a.name.startsWith('capital-markets-scan'));
+      if (!artifact) throw new Error('missing');
+      if (artifact.expired) throw new Error('expired');
+      // The token only ever goes to GitHub's API for this repo's artifacts. GitHub answers with
+      // a redirect to signed storage, and the browser drops the token on that cross-origin hop.
+      const download = String(artifact.archive_download_url || '');
+      if (!download.startsWith(SCANNER_API + '/artifacts/')) throw new Error('download');
+      const zipResp = await fetch(download, { headers: scannerHeaders(token) });
+      if (!zipResp.ok) throw new Error('download');
+      const zip = await zipResp.arrayBuffer();
+      const data = await window.ZipReader.readZipText(zip, 'data/capital-markets-scan.json');
+      if (!data) throw new Error('missing');
+      // The Markdown report, shown as plain text; the HTML report is never rendered here
+      const reportText = await window.ZipReader.readZipText(zip, 'report.md');
+      return { scan: JSON.parse(data), reportText };
+    };
+
+    const SCAN_ERRORS = {
+      access: 'GitHub refused access. The token needs read access to the Scanner repo\'s Actions.',
+      expired: 'This scan\'s results have expired (GitHub keeps them for 14 days). Pick a newer scan or run a new one.',
+      missing: 'This scan finished without a results file.',
+      download: 'The results could not be downloaded from GitHub. Try again in a minute.',
+      http: 'Could not reach GitHub. Try again in a minute.',
+    };
+
+    const ScanDashboard = () => {
+      const view = window.CapitalMarketsScanView;
+      const [token, setToken] = useState(() => (window.WoodmontUtils && window.WoodmontUtils.getGitHubToken()) || '');
+      const [tokenInput, setTokenInput] = useState('');
+      const [runs, setRuns] = useState(null);
+      const [runId, setRunId] = useState(null);
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [section, setSection] = useState('');
+      const [tier, setTier] = useState('');
+      const [query, setQuery] = useState('');
+      const [refreshKey, setRefreshKey] = useState(0);
+
+      // A scan started from the bar above reloads the list when it finishes
+      useEffect(() => {
+        const onFinished = () => { setRunId(null); setRefreshKey(k => k + 1); };
+        window.addEventListener('woodmont:scan-finished', onFinished);
+        return () => window.removeEventListener('woodmont:scan-finished', onFinished);
+      }, []);
+
+      useEffect(() => {
+        if (!token) return;
+        let cancelled = false;
+        setError('');
+        loadScanRuns(token)
+          .then(list => { if (!cancelled) { setRuns(list); if (list.length) setRunId(id => id || list[0].id); } })
+          .catch(e => { if (!cancelled) setError(SCAN_ERRORS[e.message] || SCAN_ERRORS.http); });
+        return () => { cancelled = true; };
+      }, [token, refreshKey]);
+
+      useEffect(() => {
+        if (!token || !runId) return;
+        let cancelled = false;
+        setLoading(true);
+        setError('');
+        setResult(null);
+        loadScanResult(token, runId)
+          .then(r => { if (!cancelled) setResult(r); })
+          .catch(e => { if (!cancelled) setError(SCAN_ERRORS[e.message] || SCAN_ERRORS.download); })
+          .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+      }, [token, runId]);
+
+      const connect = () => {
+        const t = tokenInput.trim();
+        if (!t) return;
+        window.WoodmontUtils && window.WoodmontUtils.setGitHubToken(t);
+        setTokenInput('');
+        setToken(t);
+      };
+
+      const [showReport, setShowReport] = useState(false);
+
+      if (!token) {
+        return (
+          <div className="max-w-6xl mx-auto px-4 pb-12">
+            <div className="scan-dash-panel scan-connect">
+              <h2>Deal Scanner results</h2>
+              <p>Scan results stay private in the Woodmont Scanner repo on GitHub. Connect a GitHub token with access to it and this page fetches and lays them out here. The token lives only in this browser tab and is forgotten when you close it.</p>
+              <p>Use a fine-grained token limited to the <strong>woodmont-industrial/Scanner</strong> repository with <strong>Actions: Read-only</strong> to view results, or <strong>Actions: Read and write</strong> to also start scans, and a short expiry.</p>
+              <div className="scan-connect-row">
+                <input
+                  type="password"
+                  autoComplete="off"
+                  placeholder="GitHub token"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') connect(); }}
+                  aria-label="GitHub token"
+                />
+                <button className="scan-dash-btn" onClick={connect} disabled={!tokenInput.trim()}>Connect</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const scan = result && result.scan;
+      const v = scan && view ? view.buildView(scan, { section, tier, query }) : null;
+      const health = (scan && scan.sourceHealth) || {};
+      const run = runs && runs.find(r => r.id === runId);
+
+      return (
+        <div className="max-w-6xl mx-auto px-4 pb-12 scan-dash">
+          <div className="scan-dash-head">
+            <div>
+              <h2>Capital Markets Deal Scan</h2>
+              <div className="scan-dash-meta">
+                {scan ? <>Collected {view.formatCollectedAt(scan.completedAt)} · {scan.lookbackDays}-day lookback</> : run ? <>Scan from {formatEastern(run.created_at)}</> : 'Loading scans…'}
+              </div>
+            </div>
+            <div className="scan-dash-actions">
+              {runs && runs.length > 0 && (
+                <select value={runId || ''} onChange={(e) => setRunId(Number(e.target.value))} aria-label="Scan">
+                  {runs.map((r, i) => <option key={r.id} value={r.id}>{i === 0 ? 'Latest · ' : ''}{formatEastern(r.created_at)}</option>)}
+                </select>
+              )}
+              {result && result.reportText && (
+                <button className="scan-dash-btn scan-dash-btn-quiet" onClick={() => setShowReport(s => !s)} aria-expanded={showReport}>
+                  {showReport ? 'Hide full report' : 'Full report'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Rendered as plain text: nothing from the artifact is interpreted as HTML */}
+          {showReport && result && result.reportText && <pre className="scan-report">{result.reportText}</pre>}
+
+          {error && <div className="scan-dash-panel scan-dash-error">{error}</div>}
+          {runs && runs.length === 0 && !error && <div className="scan-dash-panel">No finished scans yet. Use Run Deal Scanner above to start one.</div>}
+          {loading && <div className="scan-dash-panel">Fetching results from GitHub…</div>}
+          {scan && !v.valid && <div className="scan-dash-panel scan-dash-error">This scan's results are in a format this page does not recognise.</div>}
+
+          {v && v.valid && (
+            <>
+              {v.stale && <div className="scan-dash-panel scan-dash-warn">These results are more than a day old. Run a new scan for current activity.</div>}
+              <div className="scan-kpis">
+                <div className="scan-kpi"><strong>{v.total}</strong><span>Qualifying findings</span></div>
+                <div className="scan-kpi"><strong>{(scan.newSinceLastScan || []).length}</strong><span>New since the previous scan</span></div>
+                <div className="scan-kpi"><strong>{health.withArticles ?? '–'}</strong><span>Sources with articles ({health.ok ?? '–'} of {health.attempted ?? '–'} reached)</span></div>
+                <div className="scan-kpi"><strong>{Math.round((scan.runtimeSeconds || 0) / 60) || '<1'} min</strong><span>Scan time · {scan.requests || 0} requests</span></div>
+              </div>
+
+              <div className="scan-dash-filters">
+                <div className="section-chips" role="group" aria-label="Section">
+                  <button className={`section-chip section-all ${!section ? 'section-chip-on' : ''}`} aria-pressed={!section} onClick={() => setSection('')}>All {v.total}</button>
+                  {Object.entries(view.sections).map(([key, label]) => (
+                    <button
+                      key={key}
+                      className={`section-chip scan-sec-${key} ${section === key ? 'section-chip-on' : ''}`}
+                      aria-pressed={section === key}
+                      disabled={!v.counts[key]}
+                      onClick={() => setSection(section === key ? '' : key)}
+                    >
+                      {label} {v.counts[key] || 0}
+                    </button>
+                  ))}
+                </div>
+                <div className="scan-dash-search">
+                  <select value={tier} onChange={(e) => setTier(e.target.value)} aria-label="Market">
+                    <option value="">All markets</option>
+                    {Object.entries(view.tiers).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  </select>
+                  <input placeholder="Search findings" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search findings" />
+                </div>
+              </div>
+
+              {v.hits.length === 0 ? (
+                <div className="scan-dash-panel">No findings match these filters.</div>
+              ) : (
+                <div className="scan-hits">
+                  {v.hits.map(hit => (
+                    <article key={hit.link} className={`scan-hit scan-sec-${hit.section}`}>
+                      <div className="scan-hit-tags">
+                        <span className="scan-hit-section">{view.sections[hit.section]}</span>
+                        <span className={`scan-hit-tier scan-tier-${hit.tier}`}>{view.tiers[hit.tier]}</span>
+                        {v.newTitles.has(hit.title) && <span className="scan-hit-new">New</span>}
+                        <span className="scan-hit-date">{view.formatDate(hit.publishedAt)}</span>
+                      </div>
+                      <h3>
+                        {view.safeLink(hit.link)
+                          ? <a href={hit.link} target="_blank" rel="noopener noreferrer">{decodeEntities(hit.title)}</a>
+                          : decodeEntities(hit.title)}
+                      </h3>
+                      <div className="scan-hit-facts">
+                        <span className="scan-hit-amount">{view.formatAmount(hit)}</span>
+                        <span>{hit.source}</span>
+                      </div>
+                      {hit.evidence && <p className="scan-hit-evidence">{decodeEntities(hit.evidence)}</p>}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      );
+    };
+
+    // The briefing exactly as it was last emailed, from the send pipeline's archive
+    const SentBriefing = () => {
+      const [meta, setMeta] = useState(null);
+      const [failed, setFailed] = useState(false);
+      useEffect(() => {
+        fetch('newsletter-archive/latest.json?' + Date.now())
+          .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(setMeta)
+          .catch(() => setFailed(true));
+      }, []);
+      return (
+        <div className="max-w-6xl mx-auto px-4 pb-12">
+          <div className="sent-meta">
+            {failed ? 'The sent-briefing archive is not available.' : !meta ? 'Loading the latest sent briefing…' : (
+              <>
+                <span className="font-semibold">{meta.sentToRelay === false ? 'Generated (not sent)' : 'Sent'} {formatEastern(meta.generatedAt)}</span>
+                {typeof meta.articleCount === 'number' && <span>· {meta.articleCount} articles</span>}
+                {meta.subject && <span className="sent-subject">· {meta.subject}</span>}
+                <a href="newsletter-archive/latest.html" target="_blank" rel="noopener noreferrer" className="sent-open">Open in new tab →</a>
+              </>
+            )}
+          </div>
+          {!failed && (
+            <iframe title="Latest sent briefing" src="newsletter-archive/latest.html" className="sent-frame" />
+          )}
+        </div>
+      );
+    };
+
+    const VIEW_TABS = [
+      { key: 'articles', label: 'Article Feed' },
+      { key: 'newsletter', label: 'Draft Preview' },
+      { key: 'sent', label: 'Latest Sent Briefing' },
+      { key: 'scanner', label: 'Deal Scanner' },
+    ];
+
+    const FiltersBar = ({ query, setQuery, region, setRegion, source, setSource, category, setCategory, sort, setSort, timeframe, setTimeframe, sources, onRefresh, stats, viewMode, setViewMode, lastFetchInfo, refreshLoading }) => {
+      const [showMore, setShowMore] = useState(false);
+      const moreActive = [source, sort !== 'newest' ? sort : ''].filter(Boolean).length;
+      const sectionChips = [
+        { key: '', label: 'All' },
+        { key: 'relevant', label: 'Relevant' },
+        { key: 'transactions', label: 'Transactions' },
+        { key: 'availabilities', label: 'Availabilities' },
+        { key: 'people', label: 'People News' },
+      ];
+      const field = "rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 outline-none text-slate-900 dark:text-white";
+      const builtAt = formatEastern(stats.builtAt);
+
+      return (
+      <>
+        <div className="max-w-6xl mx-auto px-4 pt-6 pb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="view-tabs" role="tablist">
+            {VIEW_TABS.map(tab => (
+              <button
+                key={tab.key}
+                role="tab"
+                aria-selected={viewMode === tab.key}
+                className={`view-tab ${viewMode === tab.key ? 'view-tab-active' : ''}`}
+                onClick={() => setViewMode(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+            {!IS_STATIC && (
+              <button
+                role="tab"
+                aria-selected={viewMode === 'admin'}
+                className={`view-tab ${viewMode === 'admin' ? 'view-tab-active' : ''}`}
+                onClick={() => setViewMode('admin')}
+              >
+                Admin
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3 items-center flex-wrap">
+            <div className="text-sm text-slate-600 dark:text-slate-400" title={stats.loadedAt ? 'Page data loaded ' + formatEastern(stats.loadedAt) : ''}>
+              {builtAt ? <>Feed built <span className="font-medium text-slate-800 dark:text-slate-200">{builtAt}</span></> : 'Feed build time unavailable'}
+            </div>
+            <a
+              href="raw.html"
+              className="px-4 py-2 rounded-xl font-medium transition-all bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 no-underline"
+            >
+              Raw
+            </a>
             <button
               onClick={onRefresh}
               disabled={refreshLoading}
+              title="Reload the latest published feed"
               className="px-4 py-2 bg-[#0B223F] text-white rounded-xl font-medium hover:bg-[#16406b] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {refreshLoading ? (
@@ -177,12 +491,73 @@
                 </>
               ) : (
                 <>
-                  🔄 Refresh
+                  Refresh
                 </>
               )}
             </button>
           </div>
         </div>
+        {viewMode === 'articles' && (
+          <div className="max-w-6xl mx-auto px-4 pb-4 flex flex-col gap-3">
+            <div className="flex gap-3 flex-wrap items-center">
+              <input
+                className={`${field} w-full md:w-80 placeholder-slate-500 dark:placeholder-slate-400`}
+                placeholder="Search title or summary"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <select className={`${field} w-36`} value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
+                {regions.map(r => <option key={r} value={r === "All" ? "" : r}>{r === "All" ? "All regions" : r}</option>)}
+              </select>
+              <select className={`${field} w-40`} value={timeframe} onChange={(e) => setTimeframe(e.target.value)} aria-label="Timeframe">
+                <option value="1">Last 24 hours</option>
+                <option value="2">Last 48 hours</option>
+                <option value="3">Last 3 days</option>
+                <option value="7">Last 7 days</option>
+                <option value="14">Last 14 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              <button
+                className={`more-filters-btn ${showMore ? 'more-filters-open' : ''}`}
+                onClick={() => setShowMore(v => !v)}
+                aria-expanded={showMore}
+              >
+                More filters{moreActive > 0 ? ` (${moreActive})` : ''}
+                <span aria-hidden="true">{showMore ? '▴' : '▾'}</span>
+              </button>
+            </div>
+            <div className="section-chips" role="group" aria-label="Section">
+              {sectionChips.map(c => (
+                <button
+                  key={c.key || 'all'}
+                  className={`section-chip section-${c.key || 'all'} ${category === c.key ? 'section-chip-on' : ''}`}
+                  aria-pressed={category === c.key}
+                  onClick={() => setCategory(c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            {showMore && (
+              <div className="flex gap-3 flex-wrap items-center">
+                <select className={`${field} w-56`} value={source} onChange={(e) => setSource(e.target.value)} aria-label="Source">
+                  <option value="">All sources</option>
+                  {sources.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select className={`${field} w-36`} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort">
+                  <option value="newest">Newest first</option>
+                  <option value="oldest">Oldest first</option>
+                </select>
+                {moreActive > 0 && (
+                  <button className="link-btn" onClick={() => { setSource(''); setSort('newest'); }}>
+                    Reset
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         <div className="max-w-6xl mx-auto px-4 pb-4">
           {lastFetchInfo && (
             <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm border border-slate-200 dark:border-slate-700">
@@ -223,15 +598,87 @@
           )}
         </div>
       </>
-    );
+      );
+    };
 
     // Placeholder images - from external utils.js
     const { getPlaceholderImage } = window.WoodmontUtils;
 
-    const ArticleCard = ({ item, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
+    // Publisher masthead, never a reporter name or an internal feed label.
+    // Shared by the tiles and the Source filter so both show the same names.
+    const publisherOf = (item) => {
+      let src = (typeof getPublisherName === 'function') ? getPublisherName(item) : '';
+      if (!src || src === 'Source') src = item.source || item.publisher || 'Source';
+      if (typeof src !== 'string') src = src.name || 'Source';
+      return src.replace(/^google\s+news\s+/i, '').trim() || 'Source';
+    };
+
+    // Aggregated titles end in " - Publisher"; the publisher is already shown on the tile
+    const titleWithoutPublisher = (title, publisher) => {
+      const t = title || '';
+      const segs = t.split(/\s+[-–—|]\s+/);
+      if (segs.length < 2) return t;
+      const last = segs[segs.length - 1].trim().toLowerCase();
+      return last === publisher.toLowerCase() ? t.slice(0, t.lastIndexOf(segs[segs.length - 1])).replace(/\s+[-–—|]\s*$/, '') : t;
+    };
+
+    // Facts stated in the headline itself: place, size, price and deal type.
+    // Anything the headline does not say is left out rather than guessed.
+    const headlineFacts = (title) => {
+      const t = String(title || '');
+      const facts = [];
+      let place = null;
+      for (const rx of REGION_DEAL_RX) {
+        rx.lastIndex = 0;
+        for (const m of t.matchAll(rx)) {
+          const geo = regionGeoOf(m[1]);
+          if (geo && geo !== 'NON_TARGET') {
+            // Name the town only when it is a known city in that state; otherwise just the state
+            const name = m[1].replace(/,\s*(?:[A-Z]{2}|New Jersey|Pennsylvania|Florida)$/, '').trim();
+            const key = name.toLowerCase();
+            const known = (REGION_CITIES[geo] || []).includes(key) && !REGION_AMBIGUOUS_CITIES.has(key);
+            place = known ? name + ', ' + geo : geo;
+            break;
+          }
+        }
+        if (place) break;
+      }
+      if (!place) {
+        const { targets, nonTarget } = regionScan(t);
+        if (targets.size === 1 && !nonTarget) place = [...targets][0];
+      }
+      if (place) facts.push(place);
+      const sf = t.match(/(\d[\d,]*(?:\.\d+)?)\s*(K|M)?[-\s]?(?:sq\.?\s*ft\.?|square[-\s]f(?:ee|oo)t|SF)\b/i);
+      if (sf) {
+        const v = parseFloat(sf[1].replace(/,/g, '')) * (/k/i.test(sf[2] || '') ? 1e3 : /m/i.test(sf[2] || '') ? 1e6 : 1);
+        if (v >= 1000) facts.push(v >= 1e6 ? (v / 1e6).toFixed(v >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M SF' : Math.round(v / 1e3) + 'K SF');
+      }
+      const px = t.match(/\$\s?(\d[\d,]*(?:\.\d+)?)\s*(billion|million|B|MM|M)?\b(?!\s+(?:discount|off|less|below|cut))/i);
+      if (px) {
+        const unit = (px[2] || '').toLowerCase();
+        const v = parseFloat(px[1].replace(/,/g, '')) * (unit.startsWith('b') ? 1e9 : unit.startsWith('m') ? 1e6 : 1);
+        if (v >= 1e5) facts.push(v >= 1e9 ? '$' + +(v / 1e9).toFixed(2) + 'B' : '$' + +(v / 1e6).toFixed(1) + 'M');
+      }
+      // A deal type alone ("Financing") is too thin to show without a place, size or price
+      if (!facts.length) return facts;
+      const lower = t.toLowerCase();
+      const types = [
+        ['Lease', /\b(?:sub)?leas(?:e|es|ing)\b|\brenew(?:s|al|ed)\b/],
+        ['Sale', /\b(?:buys?|bought|sells?(?!-off)|sold|sale|acquir(?:es|ed|ing)|acquisition|purchases?d?|trades|snags)\b/],
+        ['Financing', /\b(?:financ(?:ing|es|ed)|refinanc\w*|refi|loan)\b/],
+        ['Development', /\b(?:breaks? ground|groundbreaking|under construction|construction|delivers|completes|proposed|plans? for)\b/],
+      ].map(([label, rx]) => { const m = lower.match(rx); return m ? [label, m.index] : null; })
+       .filter(Boolean).sort((a, b) => a[1] - b[1]);
+      if (types.length) facts.push(types[0][0]);
+      return facts;
+    };
+
+    const ArticleCard = ({ item, fallbackImage, onClick, trackedMatches = [], onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter }) => {
       const category = item.category || 'relevant';
-      const fallback = getPlaceholderImage(category, item.title);
-      const [imgSrc, setImgSrc] = useState(item.image || fallback);
+      const fallback = fallbackImage || getPlaceholderImage(category, item.title);
+      // picsum.photos images are random (beaches, forests); use the industrial set instead
+      const hasArticleImage = Boolean(item.image) && !/(^|\.)picsum\.photos$/i.test((() => { try { return new URL(item.image).hostname; } catch (_) { return ''; } })());
+      const [imgSrc, setImgSrc] = useState(hasArticleImage ? item.image : fallback);
       const [imgError, setImgError] = useState(false);
 
       const published = item.pubDate ? new Date(item.pubDate) : null;
@@ -271,6 +718,14 @@
         relevant: 'from-slate-700/80'
       };
 
+      const publisher = publisherOf(item);
+      const displayTitle = titleWithoutPublisher(item.title, publisher);
+      const facts = category === 'people' ? [] : headlineFacts(displayTitle);
+      // Skip summaries that only repeat the headline
+      const norm = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const showSummary = item.description && !norm(item.description).startsWith(norm(displayTitle).slice(0, 60));
+      const isStockPhoto = !hasArticleImage || imgError;
+
       return (
         <article
           className={`card-anim bg-white dark:bg-slate-800 rounded-2xl overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-blue-400 dark:focus-within:ring-blue-600 cursor-pointer ${isTracked ? 'tracked-highlight' : ''}`}
@@ -283,7 +738,7 @@
         >
           <div className="relative aspect-video bg-slate-200 dark:bg-slate-900 overflow-hidden">
             <img
-              src={imgError ? fallback : (imgSrc || fallback)}
+              src={imgError || !hasArticleImage ? fallback : (imgSrc || fallback)}
               alt={item.title || 'Article image'}
               className="img-anim w-full h-full object-cover"
               loading="lazy"
@@ -294,22 +749,20 @@
             />
             {/* Gradient overlay with category color */}
             <div className={`absolute inset-0 bg-gradient-to-t ${categoryColors[category] || categoryColors.relevant} via-transparent to-transparent pointer-events-none`}></div>
+            {isStockPhoto && (
+              <span className="stock-photo-label" title="Illustrative stock photo, not the property in the article">Stock photo</span>
+            )}
             <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
               <span className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wide">
-                {(() => {
-                  // Prefer the resolved publisher; if that still has "Google News" prefix, strip it.
-                  let src = item.source || item.publisher;
-                  if (!src) src = (typeof getPublisherName === 'function') ? getPublisherName(item) : 'Source';
-                  if (typeof src !== 'string') src = src.name || 'Source';
-                  return src.replace(/^google\s+news\s+/i, '').trim() || 'Source';
-                })()}
+                {publisher}
               </span>
               {/* Author chip suppressed when it duplicates the source or is a Google News feed name */}
               {item.author && (() => {
                 const authorStr = typeof item.author === 'string' ? item.author : (item.author.name || '');
                 if (!authorStr || /^google\s+news/i.test(authorStr)) return null;
-                const srcStr = (item.source || item.publisher || '').toString();
-                if (srcStr && authorStr.toLowerCase() === srcStr.toLowerCase()) return null;
+                // "Commercial Search" vs "commercialsearch.com" is the same name
+                const nameKey = (s) => String(s || '').toLowerCase().replace(/^www\./, '').replace(/\.(com|net|org|co)$/, '').replace(/[^a-z0-9]/g, '');
+                if (publisher && nameKey(authorStr) === nameKey(publisher)) return null;
                 return (
                   <span className="bg-[#0B223F]/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm">
                     By {authorStr}
@@ -388,10 +841,13 @@
                 rel="noopener noreferrer"
                 className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                {item.title}
+                {displayTitle}
               </a>
             </h3>
-            {item.description && (
+            {facts.length > 0 && (
+              <div className="tile-facts">{facts.join(' · ')}</div>
+            )}
+            {showSummary && (
               <p className="text-sm text-slate-600 dark:text-slate-400 clamp-3 flex-1 leading-relaxed">
                 {item.description}
               </p>
@@ -517,7 +973,7 @@
       );
     };
 
-    const ArticleGrid = ({ items, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter, ignoredTopics, ignoredArticles }) => {
+    const ArticleGrid = ({ items, collectedTotal, historySince, loading, onArticleClick, trackedTopics, onTrackKeyword, onIgnoreArticle, onSendToRaw, onAddToNewsletter, onRemoveFromNewsletter, ignoredTopics, ignoredArticles }) => {
       // Calculate matches for each article
       const getArticleMatches = (article) => {
         return getMatchingTrackedTopics(article);
@@ -529,57 +985,63 @@
       //     - the LLM rubric did not explicitly reject (_woodmontApprove !== false)
       //   Items without the LLM field stamped (rubric failed, or item is from before
       //   the classifier was wired in) pass through — better to show than blackhole.
-      //   "Show all candidates" toggle: bypass both filters and show every collected item.
+      //   Every collected item shows by default; the toggle narrows to briefing candidates.
       //   ?debug=1 in URL: reveals _predictedReason + _tier + LLM verdict badges on each card.
       const isDebugMode = typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('debug') === '1';
-      const [showAllCandidates, setShowAllCandidates] = React.useState(false);
+      const [showAllCandidates, setShowAllCandidates] = React.useState(true);
 
       let visibleItems = items.filter(item => !isArticleIgnored(item));
       const totalBeforePredict = visibleItems.length;
-      if (!showAllCandidates) {
-        visibleItems = visibleItems.filter(item =>
-          item._predictedPublish !== false && item._woodmontApprove !== false
-        );
-      }
-      const hiddenByPredictCount = totalBeforePredict - visibleItems.length;
+      const isBriefingPick = item => item._predictedPublish !== false && item._woodmontApprove !== false;
+      const notPickedCount = visibleItems.filter(item => !isBriefingPick(item)).length;
+      if (!showAllCandidates) visibleItems = visibleItems.filter(isBriefingPick);
       const hiddenCount = items.length - totalBeforePredict;
+
+      // Give each tile on the page its own stock photo while the pools last
+      const usedImages = new Set();
+      const fallbackImages = new Map();
+      visibleItems.forEach(item => {
+        fallbackImages.set(item, getPlaceholderImage(item.category || 'relevant', item.title, usedImages));
+      });
 
       return (
         <div className="max-w-6xl mx-auto px-4">
-          {hiddenCount > 0 && (
-            <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
-              {hiddenCount} article{hiddenCount !== 1 ? 's' : ''} hidden based on your ignore preferences
-              <button
-                onClick={async () => {
-                  if (confirm('Clear all ignored articles?')) {
-                    await clearAllIgnored();
-                    window.location.reload();
-                  }
-                }}
-                className="ml-2 text-blue-600 hover:text-blue-700 underline"
-              >
-                (Clear all)
-              </button>
-            </div>
-          )}
-          {hiddenByPredictCount > 0 && (
-            <div className="mb-4 text-sm text-slate-500 dark:text-slate-400 text-center">
-              {hiddenByPredictCount} article{hiddenByPredictCount !== 1 ? 's' : ''} hidden — would not ship in today&apos;s briefing
-              <button
-                onClick={() => setShowAllCandidates(prev => !prev)}
-                className="ml-2 text-blue-600 hover:text-blue-700 underline"
-              >
-                ({showAllCandidates ? 'Hide non-publishable' : 'Show all candidates'})
-              </button>
-              {isDebugMode && (
-                <span className="ml-2 text-amber-600 dark:text-amber-400">· debug mode on</span>
+          {!loading && (
+            <div className="feed-counts">
+              <span className="feed-counts-main">{visibleItems.length} shown</span>
+              {notPickedCount > 0 && (
+                <span>
+                  · {showAllCandidates
+                      ? `${totalBeforePredict - notPickedCount} eligible briefing candidates`
+                      : `${notPickedCount} hidden by the briefing rules`}
+                  <button onClick={() => setShowAllCandidates(prev => !prev)} className="link-btn">
+                    {showAllCandidates ? 'Show candidates only' : 'Show all'}
+                  </button>
+                </span>
               )}
-            </div>
-          )}
-          {showAllCandidates && hiddenByPredictCount === 0 && isDebugMode && (
-            <div className="mb-4 text-sm text-amber-600 dark:text-amber-400 text-center">
-              debug mode on (?debug=1) — reasons + tier visible on cards
+              {hiddenCount > 0 && (
+                <span>
+                  · {hiddenCount} ignored by you
+                  <button
+                    onClick={async () => {
+                      if (confirm('Clear all ignored articles?')) {
+                        await clearAllIgnored();
+                        window.location.reload();
+                      }
+                    }}
+                    className="link-btn"
+                  >
+                    Clear
+                  </button>
+                </span>
+              )}
+              {typeof collectedTotal === 'number' && (
+                <span className="feed-counts-secondary">{collectedTotal} collected{historySince ? ` since ${historySince.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</span>
+              )}
+              {isDebugMode && (
+                <span className="text-amber-600 dark:text-amber-400">· debug mode on: reasons and tier shown on tiles</span>
+              )}
             </div>
           )}
           {loading ? (
@@ -592,20 +1054,24 @@
               <p className="text-slate-600 dark:text-slate-400">No articles found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {visibleItems.map(item => (
-                <ArticleCard
-                  key={item.id || item.link}
-                  item={item}
-                  onClick={onArticleClick}
-                  trackedMatches={getArticleMatches(item)}
-                  onTrackKeyword={onTrackKeyword}
-                  onIgnoreArticle={onIgnoreArticle}
-                  onSendToRaw={onSendToRaw}
-                  onAddToNewsletter={onAddToNewsletter}
-                  onRemoveFromNewsletter={onRemoveFromNewsletter}
-                />
-              ))}
+            <div className="pb-12">
+              {/* One mixed feed in the chosen sort order; the section chips above narrow it */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {visibleItems.map(item => (
+                      <ArticleCard
+                        key={item.id || item.link}
+                        item={item}
+                        fallbackImage={fallbackImages.get(item)}
+                        onClick={onArticleClick}
+                        trackedMatches={getArticleMatches(item)}
+                        onTrackKeyword={onTrackKeyword}
+                        onIgnoreArticle={onIgnoreArticle}
+                        onSendToRaw={onSendToRaw}
+                        onAddToNewsletter={onAddToNewsletter}
+                        onRemoveFromNewsletter={onRemoveFromNewsletter}
+                      />
+                    ))}
+                  </div>
             </div>
           )}
         </div>
@@ -964,7 +1430,7 @@
     // Tracked & Ignored Topics Panel Component
     const TrackedTopicsPanel = ({ trackedTopics, ignoredTopics, ignoredArticles = [], onRemoveTopic, onAddTopic, onRemoveIgnored, onRemoveIgnoredArticle, matchingCount, onUserChange, currentUser }) => {
       const [newTopic, setNewTopic] = useState('');
-      const [isExpanded, setIsExpanded] = useState(true);
+      const [isExpanded, setIsExpanded] = useState(false);
       const [activeTab, setActiveTab] = useState('tracked');
       const [ghToken, setGhToken] = useState(() => getGitHubToken());
       const [tokenSaved, setTokenSaved] = useState(false);
@@ -983,11 +1449,13 @@
       return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
           <div
-            className="px-4 py-3 bg-gradient-to-r from-[#0B223F] to-[#16406b] dark:from-slate-700 dark:to-slate-600 text-white cursor-pointer flex items-center justify-between"
+            className="prefs-header"
             onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold">Your Preferences</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold">Your Preferences</span>
+              {!isExpanded && <span className="text-xs text-slate-500 dark:text-slate-400">tracked topics, ignored articles, settings</span>}
               {matchingCount > 0 && (
                 <span className="bg-white text-blue-600 text-xs font-bold px-2 py-1 rounded-full">
                   {matchingCount} tracking
@@ -999,7 +1467,7 @@
                 </span>
               )}
             </div>
-            <span className="text-xl">{isExpanded ? '▼' : '▶'}</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{isExpanded ? '▴' : '▾'}</span>
           </div>
 
           {isExpanded && (
@@ -2249,7 +2717,7 @@
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 mb-6">
             <div className="flex flex-wrap items-center gap-4 justify-between">
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📧 Newsletter Generator</h2>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Draft Generator</h2>
                 {generated && (
                   <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full">
                     ✓ Generated
@@ -2392,20 +2860,20 @@
                 <button
                   onClick={onGenerate}
                   disabled={theme === 'capital-markets' && cmWatchlistStatus === 'loading'}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="btn-primary"
                 >
                   {theme === 'capital-markets' && cmWatchlistStatus === 'loading'
-                    ? 'Loading Watchlist…' : 'Generate Newsletter'}
+                    ? 'Loading Watchlist…' : 'Generate Draft'}
                 </button>
 
                 <button
                   onClick={loadPreviewArticles}
                   disabled={articlePanelLoading}
-                  className="px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="btn-secondary"
                 >
                   {articlePanelLoading ? (
                     <>
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="animate-spin w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full"></div>
                       Loading...
                     </>
                   ) : (
@@ -2416,15 +2884,15 @@
                 <button
                   onClick={onFetchFeedHealth}
                   disabled={feedHealthLoading}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="btn-secondary"
                 >
                   {feedHealthLoading ? (
                     <>
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="animate-spin w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full"></div>
                       Loading...
                     </>
                   ) : (
-                    <>📊 Feed Health</>
+                    <>Feed Health</>
                   )}
                 </button>
                 
@@ -2432,9 +2900,9 @@
                   <>
                     <button
                       onClick={downloadNewsletter}
-                      className="px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition-colors"
+                      className="btn-secondary"
                     >
-                      📄 Download PDF
+                      Download PDF
                     </button>
                     {theme === 'capital-markets' && (
                       <span className="px-3 py-2 rounded-lg text-sm font-bold bg-amber-100 text-amber-800 border-2 border-amber-400">
@@ -2447,21 +2915,21 @@
                     <button
                       onClick={onSendEmail}
                       disabled={emailLoading}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      className="btn-secondary"
                     >
                       {emailLoading ? (
                         <>
-                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          <div className="animate-spin w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full"></div>
                           Sending...
                         </>
                       ) : (
-                        <>📧 Send Email</>
+                        <>Send Email</>
                       )}
                     </button>
                     )}
                 <button
                       onClick={onClear}
-                      className="px-4 py-2 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
+                      className="btn-secondary"
                     >
                       Clear
                 </button>
@@ -2833,7 +3301,7 @@
                     href="feed.json"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-[#0B223F] text-white rounded-lg font-medium hover:bg-[#16406b] transition-colors text-sm no-underline inline-flex items-center gap-2"
+                    className="btn-secondary no-underline"
                   >
                     View feed.json
                   </a>
@@ -2841,7 +3309,7 @@
                     href="rss.xml"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm no-underline inline-flex items-center gap-2"
+                    className="btn-secondary no-underline"
                   >
                     View rss.xml
                   </a>
@@ -2893,7 +3361,7 @@
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden mt-4">
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">🕷️ Scraper Feed Health</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Scraper Feed Health</h3>
                   <span className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded">13 sources</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm">
@@ -2932,8 +3400,10 @@
       const [category, setCategory] = useState("");
       const [source, setSource] = useState("");
       const [sort, setSort] = useState("newest");
-      const [timeframe, setTimeframe] = useState("1"); // 24h default: Header chip, selector and query all agree
+      const [timeframe, setTimeframe] = useState("90"); // 90-day default so the page never looks empty; Header chip, selector and query all agree
       const [lastUpdated, setLastUpdated] = useState("");
+      // When the feed itself was built (build receipt), as opposed to when this page loaded it
+      const [feedBuiltAt, setFeedBuiltAt] = useState(null);
       const [viewMode, setViewMode] = useState("articles");
       const [theme, setTheme] = useState("light");
       const [newsletterHTML, setNewsletterHTML] = useState("");
@@ -2955,6 +3425,44 @@
       const [lastFetchInfo, setLastFetchInfo] = useState(null);
       const [manualTitle, setManualTitle] = useState('');
       const [manualUrl, setManualUrl] = useState('');
+
+      useEffect(() => {
+        const open = () => setViewMode('scanner');
+        window.addEventListener('woodmont:open-scanner', open);
+        return () => window.removeEventListener('woodmont:open-scanner', open);
+      }, []);
+      // Older stories from the website archive. Browsing only: the newsletter draft keeps using `items`
+      const [archiveItems, setArchiveItems] = useState([]);
+
+      useEffect(() => {
+        if (!IS_STATIC) return;
+        fetch('archive.json?' + Date.now())
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data || !Array.isArray(data.items)) return;
+            // Copy the approved public fields only; anything else in a record is ignored
+            setArchiveItems(data.items.filter(item => item && item.id && item.title && item.url && item.date_published).map(item => ({
+              id: item.id,
+              title: item.title,
+              url: item.url,
+              image: item.image,
+              author: item.author,
+              tags: item.tags,
+              summary: item.summary,
+              content_text: item.content_text,
+              date_published: item.date_published,
+              link: item.url,
+              pubDate: item.date_published,
+              description: item.content_text || item.summary || '',
+              source: (item.author && item.author.name) || 'Unknown',
+              category: item.category || 'relevant',
+              // Only the live feed supplies briefing candidates
+              _predictedPublish: false,
+              _fromArchive: true,
+            })));
+          })
+          .catch(() => {});
+      }, []);
       const [manualSummary, setManualSummary] = useState('');
       const [manualCategory, setManualCategory] = useState('relevant');
       const [manualSource, setManualSource] = useState('');
@@ -3271,12 +3779,12 @@
             return !isDup;
           });
           setItems(dedupedArticles);
-          if (data.generatedAt) {
-            const d = new Date(data.generatedAt);
-            setLastUpdated(d.toLocaleString());
-          } else {
-            setLastUpdated(new Date().toLocaleString());
-          }
+          setLastUpdated(new Date().toISOString());
+          if (data.generatedAt) setFeedBuiltAt(data.generatedAt);
+          fetch("build-receipt.json?" + Date.now())
+            .then(r => r.ok ? r.json() : null)
+            .then(r => { if (r && r.completedAt) setFeedBuiltAt(r.completedAt); })
+            .catch(() => {});
         } catch (e) {
           console.error('Error fetching items:', e);
           setItems([]);
@@ -4119,13 +4627,28 @@
         return () => clearInterval(interval);
       }, [fetchItems, fetchLastFetchInfo, viewMode]);
 
+      // The live feed plus archived stories it no longer carries (same story = same id or title)
+      const browseItems = useMemo(() => {
+        if (!archiveItems.length) return items;
+        const key = (t) => (t || '').toLowerCase().replace(/\s+[-–—|]\s+[^-–—|]{1,50}$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        const ids = new Set(items.map(i => i.id));
+        const titles = new Set(items.map(i => key(i.title)));
+        return items.concat(archiveItems.filter(a => !ids.has(a.id) && !titles.has(key(a.title))));
+      }, [items, archiveItems]);
+
+      // How far back the browsable history reaches; the archive fills toward 90 days build by build
+      const historySince = useMemo(() => {
+        const times = browseItems.map(i => new Date(i.pubDate).getTime()).filter(t => t > 0);
+        return times.length ? new Date(Math.min(...times)) : null;
+      }, [browseItems]);
+
       const sources = useMemo(() => {
-        const uniqueSources = new Set(items.map(item => item.source || item.publisher).filter(Boolean));
+        const uniqueSources = new Set(browseItems.map(publisherOf).filter(s => s && s !== 'Source'));
         return Array.from(uniqueSources).sort();
-      }, [items]);
+      }, [browseItems]);
 
       const filtered = useMemo(() => {
-        let list = [...items];
+        let list = [...browseItems];
         
         // Filter out articles with "not relevant", "excluded", and "blacklisted" categories
         list = list.filter(it => it.category !== 'not relevant' && it.category !== 'excluded' && it.category !== 'blacklisted');
@@ -4159,7 +4682,7 @@
         }
 
         if (source) {
-          list = list.filter(it => (it.source || it.publisher) === source);
+          list = list.filter(it => publisherOf(it) === source);
         }
 
         if (sort === "newest") {
@@ -4169,11 +4692,11 @@
         }
 
         return list;
-      }, [items, query, region, category, source, sort, timeframe]);
+      }, [browseItems, query, region, category, source, sort, timeframe]);
 
       return (
         <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
-          <div className="container">
+          <div className="container app-shell">
           <Header timeframe={timeframe} theme={theme} setTheme={setTheme} />
           <FiltersBar
             query={query} setQuery={setQuery}
@@ -4184,7 +4707,7 @@
             timeframe={timeframe} setTimeframe={setTimeframe}
             sources={sources}
             onRefresh={onRefresh}
-            stats={{ filtered: filtered.length, total: items.length, updated: lastUpdated }}
+            stats={{ builtAt: feedBuiltAt, loadedAt: lastUpdated }}
             viewMode={viewMode}
             setViewMode={setViewMode}
               lastFetchInfo={lastFetchInfo}
@@ -4209,6 +4732,8 @@
                 </div>
                 <ArticleGrid
                   items={filtered}
+                  collectedTotal={browseItems.length}
+                  historySince={historySince}
                   loading={loading || refreshLoading}
                   onArticleClick={handleArticleClick}
                   trackedTopics={trackedTopics}
@@ -4221,7 +4746,17 @@
                   onRemoveFromNewsletter={handleRemoveFromNewsletter}
                 />
               </>
+            ) : viewMode === "scanner" ? (
+              <ScanDashboard />
+            ) : viewMode === "sent" ? (
+              <SentBriefing />
             ) : viewMode === "newsletter" ? (
+            <>
+            <div className="max-w-6xl mx-auto px-4 mb-3">
+              <div className="draft-note">
+                <strong>Draft preview.</strong> Built in your browser from the articles loaded on this page, so it can differ from the briefing the scheduled send selects. See <button className="link-btn" onClick={() => setViewMode("sent")}>Latest Sent Briefing</button> for what actually went out.
+              </div>
+            </div>
             <NewsletterPreview
               html={newsletterHTML}
               loading={loading}
@@ -4252,6 +4787,7 @@
               onCmWatchlistOverride={setCmWatchlistOverride}
               onRestoreCmWatchlist={restoreCmWatchlist}
               />
+            </>
             ) : (
               <AdminPanel
                 manualTitle={manualTitle}

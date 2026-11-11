@@ -76,7 +76,9 @@ export async function reviewEditorialCandidates(items: NormalizedItem[], options
 }
 
 /** The production feed writer, also exercised with a scratch path in CI. */
-export function writeEditorialFeed(items: NormalizedItem[], destination: string): void {
+export function writeEditorialFeed(items: NormalizedItem[], destination: string): ReturnType<typeof generateJSONFeed> {
     stampPredictedPublish(items);
-    fs.writeFileSync(destination, JSON.stringify(generateJSONFeed(items), null, 2), 'utf8');
+    const feed = generateJSONFeed(items);
+    fs.writeFileSync(destination, JSON.stringify(feed, null, 2), 'utf8');
+    return feed;
 }

@@ -143,34 +143,50 @@
   // ============================================
   // PLACEHOLDER IMAGES
   // ============================================
+  // Stock photos for articles without their own image. Pools are large enough
+  // that a section of tiles rarely repeats; the grid also hands out distinct ones.
+  function unsplash(id) { return 'https://images.unsplash.com/photo-' + id + '?w=600&h=400&fit=crop'; }
   var placeholders = {
     transactions: [
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop',
-    ],
+      '1449824913935-59a10b8d2000', '1480714378408-67cf0d13bc1b', '1486325212027-8081e485255e',
+      '1486406146926-c627a92ad1ab', '1521791136064-7986c2920216', '1503387762-592deb58ef4e',
+      '1454165804606-c3d57bc86b40', '1600880292203-757bb62b4baf', '1494412574643-ff11b0a5c1c3',
+      '1578575437130-527eed3abbec', '1586528116311-ad8dd3c8310d', '1553413077-190dd305871c',
+      '1601584115197-04ecc0da31d7', '1545324418-cc1a3fa10c00'
+    ].map(unsplash),
     availabilities: [
-      'https://images.unsplash.com/photo-1565610222536-ef125c59da2e?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
-    ],
+      '1497366216548-37526070297c', '1497366811353-6870744d04b2', '1565610222536-ef125c59da2e',
+      '1553413077-190dd305871c', '1586528116311-ad8dd3c8310d', '1587293852726-70cdb56c2866',
+      '1565891741441-64926e441838', '1497215728101-856f4ea42174', '1524758631624-e2822e304c36',
+      '1541888946425-d81bb19240f5', '1504307651254-35680f356dfd', '1545324418-cc1a3fa10c00'
+    ].map(unsplash),
     people: [
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop',
-    ],
+      '1560250097-0b93528c311a', '1573496359142-b8d87734a5a2', '1519085360753-af0119f7cbe7',
+      '1472099645785-5658abf4ff4e', '1438761681033-6461ffad8d80', '1500648767791-00dcc994a43e',
+      '1507679799987-c73779587ccf', '1494790108377-be9c29b29330'
+    ].map(unsplash),
     relevant: [
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop',
-    ]
+      '1494412574643-ff11b0a5c1c3', '1578575437130-527eed3abbec', '1601584115197-04ecc0da31d7',
+      '1519003722824-194d4455a60c', '1553413077-190dd305871c', '1586528116311-ad8dd3c8310d',
+      '1587293852726-70cdb56c2866', '1513828583688-c52646db42da', '1516937941344-00b4e0337589',
+      '1581091226825-a6a2a5aee158', '1504307651254-35680f356dfd', '1541888946425-d81bb19240f5',
+      '1565891741441-64926e441838', '1566576721346-d4a3b4eaeb55', '1449824913935-59a10b8d2000',
+      '1486406146926-c627a92ad1ab'
+    ].map(unsplash)
   };
 
-  function getPlaceholderImage(category, title) {
+  // `used` (optional Set) makes the pick skip images already shown nearby
+  function getPlaceholderImage(category, title, used) {
     title = title || '';
     var categoryImages = placeholders[category] || placeholders.relevant;
-    var hash = title.split('').reduce(function(acc, char) { return acc + char.charCodeAt(0); }, 0);
-    return categoryImages[hash % categoryImages.length];
+    var hash = 2166136261;
+    for (var i = 0; i < title.length; i++) { hash ^= title.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+    var start = (hash >>> 0) % categoryImages.length;
+    for (var k = 0; used && k < categoryImages.length; k++) {
+      var candidate = categoryImages[(start + k) % categoryImages.length];
+      if (!used.has(candidate)) { used.add(candidate); return candidate; }
+    }
+    return categoryImages[start];
   }
 
   // ============================================

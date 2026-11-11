@@ -5,9 +5,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { log } from '../server/logging.js';
 import { fetchAllRSSArticles, isAllowedLink, shouldRejectUrl, isFromMandatorySource } from '../feeds/fetcher.js';
+import { isNonArticlePage } from '../feeds/link-validation.js';
 import { NormalizedItem, FetchResult } from '../types/index.js';
 import { RSS_FEEDS } from '../feeds/config.js';
 import { filterArticlesWithAI, AIClassificationResult } from '../filter/ai-classifier.js';
@@ -21,14 +22,80 @@ import { reviewEditorialCandidates, stampPredictedPublish, writeEditorialFeed } 
 import { enrichNewsletterFacts } from './newsletter-facts.js';
 import { generateRSSXML, generateRawFeed, generateFeedHealthReport } from './feed-generators.js';
 import { isCompletedHeadlineDeal } from '../shared/development-signal.js';
+import { writeSiteArchive } from './site-archive.js';
 
 // =====================================================================
 // og:image extraction for articles missing real thumbnails
 // =====================================================================
 
-const OG_IMAGE_TIMEOUT_MS = 5000;
-const OG_IMAGE_BATCH_SIZE = 10;
-const OG_IMAGE_MAX_BYTES = 5000;
+const OG_IMAGE_TIMEOUT_MS = 8000;
+const OG_IMAGE_BATCH_SIZE = 8;
+// og:image sits in <head>, but some sites put 100KB+ of inline scripts ahead of it
+const OG_IMAGE_SCAN_CHARS = 400_000;
+// Whole enrichment step stays under this, leaving the build its time for file writes
+const OG_IMAGE_BUDGET_MS = 3 * 60 * 1000;
+const IMAGE_DIAGNOSTICS_DIR = path.join(process.cwd(), '.build-diagnostics');
+const BROWSER_UA ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+
+/** Why one image lookup ended the way it did; aggregated per build for diagnosis. */
+interface ImageLookup {
+    image: string | null;
+    /** 'ok', or a failure such as 'google:no-signature', 'publisher:http-403-cloudflare', 'publisher:no-og-tag' */
+    outcome: string;
+    /** Publisher host once known (Google News links resolve to it), else the link's host */
+    host: string;
+}
+
+const hostOf = (url: string): string => {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'invalid-url'; }
+};
+
+/** Classify an axios failure without retrying or working around it */
+function failureReason(stage: 'google' | 'publisher', err: unknown): string {
+    const e = err as AxiosError;
+    const status = e?.response?.status;
+    if (status) {
+        const headers = (e.response?.headers || {}) as Record<string, string>;
+        const cloudflare = String(headers['server'] || '').toLowerCase() === 'cloudflare' || 'cf-mitigated' in headers;
+        return `${stage}:http-${status}${cloudflare ? '-cloudflare' : ''}`;
+    }
+    if (e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT' || /timeout/i.test(e?.message || '')) return `${stage}:timeout`;
+    if (/maxContentLength/i.test(e?.message || '')) return `${stage}:too-large`;
+    return `${stage}:network-${e?.code || 'error'}`;
+}
+
+/**
+ * Google News RSS links (news.google.com/rss/articles/<id>) land on a Google page, not the
+ * article. Resolve them to the publisher URL the way the Google News web app does: read the
+ * signature and timestamp from the article page, then ask the batchexecute endpoint.
+ * On failure, returns the reason; callers keep the placeholder.
+ */
+async function resolveGoogleNewsUrl(url: string): Promise<{ url: string } | { reason: string }> {
+    try {
+        const id = new URL(url).pathname.split('/').pop();
+        if (!id) return { reason: 'google:no-article-id' };
+        const page = await axios.get(`https://news.google.com/articles/${id}`, {
+            timeout: OG_IMAGE_TIMEOUT_MS, responseType: 'text', headers: { 'User-Agent': BROWSER_UA },
+        });
+        const html = String(page.data);
+        const sig = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
+        const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
+        if (!sig || !ts) return { reason: /consent\.google|before you continue/i.test(html) ? 'google:consent-page' : 'google:no-signature' };
+        const inner = JSON.stringify(['garturlreq', [['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1], 'X', 'X', 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0], id, Number(ts), sig]);
+        const resp = await axios.post('https://news.google.com/_/DotsSplashUi/data/batchexecute',
+            'f.req=' + encodeURIComponent(JSON.stringify([[['Fbv4je', inner, null, 'generic']]])), {
+                timeout: OG_IMAGE_TIMEOUT_MS, responseType: 'text',
+                headers: { 'User-Agent': BROWSER_UA, 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+            });
+        const body = String(resp.data);
+        const at = body.indexOf('garturlres');
+        if (at < 0) return { reason: 'google:no-url-in-response' };
+        const found = body.slice(at).match(/https?:[^"\\]+/);
+        return found ? { url: found[0] } : { reason: 'google:no-url-in-response' };
+    } catch (err) {
+        return { reason: failureReason('google', err) };
+    }
+}
 
 /**
  * Check if an article has a real image (not a picsum placeholder and not empty)
@@ -39,43 +106,47 @@ function hasRealImage(item: NormalizedItem): boolean {
 }
 
 /**
- * Fetch the first ~5000 bytes of a URL and extract og:image meta tag
+ * Fetch an article page and extract its og:image (or twitter:image) meta tag.
+ * A refusal (403, challenge, timeout) is recorded, never retried or worked around.
  */
-async function extractOgImage(url: string): Promise<string | null> {
+async function extractOgImage(url: string): Promise<ImageLookup> {
+    let host = hostOf(url);
+    if (/news\.google\./i.test(url)) {
+        const resolved = await resolveGoogleNewsUrl(url);
+        if ('reason' in resolved) return { image: null, outcome: resolved.reason, host: 'news.google.com' };
+        url = resolved.url;
+        host = hostOf(url);
+    }
     try {
         const resp = await axios.get(url, {
             timeout: OG_IMAGE_TIMEOUT_MS,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': BROWSER_UA,
                 'Accept': 'text/html',
             },
-            maxContentLength: OG_IMAGE_MAX_BYTES * 4, // allow some overhead
+            // Full article pages run 100KB-1MB; a tight cap here made every fetch fail
+            maxContentLength: 3_000_000,
             responseType: 'text',
-            maxRedirects: 3,
+            maxRedirects: 5,
             validateStatus: (s: number) => s >= 200 && s < 400,
         });
 
-        // Only look at the first ~5000 chars (the <head> section)
-        const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_MAX_BYTES * 2) : '';
+        const html = typeof resp.data === 'string' ? resp.data.substring(0, OG_IMAGE_SCAN_CHARS) : '';
+        if (/<title>\s*Just a moment|cf-browser-verification|challenge-platform/i.test(html)) {
+            return { image: null, outcome: 'publisher:cloudflare-challenge', host };
+        }
 
         // Try og:image first, then twitter:image
         const ogMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']og:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
             || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']og:image["']/i);
-        if (ogMatch && ogMatch[1]) {
-            const imgUrl = ogMatch[1].trim();
-            if (imgUrl.startsWith('http')) return imgUrl;
-        }
-
         const twMatch = html.match(/<meta\s+(?:[^>]*?\s+)?(?:property|name)\s*=\s*["']twitter:image["'][^>]*?\s+content\s*=\s*["']([^"']+)["']/i)
             || html.match(/<meta\s+(?:[^>]*?\s+)?content\s*=\s*["']([^"']+)["'][^>]*?\s+(?:property|name)\s*=\s*["']twitter:image["']/i);
-        if (twMatch && twMatch[1]) {
-            const imgUrl = twMatch[1].trim();
-            if (imgUrl.startsWith('http')) return imgUrl;
-        }
-
-        return null;
-    } catch {
-        return null;
+        const candidate = ((ogMatch && ogMatch[1]) || (twMatch && twMatch[1]) || '').trim();
+        if (!candidate) return { image: null, outcome: 'publisher:no-og-tag', host };
+        if (!candidate.startsWith('http')) return { image: null, outcome: 'publisher:relative-image-url', host };
+        return { image: candidate, outcome: 'ok', host };
+    } catch (err) {
+        return { image: null, outcome: failureReason('publisher', err), host };
     }
 }
 
@@ -84,7 +155,14 @@ async function extractOgImage(url: string): Promise<string | null> {
  * Processes in batches to avoid overwhelming servers.
  */
 async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
-    const needsImage = items.filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'));
+    // Articles the briefing would publish first, then newest, so the time budget goes to tiles people see
+    const priority = (item: NormalizedItem) => ((item as any)._predictedPublish === false ? 1 : 0);
+    const time = (item: NormalizedItem) => new Date((item as any).pubDate || (item as any).date_published || 0).getTime() || 0;
+    const needsImage = items
+        .filter(item => !hasRealImage(item) && item.link && item.link.startsWith('http'))
+        .sort((a, b) => priority(a) - priority(b) || time(b) - time(a));
+    const deadline = Date.now() + OG_IMAGE_BUDGET_MS;
+    const startedAt = Date.now();
 
     if (needsImage.length === 0) {
         log('info', 'og:image enrichment: all articles already have real images');
@@ -93,26 +171,56 @@ async function enrichArticleImages(items: NormalizedItem[]): Promise<void> {
 
     log('info', `og:image enrichment: ${needsImage.length} articles need images, fetching in batches of ${OG_IMAGE_BATCH_SIZE}`);
 
-    let found = 0;
-    let failed = 0;
+    const outcomes: Record<string, number> = {};
+    const byHost: Record<string, { ok: number; failed: Record<string, number> }> = {};
+    let attempted = 0;
 
     for (let i = 0; i < needsImage.length; i += OG_IMAGE_BATCH_SIZE) {
+        if (Date.now() > deadline) {
+            log('info', `og:image enrichment: time budget reached, ${needsImage.length - i} left for the next build`);
+            break;
+        }
         const batch = needsImage.slice(i, i + OG_IMAGE_BATCH_SIZE);
-        const results = await Promise.allSettled(
+        await Promise.allSettled(
             batch.map(async (item) => {
-                const ogImage = await extractOgImage(item.link);
-                if (ogImage) {
-                    item.image = ogImage;
-                    item.thumbnailUrl = ogImage;
-                    found++;
+                const lookup = await extractOgImage(item.link);
+                attempted++;
+                outcomes[lookup.outcome] = (outcomes[lookup.outcome] || 0) + 1;
+                const h = (byHost[lookup.host] ||= { ok: 0, failed: {} });
+                if (lookup.image) {
+                    item.image = lookup.image;
+                    item.thumbnailUrl = lookup.image;
+                    h.ok++;
                 } else {
-                    failed++;
+                    h.failed[lookup.outcome] = (h.failed[lookup.outcome] || 0) + 1;
                 }
             })
         );
     }
 
-    log('info', `og:image enrichment complete: ${found} found, ${failed} failed (still placeholder), ${items.length - needsImage.length} already had images`);
+    const found = outcomes['ok'] || 0;
+    log('info', `og:image enrichment complete: ${found} found, ${attempted - found} failed (still placeholder), ${items.length - needsImage.length} already had images`);
+    log('info', 'og:image failure reasons', outcomes);
+    const hosts = Object.entries(byHost)
+        .map(([host, h]) => ({ host, ok: h.ok, failed: Object.values(h.failed).reduce((a, b) => a + b, 0), reasons: h.failed }))
+        .sort((a, b) => b.failed - a.failed || b.ok - a.ok);
+    log('info', 'og:image results by publisher', { hosts: hosts.slice(0, 25) });
+
+    // Private: written outside docs/ (the public Pages site) and gitignored. The build-only
+    // workflows upload this folder as an Actions artifact. One file per build step.
+    try {
+        fs.mkdirSync(IMAGE_DIAGNOSTICS_DIR, { recursive: true });
+        const file = `image-diagnostics-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        fs.writeFileSync(path.join(IMAGE_DIAGNOSTICS_DIR, file), JSON.stringify({
+            generatedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedAt,
+            needed: needsImage.length, attempted, found,
+            alreadyHadImages: items.length - needsImage.length,
+            outcomes, hosts,
+        }, null, 2) + '\n', 'utf8');
+    } catch (e) {
+        log('warn', 'Could not write image diagnostics: ' + (e as Error).message);
+    }
 }
 
 // Directory for static output
@@ -139,7 +247,8 @@ export async function buildStaticRSS(): Promise<void> {
                     .filter((a: any) => {
                         const hasValidUrl = a.url && a.url.startsWith('http');
                         const hasTitle = a.title && a.title.trim();
-                        return hasValidUrl && hasTitle;
+                        // Also drops non-story pages collected before the non-article URL check existed
+                        return hasValidUrl && hasTitle && !isNonArticlePage(a.url);
                     })
                     .map((a: any) => ({
                         ...a,
@@ -238,9 +347,20 @@ export async function buildStaticRSS(): Promise<void> {
             're-nj.com'             // RE-NJ
         ];
 
+        // Title + description for keyword checks. Google News titles end in " - Publisher" and the
+        // description repeats it, so a publisher such as "Connect CRE" or "Material Handling &
+        // Logistics" would otherwise count as CRE/industrial context for any story it runs.
+        const classificationText = (item: NormalizedItem): string => {
+            const text = `${item.title || ''} ${item.description || ''}`;
+            if (!/news\.google\./i.test(item.link || item.url || '')) return text;
+            const parts = (item.title || '').split(' - ');
+            const publisher = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+            return publisher ? text.split(publisher).join(' ') : text;
+        };
+
         // Check if article should be included — WIDENED GATE, let AI handle region+relevance
         const shouldIncludeArticle = (item: NormalizedItem): boolean => {
-            const text = `${item.title || ''} ${item.description || ''}`.toUpperCase();
+            const text = classificationText(item).toUpperCase();
             const url = (item.link || item.url || '').toLowerCase();
             const sourceName = (item.source || '').toLowerCase();
 
@@ -340,7 +460,7 @@ export async function buildStaticRSS(): Promise<void> {
 
         // Re-categorize articles based on content - REQUIRE CRE/INDUSTRIAL CONTEXT
         const recategorizeArticle = (item: NormalizedItem): NormalizedItem => {
-            const text = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+            const text = classificationText(item).toLowerCase();
 
             // SCRAPE ARTIFACT (2026-07-30): index/archive pages from category feeds ship as
             // "Tag: Logistics Real Estate - ROI-NJ" (a tag listing, not an article). Reject on the
@@ -1072,8 +1192,20 @@ export async function buildStaticRSS(): Promise<void> {
         const withoutDesc = rssItems.filter(i => !i.description || i.description.trim().length === 0).length;
         log('info', `Description check before JSON generation`, { withDesc, withoutDesc, sample: rssItems.slice(0, 3).map(i => ({ title: (i.title || '').substring(0, 30), descLen: (i.description || '').length })) });
 
-        writeEditorialFeed(rssItems, path.join(DOCS_DIR, 'feed.json'));
+        const feedJSON = writeEditorialFeed(rssItems, path.join(DOCS_DIR, 'feed.json'));
         log('info', 'Generated docs/feed.json', { itemCount: rssItems.length });
+
+        // Website-only 90-day archive; the newsletter keeps reading feed.json alone.
+        // A failure leaves the last valid archive.json untouched and is reported as an
+        // error, but does not stop the build: the send workflow runs this same build.
+        try {
+            const archive = writeSiteArchive(DOCS_DIR, (feedJSON as any).items || []);
+            log('info', 'Updated docs/archive.json', { itemCount: archive.count, oldestArticle: archive.oldest });
+        } catch (e) {
+            const message = 'Website archive NOT updated; the previous archive.json is unchanged: ' + (e as Error).message;
+            log('error', message);
+            if (process.env.GITHUB_ACTIONS) console.log(`::error title=Website archive not updated::${message.replace(/\r?\n/g, ' ')}`);
+        }
 
         // Generate Feed Health Report
         // Load previous health report for reliability history
