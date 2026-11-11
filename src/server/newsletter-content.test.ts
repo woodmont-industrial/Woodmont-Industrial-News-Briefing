@@ -4,7 +4,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { applyTransactionFilter, applyAvailabilityFilter, applyStrictFilter,
-    isRoutableRegionalDeal, mapFeedItemsToArticles } from './newsletter-filters.js';
+    isRoutableRegionalDeal, mapFeedItemsToArticles, normalizeTitleKey } from './newsletter-filters.js';
 import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
 import { generateJSONFeed } from '../build/feed-generators.js';
 import type { NormalizedItem } from '../types/index.js';
@@ -111,7 +111,18 @@ try {
     assert.ok(reserveResult.sections.transactions.includes('reserve-regional-control'),
         'a qualifying 26-day-old regional deal still renders from reserves');
     assert.equal(reserveResult.networkRequests, 0);
-    console.log('PASS: listing/content contracts, reserve Transaction gates and offline rendered paths');
+    // A reserve deal that already went out is not sent again, by id or by headline
+    // (the same refinancing shipped on consecutive days, 2026-11-10/11)
+    const sentDeal = reserveDeals[3];
+    const twin = item('reserve-sent-twin', sentDeal.title, { link: 'https://news.google.com/synthetic-twin', pubDate: '2026-10-04T10:00:00Z' });
+    fs.writeFileSync(path.join(scratch, 'sent-articles.json'), JSON.stringify({ sent: [
+        { id: sentDeal.id, sentAt: '2026-10-29T13:00:00Z', titleKey: normalizeTitleKey(sentDeal.title || '') }] }));
+    const repeatResult = replay([control], [], [sentDeal, twin]);
+    fs.rmSync(path.join(scratch, 'sent-articles.json'));
+    for (const id of [sentDeal.id, twin.id]) {
+        assert.ok(!Object.values(repeatResult.sections).flat().includes(id), `${id}: a sent deal cannot return through reserves`);
+    }
+    console.log('PASS: listing/content contracts, reserve Transaction gates, reserve repeats and offline rendered paths');
 } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
 }

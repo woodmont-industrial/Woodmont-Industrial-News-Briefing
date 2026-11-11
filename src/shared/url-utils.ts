@@ -650,6 +650,62 @@ export function entityKeysSameDeal(
     return true;
 }
 
+const SUBJECT_STOPWORDS = new Set(['the', 'a', 'an', 'new', 'inside', 'why', 'how', 'what', 'report', 'exclusive', 'update']);
+const FACILITY_RE = /\b(distribution (?:center|centre|hub)|fulfillment (?:center|centre)|cold[ -]storage (?:facility|warehouse)|manufacturing (?:plant|facility)|logistics (?:park|center|centre|hub|facility)|warehouse|headquarters)\b/i;
+
+/**
+ * Same-send story key for occupier news that has no CRE entity, e.g. one tenant's facility
+ * opening carried by two publishers (Glenmark, Allentown PA, 2026-11-10). Leading company
+ * name + facility type; the town and metrics ride along so the caller can keep apart two
+ * stories about the same company in different towns or of different sizes.
+ */
+export function extractSubjectFacilityKey(title: string, description?: string): SubjectFacilityKey | null {
+    const words = title.replace(/\s+[-–—|]\s+[^-–—|]+$/, '').split(/\s+/);
+    const subject: string[] = [];
+    for (const word of words) {
+        const clean = word.replace(/[^A-Za-z&'.-]/g, '');
+        if (!/^[A-Z]/.test(clean) || SUBJECT_STOPWORDS.has(clean.toLowerCase())) break;
+        subject.push(clean.toLowerCase());
+        if (subject.length === 2) break;
+    }
+    if (!subject.length || subject[0].length < 4) return null;
+    const facility = FACILITY_RE.exec(title);
+    if (!facility) return null;
+    const original = `${title} ${description || ''}`;
+    const text = original.toLowerCase();
+    const town = ENTITY_MARKET_ENTRIES.find(e => e.re.test(text))?.slug ?? null;
+    const sfK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
+    const sfFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
+    const sqft = sfK ? Math.round(parseFloat(sfK[1]) * 1000) : sfFull ? parseInt(sfFull[1].replace(/,/g, '')) : null;
+    const dM = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/i);
+    return { key: `subj_${subject.join('-')}_${facility[1].toLowerCase().replace(/\s+/g, '-')}`, town,
+        state: storyState(original, town), sqft, dollars: dM ? Math.round(parseFloat(dM[1])) : null };
+}
+
+const PA_TOWNS = new Set(['philadelphia', 'conshohocken', 'king-of-prussia', 'allentown', 'bethlehem', 'easton', 'harrisburg',
+    'lancaster', 'reading', 'pittsburgh', 'scranton', 'wilkes-barre']);
+const FL_TOWNS = new Set(['fort-lauderdale', 'west-palm', 'boca-raton', 'miami', 'doral', 'hialeah', 'medley', 'pompano',
+    'orlando', 'tampa', 'jacksonville', 'ocala']);
+
+/** The NJ/PA/FL state a story names, directly or through a mapped town; null when it names none */
+function storyState(text: string, town: string | null): string | null {
+    if (/\bPennsylvania\b|\bPA\b|\bPa\./.test(text)) return 'pa';
+    if (/\bFlorida\b|\bFL\b|\bFla\./.test(text)) return 'fl';
+    if (/\bNew Jersey\b|\bN\.?J\.?(?![a-z])/.test(text)) return 'nj';
+    if (!town) return null;
+    return PA_TOWNS.has(town) ? 'pa' : FL_TOWNS.has(town) ? 'fl' : 'nj';
+}
+
+type SubjectFacilityKey = { key: string; town: string | null; state: string | null; sqft: number | null; dollars: number | null };
+
+/** Merges only when both stories place the facility in the same state and no mapped town or metric conflicts */
+export function subjectFacilityKeysSameStory(a: SubjectFacilityKey, b: SubjectFacilityKey): boolean {
+    if (a.key !== b.key) return false;
+    if (!a.state || a.state !== b.state) return false;
+    if (a.town && b.town && a.town !== b.town) return false;
+    return entityKeysSameDeal({ key: '', sqft: a.sqft, dollars: a.dollars }, { key: '', sqft: b.sqft, dollars: b.dollars });
+}
+
 export function normalizeUrlForDedupe(url: string): string {
     if (!url) return '';
     try {

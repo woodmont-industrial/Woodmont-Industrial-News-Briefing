@@ -96,6 +96,19 @@ const GOV_INDUSTRIAL_BODY_RE = /\b(?:industrial|economic)\s+development\s+(?:age
 // where a listing IS in target region (Huntingdon Valley PA, etc.).
 const LISTING_AGGREGATOR_SUFFIX_RE = /\s+[-–—|]\s+(?:CommercialSearch|LoopNet|PropertyShark|Traded\.co|Crexi)\s*$/i;
 const GENERIC_LISTING_TITLE_RE = /^(?:For\s+Lease|For\s+Sale|FOR\s+LEASE|FOR\s+SALE)\s*\|/i;
+// CommercialSearch also runs news stories, so only its listing-format titles count as listings
+const LISTING_ONLY_SITE_RE = /\s+[-–—|]\s+(?:LoopNet|PropertyShark|Traded\.co|Crexi)\s*$/i;
+const LISTING_TITLE_WORDS_RE = /\bfor\s+(?:lease|sale|sublease)\b/i;
+const STATED_ACREAGE_RE = /\b\d[\d,.]*\s*(?:-\s*)?(?:acres?|ac)\b/i;
+
+/** A listing-site property page rather than a reported story */
+function isListingAggregatorPage(article: NormalizedItem): boolean {
+    const title = article.title || '';
+    const source = (article as any).source || '';
+    if (LISTING_ONLY_SITE_RE.test(title) || /^(?:LoopNet|PropertyShark|Crexi)$/i.test(source)) return true;
+    return GENERIC_LISTING_TITLE_RE.test(title)
+        || (LISTING_AGGREGATOR_SUFFIX_RE.test(title) && LISTING_TITLE_WORDS_RE.test(title));
+}
 
 // Active ACQUISITION verbs whose grammatical subject is the buyer and whose object is the
 // asset. Used by Rule (a): if a target token is the buyer (before the verb) but the asset
@@ -469,6 +482,12 @@ export function applyAvailabilityFilter(items: NormalizedItem[], diag?: Diagnost
         // and other existing availability policies are left to their own gates.
         if (statedSize !== null && statedSize <= 15000) {
             if (diag) diag.recordReject('availabilities', 'BELOW_DEAL_THRESHOLD');
+            return false;
+        }
+        // A bare listing-site page carries only an address; without a size or acreage the
+        // threshold can't be checked (260 Walsh Dr / 905 E 129th Ave, 2026-11-10/11).
+        if (statedSize === null && isListingAggregatorPage(article) && !STATED_ACREAGE_RE.test(getText(article))) {
+            if (diag) diag.recordReject('availabilities', 'SECTION_RULE_FAILED');
             return false;
         }
         if (!passesWoodmontRubric(article, diag, 'availabilities')) return false;

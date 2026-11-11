@@ -2,7 +2,7 @@
 export function isOppositionLedDataCenterHeadline(title: string): boolean {
     if (!/\bdata[\s-]*cent(?:er|re)s?\b/i.test(title)) return false;
     if (/\b(?:ban|moratorium|opposition)\b.{0,30}\b(?:overturned|lifted|defeated|withdrawn|resolved)\b/i.test(title)) return false;
-    const opposition = /\b(?:opposition|moratorium|backlash|protests?|protesters?|brib(?:e|es|ery)|ban(?:s|ned|ning)?|residents?\s+(?:oppose|spurn|fight|reject|win\s+(?:a\s+|the\s+)?fight)|neighbors?\s+(?:sue|oppose|fight))\b/i.exec(title);
+    const opposition = /\b(?:opposition|opposed|moratorium|backlash|protests?|protesters?|brib(?:e|es|ery)|ban(?:s|ned|ning)?|residents?\s+(?:oppose|spurn|fight|reject|win\s+(?:a\s+|the\s+)?fight)|neighbors?\s+(?:sue|oppose|fight))\b/i.exec(title);
     if (!opposition) return false;
     const development = /\b(?:invest(?:ment|ments|s)?|fund(?:ing|s)?|financ(?:e|es|ing)|raises?|opens?|supports?|breaks?\s+ground|completes?|ribbon[- ]cutting)\b/i.exec(title);
     return !development || opposition.index < development.index;
@@ -29,8 +29,14 @@ export function isNonPropertyStockHeadline(title: string): boolean {
     return !(property && event);
 }
 
+/** A trade-policy story about a shipper or retailer, with no property, size or lease in the headline */
+export function isTradePolicyOperationsHeadline(title: string): boolean {
+    if (!/\b(?:de minimis|tariffs?|customs|import duties|duty[- ]free)\b/i.test(title)) return false;
+    return !/\b(?:warehouses?|industrial|distribution (?:center|centre|hub)|logistics (?:facility|park|center|centre|hub)|fulfillment (?:center|centre)|facility|buildings?|leases?|leased|square[ -](?:feet|foot)|sq\.?\s*ft|\d[\d,.]*\s*(?:k\s*)?sf|acres?|vacancy|rents?|absorption)\b/i.test(title);
+}
+
 export function isNonStoryArtifact(title: string): boolean {
-    return isPropertyCatalogHeadline(title) || isNonPropertyStockHeadline(title);
+    return isPropertyCatalogHeadline(title) || isNonPropertyStockHeadline(title) || isTradePolicyOperationsHeadline(title);
 }
 
 /** Buying an equipment/service business does not describe buying its buildings. */

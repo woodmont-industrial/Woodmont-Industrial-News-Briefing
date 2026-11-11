@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { isTargetRegion, isNotExcludedRegion, hasGeographicFailure, passesRelevantEditorialVerdict, mapFeedItemsToArticles,
     applyTransactionFilter, applyAvailabilityFilter } from './newsletter-filters.js';
 import { isCompletedHeadlineDeal, newsletterCategory } from '../shared/development-signal.js';
+import { extractSubjectFacilityKey, subjectFacilityKeysSameStory } from '../shared/url-utils.js';
 
 // Shapes of three items that reached the November 9 send. Company names are synthetic;
 // the headline wording, places and sizes are the ones that caused the misses.
@@ -55,4 +56,45 @@ for (const title of ['Example Owner lists vacant 171,000 SF warehouse near Port 
 }
 assert.equal(applyAvailabilityFilter([item('Vacant 171,000 SF Port Newark warehouse available for lease', 'availabilities')]).length, 1);
 
-console.log('PASS: November 9 send regressions (out-of-region, off-topic, vacant-building purchase)');
+// November 10 and 11. A bare listing page with only an address can't be checked against the
+// availability floor; the same listing with a stated size or acreage stays eligible.
+for (const title of ['260 Example Dr, Parsippany, NJ 07054 - Industrial for Lease - LoopNet',
+    '905 Example Ave, Tampa, FL 33612 - Industrial for Lease - LoopNet']) {
+    assert.equal(applyAvailabilityFilter([item(title, 'availabilities')]).length, 0, title);
+}
+for (const title of ['260 Example Dr, Parsippany, NJ 07054 - 48,000 SF Industrial for Lease - LoopNet',
+    '905 Example Ave, Tampa, FL 33612 - 12 Acres Industrial Land for Sale - LoopNet']) {
+    assert.equal(applyAvailabilityFilter([item(title, 'availabilities')]).length, 1, title);
+}
+assert.equal(applyAvailabilityFilter([item('260 Example Dr, Parsippany, NJ - Industrial for Lease - LoopNet', 'availabilities',
+    'A 48,000 SF warehouse with 32-foot clear height is available for lease in Parsippany.')]).length, 1,
+    'a size recovered into the description counts');
+
+// Off topic: a shipper's trade-policy operations story, and an opinion poll led by local opposition
+for (const title of ['Example Apparel shipper expands US fulfillment operations to skirt de minimis’ end - Supply Chain Dive',
+    'N.J. voters divided on data center development nationally, strongly opposed locally: Example poll - ROI-NJ']) {
+    assert.equal(passesRelevantEditorialVerdict(item(title, 'relevant')), false, title);
+}
+for (const title of ['Tariffs slow industrial leasing across the New Jersey market',
+    'Example Retailer opens 500,000 SF fulfillment center in Carteret ahead of de minimis change']) {
+    assert.equal(passesRelevantEditorialVerdict(item(title, 'relevant')), true, title);
+}
+
+// One occupier's facility opening carried by two publishers is one story; the same company
+// in a different town, or with a different stated size, is not
+const sameStory = (a: string, b: string) => {
+    const ka = extractSubjectFacilityKey(a), kb = extractSubjectFacilityKey(b);
+    return !!ka && !!kb && subjectFacilityKeysSameStory(ka, kb);
+};
+assert.equal(sameStory('Example Pharmaceuticals Opens Largest North American Distribution Center in PA - Connect CRE',
+    'Example Pharmaceuticals Inaugurates U.S. Distribution Center in Allentown - StreetInsider'), true);
+assert.equal(sameStory('Example Foods opens distribution center in Allentown',
+    'Example Foods opens distribution center in Tampa'), false);
+assert.equal(sameStory('Example Foods opens 200,000 SF distribution center in Pennsylvania',
+    'Example Foods opens 600,000 SF distribution center in Pennsylvania'), false);
+assert.equal(sameStory('Example Developer starts work on Winter Haven spec warehouse',
+    'Example Developer to invest $200M in Lakeland warehouse expansion'), false, 'unlocated projects stay apart');
+assert.equal(sameStory('Inside Industrial: Why Cold Storage Is Becoming More Specialized',
+    'Inside Industrial: Why Warehouse Rents Are Rising'), false, 'a column name is not a company');
+
+console.log('PASS: November 9-11 send regressions (out-of-region, off-topic, vacant-building purchase, sizeless listings, repeats)');

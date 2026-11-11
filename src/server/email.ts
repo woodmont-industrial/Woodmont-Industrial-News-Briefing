@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty, hasGeographicFailure,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -423,15 +423,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentArticleIds = loadSentArticles(docsDir);
         const sentSigSet = loadSentSignatures(docsDir);
         const sentTitleKeys = loadSentTitleKeys(docsDir);
-        const articles = allLoadedArticles.filter(a => {
+        // Also applied to reserve-pool items: the pool is built before the previous send,
+        // so it can still hold a deal already sent the previous day (Nov 10-11 regression).
+        const isSentRepeat = (a: NormalizedItem, countInPool = true): boolean => {
+            const record = (reason: string) => { if (countInPool) recordCrossDayPoolRepeatSuppressed(a, reason); };
             const id = a.id || a.link || '';
-            if (sentArticleIds.has(id)) { recordCrossDayPoolRepeatSuppressed(a, 'sent_id'); return false; }
+            if (sentArticleIds.has(id)) { record('sent_id'); return true; }
             if (sentSigSet.size > 0) {
                 const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
-                    recordCrossDayPoolRepeatSuppressed(a, 'sent_signature');
-                    return false;
+                    record('sent_signature');
+                    return true;
                 }
             }
             // Cross-day TITLE dedup: catches syndicated same-headline repeats with no deal
@@ -440,12 +443,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const tk = normalizeTitleKey(a.title || '');
                 if (tk.length >= 25 && sentTitleKeys.has(tk)) {
                     console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
-                    recordCrossDayPoolRepeatSuppressed(a, 'sent_title');
-                    return false;
+                    record('sent_title');
+                    return true;
                 }
             }
-            return true;
-        });
+            return false;
+        };
+        const articles = allLoadedArticles.filter(a => !isSentRepeat(a));
         tracer?.diff(allLoadedArticles, articles, 'crossDayDedup');
         const dedupRemoved = allLoadedArticles.length - articles.length;
         if (dedupRemoved > 0) console.log(`🔁 Dedup: removed ${dedupRemoved} previously sent article(s)`);
@@ -724,6 +728,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 pubDate: r.date_published,
                                 ...(r as any),
                             } as NormalizedItem;
+                            if (isSentRepeat(item, false)) continue;
                             if (label === 'relevant' && !passesRelevantVerdict(item)) continue;
                             // A reserve score is not proof of a regional qualifying deal.
                             // Recheck the same gates used by normal Transaction selection.
@@ -781,7 +786,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             id: r.id, title: r.title, link: r.url, description: r.description || '',
                             category: r.category, source: r.source, pubDate: r.date_published, ...(r as any),
                         } as NormalizedItem;
-                        if (!passesRelevantVerdict(item)) continue;
+                        if (isSentRepeat(item, false) || !passesRelevantVerdict(item)) continue;
                         relevant.push(item);
                         usedIds.add(key);
                     }
@@ -1385,8 +1390,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // The FIRST occurrence survives; sections are pre-sorted by deal score and the WiR by
         // score, so the stronger (metric-bearing / preferred-source) variant is the one kept.
         const entitySeen: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
+        const subjectSeen: Array<NonNullable<ReturnType<typeof extractSubjectFacilityKey>>> = [];
         const dedupeByEntityKey = (articles: NormalizedItem[], label: string): NormalizedItem[] =>
             articles.filter(a => {
+                const sk = extractSubjectFacilityKey(a.title || '', a.description || '');
+                if (sk) {
+                    if (subjectSeen.some(s => subjectFacilityKeysSameStory(s, sk))) {
+                        console.log(`🔁 Subject-facility dedup removed from ${label}: "${(a.title || '').slice(0, 60)}" (${sk.key})`);
+                        withinSendRemovedDupes.push(a);
+                        return false;
+                    }
+                    subjectSeen.push(sk);
+                }
                 const ek = extractEntityDealKey(a.title || '', a.description || '');
                 if (!ek) return true;
                 if (entitySeen.some(s => entityKeysSameDeal(s, ek))) {
