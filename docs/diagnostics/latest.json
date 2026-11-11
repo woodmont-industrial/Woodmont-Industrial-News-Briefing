@@ -1,17 +1,17 @@
 {
-  "runId": "2026-11-10-1300",
-  "generatedAt": "2026-11-10T13:00:34.242Z",
+  "runId": "2026-11-11-1300",
+  "generatedAt": "2026-11-11T13:00:32.147Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 290,
-      "inWindow": 3,
-      "regionPass": 3,
+      "loaded": 304,
+      "inWindow": 7,
+      "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
+      "selected": 5,
       "supplyCandidates": 94,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
@@ -41,7 +41,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 5,
         "tier3_30d_deep": 5,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 290,
-      "inWindow": 3,
+      "loaded": 304,
+      "inWindow": 8,
       "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 2,
+      "supplyCandidates": 1,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 6,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,16 +86,16 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 290,
+      "loaded": 304,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 35,
+      "supplyCandidates": 30,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -140,8 +140,8 @@
       "underfillReason": null
     },
     "people": {
-      "loaded": 290,
-      "inWindow": 0,
+      "loaded": 304,
+      "inWindow": 1,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
@@ -150,7 +150,7 @@
       "selected": 0,
       "supplyCandidates": 0,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -186,7 +186,21 @@
     }
   },
   "perFeedBySection": {
-    "commercialsearch.com": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 2,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 1,
+        "people": 0
+      }
+    },
+    "Google News I-95 Corridor": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -200,17 +214,45 @@
         "people": 0
       }
     },
-    "news.google.com": {
+    "globest.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 1,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 3,
+        "relevant": 1,
         "transactions": 0,
-        "availabilities": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Jacksonville FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Supply Chain Dive Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
         "people": 0
       }
     },
@@ -237,42 +279,48 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 80,
-    "outOf10": 8,
-    "grade": "B",
-    "itemCount": 6,
-    "operationalScore": 80,
-    "operationalGrade": "B",
-    "editorialQualityScore": 83,
-    "editorialGrade": "B",
+    "score": 79,
+    "outOf10": 7.9,
+    "grade": "C",
+    "itemCount": 7,
+    "operationalScore": 79,
+    "operationalGrade": "C",
+    "editorialQualityScore": 76,
+    "editorialGrade": "C",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
       "availabilities": "FILLED",
-      "people": "NO_FRESH_SUPPLY"
+      "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 14.7,
-      "regional": 18.3,
+      "freshness": 15.7,
+      "regional": 19.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 2,
+      "fresh": 5,
       "deep": 6,
-      "reserve": 0
+      "reserve": 1
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "repeat_cross_day",
+        "points": 3,
+        "detail": "Deal already sent in the last 14 days: \"Truist, Capital One Provide $474M Refi for U.S. \""
+      }
+    ],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — fresh supply rejected by section gates (quality): people"
     ]
   },
   "logicImpact": {
@@ -283,8 +331,32 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 137,
+    "crossDayPoolRepeatsSuppressed": 143,
     "audit": [
+      {
+        "id": "008748a7ce5953497e78d0c677404d004ebf07e0",
+        "title": "New Jersey moves closer to banning secret data center deals - W.Media",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "0836b0d02d11c926ddcc489a0e458500596ff76f",
+        "title": "Inside Industrial: Why Cold Storage Is Becoming More Specialized",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "28424064fcd491cea14891792e54f26b1d8aff4d",
+        "title": "Truist, Capital One Provide $474M Refi for U.S. Industrial Portfolio",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "18c3fca69c6a590b30d8e35318780481b9f7b74c",
+        "title": "IINO Lines Invests in TMV Logistics Venture Fund to Back Maritime and Supply Chain Innovation - citybiz",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "0688c129454d5700eb8a9f9e0894d65faf1312dc",
         "title": "Newmark Associates hires industrial, flex property specialist Tomlin - Real Estate NJ",
@@ -352,6 +424,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "65971f5c74ac86223f6fcebb7ab7d78e19a473a6",
+        "title": "905 E 129th Ave, Tampa, FL 33612 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "5b223ee8b4d9fbc1cacc79041066bf5f4a89c49c",
         "title": "Deluccia: Window, door installer acquires 9,900 sq. ft. Branchburg industrial building - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -396,6 +474,18 @@
       {
         "id": "4a3f807a3eda5eeb55467e5b1d1d7b2dbc32ac22",
         "title": "VanTrust plans next wave of industrial development across Northeast Florida - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c902a7db2c24be852c78d524d871e9314629fc99",
+        "title": "Pittsburgh City Paper launches program to turn old newspaper distribution boxes into public art - WPXI",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "35ddcc43f4dc72a604ddbd2cd90b49b7fefd1e07",
+        "title": "Industrial Property on Northwest South River Drive Miami - Traded",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -840,48 +930,6 @@
       {
         "id": "6efb182bc8742811df5b8941f054b6f43a369681",
         "title": "AI data center projects boost US warehouse demand and rents, real estate company JLL says - Reuters",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d7097a4181d67b8cbf02f293a4bd47e963dcf3a6",
-        "title": "SendCutSend to Open its First Manufacturing Facility in Pennsylvania, Creating 309 New Jobs - PennWatch",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0c5fb5f2afe5b05c3148cba44eca84e62e2af0c5",
-        "title": "Parallax Holdings Announces Data Center Development in South Florida, Investing More Than $325 Million in Florida's Econ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "793c91b4e5d03f294847b38d8be9a0bde4337006",
-        "title": "CBRE Expands Data Center Footprint With $1B Acquisition Of Onnec Group",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "419d7dc29a9adb9746dfc7ae822c088f48446b8e",
-        "title": "News | Lehigh Valley warehouse construction starts back up even as earlier projects remain unleased - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5afae39b53b7b61ebdf971c8c2d1d58f3b302cb1",
-        "title": "Broward County to Consider One-Year Moratorium on Large Data Center Development - Florida Daily",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2f081fa1853e3f4fc856357efb506a9315c1e531",
-        "title": "Speed Bay Warehouse Solutions Buys 488,936 SF Industrial Portfolio in Greater Philadelphia - REBusinessOnline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "3f26b26e0686a63f604c4d1cbdf236223c9108d8",
-        "title": "Industrial vacancy up along I-78/I-81 corridor, but market remains strong - Lehigh Valley Business",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
