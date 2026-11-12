@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { isTargetRegion, isNotExcludedRegion, hasGeographicFailure, passesRelevantEditorialVerdict, mapFeedItemsToArticles,
-    applyTransactionFilter, applyAvailabilityFilter } from './newsletter-filters.js';
+    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection } from './newsletter-filters.js';
 import { isCompletedHeadlineDeal, newsletterCategory } from '../shared/development-signal.js';
-import { extractSubjectFacilityKey, subjectFacilityKeysSameStory } from '../shared/url-utils.js';
+import { extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature } from '../shared/url-utils.js';
 
 // Shapes of three items that reached the November 9 send. Company names are synthetic;
 // the headline wording, places and sizes are the ones that caused the misses.
@@ -94,7 +94,60 @@ assert.equal(sameStory('Example Foods opens 200,000 SF distribution center in Pe
     'Example Foods opens 600,000 SF distribution center in Pennsylvania'), false);
 assert.equal(sameStory('Example Developer starts work on Winter Haven spec warehouse',
     'Example Developer to invest $200M in Lakeland warehouse expansion'), false, 'unlocated projects stay apart');
+// The same opening named two ways by different publishers (November 2-4 chained replay)
+assert.equal(sameStory('Example Micro Fulfillment Opens Sixth U.S. Facility in Pennsylvania - citybiz',
+    'Example Micro Fulfillment expands network, opens new eCommerce support facility in Pennsylvania - Example Journal'), true);
+assert.equal(sameStory('Example Pharmaceuticals Plans Allentown, Pennsylvania, Distribution Operations - Area Development',
+    'Example Pharmaceuticals Inaugurates U.S. Distribution Center in Allentown - StreetInsider'), true);
+assert.equal(sameStory('Example Pharmaceuticals opens manufacturing plant in Allentown',
+    'Example Pharmaceuticals opens distribution center in Allentown'), false, 'a plant and a distribution center are two stories');
+// Across days the key is carried in sent-state, so a later publisher's copy is a repeat
+assert.equal(subjectFacilitySignature('Example Pharmaceuticals Inaugurates U.S. Distribution Center in Allentown - StreetInsider'),
+    subjectFacilitySignature('Example Pharmaceuticals Opens Largest North American Distribution Center in PA - Connect CRE'));
+assert.equal(subjectFacilitySignature('Example Developer starts work on spec warehouse'), null, 'no state, no cross-day key');
 assert.equal(sameStory('Inside Industrial: Why Cold Storage Is Becoming More Specialized',
     'Inside Industrial: Why Warehouse Rents Are Rising'), false, 'a column name is not a company');
 
-console.log('PASS: November 9-11 send regressions (out-of-region, off-topic, vacant-building purchase, sizeless listings, repeats)');
+// Out of region: a Jacksonville in Arkansas is not the Florida city (shipped in Availabilities on November 12)
+const arkansas = mapFeedItemsToArticles([item('Industrial For Lease — 1000 Example Rd, Jacksonville, AR 72076, USA | United States - Colliers', 'availabilities')])[0];
+assert.equal(isTargetRegion(arkansas), false, 'Jacksonville, AR is not Florida');
+assert.equal(isTargetRegion(mapFeedItemsToArticles([item('Industrial For Lease — 100 Example Blvd, Jacksonville, FL 32218 - Colliers', 'availabilities')])[0]), true);
+
+// Smaller deals in our markets. The rubric's retired 100K SF / $25M floor rejected these
+// October-November deals on size alone; the code's own floor (50K SF or $10M) decides instead.
+const rejected = (title: string, reason: string, category = 'transactions') =>
+    mapFeedItemsToArticles([{ ...item(title, category), _woodmontApprove: false, _woodmontReason: reason }])[0];
+for (const [title, reason] of [
+    ['Example REIT sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal - Real Estate NJ',
+        'Wrong region — Meadowlands is located in New Jersey (NJ), which is a target region, but the deal size is 86,000 SF which is below the 100K SF threshold'],
+    ['Example REIT Signs 82,000-Square-Foot Industrial Lease in Avenel, New Jersey - citybiz',
+        'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)'],
+    ['Fragrance distributor buys 63,000 sq. ft. Edison warehouse for $18.1 million - Real Estate NJ',
+        'Transaction below threshold: 63,000 sq. ft. and $18.1 million, does not meet the $25M or 100K SF minimum (Rule: APPROVE criteria not met)'],
+    ['Example Logistics takes 94,000 sq. ft. at new warehouse in Carteret - Real Estate NJ',
+        'Transaction size below 100,000 SF threshold and published more than 7 days ago (Rule: APPROVE criteria not met)'],
+]) {
+    const deal = rejected(title, reason);
+    assert.equal(isSizeOnlyRubricRejection(deal), true, title);
+    assert.equal(applyTransactionFilter([deal]).length, 1, title);
+}
+// A size complaint next to an editorial reason, no stated figures, a market outside ours,
+// or a deal under the code's own floor stays out
+for (const [title, reason] of [
+    ['260 Example Dr, Parsippany, NJ 07054 - 48,000 SF Industrial for Lease - LoopNet',
+        'Listing aggregator title ends with "- LoopNet" and does not meet the $25M or 100K SF threshold (Rule 13 & transaction threshold)'],
+    ['NYC top deals: Example Developers drops $17M on Greenpoint warehouse',
+        'Wrong region — Greenpoint is in Brooklyn, NYC, which is explicitly excluded under Rule 9, and the $17M price is below the $25M threshold.'],
+    ['Industrial Property on Example Drive Miami - Traded',
+        'No transaction amount or size provided; does not meet the $25M or 100K SF threshold for industrial deals (Rule: APPROVE criteria not met)'],
+    ['Example Maker opens new 58,000-square-foot manufacturing facility in Huntsville, Alabama',
+        'Facility size 58,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold not met)'],
+]) assert.equal(isSizeOnlyRubricRejection(rejected(title, reason)), false, title);
+assert.equal(applyTransactionFilter([rejected('Example Owner sells 30,000 sq. ft. Edison warehouse for $4 million',
+    'Transaction below threshold: 30,000 sq. ft. and $4 million, does not meet the $25M or 100K SF minimum')]).length, 0,
+    'the code floor still applies after the size-only rejection is set aside');
+assert.equal(passesRelevantEditorialVerdict(rejected('Example REIT Signs 82,000-Square-Foot Industrial Lease in Avenel, New Jersey',
+    'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)', 'relevant')), false,
+    'the exception is Transactions only; Relevant still honours every rejection');
+
+console.log('PASS: November 9-12 send regressions (out-of-region, off-topic, vacant-building purchase, sizeless listings, repeats, size-only rejections)');

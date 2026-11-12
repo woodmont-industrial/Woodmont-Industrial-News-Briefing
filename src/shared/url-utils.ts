@@ -651,7 +651,11 @@ export function entityKeysSameDeal(
 }
 
 const SUBJECT_STOPWORDS = new Set(['the', 'a', 'an', 'new', 'inside', 'why', 'how', 'what', 'report', 'exclusive', 'update']);
-const FACILITY_RE = /\b(distribution (?:center|centre|hub)|fulfillment (?:center|centre)|cold[ -]storage (?:facility|warehouse)|manufacturing (?:plant|facility)|logistics (?:park|center|centre|hub|facility)|warehouse|headquarters)\b/i;
+const FACILITY_RE = /\b(distribution (?:center|centre|hub|operations)|fulfillment (?:center|centre|operations)|cold[ -]storage (?:facility|warehouse)|manufacturing (?:plant|facility|operations)|logistics (?:park|center|centre|hub|facility|operations)|warehouse|headquarters|facility)\b/i;
+// Publishers name one facility differently ("Distribution Center", "Distribution Operations",
+// "Facility" vs "eCommerce support facility"), so the key carries a coarse type
+const facilityType = (match: string) => /cold/i.test(match) ? 'cold-storage' : /manufactur/i.test(match) ? 'manufacturing'
+    : /headquarters/i.test(match) ? 'headquarters' : /^facility$/i.test(match) ? 'facility' : 'distribution';
 
 /**
  * Same-send story key for occupier news that has no CRE entity, e.g. one tenant's facility
@@ -678,7 +682,7 @@ export function extractSubjectFacilityKey(title: string, description?: string): 
     const sfFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
     const sqft = sfK ? Math.round(parseFloat(sfK[1]) * 1000) : sfFull ? parseInt(sfFull[1].replace(/,/g, '')) : null;
     const dM = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/i);
-    return { key: `subj_${subject.join('-')}_${facility[1].toLowerCase().replace(/\s+/g, '-')}`, town,
+    return { key: `subj_${subject.join('-')}_${facilityType(facility[1])}`, town,
         state: storyState(original, town), sqft, dollars: dM ? Math.round(parseFloat(dM[1])) : null };
 }
 
@@ -704,6 +708,13 @@ export function subjectFacilityKeysSameStory(a: SubjectFacilityKey, b: SubjectFa
     if (!a.state || a.state !== b.state) return false;
     if (a.town && b.town && a.town !== b.town) return false;
     return entityKeysSameDeal({ key: '', sqft: a.sqft, dollars: a.dollars }, { key: '', sqft: b.sqft, dollars: b.dollars });
+}
+
+/** Cross-day form of the subject key: company + facility type + state, so a later publisher's
+ *  copy of an opening already sent is a repeat (Glenmark: November 2, then again November 4) */
+export function subjectFacilitySignature(title: string, description?: string): string | null {
+    const key = extractSubjectFacilityKey(title, description);
+    return key?.state ? `${key.key}_${key.state}` : null;
 }
 
 export function normalizeUrlForDedupe(url: string): string {

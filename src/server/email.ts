@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty, hasGeographicFailure,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -27,6 +27,13 @@ import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
 import { isNonStoryArtifact } from '../shared/editorial-headline.js';
 import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
+
+/** Sent-state signatures: deal metrics plus the occupier subject key, written and checked alike */
+function sentStateSignatures(title: string, description: string): string[] {
+    const sigs = extractCrossDayDedupSignatures(title, description);
+    const subject = subjectFacilitySignature(title, description);
+    return subject ? [...sigs, subject] : sigs;
+}
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -430,7 +437,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const id = a.id || a.link || '';
             if (sentArticleIds.has(id)) { record('sent_id'); return true; }
             if (sentSigSet.size > 0) {
-                const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
+                const sigs = sentStateSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
                     record('sent_signature');
@@ -1742,7 +1749,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const sentItems = sigSourceArticles
                 .map(a => ({
                     id: a.id || a.link || '',
-                    sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
+                    sigs: sentStateSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
                     titleKey: normalizeTitleKey(a.title || ''),
                 }))
                 .filter(item => item.id);
