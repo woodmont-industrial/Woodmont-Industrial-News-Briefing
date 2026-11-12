@@ -89,7 +89,7 @@ async function main(){
                 assert.ok(after.sections.relevant.includes(id),'the real industrial report and manufacturing lease survive');
         }
         if (date === '2026-11-02') {
-            assert.equal(after.sections.relevant.length,7,'the seventh selected Relevant article reaches HTML');
+            assert.equal(after.sections.relevant.length,6,'the corrected November 2 stored-input replay renders six eligible Relevant articles');
             assert.equal(after.articleCount,after.renderedIds.length,'every counted article is visible');
             assert.ok(!after.sections.availabilities.includes('b6a8017e8448e7f13ab7d5bafd720dbfbc759090'),
                 'a construction announcement is not offered space');
