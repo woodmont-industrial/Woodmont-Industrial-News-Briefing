@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { isTargetRegion, isNotExcludedRegion, hasGeographicFailure, passesRelevantEditorialVerdict, mapFeedItemsToArticles,
-    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection } from './newsletter-filters.js';
+    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection, normalizeTitleKey } from './newsletter-filters.js';
 import { isCompletedHeadlineDeal, newsletterCategory } from '../shared/development-signal.js';
-import { extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature } from '../shared/url-utils.js';
+import { extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal,
+    dealEventClass } from '../shared/url-utils.js';
 
 // Shapes of three items that reached the November 9 send. Company names are synthetic;
 // the headline wording, places and sizes are the ones that caused the misses.
@@ -150,4 +151,29 @@ assert.equal(passesRelevantEditorialVerdict(rejected('Example REIT Signs 82,000-
     'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)', 'relevant')), false,
     'the exception is Transactions only; Relevant still honours every rejection');
 
-console.log('PASS: November 9-12 send regressions (out-of-region, off-topic, vacant-building purchase, sizeless listings, repeats, size-only rejections)');
+// A sale re-reported weeks later is one deal (East Rutherford $25M, sent October 19 and again
+// November 2 as "Meadowlands"); the same firm's other deals in the month are not
+const deal = (title: string) => dealEventFromTitleKey(normalizeTitleKey(title));
+const sameDeal = (a: string, b: string) => { const x = deal(a), y = deal(b); return !!x && !!y && dealEventsSameDeal(x, y); };
+const reReported = 'Colliers sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ';
+assert.equal(sameDeal('Colliers Sells New Jersey Industrial Property for $25 Million - Yahoo Finance', reReported), true);
+assert.equal(sameDeal('Colliers Sells Meadowlands Industrial Property for $25 Million - citybiz', reReported), true);
+for (const other of ['Colliers sells 31,000 sq. ft. Fairfield industrial building for $8.8 million',
+    'Colliers signs 86,000-square-foot lease in Meadowlands for $25 million',
+    'Colliers sells 120,000 sq. ft. Meadowlands warehouse', 'Colliers sells Allentown, PA warehouse for $25 million',
+    'Colliers sells New Jersey industrial portfolio'])
+    assert.equal(sameDeal(other, reReported), false, other);
+assert.equal(sameDeal('Colliers sells Kearny warehouse for $25 million', 'Colliers Sells East Rutherford Industrial Property for $25 Million'), false,
+    'two named towns are two deals');
+// A financing stays a financing: it never matches a sale, and a stale-only rejection being set
+// aside does not turn it into a completed purchase
+assert.equal(dealEventClass('Example Bank Supplies $133M Refi for Miami-Dade Industrial Campus'), 'finance');
+assert.equal(sameDeal('Colliers arranges $133M refi for Miami-Dade industrial campus', 'Colliers sells Miami-Dade industrial campus for $133M'), false);
+const refi = mapFeedItemsToArticles([{ ...item('Example Bank Supplies $133M Refi for Miami-Dade Industrial Campus - Commercial Observer', 'transactions',
+    'Example Bank provided a $133 million refinancing for a warehouse and distribution campus in Medley, Miami-Dade County.'),
+    _woodmontApprove: false, _woodmontReason: 'Article is older than 7 days (published 2026-11-03, today 2026-11-11) – Rule 11 (STALE)' }])[0];
+assert.equal(isCompletedHeadlineDeal(refi.title), false, 'a refinancing headline is not a completed sale');
+assert.equal(applyTransactionFilter([refi]).length, 1);
+assert.equal(refi.category, 'transactions');
+
+console.log('PASS: November 9-12 send regressions (out-of-region, off-topic, vacant-building purchase, sizeless listings, repeats, size-only rejections, 30-day deal repeats)');

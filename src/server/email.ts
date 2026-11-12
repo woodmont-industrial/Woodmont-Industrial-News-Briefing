@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty, hasGeographicFailure,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -18,7 +18,7 @@ import {
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles, prepareNewsletterReservePool,
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles,
-    loadSentTitleKeys, normalizeTitleKey
+    loadSentTitleKeys, loadSentDealEvents, normalizeTitleKey
 } from './newsletter-filters.js';
 import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
@@ -430,6 +430,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentArticleIds = loadSentArticles(docsDir);
         const sentSigSet = loadSentSignatures(docsDir);
         const sentTitleKeys = loadSentTitleKeys(docsDir);
+        const sentDealEvents = loadSentDealEvents(docsDir);
         // Also applied to reserve-pool items: the pool is built before the previous send,
         // so it can still hold a deal already sent the previous day (Nov 10-11 regression).
         const isSentRepeat = (a: NormalizedItem, countInPool = true): boolean => {
@@ -453,6 +454,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                     record('sent_title');
                     return true;
                 }
+            }
+            // The same firm's sale, lease or financing re-reported within 30 days
+            const event = dealEventFromTitleKey(normalizeTitleKey(a.title || ''));
+            if (event && sentDealEvents.some(sent => dealEventsSameDeal(event, sent))) {
+                console.log(`🔁 Cross-day deal dedup: "${(a.title||'').substring(0,60)}" matches a deal sent in last 30d`);
+                record('sent_deal_event');
+                return true;
             }
             return false;
         };

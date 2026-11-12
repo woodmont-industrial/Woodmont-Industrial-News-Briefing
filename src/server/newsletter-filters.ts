@@ -13,6 +13,7 @@ import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonSt
 import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
+import { dealEventFromTitleKey, type DealEvent } from '../shared/url-utils.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
@@ -1184,6 +1185,23 @@ export function loadSentTitleKeys(docsDir: string): Set<string> {
     } catch (e) {
         console.warn('Could not load sent title keys:', e);
         return new Set();
+    }
+}
+
+/**
+ * Deal events (named firm + sale/lease/financing + figures) sent in the last 30 days. Wider
+ * than the 14-day signature window because a publisher can re-report a sale weeks later
+ * (East Rutherford $25M: sent 2026-10-19, re-reported as "Meadowlands" and sent again 11-02).
+ */
+export function loadSentDealEvents(docsDir: string): DealEvent[] {
+    try {
+        const data: SentArticlesData = JSON.parse(fs.readFileSync(path.join(docsDir, 'sent-articles.json'), 'utf-8'));
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return (data.sent || []).filter(e => e.titleKey && new Date(e.sentAt) >= thirtyDaysAgo)
+            .map(e => dealEventFromTitleKey(e.titleKey!)).filter((e): e is DealEvent => e !== null);
+    } catch {
+        return [];
     }
 }
 
