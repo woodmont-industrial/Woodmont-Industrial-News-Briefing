@@ -7,7 +7,7 @@ import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
 import { generateDescriptions } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
-import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass } from '../shared/url-utils.js';
+import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal } from '../shared/url-utils.js';
 import {
     getText, containsAny, isPolitical, isTargetRegion, isNotExcludedRegion, isRoutableRegionalDeal, isIndustrialProperty, hasGeographicFailure,
     applyStrictFilter, applyTransactionFilter, applyAvailabilityFilter, applyPeopleFilter,
@@ -15,13 +15,25 @@ import {
     dedupeByNearTitle, isNearTitleDuplicate,
     reCategorizeRelevantAsPeople, qualifiesForPeopleRescue,
     postDescriptionRegionCheck, loadArticlesFromFeed, filterArticlesByTimeRange,
-    sortByDealThenDate, getValidDate, mapFeedItemsToArticles,
+    sortByDealThenDate, getValidDate, mapFeedItemsToArticles, prepareNewsletterReservePool,
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles,
-    loadSentTitleKeys, normalizeTitleKey
+    loadSentTitleKeys, loadSentDealEvents, normalizeTitleKey
 } from './newsletter-filters.js';
 import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
+import { editorialVerdictFields, indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
+import { passesRelevantEditorialVerdict } from './newsletter-filters.js';
+import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
+import { isNonStoryArtifact } from '../shared/editorial-headline.js';
+import { WORK_NEWSLETTER_LIMITS } from '../shared/newsletter-limits.js';
+
+/** Sent-state signatures: deal metrics plus the occupier subject key, written and checked alike */
+function sentStateSignatures(title: string, description: string): string[] {
+    const sigs = extractCrossDayDedupSignatures(title, description);
+    const subject = subjectFacilitySignature(title, description);
+    return subject ? [...sigs, subject] : sigs;
+}
 
 // ---------------------------------------------------------------------------
 // Scoring Weights — loaded from docs/scoring-weights.json (falls back to defaults)
@@ -394,6 +406,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         resetLogicImpact(); // start-of-send: zero the diagnostics-only logic-impact counters
         const diag = new DiagnosticContext();
         const { articles: allLoadedArticles, docsDir } = loadArticlesFromFeed();
+        const currentVerdicts = indexEditorialVerdicts(allLoadedArticles);
+        const passesRelevantVerdict = (article: NormalizedItem) =>
+            passesRelevantEditorialVerdict(withCurrentEditorialVerdict(article, currentVerdicts), diag);
         const tracer = getActiveTracer();
         tracer?.markMany(allLoadedArticles, 'loaded', 'info');
         console.log(`📰 Loaded ${allLoadedArticles.length} articles from feed`);
@@ -415,15 +430,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentArticleIds = loadSentArticles(docsDir);
         const sentSigSet = loadSentSignatures(docsDir);
         const sentTitleKeys = loadSentTitleKeys(docsDir);
-        const articles = allLoadedArticles.filter(a => {
+        const sentDealEvents = loadSentDealEvents(docsDir);
+        // Also applied to reserve-pool items: the pool is built before the previous send,
+        // so it can still hold a deal already sent the previous day (Nov 10-11 regression).
+        const isSentRepeat = (a: NormalizedItem, countInPool = true): boolean => {
+            const record = (reason: string) => { if (countInPool) recordCrossDayPoolRepeatSuppressed(a, reason); };
             const id = a.id || a.link || '';
-            if (sentArticleIds.has(id)) { recordCrossDayPoolRepeatSuppressed(a, 'sent_id'); return false; }
+            if (sentArticleIds.has(id)) { record('sent_id'); return true; }
             if (sentSigSet.size > 0) {
-                const sigs = extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || '');
+                const sigs = sentStateSignatures(a.title || '', (a as any).description || (a as any).summary || '');
                 if (sigs.some(s => sentSigSet.has(s))) {
                     console.log(`🔁 Cross-day dedup: "${(a.title||'').substring(0,60)}" matches sent signature`);
-                    recordCrossDayPoolRepeatSuppressed(a, 'sent_signature');
-                    return false;
+                    record('sent_signature');
+                    return true;
                 }
             }
             // Cross-day TITLE dedup: catches syndicated same-headline repeats with no deal
@@ -432,12 +451,20 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 const tk = normalizeTitleKey(a.title || '');
                 if (tk.length >= 25 && sentTitleKeys.has(tk)) {
                     console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
-                    recordCrossDayPoolRepeatSuppressed(a, 'sent_title');
-                    return false;
+                    record('sent_title');
+                    return true;
                 }
             }
-            return true;
-        });
+            // The same firm's sale, lease or financing re-reported within 30 days
+            const event = dealEventFromTitleKey(normalizeTitleKey(a.title || ''));
+            if (event && sentDealEvents.some(sent => dealEventsSameDeal(event, sent))) {
+                console.log(`🔁 Cross-day deal dedup: "${(a.title||'').substring(0,60)}" matches a deal sent in last 30d`);
+                record('sent_deal_event');
+                return true;
+            }
+            return false;
+        };
+        const articles = allLoadedArticles.filter(a => !isSentRepeat(a));
         tracer?.diff(allLoadedArticles, articles, 'crossDayDedup');
         const dedupRemoved = allLoadedArticles.length - articles.length;
         if (dedupRemoved > 0) console.log(`🔁 Dedup: removed ${dedupRemoved} previously sent article(s)`);
@@ -456,8 +483,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const MIN_TRANSACTIONS = 4;   // 4-10 transactions
         const MIN_AVAILABILITIES = 1; // 1-5 availabilities (fewer listing-type articles exist)
         const MIN_PEOPLE = 2;         // 2-10 people articles
-        const MAX_PER_SECTION = 10;
-        const MAX_AVAILABILITIES = 3;   // 2026-07-08: tight cap — valid NJ/PA/FL for-lease listings belong here, but keep it 1-3 so it never becomes LoopNet listing-spam
+        const MAX_PER_SECTION = WORK_NEWSLETTER_LIMITS.relevant;
+        const MAX_AVAILABILITIES = WORK_NEWSLETTER_LIMITS.availabilities;
 
         // Monday: expand to 72h to catch weekend articles; otherwise 48h max
         const maxRange = isMonday ? 72 : 48;
@@ -687,7 +714,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
                     console.log(`🏪 Tier 4 reserve pool fallback (generated ${reserve.generatedAt})`);
                     const reserveFill = (
                         section: NormalizedItem[],
@@ -716,6 +743,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                                 pubDate: r.date_published,
                                 ...(r as any),
                             } as NormalizedItem;
+                            if (isSentRepeat(item, false)) continue;
+                            if (label === 'relevant' && !passesRelevantVerdict(item)) continue;
+                            // A reserve score is not proof of a regional qualifying deal.
+                            // Recheck the same gates used by normal Transaction selection.
+                            if (label === 'transactions' && (!isTargetRegion(item)
+                                || applyTransactionFilter([item], diag).length === 0)) continue;
                             section.push(item);
                             usedIds.add(key);
                         }
@@ -757,17 +790,19 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             try {
                 const reservePath = path.join(docsDir, 'preferences', 'reserve-pool.json');
                 if (fs.existsSync(reservePath)) {
-                    const reserve = JSON.parse(fs.readFileSync(reservePath, 'utf-8'));
+                    const reserve = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(reservePath, 'utf-8')));
                     const pool: any[] = reserve.sections?.relevant || [];
                     const before = relevant.length;
                     for (const r of pool) {
                         if (editionTotal() >= TARGET_MIN_TOTAL || relevant.length >= MAX_PER_SECTION) break;
                         const key = r.id || r.url;
                         if (usedIds.has(key)) continue;
-                        relevant.push({
+                        const item = {
                             id: r.id, title: r.title, link: r.url, description: r.description || '',
                             category: r.category, source: r.source, pubDate: r.date_published, ...(r as any),
-                        } as NormalizedItem);
+                        } as NormalizedItem;
+                        if (isSentRepeat(item, false) || !passesRelevantVerdict(item)) continue;
+                        relevant.push(item);
                         usedIds.add(key);
                     }
                     const added = relevant.length - before;
@@ -800,6 +835,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 console.log(`🚫 Included article skipped (political): "${article.title?.substring(0, 60)}"`);
                 continue;
             }
+            if ((article.category || 'relevant') === 'relevant' && !passesRelevantVerdict(article)) continue;
             usedIds.add(articleKey);
             const cat = article.category || 'relevant';
             if (cat === 'transactions') transactions.push(article);
@@ -1027,12 +1063,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // (Ft. Myers wasn't in the list, news.google.com isn't a trusted source). Added the
         // top FL/NJ/PA cities + counties + 'northeast' regional descriptor (catches GC people
         // moves like PREMIER's Trautmann named superintendent for Northeast industrial market).
-        const TARGET_REGION_PATTERN = /\b(new jersey|nj|newark|edison|carlstadt|rahway|piscataway|parsippany|robbinsville|hamilton|monmouth|somerset|harrison|wall twp|north bergen|garwood|linden|moonachie|cranbury|green brook|clark|freehold|trenton|camden|woodbridge|elizabeth|paterson|lakewood|mount olive|mt olive|mt laurel|mount laurel|middlesex|essex|union county|bergen|hudson county|morris county|burlington county|ocean county|exit \d|meadowlands|turnpike|route 1|i-95|i-78|i-287|pennsylvania|philadelphia|philly|allentown|lehigh|morrisville|bucks county|montgomery county|chester county|delaware county|pittsburgh|reading|lancaster|harrisburg|carlisle|wilkes.?barre|scranton|york county|bethlehem|easton|exton|king of prussia|valley forge|cumberland county|berks county|florida|miami|orlando|doral|jacksonville|tampa|broward|pompano|hialeah|medley|fort lauderdale|palm beach|miami-dade|duval|hillsborough|orange county, fl|fort myers|ft\.?\s*myers|naples|sarasota|lakeland|ocala|st\.?\s*petersburg|saint petersburg|gainesville|tallahassee|pensacola|polk county|pasco county|lee county|collier county|alachua|seminole county|brevard|volusia|northeast industrial|north east industrial)\b/i;
 
         const NATIONAL_MACRO_PATTERN = /\b(interest rates?|cap rates?|vacancy rates?|absorption|industrial market|warehouse market|warehouse demand|logistics market|reit|industrial reit|supply chain|freight market|e-commerce|automation|robotics|build-to-suit|spec development|industrial outlook|market report|quarterly report|national industrial|us industrial|u\.s\. industrial|industrial sector|logistics sector|warehouse sector|industrial fund|industrial portfolio|industrial real estate|warehouse real estate|big.?box|shallow.?bay|last.?mile|cold storage market)\b/i;
 
         const finalGate = (articles: NormalizedItem[], sectionName: string): NormalizedItem[] => {
             return articles.filter(a => {
+                if (isNonStoryArtifact(a.title || '')) return false;
+                if (sectionName === 'Relevant' && !passesRelevantVerdict(a)) return false;
                 const text = `${a.title || ''} ${a.description || ''} ${(a as any).content_text || ''}`;
                 const url = (a.link || a.url || '').toLowerCase();
                 const source = (a.source || (a as any)._source?.website || '').toLowerCase();
@@ -1057,7 +1094,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 }
 
                 // ALLOWLIST CHECK: article must prove it belongs via one of 3 paths
-                const hasTargetRegion = TARGET_REGION_PATTERN.test(text);
+                const hasTargetRegion = isTargetRegion(a);
                 const isTrustedSource = TRUSTED_DIRECT_SOURCES.has(source) ||
                     [...TRUSTED_DIRECT_SOURCES].some(d => url.includes(d));
                 const isNationalMacro = NATIONAL_MACRO_PATTERN.test(text);
@@ -1153,7 +1190,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                         .filter((a: any) => !excludedIds.has(a.id));
                     console.log(`📊 ${day}: ${dayArticles.length} articles${excludedIds.size > 0 ? ` (after excluded-IDs filter)` : ''}`);
                     for (const a of dayArticles) {
-                        allWeekArticles.push({
+                        if (isNonStoryArtifact(a.title || '')) continue;
+                        const item = {
                             id: a.id,
                             title: a.title,
                             link: a.link || a.url,
@@ -1164,7 +1202,10 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             tags: a.region ? [a.region] : [],
                             date_published: a.date_published || day,
                             pubDate: a.date_published || day,
-                        } as NormalizedItem);
+                            ...editorialVerdictFields(a),
+                        } as NormalizedItem;
+                        if ((item.category || 'relevant') === 'relevant' && !passesRelevantVerdict(item)) continue;
+                        allWeekArticles.push(item);
                     }
                 }
 
@@ -1224,6 +1265,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // Fallback: scan feed for last 5 days
                 const fiveDayArticles = filterArticlesByTimeRange(articles, 5 * 24);
                 weekInReview = fiveDayArticles
+                    .filter(a => !isNonStoryArtifact(a.title || ''))
+                    .filter(a => a.category !== 'relevant' || passesRelevantVerdict(a))
                     .filter(isNotExcludedRegion)
                     .filter(a => !isPolitical(getText(a)))
                     .sort((a, b) => scoreArticle(b) - scoreArticle(a))
@@ -1362,8 +1405,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // The FIRST occurrence survives; sections are pre-sorted by deal score and the WiR by
         // score, so the stronger (metric-bearing / preferred-source) variant is the one kept.
         const entitySeen: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
+        const subjectSeen: Array<NonNullable<ReturnType<typeof extractSubjectFacilityKey>>> = [];
         const dedupeByEntityKey = (articles: NormalizedItem[], label: string): NormalizedItem[] =>
             articles.filter(a => {
+                const sk = extractSubjectFacilityKey(a.title || '', a.description || '');
+                if (sk) {
+                    if (subjectSeen.some(s => subjectFacilityKeysSameStory(s, sk))) {
+                        console.log(`🔁 Subject-facility dedup removed from ${label}: "${(a.title || '').slice(0, 60)}" (${sk.key})`);
+                        withinSendRemovedDupes.push(a);
+                        return false;
+                    }
+                    subjectSeen.push(sk);
+                }
                 const ek = extractEntityDealKey(a.title || '', a.description || '');
                 if (!ek) return true;
                 if (entitySeen.some(s => entityKeysSameDeal(s, ek))) {
@@ -1422,13 +1475,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // non-industrial / wrong-asset-class (retail/office/multifamily/pharma), and wrong US
         // region (non-target market with no NJ/PA/FL). Graceful: removes only the offending
         // item, not the edition. Runs inside the send job (cloud) — caught BEFORE delivery,
-        // even with no one watching. (International is handled upstream; see TARGET_RX note.)
+        // even with no one watching. (International is handled upstream; see the shared region guard.)
         const GARBAGE_DESC = ['no specific commercial real estate', 'is mentioned in the title', 'mentioned in the title or description', 'a general trend is implied', 'trend is implied', 'the title or description', 'no specific deal', 'no specific transaction', 'no specific real estate'];
         // NJ/PA/FL signal — used to decide a wrong-region drop (only drop an out-of-market
         // item if NO target region is present, so an on-target story that mentions another
         // market survives). International is intentionally NOT re-checked here — it's handled
         // upstream and naive substring matching (e.g. "INDIA" in "Indiana") risks false drops.
-        const TARGET_RX = /\b(n\.?j\.?|new jersey|pennsylvania|\bpa\b|\bfl\b|florida|newark|jersey city|edison|piscataway|kearny|trenton|camden|woodbridge|middlesex|bergen|philadelphia|philly|allentown|lehigh|bethlehem|pittsburgh|harrisburg|lancaster|king of prussia|miami|doral|hialeah|tampa|clearwater|orlando|jacksonville|fort lauderdale|pompano|west palm|palm beach|fort myers|ft\.?\s*myers|naples|sarasota|lakeland)\b/i;
         const scrubHardProblems = (items: NormalizedItem[], section: string): NormalizedItem[] => {
             return items.filter(it => {
                 const t = (it.title || '').trim();
@@ -1456,7 +1508,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 // never have reached here (e.g. a post-description refill that bypassed it).
                 else if (!isStrictlyIndustrial(text)) bad = 'non-industrial / wrong-asset-class';
                 // Wrong US region: names a non-target market (CA/TX/etc.) and NO NJ/PA/FL.
-                else if (OUT_OF_MARKET_KEYWORDS.some(k => text.toLowerCase().includes(k)) && !TARGET_RX.test(text)) bad = 'wrong US region (no NJ/PA/FL)';
+                else if (OUT_OF_MARKET_KEYWORDS.some(k => text.toLowerCase().includes(k)) && !isTargetRegion(it)) bad = 'wrong US region (no NJ/PA/FL)';
                 if (bad) {
                     console.error(`🚫 PRE-SEND SCRUB [${section}] dropped (${bad}): "${t.slice(0, 55)}"`);
                     return false;
@@ -1518,6 +1570,26 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             if (r.dc.unknownLocationAllowed.length) console.log(`🛰️  DC-policy unknown-location kept: ${r.dc.unknownLocationAllowed.map(x => x.title.slice(0, 45)).join(' | ')}`);
         }
 
+        // Final section contract also covers reserve and manual-inclusion paths.
+        const listings = transactions.filter(a => newsletterCategory(a) === 'availabilities');
+        transactions = transactions.filter(a => newsletterCategory(a) !== 'availabilities');
+        for (const item of listings) {
+            if (!isTargetRegion(item) || !applyAvailabilityFilter([item]).length) continue;
+            item.category = 'availabilities';
+            if (!availabilities.some(a => (a.id || a.link) === (item.id || item.link))) availabilities.push(item);
+        }
+        // Construction announcements belong in Relevant under the current layout.
+        const construction = [...transactions, ...availabilities].filter(isConstructionAnnouncement);
+        transactions = transactions.filter(a => !isConstructionAnnouncement(a));
+        availabilities = applyAvailabilityFilter(availabilities.filter(a => !isConstructionAnnouncement(a)), diag);
+        for (const item of construction) {
+            if (!isTargetRegion(item) || !passesRelevantVerdict(item)) continue;
+            if (!isStrictlyIndustrial(getText(item))) continue;
+            item.category = 'relevant';
+            if (!relevant.some(a => (a.id || a.link) === (item.id || item.link))) relevant.push(item);
+        }
+        relevant = relevant.filter(passesRelevantVerdict);
+
         // POST-BACKFILL NEAR-TITLE SWEEP (2026-08-07): the early near-title pass (line ~557) runs
         // BEFORE the backfill/refill cascade, so near-title duplicates introduced BY backfill are never
         // presented to it (the 2026-08-07 Berks County pair: both copies admitted via backfill from
@@ -1533,6 +1605,12 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         transactions = dedupeByNearTitle(transactions, scoreArticle, 'transactions');
         availabilities = dedupeByNearTitle(availabilities, scoreArticle, 'availabilities');
         people = dedupeByNearTitle(people, scoreArticle, 'people');
+        // Refills and final re-routing may have added items after the early cap.
+        // Final counts, sent-state and HTML must describe the same selected set.
+        relevant = relevant.slice(0, WORK_NEWSLETTER_LIMITS.relevant);
+        transactions = transactions.slice(0, WORK_NEWSLETTER_LIMITS.transactions);
+        availabilities = availabilities.slice(0, WORK_NEWSLETTER_LIMITS.availabilities);
+        people = people.slice(0, WORK_NEWSLETTER_LIMITS.people);
 
         // Re-wire per-feed attribution (perFeedBySection was empty). Record which feed each
         // SELECTED item came from, by section — so we can see which feeds actually produce
@@ -1576,7 +1654,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             let reserveSections: any = {};
             try {
                 const rp = path.join(docsDir, 'preferences', 'reserve-pool.json');
-                if (fs.existsSync(rp)) reserveSections = JSON.parse(fs.readFileSync(rp, 'utf-8')).sections || {};
+                if (fs.existsSync(rp)) reserveSections = prepareNewsletterReservePool(JSON.parse(fs.readFileSync(rp, 'utf-8'))).sections || {};
             } catch { /* reserve optional */ }
             // RAW qualifying gate — NOT the strict section filters. Using applyTransactionFilter
             // here made supply falsely read 0 on 2026-07-07 (run 28862837091): 15 real regional
@@ -1679,7 +1757,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             const sentItems = sigSourceArticles
                 .map(a => ({
                     id: a.id || a.link || '',
-                    sigs: extractCrossDayDedupSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
+                    sigs: sentStateSignatures(a.title || '', (a as any).description || (a as any).summary || ''),
                     titleKey: normalizeTitleKey(a.title || ''),
                 }))
                 .filter(item => item.id);
@@ -1705,6 +1783,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 sentToRelay: success,
                 articleCount: relevant.length + transactions.length + availabilities.length + people.length,
                 score: dq?.score ?? null,
+                scoringVersion: dq?.scoringVersion ?? null,
                 grade: dq?.grade ?? null,
                 deliveryScore: dq?.delivery?.score ?? null,
                 supplyCondition: dq?.supply ?? null,

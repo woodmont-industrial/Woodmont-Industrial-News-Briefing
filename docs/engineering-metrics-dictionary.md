@@ -54,6 +54,9 @@ It was independently reproduced with inputs from `86294b7`, an empty manual queu
 versus `cc7339d`: 75→82, People 0→1, other section IDs identical, zero network requests, nothing sent.
 
 ## docs/daily-logic-impact.csv — one row per production send
+- Measurement provenance: left-join `run_id` to `runId` in
+  `quality-score-methods.csv`. Separate score trends by `scoringVersion`; see
+  `quality-scoring-methods.md`. Historical numeric scores are not recomputed.
 - Auto from `quality-scores.csv`: `score, grade, coverage_score, freshness_score, supply_condition,
   penalty_total, articles_shipped`.
 - Auto from the per-send diagnostic archive: `relevant/transactions/availabilities/people_count,

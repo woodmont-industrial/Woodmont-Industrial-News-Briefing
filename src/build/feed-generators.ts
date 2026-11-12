@@ -1,3 +1,4 @@
+import { newsletterFactFields } from '../shared/newsletter-facts.js';
 /**
  * Feed generation utilities — RSS XML, JSON Feed, Raw Feed, and Health Report.
  * Extracted from static.ts to reduce file size.
@@ -159,10 +160,16 @@ export function generateJSONFeed(items: NormalizedItem[]): object {
                 _tier: (item as any)._tier ?? null,
                 // Woodmont LLM rubric verdict (second-pass after Path A).
                 // SPA filters by _woodmontApprove === true by default.
+                ...newsletterFactFields(item),
                 _woodmontApprove: (item as any)._woodmontApprove ?? null,
                 _woodmontReason: (item as any)._woodmontReason ?? null,
                 _woodmontConfidence: (item as any)._woodmontConfidence ?? null,
                 _woodmontClassifier: (item as any)._woodmontClassifier ?? null,
+                _woodmontRubricVersion: (item as any)._woodmontRubricVersion ?? null,
+                _woodmontClassifiedAt: (item as any)._woodmontClassifiedAt ?? null,
+                _woodmontModel: (item as any)._woodmontModel ?? null,
+                _woodmontModelApprove: (item as any)._woodmontModelApprove ?? null,
+                _woodmontDateValidation: (item as any)._woodmontDateValidation ?? null,
             };
         })
     };

@@ -553,7 +553,7 @@ const ENTITY_MARKET_MAP: Record<string, string> = {
     'logan township': 'logan-twp', 'monroe township': 'monroe-twp', 'king of prussia': 'king-of-prussia',
     'bayonne': 'bayonne', 'secaucus': 'secaucus', 'kearny': 'kearny', 'elizabeth': 'elizabeth',
     'newark': 'newark', 'hackensack': 'hackensack', 'paterson': 'paterson', 'clifton': 'clifton',
-    'passaic': 'passaic', 'carlstadt': 'carlstadt', 'moonachie': 'moonachie', 'teterboro': 'teterboro',
+    'passaic': 'passaic', 'carlstadt': 'carlstadt', 'moonachie': 'moonachie', 'teterboro': 'teterboro', 'east rutherford': 'east-rutherford',
     'rockaway': 'rockaway', 'parsippany': 'parsippany', 'linden': 'linden', 'edison': 'edison',
     'woodbridge': 'woodbridge', 'carteret': 'carteret', 'piscataway': 'piscataway', 'metuchen': 'metuchen',
     'sayreville': 'sayreville', 'cranbury': 'cranbury', 'camden': 'camden', 'vineland': 'vineland',
@@ -587,7 +587,7 @@ export function dealEventClass(title: string, description?: string): string | nu
     if (has(/\b(hir(?:e|es|ed|ing)|names?\b|named\b|appoint|promot|joins?\b|joined\b|tapped\b|elevat)/)
         && !has(/\b(acqui|buys?\b|bought\b|sells?\b|sold\b|sale\b|leas)/)) return 'people';
     if (has(/\b(acqui|buys?\b|bought\b|purchas|sale\b|sold\b|sells?\b|snaps?\s+up|grabs?\b|grabbed\b|nabs?\b|scoops?\s+up|trades?\b|changes hands|picks?\s+up)/)) return 'acquire';
-    if (has(/\b(refinanc|financ|loan\b|mortgage\b|recap)/)) return 'finance';
+    if (has(/\b(refinanc|refis?\b|financ|loan\b|mortgage\b|recap)/)) return 'finance';
     if (has(/\b(leas(?:e|es|ed|ing)|tenant\b|sublease|renew|occup|signs? a lease|takes?\s+\d)/)) return 'lease';
     if (has(/\b(delivers?\b|deliver(?:y|ed)\b|completes?\b|opens?\b|tops? out|topped out|ribbon)/)) return 'develop-deliver';
     if (has(/\b(breaks? ground|groundbreak|propos|plans?\b|approv|rezon|zoning\b|entitl|to build)/)) return 'develop-start';
@@ -648,6 +648,118 @@ export function entityKeysSameDeal(
     if (a.sqft !== null && b.sqft !== null && Math.round(a.sqft / 10000) !== Math.round(b.sqft / 10000)) return false;
     if (a.dollars !== null && b.dollars !== null && Math.round(a.dollars / 5) !== Math.round(b.dollars / 5)) return false;
     return true;
+}
+
+const SUBJECT_STOPWORDS = new Set(['the', 'a', 'an', 'new', 'inside', 'why', 'how', 'what', 'report', 'exclusive', 'update']);
+const FACILITY_RE = /\b(distribution (?:center|centre|hub|operations)|fulfillment (?:center|centre|operations)|cold[ -]storage (?:facility|warehouse)|manufacturing (?:plant|facility|operations)|logistics (?:park|center|centre|hub|facility|operations)|warehouse|headquarters|facility)\b/i;
+// Publishers name one facility differently ("Distribution Center", "Distribution Operations",
+// "Facility" vs "eCommerce support facility"), so the key carries a coarse type
+const facilityType = (match: string) => /cold/i.test(match) ? 'cold-storage' : /manufactur/i.test(match) ? 'manufacturing'
+    : /headquarters/i.test(match) ? 'headquarters' : /^facility$/i.test(match) ? 'facility' : 'distribution';
+
+/**
+ * Same-send story key for occupier news that has no CRE entity, e.g. one tenant's facility
+ * opening carried by two publishers (Glenmark, Allentown PA, 2026-11-10). Leading company
+ * name + facility type; the town and metrics ride along so the caller can keep apart two
+ * stories about the same company in different towns or of different sizes.
+ */
+export function extractSubjectFacilityKey(title: string, description?: string): SubjectFacilityKey | null {
+    const words = title.replace(/\s+[-–—|]\s+[^-–—|]+$/, '').split(/\s+/);
+    const subject: string[] = [];
+    for (const word of words) {
+        const clean = word.replace(/[^A-Za-z&'.-]/g, '');
+        if (!/^[A-Z]/.test(clean) || SUBJECT_STOPWORDS.has(clean.toLowerCase())) break;
+        subject.push(clean.toLowerCase());
+        if (subject.length === 2) break;
+    }
+    if (!subject.length || subject[0].length < 4) return null;
+    const facility = FACILITY_RE.exec(title);
+    if (!facility) return null;
+    const original = `${title} ${description || ''}`;
+    const text = original.toLowerCase();
+    const town = ENTITY_MARKET_ENTRIES.find(e => e.re.test(text))?.slug ?? null;
+    const sfK = text.match(/(\d+(?:\.\d+)?)\s*k\s*(?:sf|sq\.?\s*f)/i);
+    const sfFull = text.match(/(\d{1,3}(?:,\d{3})+)[\s-]*(?:sf|sq\.?\s*f|square[\s-]*feet|square[\s-]*foot)/i);
+    const sqft = sfK ? Math.round(parseFloat(sfK[1]) * 1000) : sfFull ? parseInt(sfFull[1].replace(/,/g, '')) : null;
+    const dM = text.match(/\$\s*(\d+(?:\.\d+)?)\s*(?:m|million)\b/i);
+    return { key: `subj_${subject.join('-')}_${facilityType(facility[1])}`, town,
+        state: storyState(original, town), sqft, dollars: dM ? Math.round(parseFloat(dM[1])) : null };
+}
+
+const PA_TOWNS = new Set(['philadelphia', 'conshohocken', 'king-of-prussia', 'allentown', 'bethlehem', 'easton', 'harrisburg',
+    'lancaster', 'reading', 'pittsburgh', 'scranton', 'wilkes-barre']);
+const FL_TOWNS = new Set(['fort-lauderdale', 'west-palm', 'boca-raton', 'miami', 'doral', 'hialeah', 'medley', 'pompano',
+    'orlando', 'tampa', 'jacksonville', 'ocala']);
+
+/** The NJ/PA/FL state a story names, directly or through a mapped town; null when it names none */
+function storyState(text: string, town: string | null): string | null {
+    if (/\bPennsylvania\b|\bPA\b|\bPa\./.test(text)) return 'pa';
+    if (/\bFlorida\b|\bFL\b|\bFla\./.test(text)) return 'fl';
+    if (/\bNew Jersey\b|\bN\.?J\.?(?![a-z])/.test(text)) return 'nj';
+    if (!town) return null;
+    return PA_TOWNS.has(town) ? 'pa' : FL_TOWNS.has(town) ? 'fl' : 'nj';
+}
+
+type SubjectFacilityKey = { key: string; town: string | null; state: string | null; sqft: number | null; dollars: number | null };
+
+/** Merges only when both stories place the facility in the same state and no mapped town or metric conflicts */
+export function subjectFacilityKeysSameStory(a: SubjectFacilityKey, b: SubjectFacilityKey): boolean {
+    if (a.key !== b.key) return false;
+    if (!a.state || a.state !== b.state) return false;
+    if (a.town && b.town && a.town !== b.town) return false;
+    return entityKeysSameDeal({ key: '', sqft: a.sqft, dollars: a.dollars }, { key: '', sqft: b.sqft, dollars: b.dollars });
+}
+
+/** Cross-day form of the subject key: company + facility type + state, so a later publisher's
+ *  copy of an opening already sent is a repeat (Glenmark: November 2, then again November 4) */
+export function subjectFacilitySignature(title: string, description?: string): string | null {
+    const key = extractSubjectFacilityKey(title, description);
+    return key?.state ? `${key.key}_${key.state}` : null;
+}
+
+export type DealEvent = { entity: string; event: string; state: string; town: string | null; sqft: number | null; dollars: number | null };
+
+// Headline keys turn "86,000 sq. ft." into "86 000 sq ft" and "$18.1 million" into "18 1 million"
+const keyNumber = (s: string) => /^\d{1,3}( \d{3})+$/.test(s) ? parseInt(s.replace(/ /g, ''))
+    : /^\d+ \d+$/.test(s) ? parseFloat(s.replace(' ', '.')) : parseFloat(s);
+
+/**
+ * A named CRE firm's sale, lease or financing, read from a normalized headline key (see
+ * normalizeTitleKey). Sent-state stores that key for every article, so a re-report can be
+ * matched against 30 days of sends, including sends from before this check existed.
+ */
+export function dealEventFromTitleKey(key: string): DealEvent | null {
+    const entity = CRE_ENTITY_RES.find(e => e.re.test(key))?.name;
+    if (!entity) return null;
+    const event = dealEventClass(key);
+    if (event !== 'acquire' && event !== 'lease' && event !== 'finance') return null;
+    const sf = key.match(/\b(\d+(?: \d+)*)\s*(k|m)?\s*(?:sf|sq ft|square f(?:eet|oot))\b/);
+    const sqft = sf ? Math.round(keyNumber(sf[1]) * (sf[2] === 'm' ? 1e6 : sf[2] === 'k' ? 1e3 : 1)) : null;
+    const usd = key.match(/\b(\d+(?: \d)?)\s*(million|billion|m|b)\b(?!\s*(?:sf|sq|square))/);
+    const dollars = usd ? keyNumber(usd[1]) * (/^b/.test(usd[2]) ? 1000 : 1) : null;
+    if (sqft === null && dollars === null) return null;
+    const town = ENTITY_MARKET_ENTRIES.find(e => e.re.test(key))?.slug ?? null;
+    // Multi-town regions name a state but no single town
+    const state = /\bpennsylvania\b|\bpa\b|\blehigh valley\b/.test(key) ? 'pa'
+        : /\bflorida\b|\bfla?\b|\bsouth florida\b|\bmiami dade\b|\bbroward\b|\bpalm beach\b/.test(key) ? 'fl'
+        : /\bnew jersey\b|\bnj\b|\bn j\b|\bmeadowlands\b|\b(?:north|central|south) jersey\b/.test(key) ? 'nj'
+        : town ? (PA_TOWNS.has(town) ? 'pa' : FL_TOWNS.has(town) ? 'fl' : 'nj') : null;
+    if (!state) return null;
+    return { entity, event, state, town, sqft, dollars };
+}
+
+/** Same firm, deal type and state, no conflicting town, and a shared figure that agrees with no other figure conflicting */
+export function dealEventsSameDeal(a: DealEvent, b: DealEvent): boolean {
+    if (a.entity !== b.entity || a.event !== b.event || a.state !== b.state) return false;
+    if (a.town && b.town && a.town !== b.town) return false;
+    const close = (x: number, y: number) => Math.abs(x - y) <= Math.max(x, y) * 0.02;
+    let shared = 0;
+    for (const [x, y] of [[a.dollars, b.dollars], [a.sqft, b.sqft]] as const) {
+        if (x === null || y === null) continue;
+        if (!close(x, y)) return false;
+        shared++;
+    }
+    return shared > 0;
 }
 
 export function normalizeUrlForDedupe(url: string): string {

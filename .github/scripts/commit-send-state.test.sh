@@ -199,6 +199,20 @@ check "no commit was pushed (origin still seed + racer only)" $?
 echo "--- AFTER: origin sent-articles.json (unchanged):"
 echo "$AFTER" | sed 's/^/    /'
 
+echo "== 7. Scoring method lookup survives publication and a racing commit =="
+make_world "$WORK/w7"
+send_run_writes "$WORK/w7/cloneA"
+printf 'date,runId,scoringVersion\n%s,%s-1200,2026-10-30-shared-geography-v1\n' "$TODAY" "$TODAY" > "$WORK/w7/cloneA/docs/quality-score-methods.csv"
+printf 'date,runId,scoringVersion\n%s,%s-1100-racer,legacy-unversioned\n' "$TODAY" "$TODAY" > "$WORK/w7/cloneB/docs/quality-score-methods.csv"
+racer_pushes "$WORK/w7"
+( cd "$WORK/w7/cloneA" && bash "$SCRIPT" "method metadata test" >/dev/null 2>&1 ); rc=$?
+check "method-metadata publication succeeds after a racing commit" $rc
+method_csv="$(git -C "$WORK/w7/origin.git" show main:docs/quality-score-methods.csv)"
+echo "$method_csv" | grep -q "$TODAY-1200,2026-10-30-shared-geography-v1"
+check "origin receives this run's scoring method" $?
+echo "$method_csv" | grep -q "$TODAY-1100-racer,legacy-unversioned"
+check "origin keeps the competing method record" $?
+
 echo ""
 echo "$PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ]

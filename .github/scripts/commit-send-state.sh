@@ -29,7 +29,7 @@
 set -u
 
 STATE_FILES=(docs/sent-articles.json docs/feed.json docs/included-articles.json
-             docs/quality-scores.json docs/quality-scores.csv docs/daily-logic-impact.csv)
+             docs/quality-scores.json docs/quality-scores.csv docs/quality-score-methods.csv docs/daily-logic-impact.csv)
 STATE_DIRS=(docs/diagnostics docs/newsletter-archive)
 MSG="${1:-📧 Newsletter sent - $(date -u +'%Y-%m-%d %H:%M UTC')}"
 ATTEMPTS="${COMMIT_SEND_STATE_ATTEMPTS:-5}"
