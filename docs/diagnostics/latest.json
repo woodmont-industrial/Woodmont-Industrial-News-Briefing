@@ -1,17 +1,17 @@
 {
-  "runId": "2026-11-11-1300",
-  "generatedAt": "2026-11-11T13:00:32.147Z",
+  "runId": "2026-11-12-1300",
+  "generatedAt": "2026-11-12T13:00:29.428Z",
   "isFriday": false,
   "sections": {
     "relevant": {
       "loaded": 304,
-      "inWindow": 7,
-      "regionPass": 7,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 5,
+      "selected": 4,
       "supplyCandidates": 94,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 5,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 4,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -52,60 +52,15 @@
     "transactions": {
       "loaded": 304,
       "inWindow": 8,
-      "regionPass": 2,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 1,
-      "supplyCandidates": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 6,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
-        "tier5_manual_include": 0
-      },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
-    },
-    "availabilities": {
-      "loaded": 304,
-      "inWindow": 0,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 30,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 7,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -131,8 +86,53 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+    },
+    "availabilities": {
+      "loaded": 304,
+      "inWindow": 2,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 1,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 1,
+      "supplyCandidates": 25,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 1,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -186,87 +186,31 @@
     }
   },
   "perFeedBySection": {
+    "Google News Data Centers NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 5,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 1,
-        "people": 0
-      }
-    },
-    "Google News I-95 Corridor": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "globest.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Jacksonville FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Supply Chain Dive Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialobserver.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
+        "relevant": 3,
         "transactions": 1,
-        "availabilities": 0,
+        "availabilities": 1,
         "people": 0
       }
     }
@@ -279,14 +223,14 @@
     "windowDays": 7
   },
   "quality": {
-    "score": 79,
-    "outOf10": 7.9,
-    "grade": "C",
-    "itemCount": 7,
-    "operationalScore": 79,
-    "operationalGrade": "C",
-    "editorialQualityScore": 76,
-    "editorialGrade": "C",
+    "score": 85,
+    "outOf10": 8.5,
+    "grade": "B",
+    "itemCount": 6,
+    "operationalScore": 85,
+    "operationalGrade": "B",
+    "editorialQualityScore": 82,
+    "editorialGrade": "B",
     "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
@@ -298,27 +242,21 @@
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 27,
-      "freshness": 15.7,
-      "regional": 19.3,
+      "freshness": 16.9,
+      "regional": 20.8,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
-      "deep": 6,
-      "reserve": 1
+      "fresh": 4,
+      "deep": 4,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "repeat_cross_day",
-        "points": 3,
-        "detail": "Deal already sent in the last 14 days: \"Truist, Capital One Provide $474M Refi for U.S. \""
-      }
-    ],
+    "penalties": [],
     "notes": [
       "Empty — fresh supply rejected by section gates (quality): people"
     ]
@@ -331,13 +269,37 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 143,
+    "crossDayPoolRepeatsSuppressed": 139,
     "audit": [
       {
-        "id": "008748a7ce5953497e78d0c677404d004ebf07e0",
-        "title": "New Jersey moves closer to banning secret data center deals - W.Media",
+        "id": "56f17f3e7a4a757aa2068e1269ff1c0245d06136",
+        "title": "Florida Logistics Center Expands to Nearly 580 Acres at Key I-4/I-95 Logistics Hub - CBRE Deutschland",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_id"
+      },
+      {
+        "id": "5d29d844e60912f3db26456054c5a46f404074ef",
+        "title": "Prologis Says Industrial Rents Must Rise 27% Before New Construction Makes Sense",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "1cb197319cb1ae17516a1b259e290689bc0ba4d0",
+        "title": "ID Logistics leases in Florida Gateway Logistics Park - Jacksonville Daily Record",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "3b3c833fa6db09de9207b8a658e7de1a66b27022",
+        "title": "Apparel shipper expands US fulfillment operations to skirt de minimis’ end - Supply Chain Dive",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "bbc3c8ee74e96340b69307f338bc7f706589332e",
+        "title": "Creation Commences 330 KSF Tampa Logistics Project - CommercialSearch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "0836b0d02d11c926ddcc489a0e458500596ff76f",
@@ -426,6 +388,12 @@
       {
         "id": "65971f5c74ac86223f6fcebb7ab7d78e19a473a6",
         "title": "905 E 129th Ave, Tampa, FL 33612 - Industrial for Lease - LoopNet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "f0ae6c6283add7b30e36ae27eef0bf63f21a7e37",
+        "title": "260 Walsh Dr, Parsippany, NJ 07054 - Industrial for Lease - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -586,12 +554,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "bb878ecb0b3afaeef1c9e715560096e73899a110",
-        "title": "Should your neighborhood have data centers? These 2 N.J. towns will let voters decide. - NJ.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
         "id": "72a67868280d5f4ee29d0ecc4640ebba9035e2a2",
         "title": "USDA to fund 8 fertilizer manufacturing projects totaling more than $1.3B - Supply Chain Dive",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -608,12 +570,6 @@
         "title": "AY: Moving, logistics firm takes 94,000 sq. ft. at new Link Logistics warehouse in Carteret - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "cc3e0a316b1c4699232926e52256863ef1a08aac",
-        "title": "N.J. voters divided on data center development nationally, strongly opposed locally: Stockton poll - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "e26622640adf84365e04f833184ad8567ffeeaff",
@@ -912,24 +868,6 @@
       {
         "id": "24fe65695fe41b6fa9a1aa6391d46eabfae98d50",
         "title": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e70d760a8916ea7c268ddd2c2380b29e68d971d4",
-        "title": "Palm Beach County said no to Project Tango expansion, but data center space still triples - WPTV",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d2b892e7c5b298c7cb08222a150c8b1cdc241fde",
-        "title": "Profeta sells 685,000 sq. ft. Florida warehouse— mission critical facility for consumer goods giant — for a 4 percent ca",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6efb182bc8742811df5b8941f054b6f43a369681",
-        "title": "AI data center projects boost US warehouse demand and rents, real estate company JLL says - Reuters",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
