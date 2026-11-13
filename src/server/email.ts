@@ -749,6 +749,8 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                             // Recheck the same gates used by normal Transaction selection.
                             if (label === 'transactions' && (!isTargetRegion(item)
                                 || applyTransactionFilter([item], diag).length === 0)) continue;
+                            // Same for People: the reserve held a workplace-ranking item (2026-11-13)
+                            if (label === 'people' && applyPeopleFilter([item], diag).length === 0) continue;
                             section.push(item);
                             usedIds.add(key);
                         }
