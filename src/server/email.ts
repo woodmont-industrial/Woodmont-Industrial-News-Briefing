@@ -431,6 +431,15 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentSigSet = loadSentSignatures(docsDir);
         const sentTitleKeys = loadSentTitleKeys(docsDir);
         const sentDealEvents = loadSentDealEvents(docsDir);
+        // Sends saved before the subject signature existed carry none, so rebuild it from the
+        // original article while it is still in the feed: a later copy of the same occupier
+        // story is then caught (Merck, Sitex, Glenmark on 2026-11-13). Only the subject key —
+        // the broad state-level signatures over-block across days (2026-05-13).
+        for (const a of allLoadedArticles) {
+            if (!sentArticleIds.has(a.id || a.link || '')) continue;
+            const subject = subjectFacilitySignature(a.title || '', (a as any).description || (a as any).summary || '');
+            if (subject) sentSigSet.add(subject);
+        }
         // Also applied to reserve-pool items: the pool is built before the previous send,
         // so it can still hold a deal already sent the previous day (Nov 10-11 regression).
         const isSentRepeat = (a: NormalizedItem, countInPool = true): boolean => {
@@ -450,7 +459,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             if (sentTitleKeys.size > 0) {
                 const tk = normalizeTitleKey(a.title || '');
                 if (tk.length >= 25 && sentTitleKeys.has(tk)) {
-                    console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 14d`);
+                    console.log(`🔁 Cross-day title dedup: "${(a.title||'').substring(0,60)}" matches a headline sent in last 30d`);
                     record('sent_title');
                     return true;
                 }

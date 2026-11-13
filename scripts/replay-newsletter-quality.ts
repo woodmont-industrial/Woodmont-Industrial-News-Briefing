@@ -89,11 +89,13 @@ async function main(){
                 assert.ok(after.sections.relevant.includes(id),'the real industrial report and manufacturing lease survive');
         }
         if (date === '2026-11-02') {
-            // Five: the opposition-led poll is a non-story, and one occupier opening from two publishers ships once
+            // Four: the opposition-led poll is a non-story, one occupier opening from two publishers ships once,
+            // and a headline already sent on October 19 is still inside the 30-day pool
             assert.ok(!after.renderedIds.includes('cc3e0a316b1c4699232926e52256863ef1a08aac'),'the opposition-led poll stays out');
             assert.equal(['b459ba4b50ad3cb167fd300592925fcca59c75e5','ad329057bf3aaafc0627ae9fe3b42800f835ba91']
                 .filter(id=>after.renderedIds.includes(id)).length,1,'the same distribution-center opening renders once');
-            assert.equal(after.sections.relevant.length,5,'the corrected November 2 stored-input replay renders five eligible Relevant articles');
+            assert.ok(!after.renderedIds.includes('ec19570414edb09798a27ed5d5889c66ba47527a'),'an expansion headline sent two weeks earlier is a repeat');
+            assert.equal(after.sections.relevant.length,4,'the corrected November 2 stored-input replay renders four eligible Relevant articles');
             assert.equal(after.articleCount,after.renderedIds.length,'every counted article is visible');
             assert.ok(!after.sections.availabilities.includes('b6a8017e8448e7f13ab7d5bafd720dbfbc759090'),
                 'a construction announcement is not offered space');

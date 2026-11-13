@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { isTargetRegion, isNotExcludedRegion, hasGeographicFailure, passesRelevantEditorialVerdict, mapFeedItemsToArticles,
-    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection, normalizeTitleKey } from './newsletter-filters.js';
+    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection, normalizeTitleKey, loadSentTitleKeys } from './newsletter-filters.js';
 import { isCompletedHeadlineDeal, newsletterCategory } from '../shared/development-signal.js';
 import { extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal,
     dealEventClass } from '../shared/url-utils.js';
@@ -150,6 +153,26 @@ assert.equal(applyTransactionFilter([rejected('Example Owner sells 30,000 sq. ft
 assert.equal(passesRelevantEditorialVerdict(rejected('Example REIT Signs 82,000-Square-Foot Industrial Lease in Avenel, New Jersey',
     'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)', 'relevant')), false,
     'the exception is Transactions only; Relevant still honours every rejection');
+
+// A stale rejection is set aside only while the deal is under two weeks old at send time:
+// the three-week-old $133M sale re-entered the November 13 replay under a new headline.
+const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+const staleSale = (days: number) => mapFeedItemsToArticles([{
+    ...item('Example REIT distribution center in Winter Haven sells for $133 million', 'transactions'),
+    _woodmontApprove: false, _woodmontReason: 'Article is older than 7 days (Rule 11: STALE)', pubDate: daysAgo(days) }])[0];
+assert.equal(isSizeOnlyRubricRejection(staleSale(5)), true, 'a recent deal the rubric dated wrongly still runs');
+assert.equal(isSizeOnlyRubricRejection(staleSale(21)), false, 'a three-week-old deal is not news');
+
+// An identical headline is a repeat for the whole 30-day send pool, not just 14 days
+const sentDocs = fs.mkdtempSync(path.join(os.tmpdir(), 'sent-title-keys-'));
+fs.writeFileSync(path.join(sentDocs, 'sent-articles.json'), JSON.stringify({ sent: [
+    { id: 'a', sentAt: daysAgo(22).slice(0, 10), titleKey: normalizeTitleKey('Example Pharma Expands Montgomery County, Pennsylvania, Manufacturing Operations') },
+    { id: 'b', sentAt: daysAgo(40).slice(0, 10), titleKey: normalizeTitleKey('Example Maker Expands Lehigh Valley, Pennsylvania, Manufacturing Operations') },
+] }));
+const sentKeys = loadSentTitleKeys(sentDocs);
+assert.ok(sentKeys.has(normalizeTitleKey('Example Pharma Expands Montgomery County, Pennsylvania, Manufacturing Operations')));
+assert.equal(sentKeys.size, 1, 'sends older than the 30-day pool no longer block');
+fs.rmSync(sentDocs, { recursive: true, force: true });
 
 // A sale re-reported weeks later is one deal (East Rutherford $25M, sent October 19 and again
 // November 2 as "Meadowlands"); the same firm's other deals in the month are not
