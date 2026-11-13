@@ -59,6 +59,11 @@ async function main() {
     assert.deepEqual(new Set(candidates.map(a => a.id)), new Set(['reconsider', 'overflow', 'local-deal']),
         'rejected, capped and routed candidates are enrolled on deterministic evidence');
     assert.equal((old as any)._woodmontApprove, false, 'enrollment never clears the real stored rejection');
+    const fresh = article('fresh-unreviewed', { _woodmontApprove: null, pubDate: '2026-11-12T21:00:00Z' });
+    const older = article('older-unreviewed', { _woodmontApprove: undefined, pubDate: '2026-11-01T21:00:00Z' });
+    assert.deepEqual(getEditorialReviewCandidates([old, older, overflow, fresh]).map(a => a.id).slice(0, 2),
+        ['fresh-unreviewed', 'older-unreviewed'],
+        'never-reviewed articles, freshest first, are reviewed before the legacy re-review backlog');
     const reserve = { ...article('reconsider'), ...editorialVerdictFields(old) };
     assert.equal((reserve as any)._woodmontRubricVersion, 'old', 'reserve copies preserve provenance');
     const current = { ...old, _woodmontApprove: false, _woodmontRubricVersion: WOODMONT_RUBRIC_VERSION } as any;
