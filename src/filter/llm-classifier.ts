@@ -43,6 +43,10 @@ export interface EditorialReviewOptions {
     asOf?: Date;
 }
 
+/** Why verdicts failed in the current batch; logged once per batch so a silent outage shows up in the build log. */
+const failureKinds: Record<string, number> = {};
+const failVerdict = (kind: string): null => { failureKinds[kind] = (failureKinds[kind] || 0) + 1; return null; };
+
 /**
  * Call the LLM with a single article and parse its verdict. Iterates through
  * available providers on 429 (mirrors classifyWithAI pattern).
@@ -58,7 +62,7 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
         if (b.name === 'Cerebras') return 1;
         return 0;
     });
-    if (providers.length === 0) return null;
+    if (providers.length === 0) return failVerdict('no-provider');
 
     const userPrompt = buildArticleUserPrompt({
         title: article.title,
@@ -115,7 +119,7 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
             if (exhausted429 && !isLast) continue;
             if (!response || !response.ok) {
                 if (!isLast) continue;
-                return null;
+                return failVerdict(`${provider.name} http-${response?.status ?? 'none'}`);
             }
 
             const data = await response.json();
@@ -123,7 +127,7 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
             const content = data.choices?.[0]?.message?.content;
             if (!content) {
                 if (!isLast) continue;
-                return null;
+                return failVerdict(`${provider.name} empty-content (finish: ${data.choices?.[0]?.finish_reason ?? 'unknown'})`);
             }
 
             // Parse JSON — be lenient about markdown code fences just in case.
@@ -131,14 +135,14 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
             const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
                 if (!isLast) continue;
-                return null;
+                return failVerdict(`${provider.name} no-json`);
             }
 
             const parsed = JSON.parse(jsonMatch[0]);
             if (typeof parsed.approve !== 'boolean' || typeof parsed.reason !== 'string'
                 || typeof parsed.confidence !== 'number' || !Number.isFinite(parsed.confidence)) {
                 if (!isLast) continue;
-                return null;
+                return failVerdict(`${provider.name} bad-verdict-shape`);
             }
             // Selection already applies the configured windows. Editorial review must
             // not impose another age cutoff on otherwise eligible backfill.
@@ -153,10 +157,10 @@ async function classifyOneArticle(article: NormalizedItem, options: EditorialRev
             };
         } catch (err) {
             if (!isLast) continue;
-            return null;
+            return failVerdict(`${provider.name} ${(err as Error)?.name === 'TimeoutError' ? 'timeout' : 'error: ' + String((err as Error)?.message || err).slice(0, 60)}`);
         }
     }
-    return null;
+    return failVerdict('no-provider-answered');
 }
 
 /**
@@ -199,6 +203,7 @@ export async function classifyWoodmontBatch(
     });
     const start = Date.now();
     const rubricVersion = options.rubric?.version ?? WOODMONT_RUBRIC_VERSION;
+    for (const kind of Object.keys(failureKinds)) delete failureKinds[kind];
     console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${sortedProviders[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${rubricVersion})`);
 
     let approved = 0;
@@ -244,6 +249,7 @@ export async function classifyWoodmontBatch(
     }
 
     const elapsedSec = Math.round((Date.now() - start) / 1000);
+    if (failed > 0) console.log(`[Woodmont LLM] Failure reasons: ${JSON.stringify(failureKinds)}`);
     console.log(`[Woodmont LLM] Done in ${elapsedSec}s: ${approved} approved, ${rejected} rejected, ${failed} failed (processed ${processed}/${items.length}${budgetExhausted ? ', BUDGET EXHAUSTED' : ''})`);
     return { classified: processed - failed, approved, rejected, failed, budgetExhausted };
 }

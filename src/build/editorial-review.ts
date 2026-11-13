@@ -24,13 +24,17 @@ export function getEditorialReviewCandidates(items: NormalizedItem[]): Normalize
         ...applyPeopleFilter(byCategory('people')),
     ]);
     return items.filter((_, index) => eligible.has(neutral[index])).sort((a, b) => {
-        // Review old/missing versions first, then freshest first within that group.
+        // Never-reviewed articles first: they are the next send's candidates, and a backlog of
+        // legacy re-reviews that keep failing must not starve them (2026-11-13: 9 of 11 sent
+        // articles had no verdict while the budget went to 36 of 215 older items).
+        const unreviewed = (item: NormalizedItem) => (item as any)._woodmontApprove == null ? 0 : 1;
+        // Then old/missing versions, then freshest first within each group.
         const aCurrent = (a as any)._woodmontRubricVersion === WOODMONT_RUBRIC_VERSION ? 1 : 0;
         const bCurrent = (b as any)._woodmontRubricVersion === WOODMONT_RUBRIC_VERSION ? 1 : 0;
         const date = (item: NormalizedItem) => Date.parse(item.pubDate || (item as any).date_published || '') || 0;
         // Correct legacy rejections before spending the budget on approvals.
         const rejected = (item: NormalizedItem) => (item as any)._woodmontApprove === false ? 0 : 1;
-        return aCurrent - bCurrent || rejected(a) - rejected(b) || date(b) - date(a);
+        return unreviewed(a) - unreviewed(b) || aCurrent - bCurrent || rejected(a) - rejected(b) || date(b) - date(a);
     });
 }
 
