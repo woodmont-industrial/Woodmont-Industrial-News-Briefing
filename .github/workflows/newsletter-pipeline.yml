@@ -43,7 +43,7 @@ permissions:
 
 jobs:
   newsletter-pipeline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwright 1.57 cannot install Chromium on ubuntu-latest (26.04)
     timeout-minutes: 30
     concurrency:
       group: newsletter-build
