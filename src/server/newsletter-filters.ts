@@ -393,7 +393,8 @@ function passesWoodmontRubric(article: NormalizedItem, diag: DiagnosticContext |
 
 /** Relevant's editorial policy is independent of optional diagnostic labels. */
 export function passesRelevantEditorialVerdict(article: NormalizedItem, diag?: DiagnosticContext): boolean {
-    if (isNonStoryArtifact(article.title || '') || isOppositionLedDataCenterHeadline(article.title || '') || isServiceCompanyAcquisition(article)) {
+    if (isNonStoryArtifact(article.title || '') || isOppositionLedDataCenterHeadline(article.title || '') || isServiceCompanyAcquisition(article)
+        || dcVerdictOf(article) === 'reject-oor') {
         if (diag) diag.recordReject('relevant', 'SECTION_RULE_FAILED');
         return false;
     }
