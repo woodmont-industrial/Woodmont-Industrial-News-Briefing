@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
-import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact } from '../shared/editorial-headline.js';
+import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact, isCompanyRecognitionHeadline } from '../shared/editorial-headline.js';
 import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
@@ -280,6 +280,9 @@ const EXCLUDE_CITIES_EXTRA = [
     'PLEASANTON', 'TRI-VALLEY',
     'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA', 'PERRIS', 'HESPERIA',
     'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
+    // Central Valley (CA) logistics hubs, named without a state (2026-11-13: "Example Developer Adds Tracy
+    // Warehouse to West Region Industrial Portfolio" ran as national news)
+    'TRACY', 'LATHROP', 'MANTECA', 'CENTRAL VALLEY',
     'CADDO PARISH', 'SHREVEPORT', 'NILES', 'WALKER, LOUISIANA', 'LOUISIANA',
     'TEMPLE, TX', 'COSTA MESA', 'OTAY MESA', 'CHINO', 'ONTARIO, CA',
     'NORTH CAROLINA', 'SOUTH CAROLINA',
@@ -349,7 +352,7 @@ const RUBRIC_ADVISORY_SECTIONS = new Set<Section>(['availabilities', 'people']);
 // decisions (applyTransactionFilter's floor and the send's date window), so such a rejection
 // is set aside for a deal in our markets that states its size or price. Any editorial reason
 // alongside it (asset class, listing page, personnel, excluded market, no location) keeps
-// the rejection binding.
+// the rejection binding. Publication windows remain the send selector's responsibility.
 const SIZE_OR_AGE_REASON_RE = /\b(?:threshold|below|minimum|100K|100,000|deal size|older than 7 days|stale)\b/i;
 const EDITORIAL_REASON_RE = /\b(?:Rule\s*(?:4|5|7|9|13)\b|wrong asset|asset class|listing|aggregator|personnel|hire|excluded|office|retail|residential|multifamily|apartment|political|opinion|data cent|not (?:an? )?industrial|industrial focus|location\b)/i;
 export function isSizeOnlyRubricRejection(article: NormalizedItem): boolean {
@@ -633,6 +636,7 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
         const url = ((article as any).url || article.link || '').toLowerCase();
         if (isPolitical(text)) { if (diag) diag.recordReject('people', 'POLITICAL_CONTENT'); return false; }
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) { if (diag) diag.recordReject('people', 'EXCLUDED_BY_LIST'); return false; }
+        if (isCompanyRecognitionHeadline(article.title || '')) { if (diag) diag.recordReject('people', 'RECOGNITION_NOT_PERSONNEL'); return false; }
         // Ambiguous corporate verbs (award/selected/announced/…) only count with a person/role
         // signal, so a company winning an award isn't a people item.
         const hasAction = hasGatedPeopleAction(article, PEOPLE_ACTION_KEYWORDS);
@@ -798,6 +802,14 @@ export interface DcPolicyRecord {
 const DC_EXCEPTION_VERDICTS = new Set(['allow-national-scale', 'allow-unknown-location']);
 
 export function dcVerdictOf(article: NormalizedItem): string {
+    // A specific asset purchase/JV is a deal, not sector analysis. A large dollar
+    // amount or a national buyer does not establish a property in our markets.
+    const title = article.title || '';
+    const specificDeal = /\bdata[\s-]*cent(?:er|re)s?\b/i.test(title)
+        && /\b(?:acquir(?:es?|ed|ing)|acquisition|buys?|bought|sells?|sold|purchase[sd]?|forms?|formed|joint venture)\b/i.test(title)
+        && !/\b(?:trends?|analysis|outlook|survey)\b/i.test(title)
+        && /\$\s*\d|\b\d[\d,]*\s*(?:MW|GW|SF)|\b(?:stake|portfolio|campus|campuses|facility|facilities)\b/i.test(getText(article));
+    if (specificDeal && !isTargetRegion(article)) return 'reject-oor';
     return dcPolicyVerdict(getText(article));
 }
 /** A national-scale or unknown-location DC exception item — allowed in Relevant but NOT counted
@@ -1164,7 +1176,7 @@ export function normalizeTitleKey(title: string): string {
 }
 
 /**
- * Load normalized title keys from articles sent in the last 14 days. Used for
+ * Load normalized title keys from articles sent in the last 30 days (the send pool's reach). Used for
  * cross-day title dedup — catches syndicated same-headline repeats that carry no
  * deal signature (the recurring "Florida data center development" story).
  */
@@ -1173,14 +1185,14 @@ export function loadSentTitleKeys(docsDir: string): Set<string> {
     try {
         if (!fs.existsSync(sentPath)) return new Set();
         const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
-        const fourteenDaysAgo = new Date();
-        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const keys = new Set<string>();
         for (const e of data.sent || []) {
-            if (new Date(e.sentAt) < fourteenDaysAgo) continue;
+            if (new Date(e.sentAt) < thirtyDaysAgo) continue;
             if (e.titleKey && e.titleKey.length >= 25) keys.add(e.titleKey);
         }
-        console.log(`📋 Loaded ${keys.size} sent title-keys (last 14 days)`);
+        console.log(`📋 Loaded ${keys.size} sent title-keys (last 30 days)`);
         return keys;
     } catch (e) {
         console.warn('Could not load sent title keys:', e);

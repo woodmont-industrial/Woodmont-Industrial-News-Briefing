@@ -13,7 +13,7 @@ export function isConstructionAnnouncement(article: Pick<NormalizedItem, 'title'
     const milestone = /\b(?:(?:breaks?|broke|breaking)\s+ground|groundbreaking|(?:begins?|starts?|commences?)\s+(?:construction|development|work\s+(?:on|at))|(?:construction|development)\s+(?:begins?|starts?|underway)|under construction)\b/i.test(title)
         || /\b(?:building|launches?|announces?|starts?|begins?)\b.{0,35}\bexpansion\b/i.test(title)
         || /\binvest(?:s|ed|ing)?\b.{0,65}\b(?:warehouse|facility|campus|plant)\s+expansion\b/i.test(title);
-    const completion = /\b(?:delivers?|delivered|completes?|completed)\b/i.test(title)
+    const completion = /\b(?:delivers?|delivered|completes?|completed|(?:nears?|nearing|approach(?:es|ing)?)\s+completion)\b/i.test(title)
         && /\b(?:project|facility|building|warehouses?|park|center|centre)\b/i.test(title);
     // Goods wording disambiguates "delivers". It must not hide an explicit
     // groundbreaking merely because the former property's company name has it.

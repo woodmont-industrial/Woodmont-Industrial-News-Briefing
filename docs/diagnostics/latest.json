@@ -1,66 +1,20 @@
 {
-  "runId": "2026-11-13-1300",
-  "generatedAt": "2026-11-13T13:00:24.140Z",
-  "isFriday": true,
+  "runId": "2026-11-17-1300",
+  "generatedAt": "2026-11-17T13:00:39.065Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 298,
+      "loaded": 288,
       "inWindow": 8,
       "regionPass": 8,
       "industrialPass": 0,
       "sectionPass": 7,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 7,
-      "supplyCandidates": 95,
+      "selected": 4,
+      "supplyCandidates": 106,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 2,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 5
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 7,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 0,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 298,
-      "inWindow": 2,
-      "regionPass": 0,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 4,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -82,31 +36,77 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "RUBRIC_SIZE_ONLY_BYPASS": 1
+        "WOODMONT_RUBRIC_REJECT": 1
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 7,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 0,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "transactions": {
+      "loaded": 288,
+      "inWindow": 4,
+      "regionPass": 2,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 4,
+      "supplyCandidates": 9,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 2,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 1,
+        "tier3_30d_deep": 4,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     },
     "availabilities": {
-      "loaded": 298,
-      "inWindow": 1,
+      "loaded": 288,
+      "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 13,
+      "supplyCandidates": 15,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -141,15 +141,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 298,
+      "loaded": 288,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 2,
+      "selected": 0,
+      "supplyCandidates": 0,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -178,7 +178,7 @@
       "tierFill": {
         "tier1_24h": 0,
         "tier2_48h_72h": 0,
-        "tier3_30d_deep": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -187,63 +187,7 @@
     }
   },
   "perFeedBySection": {
-    "Tampa Bay Business Journal CRE": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Manufacturing NJ/PA/FL": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "globest.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News ConnectCRE Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Commercial Observer": {
+    "commercialobserver.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -265,13 +209,13 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
-        "transactions": 3,
+        "relevant": 3,
+        "transactions": 2,
         "availabilities": 0,
         "people": 0
       }
     },
-    "Google News CRE People Moves": {
+    "bisnow.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -280,48 +224,62 @@
       "rejections": {},
       "bySection": {
         "relevant": 0,
-        "transactions": 0,
+        "transactions": 1,
         "availabilities": 0,
-        "people": 1
+        "people": 0
+      }
+    },
+    "Google News PA Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 75,
-    "outOf10": 7.5,
+    "score": 78,
+    "outOf10": 7.8,
     "grade": "C",
-    "itemCount": 11,
-    "operationalScore": 75,
+    "itemCount": 8,
+    "operationalScore": 78,
     "operationalGrade": "C",
-    "editorialQualityScore": 75,
-    "editorialGrade": "C",
-    "coverageSupplyScore": 80,
+    "editorialQualityScore": 87,
+    "editorialGrade": "B",
+    "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "QUALITY_REJECTED",
-      "people": "FILLED"
+      "availabilities": "NO_FRESH_SUPPLY",
+      "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 3,
+    "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 24,
+      "coverage": 21,
       "freshness": 17.2,
-      "regional": 16.8,
+      "regional": 23.1,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 7,
-      "deep": 4,
-      "reserve": 1
+      "deep": 6,
+      "reserve": 0
     },
     "delivery": {
       "score": 100,
@@ -332,11 +290,11 @@
       {
         "type": "weak_item",
         "points": 3,
-        "detail": "Borderline / off-topic: \"The Importance of a Unified Language for AI Deve\""
+        "detail": "Borderline / off-topic: \"Blackstone Digital Infrastructure Trust, AWS For\""
       }
     ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): availabilities"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
     ]
   },
   "logicImpact": {
@@ -347,11 +305,59 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 139,
+    "crossDayPoolRepeatsSuppressed": 127,
     "audit": [
+      {
+        "id": "5e38dadc0eed92ef32006e919b879b5ecb59891a",
+        "title": "Crow Holdings Development, PGIM say construction has started at industrial campus in Logan Township - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "d40f76635309f56ed27aaed90ca448bdd0cf36e4",
+        "title": "Real estate investor plans 100K-square-foot warehouse project in Lakewood Ranch - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5218baf3965990973fa20f1c1804d6abdf816afe",
+        "title": "Eli Lilly Breaks Ground on $3.5B Pennsylvania Drug Manufacturing Facility - Construction Review",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e833cf0aeca3c2f2e66dc2958bbddd2bcfac890e",
+        "title": "Industrial Vacancy Falls for the First Time Since 2022 as Newer Warehouses Lead the Way",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "f12ffd47323412bf79597ce6eebf20a43c607012",
+        "title": "Dermody Adds Tracy Warehouse to West Region Industrial Portfolio - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "760883f26beb4f9b4d8d490e716938d022d8bc15",
+        "title": "The Importance of a Unified Language for AI Development in CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "b78cf26080a5da429956cd6be44e07e0e563d2fe",
+        "title": "Crow Holdings, PGIM break ground on first of four buildings at 3.7 million sq. ft. logistics campus in Logan Township - ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "851fc61619aea737830922c56850231ea3404d32",
         "title": "Inside a Dauphin County data center as Pennsylvania communities battle AI development - FOX43",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "fa426c621c71adbe2f0bf8a1fe07480255eda495",
+        "title": "Novartis Selects Winter Park for New Radioligand Therapy Manufacturing Facility - Orlando Economic Partnership",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -406,6 +412,12 @@
       {
         "id": "bbc3c8ee74e96340b69307f338bc7f706589332e",
         "title": "Creation Commences 330 KSF Tampa Logistics Project - CommercialSearch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d51d5940660a8c3f4bda7d03bc7c3f52d6bdde81",
+        "title": "Wilson Investment Properties Leads Acquisition of 93,110 SF Industrial Property Next to Orlando Sanford International Ai",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -626,12 +638,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "bb7b56351508e9fd6183d05314622cba10bee8df",
-        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_title"
-      },
-      {
         "id": "e49f1b7bec26b71fc7ddc1ee68a977d6d29a263c",
         "title": "Data Centers on the Tax Rolls: Classification, Valuation, and the Real Property/Personal Property Divide Under New Jerse",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -716,12 +722,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "78ccd5c481456be44fe02bb9ee24dce2ddd0198b",
-        "title": "4,500-Acre Data Center District Approved In Pennsylvania Town",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
         "id": "a26ea4986f40226022eb7629689c2b74983482de",
         "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -774,12 +774,6 @@
         "title": "NJEDA approves manufacturing award to boost Amneal Pharmaceuticals investment in state - ROI-NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
-        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "addbd69e8fef8837a84f5acdfa64d3f38fe2aa56",
@@ -854,6 +848,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "b796663e4839029bdbf75bcc55975083830bbb97",
+        "title": "Sherwin-Williams Distribution Center in Winter Haven Sells for $133 Million - TBBW",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "f72a804ebd29b8f07957ed7ec5e74c202ab66326",
         "title": "Conair Expands Franklin, Pennsylvania, Production Operations",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -881,7 +881,7 @@
         "id": "d04031ed82974d8202aac4ac585d7fda33ad468f",
         "title": "Terreno Realty sells East Rutherford warehouse for $25M - NJBIZ",
         "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
+        "reason": "sent_deal_event"
       },
       {
         "id": "aa959ba651dc6cac990531e0fb257e67227e411d",
@@ -904,48 +904,6 @@
       {
         "id": "71b9c5d00a58feea06819f5e18d4b48813525925",
         "title": "Miami-Dade cold storage facility sold for $36M - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "415b2438f02c2f92eb890fdc23a60497aa41fcf2",
-        "title": "SRS Real Estate Partners Announces the $133 Million Sale of a Single-Tenant Industrial Property Occupied by Sherwin-Will",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7974e5e11794de80a8080a833224a86e023dcf98",
-        "title": "JLL Arranges Acquisition Financing for Industrial Outdoor Storage Facility in Union, New Jersey - REBusinessOnline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7eabb9ccf89624e47207214e61a4d709f097acb8",
-        "title": "NAIDB: Heating, cooling company takes 26,000 sq. ft. at Meadowlands industrial buidling - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7857388a4c317949870545d7dda0001ec8cffa1b",
-        "title": "JLL: Low-coverage industrial site in Sayreville trades after capital improvements, lease-up - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "476d638633670facc961f67e198412cb55e1960e",
-        "title": "555 Rt 57 W, Port Murray, NJ 07865 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "3a0ee91e4a216fb8a987586e05445c6c2acffc9c",
-        "title": "RMR refis warehouse, IOS portfolio in Clifton and Newton for $10.1 million, CBRE says - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "40c898d5797671b7d8188d210fcbaf40b4b188bf",
-        "title": "990 New Brunswick Ave, Phillipsburg, NJ 08865 - FOR SALE 10+/-ACRES-INDUSTRIAL-TRUCK PARKING - LoopNet",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
