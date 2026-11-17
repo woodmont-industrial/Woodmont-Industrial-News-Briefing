@@ -352,7 +352,7 @@ const RUBRIC_ADVISORY_SECTIONS = new Set<Section>(['availabilities', 'people']);
 // decisions (applyTransactionFilter's floor and the send's date window), so such a rejection
 // is set aside for a deal in our markets that states its size or price. Any editorial reason
 // alongside it (asset class, listing page, personnel, excluded market, no location) keeps
-// the rejection binding.
+// the rejection binding. Publication windows remain the send selector's responsibility.
 const SIZE_OR_AGE_REASON_RE = /\b(?:threshold|below|minimum|100K|100,000|deal size|older than 7 days|stale)\b/i;
 const EDITORIAL_REASON_RE = /\b(?:Rule\s*(?:4|5|7|9|13)\b|wrong asset|asset class|listing|aggregator|personnel|hire|excluded|office|retail|residential|multifamily|apartment|political|opinion|data cent|not (?:an? )?industrial|industrial focus|location\b)/i;
 export function isSizeOnlyRubricRejection(article: NormalizedItem): boolean {
@@ -1168,7 +1168,7 @@ export function normalizeTitleKey(title: string): string {
 }
 
 /**
- * Load normalized title keys from articles sent in the last 14 days. Used for
+ * Load normalized title keys from articles sent in the last 30 days (the send pool's reach). Used for
  * cross-day title dedup — catches syndicated same-headline repeats that carry no
  * deal signature (the recurring "Florida data center development" story).
  */
@@ -1177,14 +1177,14 @@ export function loadSentTitleKeys(docsDir: string): Set<string> {
     try {
         if (!fs.existsSync(sentPath)) return new Set();
         const data: SentArticlesData = JSON.parse(fs.readFileSync(sentPath, 'utf-8'));
-        const fourteenDaysAgo = new Date();
-        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const keys = new Set<string>();
         for (const e of data.sent || []) {
-            if (new Date(e.sentAt) < fourteenDaysAgo) continue;
+            if (new Date(e.sentAt) < thirtyDaysAgo) continue;
             if (e.titleKey && e.titleKey.length >= 25) keys.add(e.titleKey);
         }
-        console.log(`📋 Loaded ${keys.size} sent title-keys (last 14 days)`);
+        console.log(`📋 Loaded ${keys.size} sent title-keys (last 30 days)`);
         return keys;
     } catch (e) {
         console.warn('Could not load sent title keys:', e);

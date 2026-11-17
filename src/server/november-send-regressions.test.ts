@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { isTargetRegion, isNotExcludedRegion, hasGeographicFailure, passesRelevantEditorialVerdict, mapFeedItemsToArticles,
-    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection, normalizeTitleKey } from './newsletter-filters.js';
+    applyTransactionFilter, applyAvailabilityFilter, isSizeOnlyRubricRejection, normalizeTitleKey, loadSentTitleKeys } from './newsletter-filters.js';
 import { isCompletedHeadlineDeal, newsletterCategory } from '../shared/development-signal.js';
 import { extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal,
     dealEventClass } from '../shared/url-utils.js';
@@ -151,6 +154,26 @@ assert.equal(passesRelevantEditorialVerdict(rejected('Example REIT Signs 82,000-
     'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)', 'relevant')), false,
     'the exception is Transactions only; Relevant still honours every rejection');
 
+// Repeat detection handles re-reported deals; editorial age opinions must not impose
+// a second cutoff inside the send's existing publication windows.
+const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+const staleSale = (days: number) => mapFeedItemsToArticles([{
+    ...item('Example REIT distribution center in Winter Haven sells for $133 million', 'transactions'),
+    _woodmontApprove: false, _woodmontReason: 'Article is older than 7 days (Rule 11: STALE)', pubDate: daysAgo(days) }])[0];
+assert.equal(isSizeOnlyRubricRejection(staleSale(5)), true, 'a recent deal the rubric dated wrongly still runs');
+assert.equal(isSizeOnlyRubricRejection(staleSale(21)), true, 'the existing backfill window still governs a three-week-old deal');
+
+// An identical headline is a repeat for the whole 30-day send pool, not just 14 days
+const sentDocs = fs.mkdtempSync(path.join(os.tmpdir(), 'sent-title-keys-'));
+fs.writeFileSync(path.join(sentDocs, 'sent-articles.json'), JSON.stringify({ sent: [
+    { id: 'a', sentAt: daysAgo(22).slice(0, 10), titleKey: normalizeTitleKey('Example Pharma Expands Montgomery County, Pennsylvania, Manufacturing Operations') },
+    { id: 'b', sentAt: daysAgo(40).slice(0, 10), titleKey: normalizeTitleKey('Example Maker Expands Lehigh Valley, Pennsylvania, Manufacturing Operations') },
+] }));
+const sentKeys = loadSentTitleKeys(sentDocs);
+assert.ok(sentKeys.has(normalizeTitleKey('Example Pharma Expands Montgomery County, Pennsylvania, Manufacturing Operations')));
+assert.equal(sentKeys.size, 1, 'sends older than the 30-day pool no longer block');
+fs.rmSync(sentDocs, { recursive: true, force: true });
+
 // A sale re-reported weeks later is one deal (East Rutherford $25M, sent October 19 and again
 // November 2 as "Meadowlands"); the same firm's other deals in the month are not
 const deal = (title: string) => dealEventFromTitleKey(normalizeTitleKey(title));
@@ -165,6 +188,25 @@ for (const other of ['Colliers sells 31,000 sq. ft. Fairfield industrial buildin
     assert.equal(sameDeal(other, reReported), false, other);
 assert.equal(sameDeal('Colliers sells Kearny warehouse for $25 million', 'Colliers Sells East Rutherford Industrial Property for $25 Million'), false,
     'two named towns are two deals');
+// The same sale under another firm's name or none (November 17: the Meadowlands sale came
+// back as a broker's East Rutherford sale, and the Winter Haven $133M sale a third time)
+assert.equal(sameDeal('Colliers arranges $25M East Rutherford warehouse sale - ROI-NJ', reReported), true);
+assert.equal(sameDeal('Example Paints Winter Haven Warehouse Campus Trades for $133M - Connect CRE',
+    'Example Paints Distribution Center in Winter Haven Sells for $133 Million - TBBW'), true);
+assert.equal(sameDeal('Example Broker Announces the $133 Million Sale of a Single-Tenant Industrial Property in Winter Haven, Florida',
+    'Example Paints Winter Haven Warehouse Campus Trades for $133M'), true);
+for (const [a, b] of [
+    ['Example Owner sells Winter Haven warehouse for $40 million', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Owner sells Kearny warehouse for $25 million', 'Example Buyer acquires Carlstadt warehouse for $25 million'],
+    ['Example Owner sells Edison warehouse for $25 million', reReported],
+    ['Example Owner sells New Jersey warehouse for $25 million', 'Example Buyer acquires Kearny warehouse for $25 million'],
+    ['Example Owner sells Edison warehouse for $6 million', 'Example Buyer acquires Edison warehouse for $6 million'],
+    ['Example Owner sells 50,000 SF Edison warehouse for $25 million', 'Example Buyer acquires 120,000 SF Edison warehouse for $25 million'],
+    ['Example Bank provides $133M loan for Winter Haven warehouse campus', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Tenant leases Winter Haven warehouse in $133M deal', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Owner sells Edison warehouse for $25M', 'Example Buyer acquires Edison warehouse for $25.5M'],
+    ['Example Owner sells Edison warehouse at 10 Oak Road for $25M', 'Example Buyer acquires Edison warehouse at 20 Pine Road for $25M'],
+]) assert.equal(sameDeal(a, b), false, `${a} / ${b}`);
 // A financing stays a financing: it never matches a sale, and a stale-only rejection being set
 // aside does not turn it into a completed purchase
 assert.equal(dealEventClass('Example Bank Supplies $133M Refi for Miami-Dade Industrial Campus'), 'finance');

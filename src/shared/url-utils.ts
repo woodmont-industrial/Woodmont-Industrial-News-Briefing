@@ -565,7 +565,7 @@ const ENTITY_MARKET_MAP: Record<string, string> = {
     // FL municipalities
     'fort lauderdale': 'fort-lauderdale', 'west palm': 'west-palm', 'boca raton': 'boca-raton',
     'miami': 'miami', 'doral': 'doral', 'hialeah': 'hialeah', 'medley': 'medley', 'pompano': 'pompano',
-    'orlando': 'orlando', 'tampa': 'tampa', 'jacksonville': 'jacksonville', 'ocala': 'ocala',
+    'orlando': 'orlando', 'tampa': 'tampa', 'jacksonville': 'jacksonville', 'ocala': 'ocala', 'winter haven': 'winter-haven',
 };
 // Precompiled, longest-name-first, word-boundary matchers for the town map.
 const ENTITY_MARKET_ENTRIES = Object.entries(ENTITY_MARKET_MAP)
@@ -689,7 +689,7 @@ export function extractSubjectFacilityKey(title: string, description?: string): 
 const PA_TOWNS = new Set(['philadelphia', 'conshohocken', 'king-of-prussia', 'allentown', 'bethlehem', 'easton', 'harrisburg',
     'lancaster', 'reading', 'pittsburgh', 'scranton', 'wilkes-barre']);
 const FL_TOWNS = new Set(['fort-lauderdale', 'west-palm', 'boca-raton', 'miami', 'doral', 'hialeah', 'medley', 'pompano',
-    'orlando', 'tampa', 'jacksonville', 'ocala']);
+    'orlando', 'tampa', 'jacksonville', 'ocala', 'winter-haven']);
 
 /** The NJ/PA/FL state a story names, directly or through a mapped town; null when it names none */
 function storyState(text: string, town: string | null): string | null {
@@ -717,7 +717,16 @@ export function subjectFacilitySignature(title: string, description?: string): s
     return key?.state ? `${key.key}_${key.state}` : null;
 }
 
-export type DealEvent = { entity: string; event: string; state: string; town: string | null; sqft: number | null; dollars: number | null };
+export type DealEvent = { entity: string; event: string; state: string; town: string | null; area: string | null; address: string | null; sqft: number | null; dollars: number | null };
+
+// Multi-town areas a headline may name instead of the town: the Meadowlands sale sent
+// November 2 came back November 17 as an East Rutherford sale
+const SALE_AREAS: Record<string, string[]> = {
+    meadowlands: ['east-rutherford', 'carlstadt', 'secaucus', 'moonachie', 'teterboro', 'kearny'],
+};
+const SALE_AREA_RES = Object.keys(SALE_AREAS).map(area => ({ area, re: new RegExp(`\\b${area}\\b`) }));
+// Small sales need stronger identity evidence than a shared town and price.
+const PROPERTY_SALE_MIN_MILLIONS = 10;
 
 // Headline keys turn "86,000 sq. ft." into "86 000 sq ft" and "$18.1 million" into "18 1 million"
 const keyNumber = (s: string) => /^\d{1,3}( \d{3})+$/.test(s) ? parseInt(s.replace(/ /g, ''))
@@ -727,12 +736,13 @@ const keyNumber = (s: string) => /^\d{1,3}( \d{3})+$/.test(s) ? parseInt(s.repla
  * A named CRE firm's sale, lease or financing, read from a normalized headline key (see
  * normalizeTitleKey). Sent-state stores that key for every article, so a re-report can be
  * matched against 30 days of sends, including sends from before this check existed.
+ * A sale with no named firm still counts when it has a $10M+ price and a town or area.
  */
 export function dealEventFromTitleKey(key: string): DealEvent | null {
-    const entity = CRE_ENTITY_RES.find(e => e.re.test(key))?.name;
-    if (!entity) return null;
+    const entity = CRE_ENTITY_RES.find(e => e.re.test(key))?.name ?? '';
     const event = dealEventClass(key);
     if (event !== 'acquire' && event !== 'lease' && event !== 'finance') return null;
+    if (!entity && event !== 'acquire') return null;
     const sf = key.match(/\b(\d+(?: \d+)*)\s*(k|m)?\s*(?:sf|sq ft|square f(?:eet|oot))\b/);
     const sqft = sf ? Math.round(keyNumber(sf[1]) * (sf[2] === 'm' ? 1e6 : sf[2] === 'k' ? 1e3 : 1)) : null;
     const usd = key.match(/\b(\d+(?: \d)?)\s*(million|billion|m|b)\b(?!\s*(?:sf|sq|square))/);
@@ -745,18 +755,39 @@ export function dealEventFromTitleKey(key: string): DealEvent | null {
         : /\bnew jersey\b|\bnj\b|\bn j\b|\bmeadowlands\b|\b(?:north|central|south) jersey\b/.test(key) ? 'nj'
         : town ? (PA_TOWNS.has(town) ? 'pa' : FL_TOWNS.has(town) ? 'fl' : 'nj') : null;
     if (!state) return null;
-    return { entity, event, state, town, sqft, dollars };
+    const area = SALE_AREA_RES.find(e => e.re.test(key))?.area ?? null;
+    if (!entity && (dollars === null || dollars < PROPERTY_SALE_MIN_MILLIONS || (!town && !area))) return null;
+    const address = key.match(/\b\d{1,6}\s+(?:[a-z]+\s+){1,5}(?:street|st|road|rd|avenue|ave|drive|dr|boulevard|blvd|court|ct|way|lane|ln)\b/)?.[0] ?? null;
+    return { entity, event, state, town, area, address, sqft, dollars };
+}
+
+const closeFigure = (x: number, y: number) => Math.abs(x - y) <= Math.max(x, y) * 0.02;
+
+/**
+ * The same sale reported under different firms (seller, buyer, broker) or none: a $10M+ price
+ * that agrees, in the same town, or a town inside the area the other names (the
+ * Winter Haven $133M sale: sent October 23 and November 13, then again November 17)
+ */
+function samePropertySale(a: DealEvent, b: DealEvent): boolean {
+    if (a.event !== 'acquire' || b.event !== 'acquire' || a.state !== b.state) return false;
+    if (a.dollars === null || b.dollars === null || Math.min(a.dollars, b.dollars) < PROPERTY_SALE_MIN_MILLIONS) return false;
+    if (Math.abs(a.dollars - b.dollars) > 0.000001) return false;
+    if (a.sqft !== null && b.sqft !== null && !closeFigure(a.sqft, b.sqft)) return false;
+    if (a.town && b.town) return a.town === b.town;
+    const inArea = (area: string | null, town: string | null) => !!area && !!town && SALE_AREAS[area].includes(town);
+    return (!!a.area && a.area === b.area) || inArea(a.area, b.town) || inArea(b.area, a.town);
 }
 
 /** Same firm, deal type and state, no conflicting town, and a shared figure that agrees with no other figure conflicting */
 export function dealEventsSameDeal(a: DealEvent, b: DealEvent): boolean {
-    if (a.entity !== b.entity || a.event !== b.event || a.state !== b.state) return false;
+    if (a.address && b.address && a.address !== b.address) return false;
+    if (!a.entity || a.entity !== b.entity) return samePropertySale(a, b);
+    if (a.event !== b.event || a.state !== b.state) return false;
     if (a.town && b.town && a.town !== b.town) return false;
-    const close = (x: number, y: number) => Math.abs(x - y) <= Math.max(x, y) * 0.02;
     let shared = 0;
     for (const [x, y] of [[a.dollars, b.dollars], [a.sqft, b.sqft]] as const) {
         if (x === null || y === null) continue;
-        if (!close(x, y)) return false;
+        if (!closeFigure(x, y)) return false;
         shared++;
     }
     return shared > 0;
