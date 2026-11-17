@@ -149,6 +149,7 @@ async function classifyOneArticle(
             // Do not print exception messages: an upstream library can include request credentials.
             const name = (error as Error)?.name;
             recordFailure(run, provider, name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'network-or-response');
+            run.unavailableUntil.set(provider.name, Date.now() + 30_000);
         }
     }
     return null;
@@ -218,7 +219,11 @@ export async function classifyWoodmontBatch(
             result.classified++;
             if (verdict.approve) result.approved++; else result.rejected++;
         });
-        const delay = Math.min(Math.max(0, batchDelayMs), Math.max(0, run.deadline - Date.now()));
+        // The caller's ordinary one-second delay must not override a provider's
+        // slower pacing. An explicit zero is retained for offline/mock replays.
+        const activeProviders = providers.filter(p => (run.unavailableUntil.get(p.name) || 0) <= Date.now());
+        const pacing = batchDelayMs === 0 ? 0 : Math.max(batchDelayMs, ...activeProviders.map(p => p.batchDelayMs));
+        const delay = Math.min(Math.max(0, pacing), Math.max(0, run.deadline - Date.now()));
         if (i + concurrency < items.length && delay) await new Promise(resolve => setTimeout(resolve, delay));
     }
     result.deferred = items.length - result.processed;

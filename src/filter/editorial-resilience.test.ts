@@ -33,6 +33,15 @@ async function main() {
         assert.equal(empty.failureReasons['Cerebras:empty-content:length'], 1, 'empty reasoning-only output is distinct from HTTP failure');
         assert.equal(empty.failureReasons['Cerebras:http-404'], undefined, 'diagnostics are isolated per run');
 
+        let timeoutCalls = 0;
+        globalThis.fetch = async url => {
+            if (String(url).includes('cerebras')) { timeoutCalls++; throw new DOMException('expired', 'TimeoutError'); }
+            return okay();
+        };
+        const recovered = await classifyWoodmontBatch([article('one'), article('two'), article('three')], 1, 0, 1000);
+        assert.equal(recovered.classified, 3);
+        assert.equal(timeoutCalls, 1, 'a stalled primary cools down while fallback keeps reviewing');
+
         globalThis.fetch = async () => new Response('unavailable', { status: 401 });
         const stored = article('stored');
         const down = await classifyWoodmontBatch([stored, article('deferred-1'), article('deferred-2')], 1, 0, 1000);
