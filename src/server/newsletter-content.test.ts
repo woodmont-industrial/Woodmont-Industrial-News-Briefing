@@ -77,7 +77,7 @@ try {
         for (const a of reserve) (sections[a.category || 'relevant'] ||= []).push({ ...a, url: a.link, date_published: a.pubDate });
         fs.writeFileSync(path.join(scratch, 'preferences/reserve-pool.json'), JSON.stringify({ sections }));
         fs.writeFileSync(path.join(scratch, 'weekly-top-articles.json'), JSON.stringify({ week: { '2026-10-29':
-            artifacts.map(a => ({ ...a, category: a.id === 'index' ? 'availabilities' : 'relevant' })) } }));
+            [...artifacts, nationalDc].map(a => ({ ...a, category: a.id === 'index' ? 'availabilities' : 'relevant' })) } }));
         const output = path.join(scratch, 'result.json');
         execFileSync(process.execPath, ['--import', 'tsx', 'scripts/replay-editorial-email.ts', scratch, output, '2026-10-30T12:00:20Z'],
             { cwd: process.cwd(), env: { PATH: process.env.PATH, TZ: 'America/New_York' }, stdio: 'pipe' });
@@ -90,6 +90,7 @@ try {
         const result = route === 'feed' ? replay([control, nationalDc, completion])
             : route === 'manual' ? replay([control], [nationalDc, completion]) : replay([control], [], [nationalDc, completion]);
         assert.ok(!result.renderedIds.includes(nationalDc.id), `${route}: an unlocated data-center JV cannot bypass the regional deal requirement`);
+        assert.ok(!result.weekInReviewIds.includes(nationalDc.id), `${route}: an earlier bad pick cannot reappear in the weekly recap`);
         assert.ok(!result.sections.transactions.includes(completion.id), `${route}: near completion is construction, not a completed deal`);
         assert.ok(result.sections.relevant.includes(completion.id), `${route}: the construction update reaches Relevant HTML`);
     }
