@@ -4,7 +4,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { applyTransactionFilter, applyAvailabilityFilter, applyStrictFilter,
-    isRoutableRegionalDeal, mapFeedItemsToArticles, normalizeTitleKey } from './newsletter-filters.js';
+    isRoutableRegionalDeal, mapFeedItemsToArticles, normalizeTitleKey, dcVerdictOf } from './newsletter-filters.js';
 import { RELEVANT_KEYWORDS } from '../shared/region-data.js';
 import { generateJSONFeed } from '../build/feed-generators.js';
 import type { NormalizedItem } from '../types/index.js';
@@ -64,6 +64,9 @@ for (const title of [
 }
 
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'newsletter-content-'));
+assert.equal(dcVerdictOf(item('national-dc', 'Example REIT and Example Cloud form $5B data center joint venture')), 'reject-oor');
+assert.equal(dcVerdictOf(item('regional-dc', 'Example REIT buys $5B data center portfolio in Pennsylvania')), 'allow-macro');
+assert.equal(dcVerdictOf(item('macro-dc', 'Data center acquisition trends lift national industrial demand')), 'allow-macro');
 try {
     fs.mkdirSync(path.join(scratch, 'preferences'));
     const replay = (feed: NormalizedItem[], manual: NormalizedItem[] = [], reserve: NormalizedItem[] = []) => {
@@ -81,6 +84,15 @@ try {
         return JSON.parse(fs.readFileSync(output, 'utf8'));
     };
     const control = item('good-market', 'Industrial warehouse demand strengthens in New Jersey', { category: 'relevant' });
+    const nationalDc = item('national-dc', 'Example REIT and Example Cloud form $5B data center joint venture', { category: 'relevant' });
+    const completion = item('near-completion', 'Example Builder nears completion of 216,000 SF cold storage project in Bethlehem, Pennsylvania');
+    for (const route of ['feed', 'manual', 'reserve']) {
+        const result = route === 'feed' ? replay([control, nationalDc, completion])
+            : route === 'manual' ? replay([control], [nationalDc, completion]) : replay([control], [], [nationalDc, completion]);
+        assert.ok(!result.renderedIds.includes(nationalDc.id), `${route}: an unlocated data-center JV cannot bypass the regional deal requirement`);
+        assert.ok(!result.sections.transactions.includes(completion.id), `${route}: near completion is construction, not a completed deal`);
+        assert.ok(result.sections.relevant.includes(completion.id), `${route}: the construction update reaches Relevant HTML`);
+    }
     for (const route of ['feed', 'reserve', 'manual']) {
         const a = listing(route + '-listing');
         const bad = artifacts.map(x => ({ ...x, id: `${route}-${x.id}` }));

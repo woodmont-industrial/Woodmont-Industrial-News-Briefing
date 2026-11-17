@@ -241,6 +241,7 @@ jobs:
       - run: node --import tsx src/server/november-13-send-regressions.test.ts
       - run: node --import tsx src/build/newsletter-facts.test.ts
       - run: node --import tsx src/filter/editorial-review.test.ts
+      - run: node --import tsx src/filter/description-generation.test.ts
       - run: node --import tsx src/server/relevant-editorial.test.ts
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts

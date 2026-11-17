@@ -802,6 +802,14 @@ export interface DcPolicyRecord {
 const DC_EXCEPTION_VERDICTS = new Set(['allow-national-scale', 'allow-unknown-location']);
 
 export function dcVerdictOf(article: NormalizedItem): string {
+    // A specific asset purchase/JV is a deal, not sector analysis. A large dollar
+    // amount or a national buyer does not establish a property in our markets.
+    const title = article.title || '';
+    const specificDeal = /\bdata[\s-]*cent(?:er|re)s?\b/i.test(title)
+        && /\b(?:acquir(?:es?|ed|ing)|acquisition|buys?|bought|sells?|sold|purchase[sd]?|forms?|formed|joint venture)\b/i.test(title)
+        && !/\b(?:trends?|analysis|outlook|survey)\b/i.test(title)
+        && /\$\s*\d|\b\d[\d,]*\s*(?:MW|GW|SF)|\b(?:stake|portfolio|campus|campuses|facility|facilities)\b/i.test(getText(article));
+    if (specificDeal && !isTargetRegion(article)) return 'reject-oor';
     return dcPolicyVerdict(getText(article));
 }
 /** A national-scale or unknown-location DC exception item — allowed in Relevant but NOT counted
