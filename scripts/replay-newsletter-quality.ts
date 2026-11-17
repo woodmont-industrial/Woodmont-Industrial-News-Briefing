@@ -72,7 +72,8 @@ async function main(){
         assert.equal(before.networkRequests,0);assert.equal(after.networkRequests,0);
         const result:any={date,before,after};report.results.push(result);
         const winterSale='b796663e4839029bdbf75bcc55975083830bbb97';
-        if(date<'2026-11-01')assert.ok(after.sections.transactions.includes(winterSale),'the valid Winter Haven sale must render in Transactions');
+        // The same $133M Winter Haven sale went out October 23 under the broker's headline
+        if(date<'2026-11-01')assert.ok(!after.sections.transactions.includes(winterSale),'the Winter Haven sale sent October 23 is a repeat');
         assert.ok(!after.sections.relevant.includes('14f68ade960e1446c8f3ff94834a91b673293451'),'the rejected office/personnel item stays out');
         if (date === '2026-10-28') {
             assert.ok(after.sections.relevant.includes('7120f30eb46f5c0dc930404fbb49b745c51224e1'),
