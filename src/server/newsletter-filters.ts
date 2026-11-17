@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { NormalizedItem } from '../types/index.js';
 import { editorialVerdictFields } from '../filter/editorial-verdict.js';
 import { isConstructionAnnouncement, newsletterCategory } from '../shared/development-signal.js';
-import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact } from '../shared/editorial-headline.js';
+import { isOppositionLedDataCenterHeadline, isServiceCompanyAcquisition, isNonStoryArtifact, isCompanyRecognitionHeadline } from '../shared/editorial-headline.js';
 import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatches, hasExplicitNonTargetCity } from '../shared/newsletter-geography.js';
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
@@ -280,6 +280,9 @@ const EXCLUDE_CITIES_EXTRA = [
     'PLEASANTON', 'TRI-VALLEY',
     'RANCHO DOMINGUEZ', 'RANCHO CUCAMONGA', 'PERRIS', 'HESPERIA',
     'CORONA', 'FONTANA', 'REDLANDS', 'RIALTO', 'MORENO VALLEY',
+    // Central Valley (CA) logistics hubs, named without a state (2026-11-13: "Example Developer Adds Tracy
+    // Warehouse to West Region Industrial Portfolio" ran as national news)
+    'TRACY', 'LATHROP', 'MANTECA', 'CENTRAL VALLEY',
     'CADDO PARISH', 'SHREVEPORT', 'NILES', 'WALKER, LOUISIANA', 'LOUISIANA',
     'TEMPLE, TX', 'COSTA MESA', 'OTAY MESA', 'CHINO', 'ONTARIO, CA',
     'NORTH CAROLINA', 'SOUTH CAROLINA',
@@ -633,6 +636,7 @@ export function applyPeopleFilter(items: NormalizedItem[], diag?: DiagnosticCont
         const url = ((article as any).url || article.link || '').toLowerCase();
         if (isPolitical(text)) { if (diag) diag.recordReject('people', 'POLITICAL_CONTENT'); return false; }
         if (containsAny(text, EXCLUDE_FROM_PEOPLE)) { if (diag) diag.recordReject('people', 'EXCLUDED_BY_LIST'); return false; }
+        if (isCompanyRecognitionHeadline(article.title || '')) { if (diag) diag.recordReject('people', 'RECOGNITION_NOT_PERSONNEL'); return false; }
         // Ambiguous corporate verbs (award/selected/announced/…) only count with a person/role
         // signal, so a company winning an award isn't a people item.
         const hasAction = hasGatedPeopleAction(article, PEOPLE_ACTION_KEYWORDS);
