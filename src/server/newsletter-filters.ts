@@ -349,19 +349,13 @@ const RUBRIC_ADVISORY_SECTIONS = new Set<Section>(['availabilities', 'people']);
 // decisions (applyTransactionFilter's floor and the send's date window), so such a rejection
 // is set aside for a deal in our markets that states its size or price. Any editorial reason
 // alongside it (asset class, listing page, personnel, excluded market, no location) keeps
-// the rejection binding, and so does an age rejection for a deal more than two weeks old.
+// the rejection binding. Publication windows remain the send selector's responsibility.
 const SIZE_OR_AGE_REASON_RE = /\b(?:threshold|below|minimum|100K|100,000|deal size|older than 7 days|stale)\b/i;
-const AGE_REASON_RE = /\b(?:older than 7 days|stale)\b/i;
-const AGE_BYPASS_MAX_DAYS = 14;
 const EDITORIAL_REASON_RE = /\b(?:Rule\s*(?:4|5|7|9|13)\b|wrong asset|asset class|listing|aggregator|personnel|hire|excluded|office|retail|residential|multifamily|apartment|political|opinion|data cent|not (?:an? )?industrial|industrial focus|location\b)/i;
 export function isSizeOnlyRubricRejection(article: NormalizedItem): boolean {
     if ((article as any)._woodmontApprove !== false) return false;
     const reason = String((article as any)._woodmontReason || '');
     if (!SIZE_OR_AGE_REASON_RE.test(reason) || EDITORIAL_REASON_RE.test(reason)) return false;
-    if (AGE_REASON_RE.test(reason)) {
-        const published = getValidDate(article);
-        if (!published || Date.now() - published.getTime() > AGE_BYPASS_MAX_DAYS * 24 * 60 * 60 * 1000) return false;
-    }
     const deal = meetsDealThreshold(getText(article));
     if (deal.sizeSF === null && deal.priceMillion === null) return false;
     return isTargetRegion(article) && !hasGeographicFailure(article).fails;

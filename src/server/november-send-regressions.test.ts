@@ -154,14 +154,14 @@ assert.equal(passesRelevantEditorialVerdict(rejected('Example REIT Signs 82,000-
     'Lease size 82,000 SF is below the 100,000 SF threshold for transactions (Rule: Deal threshold)', 'relevant')), false,
     'the exception is Transactions only; Relevant still honours every rejection');
 
-// A stale rejection is set aside only while the deal is under two weeks old at send time:
-// the three-week-old $133M sale re-entered the November 13 replay under a new headline.
+// Repeat detection handles re-reported deals; editorial age opinions must not impose
+// a second cutoff inside the send's existing publication windows.
 const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 const staleSale = (days: number) => mapFeedItemsToArticles([{
     ...item('Example REIT distribution center in Winter Haven sells for $133 million', 'transactions'),
     _woodmontApprove: false, _woodmontReason: 'Article is older than 7 days (Rule 11: STALE)', pubDate: daysAgo(days) }])[0];
 assert.equal(isSizeOnlyRubricRejection(staleSale(5)), true, 'a recent deal the rubric dated wrongly still runs');
-assert.equal(isSizeOnlyRubricRejection(staleSale(21)), false, 'a three-week-old deal is not news');
+assert.equal(isSizeOnlyRubricRejection(staleSale(21)), true, 'the existing backfill window still governs a three-week-old deal');
 
 // An identical headline is a repeat for the whole 30-day send pool, not just 14 days
 const sentDocs = fs.mkdtempSync(path.join(os.tmpdir(), 'sent-title-keys-'));
@@ -204,6 +204,8 @@ for (const [a, b] of [
     ['Example Owner sells 50,000 SF Edison warehouse for $25 million', 'Example Buyer acquires 120,000 SF Edison warehouse for $25 million'],
     ['Example Bank provides $133M loan for Winter Haven warehouse campus', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
     ['Example Tenant leases Winter Haven warehouse in $133M deal', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Owner sells Edison warehouse for $25M', 'Example Buyer acquires Edison warehouse for $25.5M'],
+    ['Example Owner sells Edison warehouse at 10 Oak Road for $25M', 'Example Buyer acquires Edison warehouse at 20 Pine Road for $25M'],
 ]) assert.equal(sameDeal(a, b), false, `${a} / ${b}`);
 // A financing stays a financing: it never matches a sale, and a stale-only rejection being set
 // aside does not turn it into a completed purchase

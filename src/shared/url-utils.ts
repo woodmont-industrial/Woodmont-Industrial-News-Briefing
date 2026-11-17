@@ -717,7 +717,7 @@ export function subjectFacilitySignature(title: string, description?: string): s
     return key?.state ? `${key.key}_${key.state}` : null;
 }
 
-export type DealEvent = { entity: string; event: string; state: string; town: string | null; area: string | null; sqft: number | null; dollars: number | null };
+export type DealEvent = { entity: string; event: string; state: string; town: string | null; area: string | null; address: string | null; sqft: number | null; dollars: number | null };
 
 // Multi-town areas a headline may name instead of the town: the Meadowlands sale sent
 // November 2 came back November 17 as an East Rutherford sale
@@ -725,7 +725,7 @@ const SALE_AREAS: Record<string, string[]> = {
     meadowlands: ['east-rutherford', 'carlstadt', 'secaucus', 'moonachie', 'teterboro', 'kearny'],
 };
 const SALE_AREA_RES = Object.keys(SALE_AREAS).map(area => ({ area, re: new RegExp(`\\b${area}\\b`) }));
-// A price this size is specific enough to identify one property sale in one place
+// Small sales need stronger identity evidence than a shared town and price.
 const PROPERTY_SALE_MIN_MILLIONS = 10;
 
 // Headline keys turn "86,000 sq. ft." into "86 000 sq ft" and "$18.1 million" into "18 1 million"
@@ -757,7 +757,8 @@ export function dealEventFromTitleKey(key: string): DealEvent | null {
     if (!state) return null;
     const area = SALE_AREA_RES.find(e => e.re.test(key))?.area ?? null;
     if (!entity && (dollars === null || dollars < PROPERTY_SALE_MIN_MILLIONS || (!town && !area))) return null;
-    return { entity, event, state, town, area, sqft, dollars };
+    const address = key.match(/\b\d{1,6}\s+(?:[a-z]+\s+){1,5}(?:street|st|road|rd|avenue|ave|drive|dr|boulevard|blvd|court|ct|way|lane|ln)\b/)?.[0] ?? null;
+    return { entity, event, state, town, area, address, sqft, dollars };
 }
 
 const closeFigure = (x: number, y: number) => Math.abs(x - y) <= Math.max(x, y) * 0.02;
@@ -770,7 +771,7 @@ const closeFigure = (x: number, y: number) => Math.abs(x - y) <= Math.max(x, y) 
 function samePropertySale(a: DealEvent, b: DealEvent): boolean {
     if (a.event !== 'acquire' || b.event !== 'acquire' || a.state !== b.state) return false;
     if (a.dollars === null || b.dollars === null || Math.min(a.dollars, b.dollars) < PROPERTY_SALE_MIN_MILLIONS) return false;
-    if (!closeFigure(a.dollars, b.dollars)) return false;
+    if (Math.abs(a.dollars - b.dollars) > 0.000001) return false;
     if (a.sqft !== null && b.sqft !== null && !closeFigure(a.sqft, b.sqft)) return false;
     if (a.town && b.town) return a.town === b.town;
     const inArea = (area: string | null, town: string | null) => !!area && !!town && SALE_AREAS[area].includes(town);
@@ -779,6 +780,7 @@ function samePropertySale(a: DealEvent, b: DealEvent): boolean {
 
 /** Same firm, deal type and state, no conflicting town, and a shared figure that agrees with no other figure conflicting */
 export function dealEventsSameDeal(a: DealEvent, b: DealEvent): boolean {
+    if (a.address && b.address && a.address !== b.address) return false;
     if (!a.entity || a.entity !== b.entity) return samePropertySale(a, b);
     if (a.event !== b.event || a.state !== b.state) return false;
     if (a.town && b.town && a.town !== b.town) return false;
