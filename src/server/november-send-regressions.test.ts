@@ -188,6 +188,23 @@ for (const other of ['Colliers sells 31,000 sq. ft. Fairfield industrial buildin
     assert.equal(sameDeal(other, reReported), false, other);
 assert.equal(sameDeal('Colliers sells Kearny warehouse for $25 million', 'Colliers Sells East Rutherford Industrial Property for $25 Million'), false,
     'two named towns are two deals');
+// The same sale under another firm's name or none (November 17: the Meadowlands sale came
+// back as a broker's East Rutherford sale, and the Winter Haven $133M sale a third time)
+assert.equal(sameDeal('Colliers arranges $25M East Rutherford warehouse sale - ROI-NJ', reReported), true);
+assert.equal(sameDeal('Example Paints Winter Haven Warehouse Campus Trades for $133M - Connect CRE',
+    'Example Paints Distribution Center in Winter Haven Sells for $133 Million - TBBW'), true);
+assert.equal(sameDeal('Example Broker Announces the $133 Million Sale of a Single-Tenant Industrial Property in Winter Haven, Florida',
+    'Example Paints Winter Haven Warehouse Campus Trades for $133M'), true);
+for (const [a, b] of [
+    ['Example Owner sells Winter Haven warehouse for $40 million', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Owner sells Kearny warehouse for $25 million', 'Example Buyer acquires Carlstadt warehouse for $25 million'],
+    ['Example Owner sells Edison warehouse for $25 million', reReported],
+    ['Example Owner sells New Jersey warehouse for $25 million', 'Example Buyer acquires Kearny warehouse for $25 million'],
+    ['Example Owner sells Edison warehouse for $6 million', 'Example Buyer acquires Edison warehouse for $6 million'],
+    ['Example Owner sells 50,000 SF Edison warehouse for $25 million', 'Example Buyer acquires 120,000 SF Edison warehouse for $25 million'],
+    ['Example Bank provides $133M loan for Winter Haven warehouse campus', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+    ['Example Tenant leases Winter Haven warehouse in $133M deal', 'Example Paints Winter Haven Warehouse Campus Trades for $133M'],
+]) assert.equal(sameDeal(a, b), false, `${a} / ${b}`);
 // A financing stays a financing: it never matches a sale, and a stale-only rejection being set
 // aside does not turn it into a completed purchase
 assert.equal(dealEventClass('Example Bank Supplies $133M Refi for Miami-Dade Industrial Campus'), 'finance');
