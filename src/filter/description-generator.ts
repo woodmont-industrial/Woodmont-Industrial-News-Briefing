@@ -10,6 +10,22 @@
 import { NormalizedItem } from '../types/index.js';
 import { hasUnsupportedSummaryQuantity } from './summary-quantities.js';
 import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
+import { normalizeTitle } from '../shared/url-utils.js';
+import { getPublisherName } from '../shared/publisher-name.js';
+
+/** RSS can repeat the title with or without its publisher suffix. Both need a summary. */
+export function isHeadlineOnlyDescription(article: NormalizedItem): boolean {
+    const publisher = normalizeTitle(getPublisherName(article));
+    const key = (text: string): string => {
+        let value = normalizeTitle(text);
+        if (publisher && value.endsWith(' ' + publisher)) value = value.slice(0, -publisher.length).trim();
+        return value;
+    };
+    const title = key(article.title || '');
+    const description = key(article.description || '');
+    return title.length > 0 && (description === title
+        || (description.startsWith(title + ' ') && description.length - title.length < 40));
+}
 
 const SYSTEM_PROMPT = `You summarize commercial real estate news articles for an industry briefing.
 
@@ -144,9 +160,7 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
         if (desc.length >= 20) {
             // Check if the description is just the title + source name
             // Google News RSS sets description = "Article Title SourceName"
-            const titleNorm = title.toLowerCase().replace(/[^\w\s]/g, '').trim();
-            const descNorm = desc.toLowerCase().replace(/[^\w\s]/g, '').trim();
-            if (descNorm.startsWith(titleNorm) && descNorm.length < titleNorm.length + 40) {
+            if (isHeadlineOnlyDescription(a)) {
                 // Description is basically the title — needs a real one
                 return true;
             }

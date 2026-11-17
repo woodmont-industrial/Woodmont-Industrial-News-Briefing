@@ -11,6 +11,8 @@ for (const title of [
     'Example Builder broke ground on an industrial warehouse in Edison NJ',
     'Example Builder delivers a 358K SF Lehigh Valley industrial project',
     'A 120,000 SF industrial warehouse in Edison NJ is completed',
+    'Example Builder nears completion of 216,000 SF cold storage project in Bethlehem, Pennsylvania',
+    'Example Builder is nearing completion of a New Jersey logistics warehouse',
 ]) {
     assert.equal(isConstructionAnnouncement(item(title)), true, title);
     assert.equal(applyAvailabilityFilter([item(title)]).length, 0);
@@ -23,6 +25,8 @@ for (const title of [
     'Example Tenant leased a newly completed 120,000 SF warehouse in Edison NJ',
     'Industrial supplier delivers trucks to a warehouse in Edison NJ',
     'Developer breaks ground on a shopping center in Edison NJ',
+    'Example Bank secures $153M financing for Tinicum warehouse redevelopment',
+    'Example Tenant reportedly planning 200K SF South Philadelphia warehouse',
 ]) assert.equal(isConstructionAnnouncement(item(title)), false, title);
 assert.equal(applyAvailabilityFilter([item('5301 Sample Dr, Tallahassee FL - 7,360 sqft Flex Warehouse for Lease')]).length, 0);
 assert.equal(applyAvailabilityFilter([item('15,000 SF industrial warehouse available for lease in Edison NJ')]).length, 0);
