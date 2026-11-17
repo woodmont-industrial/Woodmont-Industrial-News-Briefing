@@ -49,9 +49,19 @@ export function isCompanyRecognitionHeadline(title: string): boolean {
     return !new RegExp(`\\b(?:hires?|hired|joins?|appoint(?:s|ed)?|promot(?:es?|ed)|elevat(?:es?|ed)|taps?|tapped|names?\\s+(?:\\w+\\s+){0,3}(?:as\\s+)?${role}|named\\s+(?:as\\s+)?(?:the\\s+)?(?:new\\s+)?${role}|board)\\b`, 'i').test(title);
 }
 
+/** A fire, explosion or collapse at a building is a local incident, not property news
+ *  ("3-alarm fire damages manufacturing facility in Morris County", 2026-11-17) */
+export function isPropertyIncidentHeadline(title: string): boolean {
+    const incident = /\b\d+-alarm\b|\bfirefighters\b/i.test(title)
+        || (/\b(?:fire|blaze|explosion|explodes?|collapse[sd]?)\b/i.test(title)
+            && /\b(?:damag(?:e|es|ed)|destroy(?:s|ed)?|injur(?:y|ies|ed)|kill(?:s|ed)?|evacuat(?:e|es|ed|ion)|burns?|burned|smoke)\b/i.test(title));
+    if (!incident) return false;
+    return !/\b(?:sells?|sold|sale|acquir(?:es?|ed)|buys?|bought|leases?|leased|rebuild(?:s|ing)?|redevelop(?:s|ment)?|reopens?)\b/i.test(title);
+}
+
 export function isNonStoryArtifact(title: string): boolean {
     return isPropertyCatalogHeadline(title) || isNonPropertyStockHeadline(title) || isTradePolicyOperationsHeadline(title)
-        || isTechnologyCommentaryHeadline(title);
+        || isTechnologyCommentaryHeadline(title) || isPropertyIncidentHeadline(title);
 }
 
 /** Buying an equipment/service business does not describe buying its buildings. */

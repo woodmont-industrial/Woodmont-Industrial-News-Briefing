@@ -36,4 +36,14 @@ for (const title of ['Jane Doe named president of Example Logistics, a New Jerse
     assert.equal(peoplePasses(title), true, title);
 }
 
-console.log('PASS: November 13 send regressions (out-of-market city, technology commentary, recognition in People)');
+// November 17: a building fire is a local incident, not property news
+assert.equal(relevantPasses('3-alarm fire damages manufacturing facility in Morris County; no injuries reported - WRNJ Radio'), false);
+assert.equal(relevantPasses('Warehouse fire forces evacuation in Edison, New Jersey'), false);
+for (const title of ['Fire-damaged Edison warehouse sells for $8 million to Example Buyer',
+    'Example Developer plans to rebuild fire-destroyed warehouse in Kearny, New Jersey',
+    'Fire protection firm leases 50,000 SF warehouse in Edison, New Jersey',
+    'Example REIT acquires Morris County manufacturing facility for $30 million']) {
+    assert.equal(relevantPasses(title), true, title);
+}
+
+console.log('PASS: November 13 send regressions (out-of-market city, technology commentary, recognition in People, building incidents)');
