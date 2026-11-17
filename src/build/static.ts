@@ -1166,9 +1166,10 @@ export async function buildStaticRSS(): Promise<void> {
         // Enrollment ignores stored verdicts on copies only. Rejected and overflow
         // candidates can be reconsidered; failed calls preserve their old verdicts.
         // The four-minute budget, providers and delivery policy are unchanged.
+        let editorialReview: Awaited<ReturnType<typeof reviewEditorialCandidates>> | undefined;
         try {
-            const result = await reviewEditorialCandidates(rssItems);
-            log('info', 'Woodmont LLM classification complete', result);
+            editorialReview = await reviewEditorialCandidates(rssItems);
+            log('info', 'Woodmont LLM classification complete', editorialReview);
         } catch (e) {
             log('warn', 'Woodmont LLM classification failed: ' + (e as Error).message);
         }
@@ -1217,6 +1218,10 @@ export async function buildStaticRSS(): Promise<void> {
             }
         } catch { /* ignore */ }
         const feedHealthReport = generateFeedHealthReport(results, previousHealthReport);
+        Object.assign(feedHealthReport, {
+            editorialReview: editorialReview ?? { status: 'failed-before-completion' },
+            aiDegraded: !editorialReview || editorialReview.failed > 0 || editorialReview.remaining > 0,
+        });
         fs.writeFileSync(path.join(DOCS_DIR, 'feed-health.json'), JSON.stringify(feedHealthReport, null, 2), 'utf8');
         log('info', 'Generated docs/feed-health.json', { feedCount: feedHealthReport.feeds.length });
 

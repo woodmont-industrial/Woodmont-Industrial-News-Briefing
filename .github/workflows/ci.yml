@@ -48,7 +48,7 @@ jobs:
 
   # Build verification
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwright 1.57 cannot install Chromium on ubuntu-latest (26.04)
     name: Build
     steps:
       - name: Checkout
@@ -240,6 +240,7 @@ jobs:
       - run: node --import tsx src/server/november-send-regressions.test.ts
       - run: node --import tsx src/build/newsletter-facts.test.ts
       - run: node --import tsx src/filter/editorial-review.test.ts
+      - run: node --import tsx src/filter/editorial-resilience.test.ts
       - run: node --import tsx src/server/relevant-editorial.test.ts
       - run: node --import tsx src/server/newsletter-backfill.test.ts
       - run: node --import tsx src/server/newsletter-summary-render.test.ts

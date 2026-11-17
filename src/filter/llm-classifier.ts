@@ -24,7 +24,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProviders, getRetryAfterMs, trackTokenUsage, completionModelOptions } from './ai-provider.js';
+import { getAIProviders, getRetryAfterMs, trackTokenUsage, completionModelOptions, type AIProvider } from './ai-provider.js';
 import { WOODMONT_SYSTEM_PROMPT, buildArticleUserPrompt, WOODMONT_RUBRIC_VERSION } from './woodmont-rubric.js';
 
 interface WoodmontVerdict {
@@ -43,138 +43,124 @@ export interface EditorialReviewOptions {
     asOf?: Date;
 }
 
-/** Why verdicts failed in the current batch; logged once per batch so a silent outage shows up in the build log. */
-const failureKinds: Record<string, number> = {};
-const failVerdict = (kind: string): null => { failureKinds[kind] = (failureKinds[kind] || 0) + 1; return null; };
 
-/**
- * Call the LLM with a single article and parse its verdict. Iterates through
- * available providers on 429 (mirrors classifyWithAI pattern).
- */
-async function classifyOneArticle(article: NormalizedItem, options: EditorialReviewOptions): Promise<WoodmontVerdict | null> {
-    // 2026-06-10: reversed provider order — Cerebras first, Groq fallback.
-    // The upstream AI categorizer (filterArticlesWithAI in static.ts) drains
-    // Groq's quota by the time we get to the Woodmont second-pass; reversing
-    // the order gives us a separate budget. Cerebras 1M tokens/day free is
-    // plenty for ~20-100 verdicts per build.
-    const providers = [...getAIProviders()].sort((a, b) => {
-        if (a.name === 'Cerebras') return -1;
-        if (b.name === 'Cerebras') return 1;
-        return 0;
-    });
-    if (providers.length === 0) return failVerdict('no-provider');
+/** Counts contain provider/status labels only, never response bodies or credentials. */
+export interface EditorialReviewResult {
+    classified: number;
+    approved: number;
+    rejected: number;
+    failed: number;
+    processed: number;
+    deferred: number;
+    budgetExhausted: boolean;
+    failureReasons: Record<string, number>;
+    providers: Array<{ name: string; model: string }>;
+}
 
+interface ReviewRun {
+    providers: AIProvider[];
+    deadline: number;
+    failureReasons: Record<string, number>;
+    unavailableUntil: Map<string, number>;
+}
+
+function recordFailure(run: ReviewRun, provider: AIProvider, reason: string): void {
+    const key = provider.name + ':' + reason;
+    run.failureReasons[key] = (run.failureReasons[key] || 0) + 1;
+}
+
+/** One bounded attempt per available provider; a failing provider must not monopolize the batch. */
+async function classifyOneArticle(
+    article: NormalizedItem, options: EditorialReviewOptions, run: ReviewRun,
+): Promise<WoodmontVerdict | null> {
     const userPrompt = buildArticleUserPrompt({
         title: article.title,
-        description: (article as any).description || (article as any).content_text || (article as any).summary,
+        description: article.description || (article as any).content_text || (article as any).summary,
         source: article.source || (article as any)._source?.website || (article as any)._source?.name,
         url: (article as any).url || article.link,
         category: article.category,
         date_published: article.pubDate || (article as any).date_published,
     }, options.asOf);
 
-    for (let pIdx = 0; pIdx < providers.length; pIdx++) {
-        const provider = providers[pIdx];
-        const isLast = pIdx === providers.length - 1;
+    for (const provider of run.providers) {
+        if (Date.now() >= run.deadline) break;
+        if ((run.unavailableUntil.get(provider.name) || 0) > Date.now()) continue;
         try {
-            let response: Response | null = null;
-            let retries = 0;
-            const maxRetries = 2; // tighter than classifyWithAI; rubric is consistent so no point in many retries
-            let exhausted429 = false;
-
-            while (retries < maxRetries) {
-                response = await fetch(provider.url, {
-                    method: 'POST',
-                    signal: AbortSignal.timeout(30_000),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${provider.apiKey}`
-                    },
-                    body: JSON.stringify({
-                        ...completionModelOptions(provider),
-                        messages: [
-                            { role: 'system', content: options.rubric?.systemPrompt ?? WOODMONT_SYSTEM_PROMPT },
-                            { role: 'user', content: userPrompt }
-                        ],
-                        temperature: 0.1,
-                        max_completion_tokens: 2048,
-                        response_format: { type: 'json_object' }
-                    })
-                });
-
-                if (response.status === 429) {
-                    retries++;
-                    const retryAfterMs = getRetryAfterMs(response);
-                    const waitTime = retryAfterMs ?? Math.pow(2, retries) * 1500;
-                    if (retries < maxRetries) {
-                        await new Promise(resolve => setTimeout(resolve, waitTime));
-                        continue;
-                    }
-                    exhausted429 = true;
-                    break;
+            const response = await fetch(provider.url, {
+                method: 'POST',
+                signal: AbortSignal.timeout(Math.max(1, Math.min(15_000, run.deadline - Date.now()))),
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + provider.apiKey },
+                body: JSON.stringify({
+                    ...completionModelOptions(provider),
+                    messages: [
+                        { role: 'system', content: options.rubric?.systemPrompt ?? WOODMONT_SYSTEM_PROMPT },
+                        { role: 'user', content: userPrompt },
+                    ],
+                    temperature: 0.1,
+                    max_completion_tokens: 2048,
+                    response_format: { type: 'json_object' },
+                }),
+            });
+            if (!response.ok) {
+                recordFailure(run, provider, 'http-' + response.status);
+                if ([401, 403, 404, 410].includes(response.status)) {
+                    // Configuration/access failures cannot recover by retrying every article.
+                    run.unavailableUntil.set(provider.name, Infinity);
+                } else if (response.status === 429) {
+                    const wait = Math.max(1000, getRetryAfterMs(response) ?? 5000);
+                    run.unavailableUntil.set(provider.name, Date.now() + wait);
+                } else if (response.status >= 500) {
+                    run.unavailableUntil.set(provider.name, Date.now() + 1000);
                 }
-                break;
+                await response.body?.cancel();
+                continue;
             }
-
-            if (exhausted429 && !isLast) continue;
-            if (!response || !response.ok) {
-                if (!isLast) continue;
-                return failVerdict(`${provider.name} http-${response?.status ?? 'none'}`);
-            }
-
             const data = await response.json();
             trackTokenUsage(data.usage);
             const content = data.choices?.[0]?.message?.content;
-            if (!content) {
-                if (!isLast) continue;
-                return failVerdict(`${provider.name} empty-content (finish: ${data.choices?.[0]?.finish_reason ?? 'unknown'})`);
+            if (typeof content !== 'string' || !content.trim()) {
+                recordFailure(run, provider, 'empty-content:' +
+                    (data.choices?.[0]?.finish_reason === 'length' ? 'length' : 'other'));
+                continue;
             }
-
-            // Parse JSON — be lenient about markdown code fences just in case.
-            let jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-            const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+            const jsonMatch = content.replace(/\x60\x60\x60(?:json)?/g, '').trim().match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                if (!isLast) continue;
-                return failVerdict(`${provider.name} no-json`);
+                recordFailure(run, provider, 'no-json');
+                continue;
             }
-
-            const parsed = JSON.parse(jsonMatch[0]);
-            if (typeof parsed.approve !== 'boolean' || typeof parsed.reason !== 'string'
-                || typeof parsed.confidence !== 'number' || !Number.isFinite(parsed.confidence)) {
-                if (!isLast) continue;
-                return failVerdict(`${provider.name} bad-verdict-shape`);
+            let parsed: { approve?: unknown; reason?: unknown; confidence?: unknown };
+            try { parsed = JSON.parse(jsonMatch[0]); }
+            catch { recordFailure(run, provider, 'invalid-json'); continue; }
+            if (typeof parsed?.approve !== 'boolean' || typeof parsed.reason !== 'string'
+                || !parsed.reason.trim() || typeof parsed.confidence !== 'number' || !Number.isFinite(parsed.confidence)) {
+                recordFailure(run, provider, 'bad-verdict-shape');
+                continue;
             }
-            // Selection already applies the configured windows. Editorial review must
-            // not impose another age cutoff on otherwise eligible backfill.
             return {
                 approve: parsed.approve,
-                reason: String(parsed.reason || '').slice(0, 300),
-                confidence: Math.max(0, Math.min(100, Number(parsed.confidence) || 0)),
+                reason: parsed.reason.slice(0, 300),
+                confidence: Math.max(0, Math.min(100, parsed.confidence)),
                 classifier: provider.name.toLowerCase(),
                 model: provider.model,
                 modelApprove: parsed.approve,
                 dateValidation: null,
             };
-        } catch (err) {
-            if (!isLast) continue;
-            return failVerdict(`${provider.name} ${(err as Error)?.name === 'TimeoutError' ? 'timeout' : 'error: ' + String((err as Error)?.message || err).slice(0, 60)}`);
+        } catch (error) {
+            // Do not print exception messages: an upstream library can include request credentials.
+            const name = (error as Error)?.name;
+            recordFailure(run, provider, name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'network-or-response');
         }
     }
-    return failVerdict('no-provider-answered');
+    return null;
 }
 
 /**
  * Batch-classify a set of articles, stamping each with _woodmontApprove /
  * _woodmontReason / _woodmontConfidence / _woodmontClassifier.
  *
- * Concurrency tuned for Groq free tier (30 RPM): 5 in flight × 500ms inter-batch
- * gives ~10 req/sec peak which Groq absorbs fine, with the 429-fallback in
- * classifyOneArticle catching any rate-limit spikes.
- *
- * Wall-clock budget enforced: if budgetMs elapses before the batch finishes,
- * any remaining items keep their stored verdict (or remain unclassified). The build step has a
- * 10-minute timeout; we cap the LLM at 5 to leave headroom for image
- * enrichment and feed.json writes.
+ * Provider concurrency limits are respected. Failed providers fall back immediately;
+ * rate-limit pauses and every request share the caller's wall-clock deadline.
+ * Unreviewed/deferred items keep their existing verdict and deterministic checks.
  *
  * @param items   Deterministically eligible articles, including rejected/capped
  *                items that may be reconsidered or selected by fallback paths.
@@ -188,68 +174,56 @@ export async function classifyWoodmontBatch(
     batchDelayMs: number = 500,
     budgetMs: number = 5 * 60 * 1000,
     options: EditorialReviewOptions = {}
-): Promise<{ classified: number; approved: number; rejected: number; failed: number; budgetExhausted: boolean }> {
-    const providers = getAIProviders();
-    if (providers.length === 0 || items.length === 0) {
-        return { classified: 0, approved: 0, rejected: 0, failed: 0, budgetExhausted: false };
-    }
-
-    // Show the actual provider order this run will use (Cerebras-first after the 2026-06-10
-    // sort in classifyOneArticle). Helps diagnose quota issues from build logs.
-    const sortedProviders = [...providers].sort((a, b) => {
-        if (a.name === 'Cerebras') return -1;
-        if (b.name === 'Cerebras') return 1;
-        return 0;
-    });
+): Promise<EditorialReviewResult> {
+    const providers = [...getAIProviders()].sort((a, b) =>
+        Number(b.name === 'Cerebras') - Number(a.name === 'Cerebras'));
+    const result: EditorialReviewResult = {
+        classified: 0, approved: 0, rejected: 0, failed: 0, processed: 0,
+        deferred: items.length, budgetExhausted: false, failureReasons: {},
+        providers: providers.map(({ name, model }) => ({ name, model })),
+    };
+    if (providers.length === 0 || items.length === 0) return result;
     const start = Date.now();
+    const run: ReviewRun = { providers, deadline: start + Math.max(0, budgetMs),
+        failureReasons: result.failureReasons, unavailableUntil: new Map() };
+    const concurrency = Math.max(1, Math.min(maxConcurrent, ...providers.map(p => p.maxConcurrent)));
     const rubricVersion = options.rubric?.version ?? WOODMONT_RUBRIC_VERSION;
-    for (const kind of Object.keys(failureKinds)) delete failureKinds[kind];
-    console.log(`[Woodmont LLM] Classifying ${items.length} candidates with ${sortedProviders[0].name} (concurrency: ${maxConcurrent}, budget: ${Math.round(budgetMs/1000)}s, rubric: ${rubricVersion})`);
+    console.log('[Woodmont LLM] Classifying ' + items.length + ' candidates; providers: ' +
+        JSON.stringify(result.providers) + '; concurrency: ' + concurrency + '; rubric: ' + rubricVersion);
 
-    let approved = 0;
-    let rejected = 0;
-    let failed = 0;
-    let processed = 0;
-    let budgetExhausted = false;
+    for (let i = 0; i < items.length; i += concurrency) {
+        if (Date.now() >= run.deadline) break;
+        const nextAvailable = Math.min(...providers.map(p => run.unavailableUntil.get(p.name) || 0));
+        if (!Number.isFinite(nextAvailable)) break;
+        const pause = Math.max(0, nextAvailable - Date.now());
+        // Do not sleep through the rest of the build budget.
+        if (pause >= run.deadline - Date.now()) break;
+        if (pause) await new Promise(resolve => setTimeout(resolve, pause));
 
-    for (let i = 0; i < items.length; i += maxConcurrent) {
-        // Wall-clock guard — bail before kicking off the next batch
-        if (Date.now() - start >= budgetMs) {
-            budgetExhausted = true;
-            const remaining = items.length - i;
-            console.log(`[Woodmont LLM] Budget exhausted after ${Math.round((Date.now()-start)/1000)}s. ${remaining} items retain their existing verdicts.`);
-            break;
-        }
-
-        const batch = items.slice(i, i + maxConcurrent);
-        const results = await Promise.all(batch.map(item => classifyOneArticle(item, options)));
-
-        results.forEach((verdict, idx) => {
-            processed++;
-            const item = batch[idx];
-            if (verdict === null) {
-                failed++;
-                return;
-            }
-            (item as any)._woodmontApprove = verdict.approve;
-            (item as any)._woodmontReason = verdict.reason;
-            (item as any)._woodmontConfidence = verdict.confidence;
-            (item as any)._woodmontClassifier = verdict.classifier;
-            (item as any)._woodmontRubricVersion = rubricVersion;
-            (item as any)._woodmontClassifiedAt = new Date().toISOString();
-            (item as any)._woodmontModel = verdict.model;
-            (item as any)._woodmontModelApprove = verdict.modelApprove;
-            (item as any)._woodmontDateValidation = verdict.dateValidation;
-            if (verdict.approve) approved++; else rejected++;
+        const batch = items.slice(i, i + concurrency);
+        const verdicts = await Promise.all(batch.map(item => classifyOneArticle(item, options, run)));
+        verdicts.forEach((verdict, index) => {
+            result.processed++;
+            if (!verdict) { result.failed++; return; }
+            const item = batch[index] as NormalizedItem & Record<string, unknown>;
+            item._woodmontApprove = verdict.approve;
+            item._woodmontReason = verdict.reason;
+            item._woodmontConfidence = verdict.confidence;
+            item._woodmontClassifier = verdict.classifier;
+            item._woodmontRubricVersion = rubricVersion;
+            item._woodmontClassifiedAt = new Date().toISOString();
+            item._woodmontModel = verdict.model;
+            item._woodmontModelApprove = verdict.modelApprove;
+            item._woodmontDateValidation = verdict.dateValidation;
+            result.classified++;
+            if (verdict.approve) result.approved++; else result.rejected++;
         });
-
-        if (i + maxConcurrent < items.length) {
-            await new Promise(resolve => setTimeout(resolve, batchDelayMs));
-        }
+        const delay = Math.min(Math.max(0, batchDelayMs), Math.max(0, run.deadline - Date.now()));
+        if (i + concurrency < items.length && delay) await new Promise(resolve => setTimeout(resolve, delay));
     }
-
-    const elapsedSec = Math.round((Date.now() - start) / 1000);
-    if (failed > 0) console.log(`[Woodmont LLM] Failure reasons: ${JSON.stringify(failureKinds)}`);
-    console.log(`[Woodmont LLM] Done in ${elapsedSec}s: ${approved} approved, ${rejected} rejected, ${failed} failed (processed ${processed}/${items.length}${budgetExhausted ? ', BUDGET EXHAUSTED' : ''})`);
-    return { classified: processed - failed, approved, rejected, failed, budgetExhausted };
+    result.deferred = items.length - result.processed;
+    result.budgetExhausted = result.deferred > 0 && Date.now() >= run.deadline;
+    console.log('[Woodmont LLM] Review coverage: ' + JSON.stringify(result));
+    if (result.failed || result.deferred) console.warn('[Woodmont LLM] Incomplete editorial review; existing verdicts preserved.');
+    return result;
 }
