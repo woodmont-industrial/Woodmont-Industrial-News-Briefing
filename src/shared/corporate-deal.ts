@@ -16,7 +16,8 @@ export type CorporateDealKind = 'company-acquisition' | 'stake-or-valuation' | '
 
 const PROPERTY_OBJECT_RE = /\b(?:warehouses?|facilit(?:y|ies)|buildings?|propert(?:y|ies)|plants?|sites?|land|acres?|parks?|campus(?:es)?|portfolios?|cent(?:er|re)s?|sq\.?\s*ft|square[- ]f(?:oo|ee)t|sf|ksf|parcels?|assets?|terminals?|depots?|hubs?|ios|outdoor\s+storage|lots?|yards?|complex(?:es)?)\b/i;
 const COMPANY_OBJECT_RE = /\b(?:inc|corp|corporation|co(?=\.)|llc|ltd|company|companies|maker|manufacturer|producer|brand|business(?:es)?|firm|operator|provider|distributor|supplier|subsidiary|division|unit|startup|competitor|rival|bottler|processor|retailer|carrier|3pl|reit|group|holdings|partners)\b/i;
-const REIT_RE = /\b(?:reit|real\s+estate\s+investment\s+trust|(?:industrial|logistics|realty|property|properties)\s+trust)\b/i;
+const LEGAL_ENTITY_RE = /\b(?:llc|l\.l\.c|inc|incorporated|corp|corporation|co(?=\.)|ltd|limited|plc|l\.p)(?:\.|\b)/i;
+const REIT_RE =/\b(?:reit|real\s+estate\s+investment\s+trust|(?:industrial|logistics|realty|property|properties)\s+trust)\b/i;
 
 // "Canned water maker's $100 million acquisition" — an operating company's own deal. Only
 // operating-company nouns: "Example Realty's $60M acquisition" is an investor buying property.
@@ -48,6 +49,8 @@ export function corporateDealKind(title: string): CorporateDealKind | null {
     if (stake && !PROPERTY_OBJECT_RE.test(stake[1])) return 'stake-or-valuation';
     for (const match of t.matchAll(DEAL_VERB_OBJECT_RE)) {
         const object = match[1];
+        // A legal entity is a company whatever its name says ("Sample Warehouse LLC").
+        if (LEGAL_ENTITY_RE.test(object)) return 'company-acquisition';
         if (PROPERTY_OBJECT_RE.test(object)) continue;
         if (COMPANY_OBJECT_RE.test(object)) return 'company-acquisition';
     }
@@ -70,13 +73,21 @@ const SUMMARY_PROPERTY_DEAL_RES = [
     new RegExp(`\\b${PROPERTY_NOUN}\\b[^.;$]{0,30}?\\bfor\\s+(?:about\\s+|nearly\\s+|roughly\\s+)?\\$\\s*\\d`, 'i'),
 ];
 
-// Deal actions grouped by what completes them: buying and selling are different deals.
-const ACTIONS: Array<{ pending: RegExp; done: RegExp }> = [
-    { pending: /\b(?:acquire|acquiring|acquisition|buy|buying|purchase|purchasing)\b/i, done: /\b(?:acquired|bought|purchased)\b/i },
-    { pending: /\b(?:sell|selling|sale|divest(?:ing|iture)?)\b/i, done: /\b(?:sold|divested)\b/i },
-    { pending: /\b(?:merge|merging|merger)\b/i, done: /\bmerged\b/i },
-    { pending: /\b(?:lease|leasing)\b/i, done: /\b(?:leased|signed)\b/i },
+// Deal actions grouped by what completes them: buying and selling are different deals. `noun`
+// names the deal itself, so "the sale has closed" counts as a completion claim.
+interface DealAction { pending: RegExp; done: RegExp; noun: RegExp }
+const ACTIONS: DealAction[] = [
+    { pending: /\b(?:acquire|acquiring|acquisition|buy|buying|purchase|purchasing)\b/i, done: /\b(?:acquired|bought|purchased)\b/i,
+        noun: /\b(?:acquisition|purchase|deal|transaction)\b/i },
+    { pending: /\b(?:sell|selling|sale|divest(?:ing|iture)?)\b/i, done: /\b(?:sold|divested)\b/i,
+        noun: /\b(?:sale|divestiture|deal|transaction)\b/i },
+    { pending: /\b(?:merge|merging|merger)\b/i, done: /\bmerged\b/i, noun: /\b(?:merger|deal|transaction)\b/i },
+    { pending: /\b(?:lease|leasing)\b/i, done: /\b(?:leased|signed)\b/i, noun: /\b(?:lease|deal|transaction)\b/i },
 ];
+const NEGATION_RE = /\b(?:not|n['’]t|yet\s+to|no\s+longer|never)\b/i;
+// Headline words too common to tie a source sentence to this particular deal.
+const ANCHOR_STOP = new Set(('plans plan sell sells sale buys acquire acquires acquisition purchase deal agrees agreed with from '
+    + 'into over that this example warehouse building property facility industrial million billion square feet').split(' '));
 // Summary side: phrases that keep a deal pending. A bare "to" is not one ("sold it to Example").
 const PENDING_MARKER_RE = /\b(?:agree[sd]?\s+to|plans?\s+to|planning\s+to|planned|proposed?|pending|expected\s+to|set\s+to|will|would|could|may|in\s+talks|eyes|eyeing|seeks?|seeking|considering|explor(?:es|ing)|nears?|under\s+contract|letter\s+of\s+intent|on\s+the\s+market|listed|marketing|to\s+(?:acquire|buy|purchase|sell|merge|lease))\b/i;
 // Headline side also reads the bare infinitive: "Example Pharma to Acquire ...".
@@ -84,7 +95,7 @@ const HEADLINE_PENDING_RE = new RegExp(`${PENDING_MARKER_RE.source}|\\bto\\b`, '
 const CLOSING_EVIDENCE_RE = /\b(?:closed|completed|finalized|wrapped\s+up)\b/i;
 
 /** The deal action the headline says is still pending ("plans to sell", "agrees to acquire"), if any. */
-function pendingAction(title: string): { pending: RegExp; done: RegExp } | null {
+function pendingAction(title: string): DealAction | null {
     const t = stripPublisher(title);
     for (const clause of t.split(/[,;:]|\s+(?:and|but|after|while)\s+/i)) {
         const marker = clause.match(HEADLINE_PENDING_RE);
@@ -96,11 +107,36 @@ function pendingAction(title: string): { pending: RegExp; done: RegExp } | null 
     return null;
 }
 
+/** A clause that says the deal is done: "sold the warehouse", "the sale has closed", "completed the sale". */
+function claimsCompleted(clause: string, action: DealAction): boolean {
+    if (PENDING_MARKER_RE.test(clause) || NEGATION_RE.test(clause)) return false;
+    return action.done.test(clause) || (CLOSING_EVIDENCE_RE.test(clause) && action.noun.test(clause));
+}
+
+/**
+ * The source confirms THIS deal closed: one sentence with closing language, the same kind of
+ * deal, no negation, and a distinctive headline word (its town, a party). "A refinancing of the
+ * owner's Newark building closed" does not confirm a pending Edison sale. Ambiguous → headline.
+ */
+function sourceConfirmsClosing(source: string, title: string, action: DealAction): boolean {
+    const headline = stripPublisher(title);
+    const anchors = headline.toLowerCase().split(/[^a-z0-9]+/)
+        .filter(w => w.length >= 4 && !/^\d+$/.test(w) && !ANCHOR_STOP.has(w));
+    const body = (source || '').replace(headline, ' ');
+    return body.split(/(?<=[.!?])\s+|;/).some(sentence => {
+        const lower = sentence.toLowerCase();
+        return CLOSING_EVIDENCE_RE.test(sentence) && !NEGATION_RE.test(sentence)
+            && (action.noun.test(sentence) || action.done.test(sentence))
+            && anchors.some(w => new RegExp(`\\b${w}\\b`).test(lower));
+    });
+}
+
 /**
  * A summary may shorten the source but must not change what was bought or whether THAT deal
  * happened. Rejects: a company acquisition restated as a property deal (active, passive or
- * priced), and the headline's pending deal restated as done. A past-tense verb about some other
- * deal in the source ("a warehouse it bought in 2019") is not closing evidence.
+ * priced), and the headline's pending deal restated as done ("sold", "has closed", "completed
+ * the sale") unless the source confirms that same deal closed. When unsure, the headline's
+ * pending status wins.
  */
 export function summaryChangesDealScopeOrStatus(summary: string, title: string, source: string): string | null {
     if (!summary) return null;
@@ -108,12 +144,9 @@ export function summaryChangesDealScopeOrStatus(summary: string, title: string, 
         return 'restates a company acquisition as a property deal';
     }
     const action = pendingAction(title);
-    if (action) {
-        const src = (source || '').replace(stripPublisher(title), ' ');
-        const closedInSource = CLOSING_EVIDENCE_RE.test(src);
-        const summaryClauses = summary.split(/[.;]/);
-        const claimsDone = summaryClauses.some(c => action.done.test(c) && !PENDING_MARKER_RE.test(c));
-        if (claimsDone && !closedInSource) return 'restates a pending deal as completed';
+    if (action && summary.split(/[.;]/).some(c => claimsCompleted(c, action))
+        && !sourceConfirmsClosing(source, title, action)) {
+        return 'restates a pending deal as completed';
     }
     return null;
 }

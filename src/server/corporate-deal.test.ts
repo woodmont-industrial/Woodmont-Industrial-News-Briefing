@@ -95,7 +95,27 @@ assert.equal(summaryChangesDealScopeOrStatus('Example Owner sold the warehouse t
     'Example Owner sells Edison warehouse to Sample Logistics'), null, 'a completed sale "to" a buyer is not pending');
 const closedLater = 'Example Bottling agrees to acquire Sample Beverage Co.';
 assert.equal(summaryChangesDealScopeOrStatus('Example Bottling acquired Sample Beverage Co.', closedLater,
-    'The acquisition closed on Nov. 17, the companies said.'), null, 'explicit closing evidence in the source allows past tense');
+    'Example Bottling said its acquisition of Sample Beverage closed on Nov. 17.'), null,
+    'explicit closing of the same deal in the source allows past tense');
+assert.ok(summaryChangesDealScopeOrStatus('Example Bottling acquired Sample Beverage Co.', closedLater,
+    'The acquisition closed on Nov. 17.'), 'a closing sentence that names neither party is ambiguous: keep the headline');
+
+// Review 2 (2026-11-18): status follows the headline unless the source confirms THIS deal closed.
+const edisonPending = 'Example Owner plans to sell 120,000 SF Edison warehouse';
+const newarkRefi = 'Separately, a $40M refinancing of the owner’s Newark building closed last week.';
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending, newarkRefi),
+    'a different deal that closed is not evidence the Edison sale closed');
+assert.ok(summaryChangesDealScopeOrStatus('Edison — The sale of the 120,000 SF warehouse has closed.', edisonPending, edisonPending),
+    '"has closed" is a completion claim too');
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner completed the sale of the warehouse.', edisonPending, edisonPending),
+    '"completed the sale" is a completion claim');
+assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'The Edison warehouse sale closed on Nov. 17 for $30M.'), null, 'the same sale confirmed closed in the source');
+assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Owner plans to sell the 120,000 SF warehouse; the deal has not closed.',
+    edisonPending, edisonPending), null, 'restating that it has not closed is faithful');
+assert.ok(isCorporateAcquisition('Example Buyer acquires Sample Warehouse LLC'), 'a legal entity is a company even if its name says Warehouse');
+assert.ok(isCorporateAcquisition('Example Buyer to acquire Sample Cold Storage Inc. for $80M'), 'Inc. as the acquired object');
+assert.equal(corporateDealKind('Example Buyer acquires Sample Warehouse in Edison for $20M'), null, 'no legal suffix: a property');
 
 const closed = 'Example Capital buys 63,000 sq. ft. Edison warehouse for $18.1 million';
 assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Capital purchased a 63,000 SF warehouse for $18.1M.', closed, closed), null,
