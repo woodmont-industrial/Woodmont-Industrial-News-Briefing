@@ -5,7 +5,7 @@ import { NormalizedItem } from '../types/index.js';
 import { buildBriefing } from './newsletter.js';
 import { buildGothBriefing } from './newsletter-goth.js';
 import { buildWorkBriefing } from './newsletter-work.js';
-import { generateDescriptions } from '../filter/description-generator.js';
+import { generateDescriptions, createDescriptionBudget } from '../filter/description-generator.js';
 import { RELEVANT_KEYWORDS, INTERNATIONAL_EXCLUDE, EXCLUDE_NON_INDUSTRIAL, OUT_OF_MARKET_KEYWORDS, isStrictlyIndustrial } from '../shared/region-data.js';
 import { cleanArticleUrl, extractDealSignature, extractDealSignatures, extractCrossDayDedupSignatures, extractEntityDealKey, entityKeysSameDeal, dealEventClass, extractSubjectFacilityKey, subjectFacilityKeysSameStory, subjectFacilitySignature, dealEventFromTitleKey, dealEventsSameDeal } from '../shared/url-utils.js';
 import {
@@ -1291,7 +1291,9 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // Clean URLs + generate AI descriptions
         const allNewsletterArticles = [...relevant, ...transactions, ...availabilities, ...people];
         allNewsletterArticles.forEach(cleanArticleUrl);
-        await generateDescriptions(allNewsletterArticles);
+        // One summary time limit for the whole send (selected stories first, then refills).
+        const summaryBudget = createDescriptionBudget();
+        await generateDescriptions(allNewsletterArticles, summaryBudget);
 
         // Post-description regional re-check
         relevant = relevant.filter(postDescriptionRegionCheck);
@@ -1371,26 +1373,37 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
                 ].filter(a => !usedIdsPostDesc.has(a.id || a.link));
                 if (deepCandidates.length > 0) {
                     deepCandidates.forEach(cleanArticleUrl);
-                    await generateDescriptions(deepCandidates);
-                    const deepPostDescPool = deepCandidates.filter(postDescriptionRegionCheck);
-                    const deepPostDescRegional = deepPostDescPool.filter(isTargetRegion);
-
                     // Same category restriction + finalGate as the shallow post-desc
                     // refill above. Deep refill is the most leak-prone path because the
                     // 30-day pool includes all categories of stale content; finalGate
                     // here blocks listing aggregators and out-of-region items.
-                    refillSection(relevant, MIN_RELEVANT,
-                        (items) => finalGate(applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'Relevant'),
-                        'relevant', deepPostDescPool);
-                    refillSection(transactions, MIN_TRANSACTIONS,
-                        (items) => finalGate(applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'Transactions'),
-                        'transactions', deepPostDescRegional);
-                    refillSection(availabilities, MIN_AVAILABILITIES,
-                        (items) => finalGate(applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'Availabilities'),
-                        'availabilities', deepPostDescRegional);
-                    refillSection(people, MIN_PEOPLE,
-                        (items) => finalGate(applyPeopleFilter(items.filter(a => a.category === 'people')), 'People'),
-                        'people', deepPostDescRegional);
+                    const deepSections = [
+                        { section: relevant, min: MIN_RELEVANT, label: 'relevant', regional: false,
+                            filterFn: (items: NormalizedItem[]) => finalGate(applyStrictFilter(items.filter(a => a.category === 'relevant'), RELEVANT_KEYWORDS, 'Relevant (deep-pd)'), 'Relevant') },
+                        { section: transactions, min: MIN_TRANSACTIONS, label: 'transactions', regional: true,
+                            filterFn: (items: NormalizedItem[]) => finalGate(applyTransactionFilter(items.filter(a => a.category === 'transactions')), 'Transactions') },
+                        { section: availabilities, min: MIN_AVAILABILITIES, label: 'availabilities', regional: true,
+                            filterFn: (items: NormalizedItem[]) => finalGate(applyAvailabilityFilter(items.filter(a => a.category === 'availabilities')), 'Availabilities') },
+                        { section: people, min: MIN_PEOPLE, label: 'people', regional: true,
+                            filterFn: (items: NormalizedItem[]) => finalGate(applyPeopleFilter(items.filter(a => a.category === 'people')), 'People') },
+                    ];
+                    // Summarize only stories that can fill an open slot: the first few that pass
+                    // their section's gates, two per open slot. 2026-11-18 summarized all 81 deep
+                    // candidates (8:06 delivery) to fill two slots.
+                    const renderable = new Set<NormalizedItem>();
+                    for (const s of deepSections) {
+                        const open = s.min - s.section.length;
+                        if (open <= 0) continue;
+                        const pool = (s.regional ? deepCandidates.filter(isTargetRegion) : deepCandidates)
+                            .filter(a => !usedIdsPostDesc.has(a.id || a.link));
+                        s.filterFn(pool).slice(0, open * 2).forEach(a => renderable.add(a));
+                    }
+                    await generateDescriptions([...renderable], summaryBudget);
+                    const deepPostDescPool = deepCandidates.filter(postDescriptionRegionCheck);
+                    const deepPostDescRegional = deepPostDescPool.filter(isTargetRegion);
+                    for (const s of deepSections) {
+                        refillSection(s.section, s.min, s.filterFn, s.label, s.regional ? deepPostDescRegional : deepPostDescPool);
+                    }
                 }
             }
         }

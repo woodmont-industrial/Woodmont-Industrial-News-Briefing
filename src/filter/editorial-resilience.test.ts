@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { classifyWoodmontBatch } from './llm-classifier.js';
+import { resetDisabledProviders } from './ai-provider.js';
 import type { NormalizedItem } from '../types/index.js';
 
 const article = (id: string) => ({ id, title: 'New Jersey warehouse demand rises',
@@ -26,6 +27,8 @@ async function main() {
         assert.equal(JSON.stringify(fallback).includes('private error body'), false);
         assert.equal(JSON.stringify(fallback).includes('synthetic-test-key'), false);
 
+        // Each scenario below is a separate run: a provider cut off in one is back in the next.
+        resetDisabledProviders();
         globalThis.fetch = async url => String(url).includes('cerebras')
             ? new Response(JSON.stringify({ choices: [{ finish_reason: 'length', message: { content: '' } }] })) : okay();
         const empty = await classifyWoodmontBatch([article('empty')], 1, 0, 1000);
@@ -33,6 +36,7 @@ async function main() {
         assert.equal(empty.failureReasons['Cerebras:empty-content:length'], 1, 'empty reasoning-only output is distinct from HTTP failure');
         assert.equal(empty.failureReasons['Cerebras:http-404'], undefined, 'diagnostics are isolated per run');
 
+        resetDisabledProviders();
         let timeoutCalls = 0;
         globalThis.fetch = async url => {
             if (String(url).includes('cerebras')) { timeoutCalls++; throw new DOMException('expired', 'TimeoutError'); }
@@ -42,6 +46,7 @@ async function main() {
         assert.equal(recovered.classified, 3);
         assert.equal(timeoutCalls, 1, 'a stalled primary cools down while fallback keeps reviewing');
 
+        resetDisabledProviders();
         globalThis.fetch = async () => new Response('unavailable', { status: 401 });
         const stored = article('stored');
         const down = await classifyWoodmontBatch([stored, article('deferred-1'), article('deferred-2')], 1, 0, 1000);
@@ -50,6 +55,7 @@ async function main() {
         assert.equal((stored as any)._woodmontApprove, false);
         assert.equal((stored as any)._woodmontRubricVersion, 'old');
 
+        resetDisabledProviders();
         globalThis.fetch = async () => new Response('rate limited', { status: 429, headers: { 'retry-after': '3600' } });
         const started = Date.now();
         const limited = await classifyWoodmontBatch([article('limited'), article('deferred')], 1, 0, 100);
@@ -59,6 +65,7 @@ async function main() {
         assert.equal(limited.failureReasons['Cerebras:http-429'], 1);
         assert.equal(limited.failureReasons['Groq:http-429'], 1);
 
+        resetDisabledProviders();
         let inFlight = 0, peak = 0;
         globalThis.fetch = async () => {
             inFlight++; peak = Math.max(peak, inFlight);
