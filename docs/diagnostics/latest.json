@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-17-1300",
-  "generatedAt": "2026-11-17T13:00:39.065Z",
+  "runId": "2026-11-18-1300",
+  "generatedAt": "2026-11-18T13:00:30.792Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 288,
-      "inWindow": 8,
-      "regionPass": 8,
+      "loaded": 299,
+      "inWindow": 12,
+      "regionPass": 12,
       "industrialPass": 0,
-      "sectionPass": 7,
+      "sectionPass": 9,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 106,
+      "supplyCandidates": 100,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -24,7 +24,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
+        "SECTION_RULE_FAILED": 2,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -41,8 +41,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 7,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 9,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 288,
-      "inWindow": 4,
+      "loaded": 299,
+      "inWindow": 5,
       "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 9,
+      "selected": 1,
+      "supplyCandidates": 5,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -81,30 +81,29 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "CATEGORY_MISMATCH": 0
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 4,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 288,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 299,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 15,
+      "supplyCandidates": 16,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -116,7 +115,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
+        "SECTION_RULE_FAILED": 1,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -141,15 +140,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 288,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 299,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 0,
+      "supplyCandidates": 1,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -165,7 +164,7 @@
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
+        "NO_PEOPLE_ACTION": 1,
         "DUPLICATE_ID": 0,
         "DUPLICATE_SIGNATURE": 0,
         "DUPLICATE_URL": 0,
@@ -187,7 +186,21 @@
     }
   },
   "perFeedBySection": {
-    "commercialobserver.com": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 3,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 3,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Data Centers NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -201,35 +214,7 @@
         "people": 0
       }
     },
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 5,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 3,
-        "transactions": 2,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "bisnow.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News PA Industrial": {
+    "South Florida Business Journal CRE": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -253,32 +238,32 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 78,
-    "outOf10": 7.8,
+    "score": 79,
+    "outOf10": 7.9,
     "grade": "C",
-    "itemCount": 8,
-    "operationalScore": 78,
+    "itemCount": 5,
+    "operationalScore": 79,
     "operationalGrade": "C",
-    "editorialQualityScore": 87,
-    "editorialGrade": "B",
+    "editorialQualityScore": 79,
+    "editorialGrade": "C",
     "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "NO_FRESH_SUPPLY",
-      "people": "NO_FRESH_SUPPLY"
+      "availabilities": "QUALITY_REJECTED",
+      "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 21,
-      "freshness": 17.2,
-      "regional": 23.1,
+      "coverage": 18,
+      "freshness": 21.3,
+      "regional": 20,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 7,
-      "deep": 6,
+      "fresh": 10,
+      "deep": 0,
       "reserve": 0
     },
     "delivery": {
@@ -286,15 +271,9 @@
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Blackstone Digital Infrastructure Trust, AWS For\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
+      "Empty — fresh supply rejected by section gates (quality): availabilities, people"
     ]
   },
   "logicImpact": {
@@ -305,13 +284,49 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 127,
+    "crossDayPoolRepeatsSuppressed": 138,
     "audit": [
+      {
+        "id": "4eab5f6a25eb3372f3c39bdba799c4c43401d6a3",
+        "title": "Alterra IOS Grows Florida Portfolio With 4 Industrial Outdoor Storage Acquisitions in Fort Myers - markets.businessinsid",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
+      },
+      {
+        "id": "1ebc7bd94197b1e4544feabf944ffa2949bc8b24",
+        "title": "Alterra IOS Grows Florida Portfolio With 4 Industrial Outdoor Storage Acquisitions in Fort Myers - GlobeNewswire",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d3b691ce3ff3b27fcf2e7f5679cd06ca0c2a56b4",
+        "title": "Blackstone Digital Infrastructure Trust, AWS Form $5B Data Center Joint Venture",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "5e38dadc0eed92ef32006e919b879b5ecb59891a",
         "title": "Crow Holdings Development, PGIM say construction has started at industrial campus in Logan Township - ROI-NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "0aba00d057183364e9c5c120808f309aadd70a99",
+        "title": "3-alarm fire damages manufacturing facility in Morris County; no injuries reported - WRNJ Radio",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e42110f5dda73644a12b27179c51525ac81a4e68",
+        "title": "Waymo Reportedly Planning 200K SF South Philly Warehouse",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "443c4595f7f117d2c6530849ff5bd2108d35f926",
+        "title": "J.G. Petrucci Nears Completion of 216,000 SF Cold Storage Project in Bethlehem, Pennsylvania - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "d40f76635309f56ed27aaed90ca448bdd0cf36e4",
@@ -328,12 +343,6 @@
       {
         "id": "e833cf0aeca3c2f2e66dc2958bbddd2bcfac890e",
         "title": "Industrial Vacancy Falls for the First Time Since 2022 as Newer Warehouses Lead the Way",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f12ffd47323412bf79597ce6eebf20a43c607012",
-        "title": "Dermody Adds Tracy Warehouse to West Region Industrial Portfolio - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -608,6 +617,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "4e4df4f983782835ac0d6975b931136b878b5683",
+        "title": "Glenmark Pharmaceuticals Opens Largest North American Distribution Center in PA - Connect CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "0ce607f89fbe8bbaa1d1b514277d9839710cdbb1",
         "title": "AI Industrial Demand Faces Doubts From Goldman and Apollo",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -636,6 +651,12 @@
         "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations - Area Development",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "bb7b56351508e9fd6183d05314622cba10bee8df",
+        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "e49f1b7bec26b71fc7ddc1ee68a977d6d29a263c",
@@ -728,6 +749,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "ad329057bf3aaafc0627ae9fe3b42800f835ba91",
+        "title": "Glenmark Pharmaceuticals Inaugurates U.S. Distribution Center in Allentown - StreetInsider",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "b6a8017e8448e7f13ab7d5bafd720dbfbc759090",
         "title": "Mack Trucks Site Allentown Warehouse Groundbreaking Oct. 30 - Hoodline",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -766,6 +793,12 @@
       {
         "id": "7120f30eb46f5c0dc930404fbb49b745c51224e1",
         "title": "Groundbreaking set for new warehouse on former Mack Trucks property in Allentown - LehighValleyLive.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e94e77e8894ef2845767b8b73df49f7db6a13e2b",
+        "title": "Tinicum Warehouse Redevelopment Near Philadelphia Airport Secures $153M - DELCO.Today",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -850,60 +883,6 @@
       {
         "id": "b796663e4839029bdbf75bcc55975083830bbb97",
         "title": "Sherwin-Williams Distribution Center in Winter Haven Sells for $133 Million - TBBW",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "f72a804ebd29b8f07957ed7ec5e74c202ab66326",
-        "title": "Conair Expands Franklin, Pennsylvania, Production Operations",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5abaef112437d57a19d1f43ae52773ea26165fa2",
-        "title": "First Industrial Leases 708,000 SF Building in York, Pennsylvania - REBusinessOnline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "0cb67cbe174c424085536bfc6a595a12270d120d",
-        "title": "Terreno sells 86,000 sq. ft. Meadowlands warehouse in $25 million deal with owner-user - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "9f24fd662ce6879b845e873b3a00f930d34efb33",
-        "title": "260 Secaucus Rd, Secaucus, NJ 07094 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d04031ed82974d8202aac4ac585d7fda33ad468f",
-        "title": "Terreno Realty sells East Rutherford warehouse for $25M - NJBIZ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_deal_event"
-      },
-      {
-        "id": "aa959ba651dc6cac990531e0fb257e67227e411d",
-        "title": "GSK plans to open biopharmaceutical manufacturing facility in Pennsylvania - Plant Services",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "46698df6859b788d3c979bea46374673007feec5",
-        "title": "Colliers facilitates new lease for SendCutSend’s Pennsylvania manufacturing expansion - Colliers",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "4861cb861b044aa2a4d23979006619e149ee7858",
-        "title": "News | New Jersey-based industrial firm taps exec to lead property acquisition efforts in Florida - CoStar",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "71b9c5d00a58feea06819f5e18d4b48813525925",
-        "title": "Miami-Dade cold storage facility sold for $36M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
