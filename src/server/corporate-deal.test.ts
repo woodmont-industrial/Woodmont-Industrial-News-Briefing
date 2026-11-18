@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { applyTransactionFilter, isRoutableRegionalDeal, mapFeedItemsToArticles } from './newsletter-filters.js';
-import { corporateAcquisitionReason, isCorporateAcquisition, summaryChangesDealScopeOrStatus } from '../shared/corporate-deal.js';
+import { corporateDealKind, isCorporateAcquisition, summaryChangesDealScopeOrStatus } from '../shared/corporate-deal.js';
 
 // Company names are synthetic; the headline shapes are the ones seen in the feed (2026-09 to 11).
 const item = (title: string, category = 'transactions', description = title) => ({
@@ -36,12 +36,26 @@ const property = [
     'Example Owner acquires 3.5-acre low-coverage industrial site in Aberdeen',
     '$103M acquisition sets stage for overhaul of 4 industrial parks',
     'Example Bio Acquires 85,000-Square-Foot Pennsylvania Cell Therapy Manufacturing Facility',
-    // REIT take-private that names the logistics portfolio it moves: portfolio-scale, kept.
-    'Example Fund and Sample Pension Close $5.2B Example Industrial Trust Buyout, Take 52M SF Logistics Portfolio Private',
+    // Review 2026-11-18: "includes a warehouse" does not prove a company deal.
+    'A $60M industrial property acquisition includes two warehouses in Edison',
+    "Example Realty's $60M acquisition includes two warehouses in Edison",
+    "Fragrance distributor's $18M purchase of an Edison warehouse",
     'JLL Arranges Acquisition Financing for Industrial Outdoor Storage Facility in Union, New Jersey',
     'Example Builder nears completion of 216,000 SF cold storage project in Bethlehem, Pennsylvania',
 ];
-for (const title of property) assert.equal(corporateAcquisitionReason(title), null, `property deal: ${title}`);
+for (const title of property) assert.equal(corporateDealKind(title), null, `property deal: ${title}`);
+
+// REIT take-privates: the named portfolio makes it Relevant; the buyout price is a company price.
+const reitBuyout = 'Example Fund and Sample Pension Close $5.2B Example Industrial Trust Buyout, Take 52M SF Logistics Portfolio Private';
+assert.equal(corporateDealKind(reitBuyout), 'reit-take-private');
+assert.equal(corporateDealKind('Example Fund to take Sample Logistics REIT private in $4B deal'), 'reit-take-private');
+const reit = mapFeedItemsToArticles([item(reitBuyout)]);
+assert.equal(applyTransactionFilter(reit).length, 0, 'a REIT buyout is not a Transactions sale');
+assert.equal(isRoutableRegionalDeal(reit[0]), false, 'a national-only buyout is not rerouted from the 30-day deal pool');
+const njReit = mapFeedItemsToArticles([item('Example Fund to take Sample Industrial REIT private, adding 40 New Jersey warehouses in $2B deal')]);
+assert.equal(corporateDealKind(njReit[0].title), 'reit-take-private');
+assert.equal(applyTransactionFilter(njReit).length, 0, 'not a Transactions sale even with a NJ portfolio');
+assert.equal(isRoutableRegionalDeal(njReit[0]), true, 'but a buyout with NJ/PA/FL evidence is Relevant news');
 
 // --- Section routing -----------------------------------------------------------------------------
 const water = mapFeedItemsToArticles([item(corporate[0])]);
@@ -54,6 +68,11 @@ assert.equal(applyTransactionFilter(warehouse).length, 1, 'an operating company 
 const waterTitle = corporate[0];
 assert.ok(summaryChangesDealScopeOrStatus('Florida — A canned water maker acquired a manufacturing facility for $100 million.',
     waterTitle, waterTitle), 'a facility included in a company deal is not a $100M facility purchase');
+// Review 2026-11-18: the same false claim in the passive voice, or priced onto the facility.
+assert.ok(summaryChangesDealScopeOrStatus('A Florida manufacturing facility was acquired for $100 million.', waterTitle, waterTitle),
+    'passive voice');
+assert.ok(summaryChangesDealScopeOrStatus('Florida — The manufacturing facility, for $100 million, joins the buyer.', waterTitle, waterTitle),
+    'price attached to the facility');
 assert.equal(summaryChangesDealScopeOrStatus("A canned water maker's $100 million acquisition includes a Florida manufacturing facility.",
     waterTitle, waterTitle), null, 'a faithful restatement passes');
 
@@ -65,6 +84,18 @@ assert.equal(summaryChangesDealScopeOrStatus('Example Bottling agreed to acquire
 const plannedSale = 'Example Owner plans to sell 200,000 SF Edison warehouse';
 assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold a 200,000 SF warehouse.', plannedSale, plannedSale),
     'a planned sale is not a completed one');
+
+// Review 2026-11-18: an unrelated past purchase in the source is not proof THIS sale closed.
+const planned2019 = 'Example Owner plans to sell Edison warehouse';
+const planned2019Source = 'Example Owner, which bought the 120,000 SF warehouse in 2019, has hired a broker to market it.';
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the warehouse.', planned2019, planned2019Source),
+    'the owner sold the warehouse is unsupported');
+assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Owner plans to sell the warehouse it bought in 2019.', planned2019, planned2019Source), null);
+assert.equal(summaryChangesDealScopeOrStatus('Example Owner sold the warehouse to Sample Logistics.', 'Example Owner sells Edison warehouse to Sample Logistics',
+    'Example Owner sells Edison warehouse to Sample Logistics'), null, 'a completed sale "to" a buyer is not pending');
+const closedLater = 'Example Bottling agrees to acquire Sample Beverage Co.';
+assert.equal(summaryChangesDealScopeOrStatus('Example Bottling acquired Sample Beverage Co.', closedLater,
+    'The acquisition closed on Nov. 17, the companies said.'), null, 'explicit closing evidence in the source allows past tense');
 
 const closed = 'Example Capital buys 63,000 sq. ft. Edison warehouse for $18.1 million';
 assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Capital purchased a 63,000 SF warehouse for $18.1M.', closed, closed), null,
