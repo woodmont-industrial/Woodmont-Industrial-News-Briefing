@@ -32,6 +32,16 @@ function stripPublisher(title: string): string {
     return title.replace(/\s+[-–—|]\s+[^-–—|]{2,60}$/, '').trim();
 }
 
+/**
+ * What is actually being bought. "Sample Warehouse LLC's Edison warehouse" and "an Edison warehouse
+ * owned by Sample Warehouse LLC" are properties; only the LLC itself, bought outright, is a company.
+ */
+function acquiredObject(object: string): string {
+    const owned = object.split(/\s+(?:owned|held|controlled|leased|operated|managed|developed)\s+by\b/i)[0];
+    const possessive = owned.match(/['’]s?\s+(.+)$/);
+    return possessive ? possessive[1] : owned;
+}
+
 /** The kind of company-level deal the headline describes, or null for a (possible) property deal. */
 export function corporateDealKind(title: string): CorporateDealKind | null {
     const t = stripPublisher(title || '');
@@ -48,7 +58,7 @@ export function corporateDealKind(title: string): CorporateDealKind | null {
     const stake = t.match(STAKE_RE);
     if (stake && !PROPERTY_OBJECT_RE.test(stake[1])) return 'stake-or-valuation';
     for (const match of t.matchAll(DEAL_VERB_OBJECT_RE)) {
-        const object = match[1];
+        const object = acquiredObject(match[1]);
         // A legal entity is a company whatever its name says ("Sample Warehouse LLC").
         if (LEGAL_ENTITY_RE.test(object)) return 'company-acquisition';
         if (PROPERTY_OBJECT_RE.test(object)) continue;
@@ -93,16 +103,26 @@ const PENDING_MARKER_RE = /\b(?:agree[sd]?\s+to|plans?\s+to|planning\s+to|planne
 // Headline side also reads the bare infinitive: "Example Pharma to Acquire ...".
 const HEADLINE_PENDING_RE = new RegExp(`${PENDING_MARKER_RE.source}|\\bto\\b`, 'i');
 const CLOSING_EVIDENCE_RE = /\b(?:closed|completed|finalized|wrapped\s+up)\b/i;
+// "is expected to be completed in 2027", "scheduled to close": a forecast, not a closing.
+const FORECAST_RE = new RegExp(`${PENDING_MARKER_RE.source}|\\b(?:expected|scheduled|slated|anticipated|targeted|projected|likely|on\\s+track|later\\s+this|next\\s+(?:year|month|quarter)|by\\s+(?:early\\s+|mid-?|late\\s+)?(?:20\\d\\d|year-end))\\b`, 'i');
+// Words that describe any deal object rather than this one.
+const OBJECT_STOP = new Set(('stake interest portfolio site sites land acre acres park campus center plant manufacturing '
+    + 'logistics distribution cold storage foot square feet its their').split(' '));
 
 /** The deal action the headline says is still pending ("plans to sell", "agrees to acquire"), if any. */
-function pendingAction(title: string): DealAction | null {
+interface PendingDeal { action: DealAction; object: string }
+function pendingDeal(title: string): PendingDeal | null {
     const t = stripPublisher(title);
-    for (const clause of t.split(/[,;:]|\s+(?:and|but|after|while)\s+/i)) {
+    for (const clause of t.split(/(?<!\d),(?!\d)|[;:]|\s+(?:and|but|after|while)\s+/i)) {
         const marker = clause.match(HEADLINE_PENDING_RE);
         if (!marker) continue;
-        const after = clause.slice((marker.index || 0) + marker[0].length);
-        const action = ACTIONS.find(a => a.pending.test(after.split(/\s+/).slice(0, 4).join(' ')));
-        if (action) return action;
+        const words = clause.slice((marker.index || 0) + marker[0].length).trim().split(/\s+/);
+        const at = words.slice(0, 4).findIndex(w => ACTIONS.some(a => a.pending.test(w)));
+        if (at < 0) continue;
+        const action = ACTIONS.find(a => a.pending.test(words[at]))!;
+        // The deal object: what is being bought or sold ("120,000 SF Edison warehouse").
+        const object = words.slice(at + 1).join(' ').split(/\s+(?:to|from|for)\s+/i)[0];
+        return { action, object };
     }
     return null;
 }
@@ -118,16 +138,20 @@ function claimsCompleted(clause: string, action: DealAction): boolean {
  * deal, no negation, and a distinctive headline word (its town, a party). "A refinancing of the
  * owner's Newark building closed" does not confirm a pending Edison sale. Ambiguous → headline.
  */
-function sourceConfirmsClosing(source: string, title: string, action: DealAction): boolean {
+function sourceConfirmsClosing(source: string, title: string, deal: PendingDeal): boolean {
     const headline = stripPublisher(title);
-    const anchors = headline.toLowerCase().split(/[^a-z0-9]+/)
-        .filter(w => w.length >= 4 && !/^\d+$/.test(w) && !ANCHOR_STOP.has(w));
+    const words = (text: string) => text.toLowerCase().replace(/(\d),(?=\d{3})/g, '$1').split(/[^a-z0-9]+/);
+    // Anchors name the deal OBJECT (its town, size, the company being bought), never the party
+    // making the deal: the same seller's other sale is a different deal.
+    const anchors = words(deal.object)
+        .filter(w => (w.length >= 4 || /^\d{3,}$/.test(w)) && !ANCHOR_STOP.has(w) && !OBJECT_STOP.has(w));
+    if (!anchors.length) return false;
     const body = (source || '').replace(headline, ' ');
     return body.split(/(?<=[.!?])\s+|;/).some(sentence => {
-        const lower = sentence.toLowerCase();
-        return CLOSING_EVIDENCE_RE.test(sentence) && !NEGATION_RE.test(sentence)
-            && (action.noun.test(sentence) || action.done.test(sentence))
-            && anchors.some(w => new RegExp(`\\b${w}\\b`).test(lower));
+        const present = new Set(words(sentence));
+        return CLOSING_EVIDENCE_RE.test(sentence) && !NEGATION_RE.test(sentence) && !FORECAST_RE.test(sentence)
+            && (deal.action.noun.test(sentence) || deal.action.done.test(sentence))
+            && anchors.some(w => present.has(w));
     });
 }
 
@@ -143,9 +167,9 @@ export function summaryChangesDealScopeOrStatus(summary: string, title: string, 
     if (isCorporateAcquisition(title) && SUMMARY_PROPERTY_DEAL_RES.some(re => re.test(summary))) {
         return 'restates a company acquisition as a property deal';
     }
-    const action = pendingAction(title);
-    if (action && summary.split(/[.;]/).some(c => claimsCompleted(c, action))
-        && !sourceConfirmsClosing(source, title, action)) {
+    const deal = pendingDeal(title);
+    if (deal && summary.split(/[.;]/).some(c => claimsCompleted(c, deal.action))
+        && !sourceConfirmsClosing(source, title, deal)) {
         return 'restates a pending deal as completed';
     }
     return null;

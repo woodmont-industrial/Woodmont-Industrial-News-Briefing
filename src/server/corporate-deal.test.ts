@@ -117,6 +117,26 @@ assert.ok(isCorporateAcquisition('Example Buyer acquires Sample Warehouse LLC'),
 assert.ok(isCorporateAcquisition('Example Buyer to acquire Sample Cold Storage Inc. for $80M'), 'Inc. as the acquired object');
 assert.equal(corporateDealKind('Example Buyer acquires Sample Warehouse in Edison for $20M'), null, 'no legal suffix: a property');
 
+// Review 3 (2026-11-18): a forecast is not a closing; the same seller's other sale is not this sale.
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'The Edison sale is expected to be completed in 2027.'), 'an expected completion is not proof it closed');
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'The Edison sale is scheduled to close next quarter.'), 'scheduled to close');
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'Example Owner’s sale of its Newark building closed last month.'), 'a different sale by the same seller');
+assert.ok(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'Example Owner completed the sale of another warehouse in March.'), 'the seller named, but not this property');
+assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Owner sold the 120,000 SF warehouse.', edisonPending,
+    'The sale of the 120,000 SF building closed Friday.'), null, 'the deal object (its size) confirmed closed');
+// Buying a property OWNED BY an LLC is a property deal; buying the LLC is a company deal.
+assert.equal(corporateDealKind('Example Buyer buys Sample Warehouse LLC’s Edison warehouse for $20M'), null,
+    'an LLC-owned warehouse is a property');
+assert.equal(corporateDealKind("Example Buyer acquires Sample Holdings Inc.'s 80,000 SF Newark building"), null, 'Inc.-owned building');
+assert.equal(corporateDealKind('Example Buyer acquires Edison warehouse owned by Sample Warehouse LLC'), null, 'owned by an LLC');
+assert.ok(isCorporateAcquisition('Example Buyer acquires Sample Warehouse LLC for $20M'), 'the LLC itself is still a company');
+const llcOwned = mapFeedItemsToArticles([item('Example Buyer buys Sample Warehouse LLC’s Edison warehouse for $20M')]);
+assert.equal(applyTransactionFilter(llcOwned).length, 1, 'an LLC-owned Edison warehouse sale reaches Transactions');
+
 const closed = 'Example Capital buys 63,000 sq. ft. Edison warehouse for $18.1 million';
 assert.equal(summaryChangesDealScopeOrStatus('Edison — Example Capital purchased a 63,000 SF warehouse for $18.1M.', closed, closed), null,
     'completed property purchases summarize normally');
