@@ -10,6 +10,8 @@
  * covers it because a groundbreaking is not a sale, lease or financing.
  */
 
+import { geoFromKey, placeRelation, type Geo } from './construction-geo.js';
+
 export type ConstructionMilestone =
     | 'proposal' | 'approval' | 'start' | 'tilt-up' | 'topping-out' | 'nearing-completion' | 'completion';
 
@@ -23,6 +25,7 @@ export interface ConstructionEvent {
     sqft: number | null;
     acres: number | null;
     phase: number | null;       // "first of four buildings" = 1, "phase 2" / "second building" = 2
+    geo: Geo;                   // verified state / county / region counties (construction-geo.ts)
 }
 
 // Most specific first: "nears completion" is not "completion"; a groundbreaking that mentions an
@@ -120,10 +123,11 @@ export function constructionEventFromTitleKey(key: string): ConstructionEvent | 
     const afterMilestone = developer.length ? key.slice(at).split(/\s+/).slice(1) : key.split(/\s+/);
     const detail = [...new Set(afterMilestone.filter(w => w.length >= 4 && !/^\d/.test(w) && !SUBJECT_STOP.has(w)
         && !DETAIL_STOP.has(w) && !REGION_WORDS.has(w) && !PLACE_GENERIC.has(w) && !place.includes(w)))];
+    const county = !region && /\bcounty\b/.test(tail);
     return {
-        milestone, developer, place, region,
-        county: !region && /\bcounty\b/.test(tail),
+        milestone, developer, place, region, county,
         detail, ...size, phase: phase(key),
+        geo: geoFromKey(key, tail, place.join(' '), county),
     };
 }
 
@@ -131,21 +135,24 @@ const conflicts = (x: number | null, y: number | null) => x !== null && y !== nu
 const agrees = (x: number | null, y: number | null) => x !== null && y !== null && !conflicts(x, y);
 
 /**
- * Same project at the same milestone: same milestone, a shared developer, no conflicting place,
- * size or phase. Two shared developer tokens suffice (a two-firm joint venture). One needs more,
- * because a single developer can break ground twice in a month: a shared town, an agreeing size,
- * a county against a town (Monmouth County / Manalapan), or a shared distinctive detail
- * ("coffee" in two reports of one plant opening).
+ * Same project at the same milestone. Hard stops: a different milestone, conflicting states
+ * (New Jersey vs Florida, Morris County vs Tampa), different towns, conflicting size or phase.
+ * Then a shared developer AND a project identifier: the same town, a VERIFIED county-to-town or
+ * region-to-county match (Monmouth County / Manalapan; Southern New Jersey / Logan Township), or a
+ * shared distinctive detail ("coffee" in two reports of one plant opening). An agreeing size
+ * only supports a match; it never makes one, even for a two-firm joint venture.
  */
 export function constructionEventsSameProject(a: ConstructionEvent, b: ConstructionEvent): boolean {
     if (a.milestone !== b.milestone) return false;
-    const sharedDev = a.developer.filter(w => b.developer.includes(w)).length;
+    const relation = placeRelation(a.geo, b.geo);
+    if (relation === 'conflict') return false;
     const sharedPlace = a.place.length > 0 && a.place.some(w => b.place.includes(w));
-    const countyAndTown = (a.county !== b.county) && a.place.length > 0 && b.place.length > 0;
-    if (a.place.length && b.place.length && !sharedPlace && !countyAndTown) return false;
+    // Two specific places that are neither the same nor a verified county/town pair are two sites.
+    if (a.place.length && b.place.length && !sharedPlace && relation !== 'contains') return false;
     if (conflicts(a.sqft, b.sqft) || conflicts(a.acres, b.acres)) return false;
     const phaseA = a.phase ?? 1, phaseB = b.phase ?? 1;
     if (phaseA !== phaseB) return false;
+    const sharedDev = a.developer.filter(w => b.developer.includes(w)).length;
     const sharedDetail = a.detail.some(w => b.detail.includes(w));
     if (sharedDev === 0) {
         // A report that names no developer: the size must agree tightly, plus a shared detail.
@@ -153,6 +160,5 @@ export function constructionEventsSameProject(a: ConstructionEvent, b: Construct
         const tight = (x: number | null, y: number | null) => x !== null && y !== null && Math.abs(x - y) <= Math.max(x, y) * 0.03;
         return sharedDetail && (tight(a.sqft, b.sqft) || tight(a.acres, b.acres));
     }
-    if (sharedDev >= 2) return true;
-    return sharedPlace || countyAndTown || sharedDetail || agrees(a.sqft, b.sqft) || agrees(a.acres, b.acres);
+    return sharedPlace || relation === 'contains' || sharedDetail;
 }

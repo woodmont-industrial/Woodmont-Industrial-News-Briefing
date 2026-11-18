@@ -50,6 +50,33 @@ expectApart('Example Logistics breaks ground on warehouse in Edison',
     'Example Logistics breaks ground on 500,000 SF campus in South Jersey', 'one developer word and only a region: not enough');
 expectApart('Example Holdings breaks ground on first of four buildings at logistics campus in Logan Township',
     'Example Holdings breaks ground on second building at logistics campus in Logan Township', 'a later phase');
+// Review 2026-11-18: states are a hard stop; a county-to-town match must be verified; an agreeing
+// size only supports a match.
+expectApart('Example Holdings, Sample Investors break ground on 500,000 SF warehouse in New Jersey',
+    'Example Holdings, Sample Investors break ground on 500,000 SF warehouse in Florida', 'same developers and size, NJ vs FL');
+expectApart('Example Holdings, Sample Investors break ground on 474-acre campus in Southern New Jersey',
+    'Example Holdings, Sample Investors break ground on 474-acre campus in Central Florida', 'regions in two states');
+expectApart('Example Logistics breaks ground on 300,000 SF warehouse in Morris County',
+    'Example Logistics breaks ground on 300,000 SF warehouse in Tampa', 'Morris County is not Tampa');
+expectApart('Example Logistics breaks ground on 300,000 SF warehouse in Morris County',
+    'Example Logistics breaks ground on 300,000 SF warehouse in Edison', 'Edison is in Middlesex, not Morris');
+expectApart('Example Logistics breaks ground on 300,000 SF warehouse in Morris County',
+    'Example Logistics breaks ground on 300,000 SF warehouse in Springfield', 'an unverified town is not a county match');
+expectApart('Example Holdings, Sample Investors break ground on 500,000 SF warehouse',
+    'Example Holdings, Sample Investors break ground on 500,000 SF warehouse in New Jersey', 'agreeing size alone is not an identifier');
+expectApart('Example Logistics breaks ground on 300,000 SF warehouse in Morris County',
+    'Example Logistics breaks ground on 300,000 SF warehouse in Monmouth County', 'two counties');
+expectApart('Example Holdings breaks ground on 400,000 SF warehouse in Logan Township',
+    'Example Holdings breaks ground on 400,000 SF warehouse in Northern New Jersey', 'a region that does not contain the town');
+expectSame('Example Logistics breaks ground on 300,000 SF warehouse in Morris County',
+    'Example Logistics breaks ground on 300,000 SF warehouse in Parsippany', 'Parsippany is verified in Morris County');
+expectSame('Example Logistics breaks ground on 953,000 sq. ft. logistics park near Exit 8 in Monmouth County',
+    'Example Logistics Investments breaks ground on massive logistics facility in Manalapan - ROI-NJ', 'a publisher tag after the town');
+expectSame('Example Holdings breaks ground on 400,000 SF warehouse in Tampa',
+    'Example Holdings breaks ground on 400,000 SF warehouse in Hillsborough County, Florida', 'Tampa is in Hillsborough County, FL');
+expectApart('Example Holdings breaks ground on 400,000 SF warehouse in Hillsborough, New Jersey',
+    'Example Holdings breaks ground on 400,000 SF warehouse in Tampa', 'Hillsborough NJ is not Hillsborough County FL');
+
 // Different developers who share only what they build.
 assert.equal(event(key('Data center planned for existing warehouse in Auburndale')), null,
     'with no developer named there is nothing to match on');
