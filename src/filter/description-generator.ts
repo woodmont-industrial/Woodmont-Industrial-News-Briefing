@@ -9,6 +9,7 @@
 
 import { NormalizedItem } from '../types/index.js';
 import { hasUnsupportedSummaryQuantity } from './summary-quantities.js';
+import { summaryChangesDealScopeOrStatus } from '../shared/corporate-deal.js';
 import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
 import { normalizeTitle } from '../shared/url-utils.js';
 import { getPublisherName } from '../shared/publisher-name.js';
@@ -134,6 +135,8 @@ function containsFabrication(desc: string, title: string, existingDesc: string):
     const descLower = desc.toLowerCase();
 
     if (hasUnsupportedSummaryQuantity(desc, title + ' ' + existingDesc)) return true;
+    // What was bought, and whether the deal closed, must match the source (2026-11-18 $100M case).
+    if (summaryChangesDealScopeOrStatus(desc, title, existingDesc)) return true;
 
     // Never mention "woodmont" — the AI shouldn't reference the reader's company
     if (descLower.includes('woodmont')) {

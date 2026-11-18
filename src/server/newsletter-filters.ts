@@ -14,6 +14,7 @@ import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatch
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import { dealEventFromTitleKey, type DealEvent } from '../shared/url-utils.js';
+import { isCorporateAcquisition } from '../shared/corporate-deal.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
@@ -440,6 +441,12 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
             if (diag) diag.recordReject('transactions', 'WRONG_PROPERTY_TYPE');
             return false;
         }
+        // A company bought with its plant is corporate M&A, not a property sale. Checked apart from
+        // the property-type guard, whose industrial override a "manufacturing facility" satisfies.
+        if (isCorporateAcquisition(article.title || '')) {
+            if (diag) diag.recordReject('transactions', 'CORPORATE_ACQUISITION');
+            return false;
+        }
         if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('transactions', 'NOT_INDUSTRIAL'); return false; }
         // LISTING EVENT (2026-07-29): a property/site being listed/marketed/offered is an
         // availability, not a transaction — reject it here BEFORE the approval-keyword bypass and
@@ -481,6 +488,7 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
  */
 export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
     if (!passesRelevantEditorialVerdict(article)) return false;
+    if (isCorporateAcquisition(article.title || '')) return false;
     if (isMarketingListingEvent(article.title || '', { headline: true }) || isMarketingListingEvent(getText(article))) return false;
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
