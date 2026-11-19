@@ -1,36 +1,6 @@
 {
-  "updatedAt": "2026-11-18T13:06:17.323Z",
+  "updatedAt": "2026-11-19T13:04:52.672Z",
   "history": [
-    {
-      "date": "2026-07-15",
-      "runId": "2026-07-15-1156",
-      "score": 65,
-      "outOf10": 6.5,
-      "grade": "D",
-      "itemCount": 5,
-      "breakdown": {
-        "coverage": 14,
-        "freshness": 15.4,
-        "regional": 19,
-        "relevanceIntegrity": 20
-      },
-      "age": {
-        "fresh": 3,
-        "deep": 6,
-        "reserve": 0
-      },
-      "delivery": {
-        "score": 100,
-        "grade": "A"
-      },
-      "supply": "Rich",
-      "penalties": [
-        {
-          "type": "weak_item",
-          "points": 3
-        }
-      ]
-    },
     {
       "date": "2026-07-16",
       "runId": "2026-07-16-1158",
@@ -2680,6 +2650,37 @@
       },
       "supply": "Rich",
       "penalties": []
+    },
+    {
+      "date": "2026-11-19",
+      "runId": "2026-11-19-1300",
+      "scoringVersion": "2026-10-30-shared-geography-v1",
+      "score": 72,
+      "outOf10": 7.2,
+      "grade": "C",
+      "itemCount": 7,
+      "breakdown": {
+        "coverage": 18,
+        "freshness": 15.4,
+        "regional": 21.4,
+        "relevanceIntegrity": 20
+      },
+      "age": {
+        "fresh": 5,
+        "deep": 2,
+        "reserve": 3
+      },
+      "delivery": {
+        "score": 100,
+        "grade": "A"
+      },
+      "supply": "Rich",
+      "penalties": [
+        {
+          "type": "weak_item",
+          "points": 3
+        }
+      ]
     }
   ]
 }

@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-18-1300",
-  "generatedAt": "2026-11-18T13:00:30.792Z",
+  "runId": "2026-11-19-1300",
+  "generatedAt": "2026-11-19T13:00:32.709Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 299,
-      "inWindow": 12,
-      "regionPass": 12,
+      "loaded": 303,
+      "inWindow": 6,
+      "regionPass": 6,
       "industrialPass": 0,
-      "sectionPass": 9,
+      "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 100,
+      "selected": 5,
+      "supplyCandidates": 101,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -24,7 +24,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 2,
+        "SECTION_RULE_FAILED": 1,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -41,26 +41,26 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 9,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier2_48h_72h": 4,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 2,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 299,
-      "inWindow": 5,
+      "loaded": 303,
+      "inWindow": 3,
       "regionPass": 2,
       "industrialPass": 0,
       "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 5,
+      "selected": 2,
+      "supplyCandidates": 6,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -88,14 +88,14 @@
         "tier1_24h": 0,
         "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 299,
+      "loaded": 303,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 16,
+      "supplyCandidates": 18,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -140,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 299,
+      "loaded": 303,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
@@ -186,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "news.google.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 3,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 3,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Google News Data Centers NJ/PA/FL": {
+    "Bisnow National": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -214,7 +200,21 @@
         "people": 0
       }
     },
-    "South Florida Business Journal CRE": {
+    "news.google.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 5,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 4,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News PA Manufacturing Land": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -238,13 +238,13 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 79,
-    "outOf10": 7.9,
+    "score": 72,
+    "outOf10": 7.2,
     "grade": "C",
-    "itemCount": 5,
-    "operationalScore": 79,
+    "itemCount": 7,
+    "operationalScore": 72,
     "operationalGrade": "C",
-    "editorialQualityScore": 79,
+    "editorialQualityScore": 72,
     "editorialGrade": "C",
     "coverageSupplyScore": 60,
     "supplyStatus": {
@@ -257,21 +257,27 @@
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 18,
-      "freshness": 21.3,
-      "regional": 20,
+      "freshness": 15.4,
+      "regional": 21.4,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 10,
-      "deep": 0,
-      "reserve": 0
+      "fresh": 5,
+      "deep": 2,
+      "reserve": 3
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Private Equity Lags REITs In Getting CRE Portfol\""
+      }
+    ],
     "notes": [
       "Empty — fresh supply rejected by section gates (quality): availabilities, people"
     ]
@@ -284,8 +290,32 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 138,
+    "crossDayPoolRepeatsSuppressed": 136,
     "audit": [
+      {
+        "id": "8f2101707a52e48af6241da986dfd0b8219f63a2",
+        "title": "Canned water maker's $100 million acquisition includes Florida manufacturing facility - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "a7ecd952e6cfe3e3cb48196dd870358b8bcb3600",
+        "title": "Crow Holdings, PGIM Real Estate Break Ground on 474-Acre Industrial Campus in Southern New Jersey - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "857952a5476d007bba6b3d6460248ade2a8fa4ad",
+        "title": "Industrial Sales Momentum Builds as New Big Box Asset Volume Doubles - Globest",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "8bab87cb7e14c32593349e456de65e550bc96e21",
+        "title": "Mapletree breaks ground on 953,000 sq. ft. logistics park near Exit 8 in Monmouth County - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "4eab5f6a25eb3372f3c39bdba799c4c43401d6a3",
         "title": "Alterra IOS Grows Florida Portfolio With 4 Industrial Outdoor Storage Acquisitions in Fort Myers - markets.businessinsid",
@@ -301,6 +331,12 @@
       {
         "id": "d3b691ce3ff3b27fcf2e7f5679cd06ca0c2a56b4",
         "title": "Blackstone Digital Infrastructure Trust, AWS Form $5B Data Center Joint Venture",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "0615f816714e56aadfb1b52e74c2a80712380cb1",
+        "title": "Development south of The Villages includes option for a data center - Central Florida Public Media",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -363,18 +399,6 @@
         "title": "Inside a Dauphin County data center as Pennsylvania communities battle AI development - FOX43",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "fa426c621c71adbe2f0bf8a1fe07480255eda495",
-        "title": "Novartis Selects Winter Park for New Radioligand Therapy Manufacturing Facility - Orlando Economic Partnership",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5ef30d257b73b3671ebaccdb4904f7050a63eed1",
-        "title": "Blackstone Targets $3B Fundraise For Real Estate Secondaries",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "72293551e9b2e03c4f30b40d71d3bf483d37e334",
@@ -489,12 +513,6 @@
         "title": "Seagis grabs vacant 171,000 sq. ft. warehouse adjacent to Port Newark Container Terminal - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "c832e45f8c264ea9fd5ca8a86d4dc89624e62a89",
-        "title": "Terreno buys 18,000 sq. ft. Carlstadt facility, inks 82,000 sq. ft. lease in Avenel - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
       },
       {
         "id": "3b62d628c292b66a2734a01a1a6d1a24cca0dbe4",
@@ -871,18 +889,6 @@
       {
         "id": "4e3fbaff9be7007113acd10e285cb63850603658",
         "title": "5301 Corwin Dr, Tallahassee, FL 32303 - 7,360 sqft Flex Warehouse | Tallahassee, FL - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "14f68ade960e1446c8f3ff94834a91b673293451",
-        "title": "Jacksonville commercial real estate firm adds partner, moves to larger office - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b796663e4839029bdbf75bcc55975083830bbb97",
-        "title": "Sherwin-Williams Distribution Center in Winter Haven Sells for $133 Million - TBBW",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
