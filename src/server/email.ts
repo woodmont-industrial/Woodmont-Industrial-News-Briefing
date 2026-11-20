@@ -18,8 +18,9 @@ import {
     sortByDealThenDate, getValidDate, mapFeedItemsToArticles, prepareNewsletterReservePool,
     loadIncludedArticles, clearIncludedArticles,
     loadSentArticles, loadSentSignatures, saveSentArticles,
-    loadSentTitleKeys, loadSentDealEvents, normalizeTitleKey
+    loadSentTitleKeys, loadSentDealEvents, loadSentConstructionEvents, normalizeTitleKey
 } from './newsletter-filters.js';
+import { constructionEventFromTitleKey, constructionEventsSameProject, type ConstructionEvent } from '../shared/construction-event.js';
 import { DELIVERY_TARGET, DiagnosticContext, writeNewsletterDiagnostics, computeNewsletterScore, writeQualityHistory, writeDailyLogicImpact, Section, resetLogicImpact, recordPeopleRescued, recordCrossDayPoolRepeatSuppressed } from './newsletter-diagnostics.js';
 import { getActiveTracer } from './send-tracer.js';
 import { editorialVerdictFields, indexEditorialVerdicts, withCurrentEditorialVerdict } from '../filter/editorial-verdict.js';
@@ -431,6 +432,7 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         const sentSigSet = loadSentSignatures(docsDir);
         const sentTitleKeys = loadSentTitleKeys(docsDir);
         const sentDealEvents = loadSentDealEvents(docsDir);
+        const sentConstructionEvents = loadSentConstructionEvents(docsDir);
         // Sends saved before the subject signature existed carry none, so rebuild it from the
         // original article while it is still in the feed: a later copy of the same occupier
         // story is then caught (Merck, Sitex, Glenmark on 2026-11-13). Only the subject key —
@@ -469,6 +471,13 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
             if (event && sentDealEvents.some(sent => dealEventsSameDeal(event, sent))) {
                 console.log(`🔁 Cross-day deal dedup: "${(a.title||'').substring(0,60)}" matches a deal sent in last 30d`);
                 record('sent_deal_event');
+                return true;
+            }
+            // The same project's same milestone re-reported within 30 days (a later milestone runs)
+            const milestone = constructionEventFromTitleKey(normalizeTitleKey(a.title || ''));
+            if (milestone && sentConstructionEvents.some(sent => constructionEventsSameProject(milestone, sent))) {
+                console.log(`🔁 Cross-day construction dedup: "${(a.title||'').substring(0,60)}" matches a ${milestone.milestone} sent in last 30d`);
+                record('sent_construction_event');
                 return true;
             }
             return false;
@@ -1417,8 +1426,18 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         // score, so the stronger (metric-bearing / preferred-source) variant is the one kept.
         const entitySeen: Array<{ key: string; sqft: number | null; dollars: number | null }> = [];
         const subjectSeen: Array<NonNullable<ReturnType<typeof extractSubjectFacilityKey>>> = [];
+        const constructionSeen: ConstructionEvent[] = [];
         const dedupeByEntityKey = (articles: NormalizedItem[], label: string): NormalizedItem[] =>
             articles.filter(a => {
+                const ce = constructionEventFromTitleKey(normalizeTitleKey(a.title || ''));
+                if (ce) {
+                    if (constructionSeen.some(s => constructionEventsSameProject(s, ce))) {
+                        console.log(`🔁 Construction dedup removed from ${label}: "${(a.title || '').slice(0, 60)}" (${ce.milestone})`);
+                        withinSendRemovedDupes.push(a);
+                        return false;
+                    }
+                    constructionSeen.push(ce);
+                }
                 const sk = extractSubjectFacilityKey(a.title || '', a.description || '');
                 if (sk) {
                     if (subjectSeen.some(s => subjectFacilityKeysSameStory(s, sk))) {

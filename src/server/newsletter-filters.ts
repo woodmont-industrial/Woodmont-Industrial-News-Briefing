@@ -14,6 +14,7 @@ import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatch
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import { dealEventFromTitleKey, type DealEvent } from '../shared/url-utils.js';
+import { constructionEventFromTitleKey, type ConstructionEvent } from '../shared/construction-event.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
@@ -1213,6 +1214,23 @@ export function loadSentDealEvents(docsDir: string): DealEvent[] {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         return (data.sent || []).filter(e => e.titleKey && new Date(e.sentAt) >= thirtyDaysAgo)
             .map(e => dealEventFromTitleKey(e.titleKey!)).filter((e): e is DealEvent => e !== null);
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Construction milestones (project + milestone) sent in the last 30 days. A groundbreaking is
+ * not a sale, lease or financing, so the deal events above never covered it (The Apex: sent
+ * 2026-11-13 and again 11-18 under a different headline).
+ */
+export function loadSentConstructionEvents(docsDir: string): ConstructionEvent[] {
+    try {
+        const data: SentArticlesData = JSON.parse(fs.readFileSync(path.join(docsDir, 'sent-articles.json'), 'utf-8'));
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return (data.sent || []).filter(e => e.titleKey && new Date(e.sentAt) >= thirtyDaysAgo)
+            .map(e => constructionEventFromTitleKey(e.titleKey!)).filter((e): e is ConstructionEvent => e !== null);
     } catch {
         return [];
     }
