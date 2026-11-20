@@ -57,6 +57,7 @@ export const REASON_CODES = [
     // Other
     'EXCLUDED_BY_LIST',
     'CATEGORY_MISMATCH',
+    'CORPORATE_ACQUISITION',
 ] as const;
 export type ReasonCode = typeof REASON_CODES[number];
 
