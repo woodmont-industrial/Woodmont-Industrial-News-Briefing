@@ -227,6 +227,7 @@ jobs:
           cache: npm
       - run: npm ci --prefer-offline --no-audit
       - run: node --import tsx src/filter/ai-provider.test.ts
+      - run: node --import tsx src/filter/ai-budget.test.ts
       - run: node --import tsx src/filter/summary-quantities.test.ts
       - run: node --import tsx src/server/availability-routing.test.ts
       - run: node --import tsx src/server/listing-event.test.ts

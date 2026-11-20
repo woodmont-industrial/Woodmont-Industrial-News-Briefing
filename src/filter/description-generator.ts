@@ -9,7 +9,7 @@
 
 import { NormalizedItem } from '../types/index.js';
 import { hasUnsupportedSummaryQuantity } from './summary-quantities.js';
-import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
+import { getAIProvider, trackTokenUsage, logTokenUsage, completionModelOptions, getRetryAfterMs, HARD_PROVIDER_FAILURES, disableProviderForRun, isProviderDisabled } from './ai-provider.js';
 import { normalizeTitle } from '../shared/url-utils.js';
 import { getPublisherName } from '../shared/publisher-name.js';
 
@@ -144,13 +144,30 @@ function containsFabrication(desc: string, title: string, existingDesc: string):
 }
 
 /**
+ * One wall-clock limit shared by every summary call in a send. On 2026-11-18 the deep refill
+ * asked for 81 summaries and Groq rate limits held the email until 8:06. When the limit runs
+ * out, the remaining stories go out with their verified headline and feed text.
+ */
+export interface DescriptionBudget { deadline: number; skipped: number }
+export const DEFAULT_SUMMARY_BUDGET_MS = 90_000;
+
+export function createDescriptionBudget(ms?: number): DescriptionBudget {
+    const configured = Number(process.env.AI_SUMMARY_BUDGET_MS);
+    const limit = ms ?? (Number.isFinite(configured) && configured >= 0 ? configured : DEFAULT_SUMMARY_BUDGET_MS);
+    return { deadline: Date.now() + limit, skipped: 0 };
+}
+
+export interface DescriptionRunResult { requested: number; generated: number; rejected: number; skippedForBudget: number }
+
+/**
  * Generate descriptions for articles missing them
  */
-export async function generateDescriptions(articles: NormalizedItem[]): Promise<void> {
-    const provider = getAIProvider();
+export async function generateDescriptions(articles: NormalizedItem[], budget?: DescriptionBudget): Promise<DescriptionRunResult> {
+    const result: DescriptionRunResult = { requested: 0, generated: 0, rejected: 0, skippedForBudget: 0 };
+    let provider = getAIProvider();
     if (!provider) {
         console.log('[AI Desc] No AI API key set (CEREBRAS_API_KEY or GROQ_API_KEY), skipping description generation');
-        return;
+        return result;
     }
 
     const needsDesc = articles.filter(a => {
@@ -172,20 +189,37 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
     });
     if (needsDesc.length === 0) {
         console.log('[AI Desc] All articles already have descriptions');
-        return;
+        return result;
     }
+    result.requested = needsDesc.length;
 
     console.log(`[AI Desc] [${provider.name}] Generating descriptions for ${needsDesc.length} articles (batch: ${provider.descBatchSize}, delay: ${provider.descBatchDelayMs}ms)...`);
 
-    const BATCH_SIZE = provider.descBatchSize;
-    const BATCH_DELAY_MS = provider.descBatchDelayMs;
     let generated = 0;
     let rejected = 0;
 
-    for (let i = 0; i < needsDesc.length; i += BATCH_SIZE) {
-        const batch = needsDesc.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < needsDesc.length; ) {
+        if (budget && Date.now() >= budget.deadline) {
+            result.skippedForBudget = needsDesc.length - i;
+            budget.skipped += result.skippedForBudget;
+            console.warn(`[AI Desc] Summary time limit reached; ${result.skippedForBudget} stories keep their headline and feed text.`);
+            break;
+        }
+        // A provider cut off for the run (402 billing, 401/403 key) hands over to the next one.
+        if (isProviderDisabled(provider.name)) {
+            const next = getAIProvider();
+            if (!next) {
+                result.skippedForBudget = needsDesc.length - i;
+                console.warn(`[AI Desc] No AI provider left this run; ${result.skippedForBudget} stories keep their headline and feed text.`);
+                break;
+            }
+            provider = next;
+        }
+        const current = provider;
+        const batch = needsDesc.slice(i, i + current.descBatchSize);
+        i += batch.length;
 
-        const promises = batch.map(article => generateSingleDescription(article, provider));
+        const promises = batch.map(article => generateSingleDescription(article, current, budget?.deadline));
         const results = await Promise.allSettled(promises);
 
         for (let j = 0; j < results.length; j++) {
@@ -205,19 +239,24 @@ export async function generateDescriptions(articles: NormalizedItem[]): Promise<
             }
         }
 
-        // Delay between batches to avoid rate limits
-        if (i + BATCH_SIZE < needsDesc.length) {
-            await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
+        // Delay between batches to avoid rate limits, never past the time limit.
+        if (i < needsDesc.length) {
+            const delay = budget ? Math.min(current.descBatchDelayMs, Math.max(0, budget.deadline - Date.now())) : current.descBatchDelayMs;
+            if (delay) await new Promise(r => setTimeout(r, delay));
         }
     }
 
+    result.generated = generated;
+    result.rejected = rejected;
     console.log(`[AI Desc] Generated ${generated}/${needsDesc.length} descriptions (${rejected} rejected as fabrication)`);
     logTokenUsage();
+    return result;
 }
 
 async function generateSingleDescription(
     article: NormalizedItem,
-    provider: { name: string; url: string; model: string; apiKey: string; reasoningEffort?: 'none' | 'low' | 'medium' | 'high' }
+    provider: { name: string; url: string; model: string; apiKey: string; reasoningEffort?: 'none' | 'low' | 'medium' | 'high' },
+    deadline?: number,
 ): Promise<string | null> {
     try {
         // Derive source from article metadata or URL domain
@@ -245,9 +284,12 @@ async function generateSingleDescription(
         let retries = 0;
 
         while (retries < 3) {
+            if (isProviderDisabled(provider.name)) return null;
+            const remaining = deadline === undefined ? 30_000 : deadline - Date.now();
+            if (remaining <= 0) return null;
             response = await fetch(provider.url, {
                 method: 'POST',
-                    signal: AbortSignal.timeout(30_000),
+                    signal: AbortSignal.timeout(Math.min(30_000, remaining)),
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${provider.apiKey}`
@@ -265,7 +307,11 @@ async function generateSingleDescription(
 
             if (response.status === 429) {
                 retries++;
-                const waitTime = Math.pow(2, retries) * 2000;
+                const waitTime = getRetryAfterMs(response) ?? Math.pow(2, retries) * 2000;
+                await response.body?.cancel();
+                if (retries >= 3) return null;
+                // Waiting out a rate limit past the time limit only delays the send.
+                if (deadline !== undefined && Date.now() + waitTime >= deadline) return null;
                 console.log(`[AI Desc] [${provider.name}] Rate limited, waiting ${waitTime / 1000}s (retry ${retries}/3)`);
                 await new Promise(r => setTimeout(r, waitTime));
                 continue;
@@ -273,6 +319,7 @@ async function generateSingleDescription(
             break;
         }
 
+        if (response && HARD_PROVIDER_FAILURES.has(response.status)) disableProviderForRun(provider.name, response.status);
         if (!response || !response.ok) return null;
 
         const data = await response.json();
