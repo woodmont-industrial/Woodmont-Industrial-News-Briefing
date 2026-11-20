@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-19-1300",
-  "generatedAt": "2026-11-19T13:00:32.709Z",
-  "isFriday": false,
+  "runId": "2026-11-20-1300",
+  "generatedAt": "2026-11-20T13:00:30.405Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
       "loaded": 303,
-      "inWindow": 6,
-      "regionPass": 6,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 4,
+      "sectionPass": 3,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 5,
-      "supplyCandidates": 101,
+      "selected": 6,
+      "supplyCandidates": 92,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -24,7 +24,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
+        "SECTION_RULE_FAILED": 2,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -36,14 +36,14 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 4,
+        "tier2_48h_72h": 3,
         "tier3_30d_deep": 2,
-        "tier4_reserve": 2,
+        "tier4_reserve": 4,
         "tier5_manual_include": 0
       },
       "underfilled": false,
@@ -52,15 +52,15 @@
     "transactions": {
       "loaded": 303,
       "inWindow": 3,
-      "regionPass": 2,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 1,
       "supplyCandidates": 6,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 1,
+        "BELOW_DEAL_THRESHOLD": 3,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
         "tier4_reserve": 1,
         "tier5_manual_include": 0
@@ -96,14 +96,14 @@
     },
     "availabilities": {
       "loaded": 303,
-      "inWindow": 1,
-      "regionPass": 1,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 18,
+      "supplyCandidates": 19,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -115,7 +115,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
+        "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -142,15 +142,15 @@
     "people": {
       "loaded": 303,
       "inWindow": 1,
-      "regionPass": 1,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 1,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -164,7 +164,7 @@
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 1,
+        "NO_PEOPLE_ACTION": 0,
         "DUPLICATE_ID": 0,
         "DUPLICATE_SIGNATURE": 0,
         "DUPLICATE_URL": 0,
@@ -186,20 +186,6 @@
     }
   },
   "perFeedBySection": {
-    "Bisnow National": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
@@ -214,7 +200,7 @@
         "people": 0
       }
     },
-    "Google News PA Manufacturing Land": {
+    "NJ Economic Dev Industrial": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -222,64 +208,73 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 0,
-        "transactions": 1,
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "globest.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 72,
-    "outOf10": 7.2,
+    "score": 73,
+    "outOf10": 7.3,
     "grade": "C",
     "itemCount": 7,
-    "operationalScore": 72,
+    "operationalScore": 73,
     "operationalGrade": "C",
-    "editorialQualityScore": 72,
+    "editorialQualityScore": 78,
     "editorialGrade": "C",
     "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "QUALITY_REJECTED",
+      "availabilities": "NO_FRESH_SUPPLY",
       "people": "QUALITY_REJECTED"
     },
     "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 18,
-      "freshness": 15.4,
-      "regional": 21.4,
+      "freshness": 12.6,
+      "regional": 22.9,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 5,
+      "fresh": 3,
       "deep": 2,
-      "reserve": 3
+      "reserve": 5
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Private Equity Lags REITs In Getting CRE Portfol\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): availabilities, people"
+      "Empty — fresh supply rejected by section gates (quality): people",
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities"
     ]
   },
   "logicImpact": {
@@ -290,8 +285,38 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 136,
+    "crossDayPoolRepeatsSuppressed": 138,
     "audit": [
+      {
+        "id": "7f1d6ddc3e90a0a6c91fa3ecee98b9bca3f22946",
+        "title": "Pennsylvania factory sold, $300M expansion planned to support submarine manufacturing - Yahoo",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "44118f724a91ad8f83d2985426e3d0461c01f3ce",
+        "title": "Private Equity Lags REITs In Getting CRE Portfolios Up To Market Speed",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c485c4c97f2e225cc1d01511536deb42ee7acc2d",
+        "title": "Sayreville Planning Board approves warehouse redevelopment at former Sunshine Biscuit site - News12 | New Jersey",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "b6a77355aeabc87567a32556aa7bb219b1d0b79f",
+        "title": "A change that could create a data center in the Lehigh Valley on the banks of the Delaware River gets a thumbs-down - Th",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "db47a8b4aa7153926d2cd8b7d1ac58f9c564e266",
+        "title": "Tampa electrical distributor leases Lakeland warehouse - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "8f2101707a52e48af6241da986dfd0b8219f63a2",
         "title": "Canned water maker's $100 million acquisition includes Florida manufacturing facility - The Business Journals",
@@ -327,6 +352,12 @@
         "title": "Alterra IOS Grows Florida Portfolio With 4 Industrial Outdoor Storage Acquisitions in Fort Myers - GlobeNewswire",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "1594a2c5d78dde340d9da28f565f528bca5d475a",
+        "title": "Alterra IOS Grows Florida Portfolio With 4 Industrial Outdoor Storage Acquisitions in Fort Myers - Yahoo Finance",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
       },
       {
         "id": "d3b691ce3ff3b27fcf2e7f5679cd06ca0c2a56b4",
@@ -511,6 +542,12 @@
       {
         "id": "30adaa82d6b8a3fd87b440a83bfd0221f62fc5e8",
         "title": "Seagis grabs vacant 171,000 sq. ft. warehouse adjacent to Port Newark Container Terminal - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "c832e45f8c264ea9fd5ca8a86d4dc89624e62a89",
+        "title": "Terreno buys 18,000 sq. ft. Carlstadt facility, inks 82,000 sq. ft. lease in Avenel - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -761,6 +798,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "78ccd5c481456be44fe02bb9ee24dce2ddd0198b",
+        "title": "4,500-Acre Data Center District Approved In Pennsylvania Town",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "a26ea4986f40226022eb7629689c2b74983482de",
         "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -827,6 +870,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
+        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
         "id": "addbd69e8fef8837a84f5acdfa64d3f38fe2aa56",
         "title": "Amazon’s Same-Day Delivery Expansion Reignites Demand for Last-Mile Logistics - Commercial Observer",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -837,66 +886,18 @@
         "title": "CloudHQ CEO Hossein Fateh On What Could Curb the Data Center Boom",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "46f1f17af1148ec532d8bb7ae19dce271e70f3b2",
-        "title": "Industrial Outdoor Storage Rents Climb 32% on the Data Center Boom",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5bdd289ebacb52e903312065a7501fe2df398522",
-        "title": "Anthropic Plans To Lease Its Own Data Centers, Cutting Reliance On Amazon, Google And Microsoft",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b07fd37fbcc23ae50eec9fd6e6d638bd481a8db8",
-        "title": "Faropoint Expands Meadowlands Footprint with Acquisition of Three-Building Industrial Portfolio - Business Wire",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "75a20051828cead617cee4402d3aca785dbcaadc",
-        "title": "As Florida opposition explodes, data center investment keeps flowing - Naples Daily News",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "49d66715797cddf278a0cd2805321155fe6f23f5",
-        "title": "456 Walker St, Fairview, NJ 07022 - 4,000 SF Warehouse with 16' Ceilings & Office - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "cf1cc792331d25beb6c4c37d51c99ff4bd0c861e",
-        "title": "Greystar Breaks Ground on 1 Million-Square-Foot New Jersey Logistics Park - Construction Owners",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c6199f35d11fbeff78dd0e8d2e6d522a032b99fa",
-        "title": "101 Industrial Ave, Little Ferry, NJ 07643 - Industrial for Lease - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6724cab00db47dcbaaa05a6c8e9e58840ba55d5a",
-        "title": "Industrial Outdoor Storage in New Jersey: Navigating Zoning Uncertainty - Law.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "4e3fbaff9be7007113acd10e285cb63850603658",
-        "title": "5301 Corwin Dr, Tallahassee, FL 32303 - 7,360 sqft Flex Warehouse | Tallahassee, FL - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
       }
     ]
   },
   "dcPolicy": {
     "rejectedOutOfRegion": [],
     "nationalScaleAllowed": [],
-    "unknownLocationAllowed": []
+    "unknownLocationAllowed": [
+      {
+        "id": "ac143853a1020bf05a80377be16b7ade09028e4f",
+        "title": "Data Center Sale-Leasebacks Open a New Lane for Net Lease Capital",
+        "unresolvedLocationTokens": []
+      }
+    ]
   }
 }
