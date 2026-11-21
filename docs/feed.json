@@ -36,7 +36,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "D",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Data center is not an allowed industrial asset class (Rule 5 wrong asset class)",
       "_woodmontConfidence": 95,
@@ -61,16 +61,15 @@
         "name": "Google News ConnectCRE Industrial"
       },
       "_source": {
-        "name": "Google News ConnectCRE Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxONWZXaE9NUDdJaG5saXRPS3VKdExfNW03dHBrOHg5LVMxWWsxQ1JhWkM4Sy0tZW5jcHJYNG8ycHdHT0F1OVBxVXFfd1N2MGlsM0tWOHpGZ0NHcXpCUjdKcWZEUWMzOTdjdG9kWXAxZ1luSmVxODlDMXJKWVczTjMtMkF0NUFFMmxkU1JhTEZxcjVfMkU?oc=5",
-        "feedName": "Google News ConnectCRE Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -100,10 +99,48 @@
         "name": "Google News RE-NJ Industrial"
       },
       "_source": {
-        "name": "Google News RE-NJ Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTFA1ZWtsV0RUOUltb2dLb1dKNzByYk9RT2h0Wnc4OE10Tm43c040MGE0eFNfNVFPX2FEaTFuYUlmNW1ocjhxbUI0akQ4ZjhDZ1preTE2SC0zMi1hdzRE?oc=5",
-        "feedName": "Google News RE-NJ Industrial"
+        "feedName": "news.google.com"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "news.google.com"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "B",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "e41cdb8178c93f2ffb3a784386ee47990c11a860",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE83el9tQnhLZldlMXhSWW1CRGw3SzdDLTVrVGpPc0IyRFp2ZkxpeDZaZDdVdjY5VktjTHRObGdBcXV0MkpSU1AtenBtTDNibUFGUHZkNFpLVzk?oc=5",
+      "title": "manufacturing rankings Archives - NJBIZ",
+      "content_html": "manufacturing rankings Archives NJBIZ",
+      "content_text": "manufacturing rankings Archives NJBIZ",
+      "summary": "manufacturing rankings Archives NJBIZ",
+      "date_published": "2026-11-20T19:32:55.000Z",
+      "date_modified": "2026-11-21T20:44:13.404Z",
+      "image": "https://picsum.photos/seed/lz76og/640/360",
+      "author": {
+        "name": "Google News NJ Business"
+      },
+      "_source": {
+        "name": "Google News NJ Business",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE83el9tQnhLZldlMXhSWW1CRGw3SzdDLTVrVGpPc0IyRFp2ZkxpeDZaZDdVdjY5VktjTHRObGdBcXV0MkpSU1AtenBtTDNibUFGUHZkNFpLVzk?oc=5",
+        "feedName": "Google News NJ Business"
       },
       "category": "relevant",
       "tags": [
@@ -139,21 +176,59 @@
         "name": "Google News ROI-NJ Industrial"
       },
       "_source": {
-        "name": "Google News ROI-NJ Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQNG54OERRblE1cGp6SEhOdzBHMXRDZlBud01DZ2FGYWhLdzR4R2MwcGNLYUdhandDZ1ljeURsX3k3N18zUzVDNGpoVmt1bFZFeUQzS1ZlRzZjYm1aNVVnVVZLMGNPbDhKMzdUTEZpQWNoTndrakxFS2ZsM0lrUzBVSE43UVlOVExfdkoyOURPdy0zZzg5UXdERFRYbnRwazl1Z3JpOG9sRkpIRGp5dTM5T0ZQN0JhS1g0NVJRNnV1N0Y5cmUxS0pVd3FicGt0cU55TlVjSWxpRmFGdnZF?oc=5",
-        "feedName": "Google News ROI-NJ Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "NJ"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "A",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "5a34ad01b143dc72cd4b6d79b3fc5557597dc3e3",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPTFpiY2lZZmx2M2YyLWVhdWJ6SVBvZVNJS3pXcVZKNGlPbGNHaVdDZ3NRZEt0emNKYVU3a1BQVUFKYmM3M3lVdndObmg4cnVOUHQtQVBlcWN6MFZwLTZEazRLMGNteXBfWlZkeWNMTDFsM29PZzY0ZVVEX3BKdzEwZi12dzlVMzFKdWtrbE5GdkZyNVpPSGdpNDBpOE5BekRzdmpMdW1XZDdYMFI1VXViYVlVdmZBWS1YZVo3T0FjUWd2dl9RdnI1MU9jRUhhRWpoQ3BQZUpwT3E?oc=5",
+      "title": "Logistics Plus Named 2026 Tech 50 Company Culture Finalist - Erie News Now",
+      "content_html": "Logistics Plus Named 2026 Tech 50 Company Culture Finalist Erie News Now",
+      "content_text": "Logistics Plus Named 2026 Tech 50 Company Culture Finalist Erie News Now",
+      "summary": "Logistics Plus Named 2026 Tech 50 Company Culture Finalist Erie News Now",
+      "date_published": "2026-11-20T18:12:00.000Z",
+      "date_modified": "2026-11-21T20:44:42.988Z",
+      "image": "https://bloximages.chicago2.vip.townnews.com/erienewsnow.com/content/tncms/assets/v3/editorial/9/00/9003d386-c834-4edc-b2c0-57b64b6aa20b/6b008d92b9740.preview.jpg?crop=1920%2C1008%2C0%2C35&amp;resize=1200%2C630&amp;order=crop%2Cresize",
+      "author": {
+        "name": "Google News PA CRE People"
+      },
+      "_source": {
+        "name": "Google News PA CRE People",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPTFpiY2lZZmx2M2YyLWVhdWJ6SVBvZVNJS3pXcVZKNGlPbGNHaVdDZ3NRZEt0emNKYVU3a1BQVUFKYmM3M3lVdndObmg4cnVOUHQtQVBlcWN6MFZwLTZEazRLMGNteXBfWlZkeWNMTDFsM29PZzY0ZVVEX3BKdzEwZi12dzlVMzFKdWtrbE5GdkZyNVpPSGdpNDBpOE5BekRzdmpMdW1XZDdYMFI1VXViYVlVdmZBWS1YZVo3T0FjUWd2dl9RdnI1MU9jRUhhRWpoQ3BQZUpwT3E?oc=5",
+        "feedName": "Google News PA CRE People"
+      },
+      "category": "people",
+      "tags": [
+        "People News — Personnel Moves in CRE",
+        "news.google.com",
+        "PA"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "PEOPLE_TITLE_SIGNAL",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -178,21 +253,59 @@
         "name": "Google News ConnectCRE Industrial"
       },
       "_source": {
-        "name": "Google News ConnectCRE Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNZnUxQnJoRXExS2tGd1otMWxXOWlYRHJMN2RiS1dXcmRwNlBhZVBGaEczU1N6VHJ6MG5wVWkxZmpIR0poWnJpLXR1UWNib05ZWS1mdDk4VEVnbkJPU0k5MnE0OUdyTG9nbnFYTy1uR1c5UmpWSHRid0VNWEcxaTVJeDRvNDQtaEVGWnNNUWV0V3pTajg?oc=5",
-        "feedName": "Google News ConnectCRE Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "D",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "a047fd16ccab58f13aa2d689a4651fd90117b0d2",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPZUtSMVE2N3BEZmlicUp3T0RSTENKZllBT1ZWbmZtclpSVTdzbEJCZVdkcXBQc3BxZ3hOZkNHRFRWM09qNUdiOEoyNEFXNEFHaHVld0M2UXYzam5GMWYwRGE3cl9XNlBpaHVfMVZWUGJabzF4MXZOb2d6QnV1MDNFRDB0VlZNai1JOTUySXM4bUNMR2YxV1R2Yy1uZS1wWk5UaWRIVkN1V0xhdUtUTEwtSTdVbEpVd2xi?oc=5",
+      "title": "Logistics Plus Named Finalist for Tech 50 Award in Company Culture Category - EIN News",
+      "content_html": "Logistics Plus Named Finalist for Tech 50 Award in Company Culture Category EIN News",
+      "content_text": "Logistics Plus Named Finalist for Tech 50 Award in Company Culture Category EIN News",
+      "summary": "Logistics Plus Named Finalist for Tech 50 Award in Company Culture Category EIN News",
+      "date_published": "2026-11-20T16:30:00.000Z",
+      "date_modified": "2026-11-21T20:44:43.000Z",
+      "image": "https://picsum.photos/seed/ns8koi/640/360",
+      "author": {
+        "name": "Google News PA CRE People"
+      },
+      "_source": {
+        "name": "Google News PA CRE People",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPZUtSMVE2N3BEZmlicUp3T0RSTENKZllBT1ZWbmZtclpSVTdzbEJCZVdkcXBQc3BxZ3hOZkNHRFRWM09qNUdiOEoyNEFXNEFHaHVld0M2UXYzam5GMWYwRGE3cl9XNlBpaHVfMVZWUGJabzF4MXZOb2d6QnV1MDNFRDB0VlZNai1JOTUySXM4bUNMR2YxV1R2Yy1uZS1wWk5UaWRIVkN1V0xhdUtUTEwtSTdVbEpVd2xi?oc=5",
+        "feedName": "Google News PA CRE People"
+      },
+      "category": "people",
+      "tags": [
+        "People News — Personnel Moves in CRE",
+        "news.google.com",
+        "PA"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "PEOPLE_TITLE_SIGNAL",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -217,16 +330,15 @@
         "name": "Google News Data Centers NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Data Centers NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPTU92VWZXdmRSZWg0WlQ2S1k5Z0h1cGlyZXh4MTByTEZrd3YwMTN4OUxKeVdnQy1JR2lfcnZ0Y3FBczdxQ3lRb3hCbjRhWUlLQ0JNazJQNUg2Q0Uzc3JRenVaMmFsSDBfM1c4dHRSeXhfQWNpV0kzNDJiVTJHTGk0dURBelk4MFVUTTF1UmNfMFVsYUtYaldidVpUYUJUazJW?oc=5",
-        "feedName": "Google News Data Centers NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -251,21 +363,20 @@
       "summary": "Cushman & Wakefield Arranges 274,040 SF Industrial Lease in Lakeland, Florida REBusinessOnline",
       "date_published": "2026-11-20T15:14:04.000Z",
       "date_modified": "2026-11-20T21:12:36.272Z",
-      "image": "https://picsum.photos/seed/qv4mbp/640/360",
+      "image": "http://rebusinessonline.com/wp-content/uploads/2026/11/Key-Logistics-Center.jpg",
       "author": {
         "name": "Google News REBusiness Online"
       },
       "_source": {
-        "name": "Google News REBusiness Online",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQZGZqbmNrb21ROVd6ZTNWQWo5amt5ZHF1TENoaHhsQXI0TFFVVXgzTzhGcDVldnNOSkh1SUg2STNqdDJxanlkLWVnT051TkxIbjdDdS1MWnVDZ2VRYktiWWNNekhZRVhneGM2aWZwbjFFOVdraEIyWWNfcnRLdmFtdnJKVll1Y1AtSXFnSVJFamRqN1V6RENpLW1oUWpIMW5DZDJyVUp3?oc=5",
-        "feedName": "Google News REBusiness Online"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -290,26 +401,64 @@
       "summary": "The Industrial REITs Paying Reliable Passive Income From Warehouses and Logistics Hubs 24/7 Wall St.",
       "date_published": "2026-11-20T13:33:00.000Z",
       "date_modified": "2026-11-20T21:12:29.473Z",
-      "image": "https://picsum.photos/seed/gm1v6x/640/360",
+      "image": "https://247wallst.com/wp-content/uploads/2018/12/imageForEntry11-22.jpg",
       "author": {
         "name": "Google News REIT Analysis"
       },
       "_source": {
-        "name": "Google News REIT Analysis",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxOLV96THh6QnlRRGt6WXlVa0k3M2xZbURNY1JJdVF5d3A2SUN3N1VNbkl1QlhCZWhORUFOeHdOQXRhRWlIV2xDR3psUGpEakNWeU9KVzZnVXNlS1YxWHFuSGlubDlPWGhyTjBPMnd6WEdKNXhRQ2RrNHFSb0VyMmxFeGh6alp1MFVXSWlzZ0dUd0tuS0JLV0t3bWFSNVBHLVVETy1qMnk1YzRmZ1o4c0drR3lPNzR6QzFtTmlCZWd1ejdzb0JGdC1QMjlB?oc=5",
-        "feedName": "Google News REIT Analysis"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "917b51c6927fcbaca364d36b6ac49b19d8bf17fb",
+      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOS2VfalJFU2lEVzYzcHR1dGg4aWYzb1BEZWwwekxOc1FFbTBoMDlFTE1VZl9rMmF1REJTc1dYc0Y2bkg0bzNDUTBnazdsYXEzRk1fR2tKUmhqRUNtX2pSdzgzcGVxMkFrWFJnQmpRR2NXcnhIR0l4djhHUHdoQWRuV2EtOGo?oc=5",
+      "title": "Mahwah Industrial Building Sells For $7M - DailyVoice.com",
+      "content_html": "Mahwah Industrial Building Sells For $7M DailyVoice.com",
+      "content_text": "Mahwah Industrial Building Sells For $7M DailyVoice.com",
+      "summary": "Mahwah Industrial Building Sells For $7M DailyVoice.com",
+      "date_published": "2026-11-20T13:31:27.000Z",
+      "date_modified": "2026-11-21T20:43:53.388Z",
+      "image": "https://picsum.photos/seed/kpjngw/640/360",
+      "author": {
+        "name": "Google News Bergen County NJ"
+      },
+      "_source": {
+        "name": "Google News Bergen County NJ",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOS2VfalJFU2lEVzYzcHR1dGg4aWYzb1BEZWwwekxOc1FFbTBoMDlFTE1VZl9rMmF1REJTc1dYc0Y2bkg0bzNDUTBnazdsYXEzRk1fR2tKUmhqRUNtX2pSdzgzcGVxMkFrWFJnQmpRR2NXcnhIR0l4djhHUHdoQWRuV2EtOGo?oc=5",
+        "feedName": "Google News Bergen County NJ"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "NJ"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -334,21 +483,59 @@
         "name": "Google News GlobeSt Industrial Broad"
       },
       "_source": {
-        "name": "Google News GlobeSt Industrial Broad",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOSjVWRXJHWW9TN3l2a0NyU2F1QUZJejdnRm9pX2NKN1NQMjI5TFdkZGhud1QtNi0yQXMtRXV3QXBqUHBPMEhDRnRQWlRtdDJOTnd5T0ZsQ2lUay1vRERqRVdyMmQ5cVlOT0k3YVR1a2N5ZjVPNWlvSnZLU19RdlgzVllMeklJUlN1Y1NFQkZjV0xWWUc1eDdsZ00xZEViWXhwTnc?oc=5",
-        "feedName": "Google News GlobeSt Industrial Broad"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "D",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "9386fc571f7d4ba17d76dcb53440b707294695e9",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxONFNTbTBQSzNOZUVnU0xvTzBJT1NfaHV5TFJkeUNQT1VVal9NbXBQY25feUI2YncxdzZrVDZzamh5N2ZYSGZSQmRZRXlrbkJTSFZ1d01MYzlVUHVCNUYzVGQ3dHpQR3RMVEJZc1hCOWY1c0NiY2Q4VmdnRnhxTHlRbEh4STJjNTNFcnpkX1pDaldXc1NIV0tEUlRGVlRTSDU1NzJSZkxn?oc=5",
+      "title": "NAI Hanson: Owner-user buys 39,000 sq. ft. Mahwah flex industrial building for $7 million - Real Estate NJ",
+      "content_html": "NAI Hanson: Owner-user buys 39,000 sq. ft. Mahwah flex industrial building for $7 million Real Estate NJ",
+      "content_text": "NAI Hanson: Owner-user buys 39,000 sq. ft. Mahwah flex industrial building for $7 million Real Estate NJ",
+      "summary": "NAI Hanson: Owner-user buys 39,000 sq. ft. Mahwah flex industrial building for $7 million Real Estate NJ",
+      "date_published": "2026-11-20T12:35:20.000Z",
+      "date_modified": "2026-11-21T20:44:34.813Z",
+      "image": "https://picsum.photos/seed/w7jax8/640/360",
+      "author": {
+        "name": "Google News RE-NJ Industrial"
+      },
+      "_source": {
+        "name": "Google News RE-NJ Industrial",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxONFNTbTBQSzNOZUVnU0xvTzBJT1NfaHV5TFJkeUNQT1VVal9NbXBQY25feUI2YncxdzZrVDZzamh5N2ZYSGZSQmRZRXlrbkJTSFZ1d01MYzlVUHVCNUYzVGQ3dHpQR3RMVEJZc1hCOWY1c0NiY2Q4VmdnRnhxTHlRbEh4STJjNTNFcnpkX1pDaldXc1NIV0tEUlRGVlRTSDU1NzJSZkxn?oc=5",
+        "feedName": "Google News RE-NJ Industrial"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "NJ"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -373,29 +560,28 @@
         "name": "Google News Industrial RE"
       },
       "_source": {
-        "name": "Google News Industrial RE",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOQTVFQTlDMTRhY3ZCVENQczAwbTctOTExWjU5bDNBWVcwTG00SWdJS3NuZW1kV3dWSnpHUG0wN2t1bktrcUtHVldrQnRUWUtpU0VkbUVReWF5bFFEVENvMUFYcFAzbnJieVNlRkRCQVZ3UzZ3aXRIMFNoLVlnbU1XVVgyNnRUM3A3TEJmTUpxZWhYZG5RS1k0WWwwbw?oc=5",
-        "feedName": "Google News Industrial RE"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontApprove": true,
+      "_woodmontReason": "Industrial real estate market report in New Jersey, meeting all approval criteria (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 98,
+      "_woodmontClassifier": "groq",
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-21T20:46:49.605Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -412,16 +598,15 @@
         "name": "Area Development Master"
       },
       "_source": {
-        "name": "Area Development Master",
+        "name": "areadevelopment.com",
         "website": "areadevelopment.com",
         "url": "https://www.areadevelopment.com/data-centers/q4-2026/data-center-developers-earn-community-trust.shtml",
-        "feedName": "Area Development Master"
+        "feedName": "areadevelopment.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "areadevelopment.com",
-        "US"
+        "areadevelopment.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -636,24 +821,23 @@
       "summary": "How Home Depot built the missing logistics piece for its Pro business Supply Chain Dive",
       "date_published": "2026-11-19T16:21:54.000Z",
       "date_modified": "2026-11-20T21:11:45.770Z",
-      "image": "https://picsum.photos/seed/qwy6hk/640/360",
+      "image": "https://imgproxy.divecdn.com/KMLZ371p-hNIIn7EoawsaBbpQPSkV-oN7dNqEcsuk6c/g:ce/rs:fit:770:435/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS85STZBNjY2Nl9yZXNpemVkLmpwZw==.webp",
       "author": {
         "name": "Google News Supply Chain Dive Industrial"
       },
       "_source": {
-        "name": "Google News Supply Chain Dive Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOUTc2RGZBaC15Vzdka2NuNFUzRGZDd0VJZkE2MmRRbG1KQzJyd3hKb3dHdVlHellNQzdvRktEeXpLR3d1YmNaSHlEd2tkZFNiRmN4cDgyaGFDUl93TlFYMXpXUGZoMEJEVE5GeFRqWEtzZ2M4a0ZrNk1pSVNoeDZhWVFXSXNDUlFQa2c3a1YxNFhKVlh4a0xJN3NFdjg2eUEzMjlzcXpVSWpSSjRsMlllbXdVOFk?oc=5",
-        "feedName": "Google News Supply Chain Dive Industrial"
+        "feedName": "news.google.com"
       },
-      "category": "transactions",
+      "category": "relevant",
       "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "Relevant — Market Trends & Real Estate News",
+        "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "B",
       "_woodmontApprove": null,
@@ -804,8 +988,8 @@
         "Relevant — Market Trends & Real Estate News",
         "bisnow.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
@@ -842,8 +1026,8 @@
         "Relevant — Market Trends & Real Estate News",
         "globest.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
@@ -865,21 +1049,20 @@
       "summary": "Faropoint picks up 117K sf industrial facility in the IE for $22M The Real Deal",
       "date_published": "2026-11-18T21:03:00.000Z",
       "date_modified": "2026-11-20T21:12:48.930Z",
-      "image": "https://picsum.photos/seed/ewlwqz/640/360",
+      "image": "https://static.therealdeal.com/wp-content/uploads/2026/11/LA-Faropoint-picks-up-117K-sf-industrial-facility-in-the-IE-for-22M-MAIN.jpg",
       "author": {
         "name": "Google News Real Deal Industrial"
       },
       "_source": {
-        "name": "Google News Real Deal Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNbkpteGJOcHVKMXpDUzljMC1yRHpMejkwMVItc2RUQUgwV3NzT1VNRmlXR3pDWEVGQnAxQk16eGVpc3V5M1ZJOUN5VDVMS1pKM1NWb1NoTkkyRUEyeGtLWEYza0FxbGM5NXBYbnJpWmd1NjBmWXZfQV9UeTc4NkpDRjdlSnpiR1p6eTJ2Z0dKQVpRbS1IVGpoRmYwcnA?oc=5",
-        "feedName": "Google News Real Deal Industrial"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "FL"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -1194,7 +1377,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T11:19:02.361Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:47:41.754Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -1303,6 +1486,45 @@
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "PEOPLE_BODY_SIGNAL",
       "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "43e37fb98b09e76edb51636199371bf9696b3fb0",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPOXYtSFFMajhTcTNucE1ON2Z6aTJTODdxeXNHcUgwWUhPM1ByclNST2dpVjdMMnhZT1REbEYwMXBxQnJIcEp4MHNpTUxLc0FNMTA2NC1mVGZoVXFYWUZkQjdwOVJRMWd2VUtiVUdtaUZPQlVIRmcxREpFcl9sd3BaR2pLcE8yN01YdzY4MWZJcmpsQ3JDeTNmVEV3RXpxWVRZQnVJWGtmTG1mYWs?oc=5",
+      "title": "Amazon to expand fuel and logistics surcharge to more services - Supply Chain Dive",
+      "content_html": "Amazon to expand fuel and logistics surcharge to more services Supply Chain Dive",
+      "content_text": "Amazon to expand fuel and logistics surcharge to more services Supply Chain Dive",
+      "summary": "Amazon to expand fuel and logistics surcharge to more services Supply Chain Dive",
+      "date_published": "2026-11-17T14:46:18.000Z",
+      "date_modified": "2026-11-21T20:43:34.432Z",
+      "image": "https://imgproxy.divecdn.com/sXj3UWSXQQHBOTLeqXpyVKYtnAUKSn8f_gne9QhpvEc/g:ce/rs:fit:770:435/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0xMzg3NjcyOTA1XzEuanBn.webp",
+      "author": {
+        "name": "Google News Supply Chain Dive Industrial"
+      },
+      "_source": {
+        "name": "Google News Supply Chain Dive Industrial",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPOXYtSFFMajhTcTNucE1ON2Z6aTJTODdxeXNHcUgwWUhPM1ByclNST2dpVjdMMnhZT1REbEYwMXBxQnJIcEp4MHNpTUxLc0FNMTA2NC1mVGZoVXFYWUZkQjdwOVJRMWd2VUtiVUdtaUZPQlVIRmcxREpFcl9sd3BaR2pLcE8yN01YdzY4MWZJcmpsQ3JDeTNmVEV3RXpxWVRZQnVJWGtmTG1mYWs?oc=5",
+        "feedName": "Google News Supply Chain Dive Industrial"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "B",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -3166,11 +3388,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the story focuses on an e‑commerce retailer’s in‑house last‑mile delivery operations, not on industrial real estate or a property transaction (Rule 5)",
+      "_woodmontReason": "Article focuses on a retailer's in-house last-mile delivery operations, not an industrial real estate transaction or property; violates Rule 5 (wrong asset class) and does not meet industrial real estate criteria",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T11:27:07.918Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:48:02.712Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3450,7 +3672,7 @@
       "summary": "What’s Rising on Old Pasco Road? Inside North Tampa 75’s Warehouse Expansion Wesley Chapel Community Website",
       "date_published": "2026-11-11T05:39:07.000Z",
       "date_modified": "2026-11-19T21:23:02.890Z",
-      "image": "https://picsum.photos/seed/4jz9r1/640/360",
+      "image": "https://wesleychapelcommunity.com/posts/whats-rising-on-old-pasco-road-north-tampa-75-warehouse-expansion/opengraph-image-venlda?243572bcd71428b8",
       "author": {
         "name": "Google News Tampa Industrial"
       },
@@ -3774,13 +3996,13 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": true,
-      "_woodmontReason": "Real industrial refinance transaction over $25M, recent, neutral industrial real estate coverage (Rule: APPROVE criteria all met)",
+      "_woodmontReason": "National industrial refinancing transaction over $10M, meets approval criteria (Rule: APPROVE criteria all met)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-21T20:47:20.921Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -4804,7 +5026,7 @@
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T21:08:52.286Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:48:28.857Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -4876,11 +5098,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the Flagler Center is a mixed‑use development with no clear industrial real estate focus, violating Rule 5",
+      "_woodmontReason": "Wrong asset class – the Flagler Center is a mixed‑use development, not an industrial property (Rule 5)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T11:27:03.600Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:48:28.857Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -5598,11 +5820,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction below the $10M or 50,000 SF threshold (Rule: Transactions threshold not met)",
+      "_woodmontReason": "Transaction below threshold: 9,900 sq. ft. < 50,000 SF and no dollar amount provided, violates transaction size rule",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T11:27:55.968Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:48:49.778Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -6457,16 +6679,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9xdldpRXpDbmQ1VTExRC1iTFJodFpZM1lsQTNBV1dnVVdKS3haeVpQVUlXLWhCQXJ2QkNnOTFueHJmT0VGWi1uN3FXVTlHMFlZdXhyX0NMVHhxZm5lcmdqZWFjeDN2RmxKeW1ObzJpS1d5SzlQT1g2QkdKbnY?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -7195,11 +7416,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "No location specified; cannot confirm target region (Rule 9)",
-      "_woodmontConfidence": 95,
+      "_woodmontReason": "No location information provided; cannot confirm NJ/PA/FL region, violating Rule 9 (Wrong Region)",
+      "_woodmontConfidence": 90,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T11:21:29.229Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:49:15.903Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -7385,11 +7606,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline calls for voter decision on data centers, matches Rule 3 anti-data-center editorial framing",
+      "_woodmontReason": "Anti-DC framing — headline calls for voter decision on data centers, matching Rule 3 anti-data-center editorial framing",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-18T11:21:05.307Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:49:21.487Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -8529,7 +8750,7 @@
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-13T11:22:47.555Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:49:42.412Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -8852,16 +9073,15 @@
         "name": "Google News Flex Industrial"
       },
       "_source": {
-        "name": "Google News Flex Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOM0RmWmVUbFNtV1pzSFB6OGN4UWpQdGdGUjJSdElWZGNUTjJKS0J3enRPdHpIRjh1SWhkYlJiYk5LOEp3RnRscGJoWHgzZ19QcGN0amhVTGpyb0ZuZnZCUFJXVHViR1FyRjQzbXNIZk9ieGh6clJ0cDdJcXFaNHk4cjQ3bWk0MFZ4a25qRWZkamdDU0dQUmJtaVJuU1IyZER0eGZWZm03R01GT3At?oc=5",
-        "feedName": "Google News Flex Industrial"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -9412,11 +9632,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — title suggests curbing data center boom, matching Rule 3 anti-data-center editorial framing",
+      "_woodmontReason": "Anti-DC framing — headline focuses on curbing data center boom, matching Rule 3",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T21:10:26.611Z",
+      "_woodmontClassifiedAt": "2026-11-21T20:50:03.326Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -11254,500 +11474,6 @@
       "_woodmontClassifiedAt": null,
       "_woodmontModel": null,
       "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "501b1a852a3e6a88b88032e85cbfed2a7cbe866c",
-      "url": "https://www.commercialsearch.com/news/which-trade-disruptions-are-really-reshaping-industrial-demand/",
-      "title": "Which Trade Disruptions Are Really Reshaping Industrial Demand?",
-      "content_html": "",
-      "content_text": "",
-      "summary": "",
-      "date_published": "2026-10-21T16:46:54.424Z",
-      "date_modified": "2026-10-21T16:46:54.424Z",
-      "image": "https://picsum.photos/seed/8ae3ik/640/360",
-      "author": {
-        "name": "Commercial Search"
-      },
-      "_source": {
-        "name": "commercialsearch.com",
-        "website": "commercialsearch.com",
-        "url": "https://www.commercialsearch.com/news/which-trade-disruptions-are-really-reshaping-industrial-demand/",
-        "feedName": "commercialsearch.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "commercialsearch.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "National industrial demand analysis with no disallowed content, meets Rule: APPROVE criteria all met",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-14T19:43:31.739Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "72464b0e813f37a63c9fd8df79f287168a2ed370",
-      "url": "https://www.credaily.com/briefs/bgo-and-banner-buy-160k-sf-miami-area-cold-storage-asset/",
-      "title": "BGO and Banner Buy 160K SF Miami-Area Cold Storage Asset",
-      "content_html": "",
-      "content_text": "",
-      "summary": "",
-      "date_published": "2026-10-21T12:37:32-04:00",
-      "date_modified": "2026-10-21T16:46:28.598Z",
-      "image": "https://cdn.credaily.com/uploads/2026/10/WordPress-Article-Images-2026-10-21T103523.071.webp",
-      "author": {
-        "name": "CRE Daily"
-      },
-      "_source": {
-        "name": "credaily.com",
-        "website": "credaily.com",
-        "url": "https://www.credaily.com/briefs/bgo-and-banner-buy-160k-sf-miami-area-cold-storage-asset/",
-        "feedName": "credaily.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "credaily.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Industrial transaction in Florida with 160K SF, meets size threshold and target region (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-15T20:08:33.104Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "992146100777bc74171f81934d6fcda511680864",
-      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNd2pJME5sWHQzWlY4R1VTbWlxTzdheGRfSjFGWGtyWmwwbW4xQWFWN3FMZ1NJMDZCalY1WmVJTU5vS3lqQ19VVmpqYXBHWVQ5c3RhUVJmNnlSd2hNT3FiUy1jeTBjdk1tdFZYN2NLRDMyX2dPclBmR2hDWC1xQi12YTJZX1VyYWp6ajVBVllZekhEU3gwQWd4MVlkS2xhOHkycVhXcnl5WEhHSGE5UlRNZ2xlSElpeGl5TlkzV2MzMDFNNHcxa2s5eDRzMA?oc=5",
-      "title": "Alexium International Appoints Four Executives to Strengthen Manufacturing and R&D Operations - citybiz",
-      "content_html": "Alexium International Appoints Four Executives to Strengthen Manufacturing and R&D Operations citybiz",
-      "content_text": "Alexium International Appoints Four Executives to Strengthen Manufacturing and R&D Operations citybiz",
-      "summary": "Alexium International Appoints Four Executives to Strengthen Manufacturing and R&D Operations citybiz",
-      "date_published": "2026-10-21T16:02:10.000Z",
-      "date_modified": "2026-10-25T18:02:33.746Z",
-      "image": "https://picsum.photos/seed/4b0v4r/640/360",
-      "author": {
-        "name": "Google News citybiz Executive Moves"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNd2pJME5sWHQzWlY4R1VTbWlxTzdheGRfSjFGWGtyWmwwbW4xQWFWN3FMZ1NJMDZCalY1WmVJTU5vS3lqQ19VVmpqYXBHWVQ5c3RhUVJmNnlSd2hNT3FiUy1jeTBjdk1tdFZYN2NLRDMyX2dPclBmR2hDWC1xQi12YTJZX1VyYWp6ajVBVllZekhEU3gwQWd4MVlkS2xhOHkycVhXcnl5WEhHSGE5UlRNZ2xlSElpeGl5TlkzV2MzMDFNNHcxa2s5eDRzMA?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the article is about corporate hires at a manufacturing company, not an industrial real estate transaction or market report (Rule 5)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-18T21:14:27.246Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "2c46301f144bf4374e8f9fc08d8f0df092b60ffd",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQbkViTHQ5RGFlV1ExVXlHd0lId2tjdkVWWVR3TERxd3FTbFFDYXE4aW94Yy04WDlZc1hUUmdERFl6cnRHRUJscHoxbkV3ZnY2allWanI2YnpGQ3NvMGZ6cUJnWEtydmdMbm1YbTVidXJrWUdkUUZ4ZkdIUUxKVWZJTUIzRnFVcTd0d21YeVltbnVqek53N1FOMDZROA?oc=5",
-      "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations - Area Development",
-      "content_html": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations Area Development",
-      "content_text": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations Area Development",
-      "summary": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations Area Development",
-      "date_published": "2026-10-21T11:26:52.000Z",
-      "date_modified": "2026-10-28T18:02:16.702Z",
-      "image": "https://picsum.photos/seed/yowna7/640/360",
-      "author": {
-        "name": "Google News Montgomery County PA"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQbkViTHQ5RGFlV1ExVXlHd0lId2tjdkVWWVR3TERxd3FTbFFDYXE4aW94Yy04WDlZc1hUUmdERFl6cnRHRUJscHoxbkV3ZnY2allWanI2YnpGQ3NvMGZ6cUJnWEtydmdMbm1YbTVidXJrWUdkUUZ4ZkdIUUxKVWZJTUIzRnFVcTd0d21YeVltbnVqek53N1FOMDZROA?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Industrial manufacturing expansion in Pennsylvania meets regional and asset criteria (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-17T11:21:58.033Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "380035bbedcff4996ee5c868074c7d4b645d3672",
-      "url": "https://www.areadevelopment.com/newsItems/10-21-2026/merck-montgomery-county-pennsylvania.shtml",
-      "title": "Merck Expands Montgomery County, Pennsylvania, R&D-Manufacturing Operations",
-      "content_html": "Global biopharmaceutical company Merck plans to expand its operations in Montgomery County, Pennsylvania.",
-      "content_text": "Global biopharmaceutical company Merck plans to expand its operations in Montgomery County, Pennsylvania.",
-      "summary": "Global biopharmaceutical company Merck plans to expand its operations in Montgomery County, Pennsylvania.",
-      "date_published": "2026-10-21T11:16:00.000Z",
-      "date_modified": "2026-10-21T16:47:36.825Z",
-      "image": "https://picsum.photos/seed/hbsuo1/640/360",
-      "author": {
-        "name": "Area Development Master"
-      },
-      "_source": {
-        "name": "areadevelopment.com",
-        "website": "areadevelopment.com",
-        "url": "https://www.areadevelopment.com/newsItems/10-21-2026/merck-montgomery-county-pennsylvania.shtml",
-        "feedName": "areadevelopment.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "areadevelopment.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Merck expansion is a new industrial manufacturing facility in Pennsylvania, meeting the industrial real estate focus and target region (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-17T11:22:19.232Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "21bb0bd3369b6b27eb9b040d292b1e04a86430d8",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE5MTW1KejEtd1pkeG1PR0FYOEZFa2lLdkdycFhWZ0pWUlBMckhtdGZ3VWhmN294T2ZDdlh5MjJtbFd5NnhWMWVIaGhyNzdLWHJ0M3dVQVJHVnowVTJ3NlVXSlFOUjlYNDdBSk9sUlZGbWFyUEp3TVRlOHB4cjc?oc=5",
-      "title": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease - LoopNet",
-      "content_html": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease LoopNet",
-      "content_text": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease LoopNet",
-      "summary": "1740 Route 34, Wall Township, NJ 07719 - Industrial for Lease LoopNet",
-      "date_published": "2026-10-21T07:00:00.000Z",
-      "date_modified": "2026-11-02T22:19:26.089Z",
-      "image": "https://picsum.photos/seed/e1purk/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE5MTW1KejEtd1pkeG1PR0FYOEZFa2lLdkdycFhWZ0pWUlBMckhtdGZ3VWhmN294T2ZDdlh5MjJtbFd5NnhWMWVIaGhyNzdLWHJ0M3dVQVJHVnowVTJ3NlVXSlFOUjlYNDdBSk9sUlZGbWFyUEp3TVRlOHB4cjc?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "9ccfd9814698cdb117ccd1d318dc56f7fd2d1412",
-      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNVGNUXzNqMEQ5X0JhTzA3YzVRYVNqUmNiU3pRajFRVXNfWnJZRXFFTDNVRkUyVWg0VnhydmdNNnFSMWRRbFF3a1Q3dl9HZE55UFFqNjluVzNyZmR1eWZIckNHMHdiaG5tRXhHSFo1LWx5XzZFcjZTaEpTTFVOR1c2MGtaMXJKQWVwVVp5bzVOQk9vZDNKUExpbTJPMWtSVGJOX211bkF3UElTLVRqbUNUYlRBVWQ2dVk?oc=5",
-      "title": "Making Data Center Construction Supply Chains Smarter - Bisnow",
-      "content_html": "Making Data Center Construction Supply Chains Smarter Bisnow",
-      "content_text": "Making Data Center Construction Supply Chains Smarter Bisnow",
-      "summary": "Making Data Center Construction Supply Chains Smarter Bisnow",
-      "date_published": "2026-10-21T07:00:00.000Z",
-      "date_modified": "2026-10-30T17:54:40.171Z",
-      "image": "https://a-us.storyblok.com/f/571151439874644/4896x3264/400ae2f1ca/hannes-egler-nt4k2jdtwtq-unsplash.jpg",
-      "author": {
-        "name": "Google News Bisnow Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNVGNUXzNqMEQ5X0JhTzA3YzVRYVNqUmNiU3pRajFRVXNfWnJZRXFFTDNVRkUyVWg0VnhydmdNNnFSMWRRbFF3a1Q3dl9HZE55UFFqNjluVzNyZmR1eWZIckNHMHdiaG5tRXhHSFo1LWx5XzZFcjZTaEpTTFVOR1c2MGtaMXJKQWVwVVp5bzVOQk9vZDNKUExpbTJPMWtSVGJOX211bkF3UElTLVRqbUNUYlRBVWQ2dVk?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Neutral pro-development coverage of data center construction supply chains, no anti-DC framing (Rule 3), and not a software/SAAS story (Rule 6); meets industrial relevance criteria",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-17T11:29:05.798Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "a01f107108ff354836f5a5d4b660b41bf7918bb5",
-      "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNOTdLeW9Ga0NLcHRwbTZaSmtKMmJjMjFSUXIzT1BYTndqeVRDY1I4aGlPempzY0VzclFNUlQyLS14WmtxUllTd0JzSzZIcl9zcE1FZkF1ZVkxQmtwTUlxMWpvQVlSLTRMaS1iQ01iczRxLWl0QkVYOFlCZTFXc1F3c1F3?oc=5",
-      "title": "245-247 Elizabeth Ave, Elizabeth, NJ 07206 - Industrial for Lease - LoopNet",
-      "content_html": "245-247 Elizabeth Ave, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
-      "content_text": "245-247 Elizabeth Ave, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
-      "summary": "245-247 Elizabeth Ave, Elizabeth, NJ 07206 - Industrial for Lease LoopNet",
-      "date_published": "2026-10-21T07:00:00.000Z",
-      "date_modified": "2026-10-29T18:12:18.919Z",
-      "image": "https://picsum.photos/seed/dsh7mm/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNOTdLeW9Ga0NLcHRwbTZaSmtKMmJjMjFSUXIzT1BYTndqeVRDY1I4aGlPempzY0VzclFNUlQyLS14WmtxUllTd0JzSzZIcl9zcE1FZkF1ZVkxQmtwTUlxMWpvQVlSLTRMaS1iQ01iczRxLWl0QkVYOFlCZTFXc1F3c1F3?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "caddb3fbe43311c33691e82a596ad156ddb4f4cc",
-      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFA3alptN2JWOFdDaThCek95d016b1h1NkszeXRUc0I0VUt2SWFpNDdoZEtuek5EcE9CZC01cVFJUlJRQzFYbHFwRW5lRHU3Z2pXd0I3V2YtWk5BWnZNbjFMZTR1dG9IbURRd1pIRVZuMzVMVzRkYXoyVG5MejZwdw?oc=5",
-      "title": "1050 Elizabeth Ave, Elizabeth, NJ 07201 - Industrial for Lease - LoopNet",
-      "content_html": "1050 Elizabeth Ave, Elizabeth, NJ 07201 - Industrial for Lease LoopNet",
-      "content_text": "1050 Elizabeth Ave, Elizabeth, NJ 07201 - Industrial for Lease LoopNet",
-      "summary": "1050 Elizabeth Ave, Elizabeth, NJ 07201 - Industrial for Lease LoopNet",
-      "date_published": "2026-10-21T07:00:00.000Z",
-      "date_modified": "2026-10-25T18:02:27.476Z",
-      "image": "https://picsum.photos/seed/sh4fbx/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFA3alptN2JWOFdDaThCek95d016b1h1NkszeXRUc0I0VUt2SWFpNDdoZEtuek5EcE9CZC01cVFJUlJRQzFYbHFwRW5lRHU3Z2pXd0I3V2YtWk5BWnZNbjFMZTR1dG9IbURRd1pIRVZuMzVMVzRkYXoyVG5MejZwdw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Listing aggregator without explicit region token in title (ends in ' - LoopNet') and source is a listing aggregator rather than a news publication, matching Rule 13",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "cerebras",
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "24fe65695fe41b6fa9a1aa6391d46eabfae98d50",
-      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQR1RIVkIzV09Ob2xrbWVtaXlSS25HbDdnNXF6VVNqaEpLX3ZpdjNONU5XUEctZzU3OUw0YjI0a1U2NjdqUVc0UjlBRWdTVjNGbWVUbzNnWmlXVS1qUFV4OElpSjNVZUFQZ1RhNmo2MnpDRjNrdU94T3dieVc2X21kMFNudmF6Z2hfMmdfUlRBT05xazhTLUxub2MwYTBMOWMycUhublB2X2I?oc=5",
-      "title": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth - Real Estate NJ",
-      "content_html": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth Real Estate NJ",
-      "content_text": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth Real Estate NJ",
-      "summary": "Elberon, Saoud break ground on 146,000 sq. ft. FreezPak cold storage facility in Elizabeth Real Estate NJ",
-      "date_published": "2026-10-21T04:02:38.000Z",
-      "date_modified": "2026-10-21T10:19:25.407Z",
-      "image": "https://picsum.photos/seed/f7na1r/640/360",
-      "author": {
-        "name": "Google News Cold Storage"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQR1RIVkIzV09Ob2xrbWVtaXlSS25HbDdnNXF6VVNqaEpLX3ZpdjNONU5XUEctZzU3OUw0YjI0a1U2NjdqUVc0UjlBRWdTVjNGbWVUbzNnWmlXVS1qUFV4OElpSjNVZUFQZ1RhNmo2MnpDRjNrdU94T3dieVc2X21kMFNudmF6Z2hfMmdfUlRBT05xazhTLUxub2MwYTBMOWMycUhublB2X2I?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "TXN_SF_IN_TITLE",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Industrial cold storage facility in Elizabeth, NJ with 146,000 sq. ft. meets transaction threshold and target region (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 98,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-13T20:33:54.304Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "e70d760a8916ea7c268ddd2c2380b29e68d971d4",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPbF9ySjRuSDBtVTdWSEhWaFFIdC14OU9VVW9oREE1TzhQV3JhQUNkbkR4UHFkT0pJYzlWX3F6aVd0T0t4Y3RjU0E0dXhVSDBhblhBYVFxWGtvRDlaYy1sT25ncVptaW1iQzNGWk5ma200bGxYeWNRdm04OWdka3FDemhHYkVIV2lONnJWeXpsLWduc0NwLW9FSjFhM3l2X0Nmd2lqZWFNNXAyc1dQSWdJRUdLdlI4Mk41V3o4d0YxSGh5RFNSdUN1eVl1RXg?oc=5",
-      "title": "Palm Beach County said no to Project Tango expansion, but data center space still triples - WPTV",
-      "content_html": "Palm Beach County said no to Project Tango expansion, but data center space still triples WPTV",
-      "content_text": "Palm Beach County said no to Project Tango expansion, but data center space still triples WPTV",
-      "summary": "Palm Beach County said no to Project Tango expansion, but data center space still triples WPTV",
-      "date_published": "2026-10-21T01:09:05.000Z",
-      "date_modified": "2026-10-22T10:19:39.346Z",
-      "image": "https://ewscripps.brightspotcdn.com/dims4/default/e7b74a2/2147483647/strip/true/crop/1280x672+0+24/resize/1200x630!/quality/90/?url=http%3A%2F%2Fewscripps-brightspot.s3.amazonaws.com%2F35%2Fb6%2Fbec843444ac8851f4f5397c481b4%2Fproject-tango.jpg",
-      "author": {
-        "name": "Google News Palm Beach County FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPbF9ySjRuSDBtVTdWSEhWaFFIdC14OU9VVW9oREE1TzhQV3JhQUNkbkR4UHFkT0pJYzlWX3F6aVd0T0t4Y3RjU0E0dXhVSDBhblhBYVFxWGtvRDlaYy1sT25ncVptaW1iQzNGWk5ma200bGxYeWNRdm04OWdka3FDemhHYkVIV2lONnJWeXpsLWduc0NwLW9FSjFhM3l2X0Nmd2lqZWFNNXAyc1dQSWdJRUdLdlI4Mk41V3o4d0YxSGh5RFNSdUN1eVl1RXg?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — county rejecting Project Tango expansion is an opposition to data center development, matching Rule 3",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-16T17:16:25.631Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "d2b892e7c5b298c7cb08222a150c8b1cdc241fde",
-      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNa3lOQ2NWVWo3eTV0OHN4dVJiSWpJUmdDYkZFVndzcXo2VzJYNlItdDRBT3J4Y3o5ZGhBSXNVT0x1d0RDbURpMjNwWlIzcWpvMzhvOVN1eldlbGd2dDc0ejV0b3ZKOWpCd09kaG9maUZwLW5qMzJMcXZUWllBV1doVU5YYWRhdEVfNTRIMV9TTnh1WUQydTNmTXFpWlJfZkhHT3FYUElEcTV6VEJqT2dXNDc2MTNtUWQ3N0RSeERNNkZIZjRFSGRsUEdQNDRwRlFNOEFJeVFuRnh4Z3dteDUtSTZabG44TjVUbElSbzZnSTluYnkw?oc=5",
-      "title": "Profeta sells 685,000 sq. ft. Florida warehouse— mission critical facility for consumer goods giant — for a 4 percent cap rate to local family office - Real Estate NJ",
-      "content_html": "Profeta sells 685,000 sq. ft. Florida warehouse— mission critical facility for consumer goods giant — for a 4 percent cap rate to local family office Real Estate NJ",
-      "content_text": "Profeta sells 685,000 sq. ft. Florida warehouse— mission critical facility for consumer goods giant — for a 4 percent cap rate to local family office Real Estate NJ",
-      "summary": "Profeta sells 685,000 sq. ft. Florida warehouse— mission critical facility for consumer goods giant — for a 4 percent cap rate to local family office Real Estate NJ",
-      "date_published": "2026-10-20T23:05:08.000Z",
-      "date_modified": "2026-10-21T10:20:29.520Z",
-      "image": "https://picsum.photos/seed/lum4kq/640/360",
-      "author": {
-        "name": "Google News RE-NJ Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNa3lOQ2NWVWo3eTV0OHN4dVJiSWpJUmdDYkZFVndzcXo2VzJYNlItdDRBT3J4Y3o5ZGhBSXNVT0x1d0RDbURpMjNwWlIzcWpvMzhvOVN1eldlbGd2dDc0ejV0b3ZKOWpCd09kaG9maUZwLW5qMzJMcXZUWllBV1doVU5YYWRhdEVfNTRIMV9TTnh1WUQydTNmTXFpWlJfZkhHT3FYUElEcTV6VEJqT2dXNDc2MTNtUWQ3N0RSeERNNkZIZjRFSGRsUEdQNDRwRlFNOEFJeVFuRnh4Z3dteDUtSTZabG44TjVUbElSbzZnSTluYnkw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Real Florida industrial transaction of 685,000 sq. ft. meets size threshold and target region (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-13T20:34:18.080Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "6efb182bc8742811df5b8941f054b6f43a369681",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNWU5WMjhadm4wRHVRWV9HcTFWbWFhVHJkalVBeF8tTDJCRWliVWxfZGl2OG1FbDFCeE1sZ0NSNEFPSjJPc0hzNE11SWVlMmwxOUw0WUhCQ2l1TEVKTU5SRFNDdG9KUUE2THVjUXUxU3lHTjhyd21vUlowSXpxb0VpUHQzYllZUlRqM2pKOGlON090YS1ESEpfYmJfdTd1anJNbzZud1c1QlhQbVBYeHA3M0JjX3o1aW1IWGVPbjNUU1ZYaHpIaERnZXh2c0xGVzZvdWl1TVRmbw?oc=5",
-      "title": "AI data center projects boost US warehouse demand and rents, real estate company JLL says - Reuters",
-      "content_html": "AI data center projects boost US warehouse demand and rents, real estate company JLL says Reuters",
-      "content_text": "AI data center projects boost US warehouse demand and rents, real estate company JLL says Reuters",
-      "summary": "AI data center projects boost US warehouse demand and rents, real estate company JLL says Reuters",
-      "date_published": "2026-10-20T22:55:47.000Z",
-      "date_modified": "2026-10-21T10:20:22.953Z",
-      "image": "https://picsum.photos/seed/6lelf/640/360",
-      "author": {
-        "name": "Google News Reuters CRE"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNWU5WMjhadm4wRHVRWV9HcTFWbWFhVHJkalVBeF8tTDJCRWliVWxfZGl2OG1FbDFCeE1sZ0NSNEFPSjJPc0hzNE11SWVlMmwxOUw0WUhCQ2l1TEVKTU5SRFNDdG9KUUE2THVjUXUxU3lHTjhyd21vUlowSXpxb0VpUHQzYllZUlRqM2pKOGlON090YS1ESEpfYmJfdTd1anJNbzZud1c1QlhQbVBYeHA3M0JjX3o1aW1IWGVPbjNUU1ZYaHpIaERnZXh2c0xGVzZvdWl1TVRmbw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Pro-development data center coverage with industrial real estate focus, national scope acceptable (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T11:19:23.080Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     }
   ]
