@@ -1,64 +1,18 @@
 {
-  "runId": "2026-11-20-1300",
-  "generatedAt": "2026-11-20T13:00:30.405Z",
-  "isFriday": true,
+  "runId": "2026-11-23-1300",
+  "generatedAt": "2026-11-23T13:00:40.296Z",
+  "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 303,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 286,
+      "inWindow": 7,
+      "regionPass": 7,
       "industrialPass": 0,
-      "sectionPass": 3,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 6,
-      "supplyCandidates": 92,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 2,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 3,
-        "tier3_30d_deep": 2,
-        "tier4_reserve": 4,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 303,
-      "inWindow": 3,
-      "regionPass": 3,
-      "industrialPass": 0,
-      "sectionPass": 0,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 1,
-      "supplyCandidates": 6,
+      "selected": 4,
+      "supplyCandidates": 98,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -71,7 +25,53 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 3,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 2
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 5,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 1,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "transactions": {
+      "loaded": 286,
+      "inWindow": 5,
+      "regionPass": 1,
+      "industrialPass": 0,
+      "sectionPass": 1,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 3,
+      "supplyCandidates": 10,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 4,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,8 +86,8 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
@@ -95,15 +95,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 303,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 286,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 19,
+      "supplyCandidates": 21,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -115,7 +115,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
+        "SECTION_RULE_FAILED": 1,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -140,15 +140,15 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 303,
-      "inWindow": 1,
-      "regionPass": 0,
+      "loaded": 286,
+      "inWindow": 2,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 2,
+      "selected": 2,
+      "supplyCandidates": 5,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 1,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -176,95 +176,81 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 1,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
-      "underfilled": true,
-      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
+      "underfilled": false,
+      "underfillReason": null
     }
   },
   "perFeedBySection": {
+    "NJ Zoning Approvals": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 5,
+      "selected": 8,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 4,
-        "transactions": 1,
+        "relevant": 3,
+        "transactions": 3,
         "availabilities": 0,
-        "people": 0
-      }
-    },
-    "NJ Economic Dev Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "globest.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
+        "people": 2
       }
     }
   },
   "weekInReview": {
-    "totalCandidates": 5,
-    "afterAgeFilter": 5,
-    "afterDedup": 5,
-    "selected": 5,
+    "totalCandidates": 0,
+    "afterAgeFilter": 0,
+    "afterDedup": 0,
+    "selected": 0,
     "windowDays": 7
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 73,
-    "outOf10": 7.3,
-    "grade": "C",
-    "itemCount": 7,
-    "operationalScore": 73,
-    "operationalGrade": "C",
-    "editorialQualityScore": 78,
-    "editorialGrade": "C",
-    "coverageSupplyScore": 60,
+    "score": 83,
+    "outOf10": 8.3,
+    "grade": "B",
+    "itemCount": 9,
+    "operationalScore": 83,
+    "operationalGrade": "B",
+    "editorialQualityScore": 83,
+    "editorialGrade": "B",
+    "coverageSupplyScore": 80,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "NO_FRESH_SUPPLY",
-      "people": "QUALITY_REJECTED"
+      "availabilities": "QUALITY_REJECTED",
+      "people": "FILLED"
     },
-    "sectionsFilled": 2,
+    "sectionsFilled": 3,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 18,
-      "freshness": 12.6,
-      "regional": 22.9,
+      "coverage": 24,
+      "freshness": 16.7,
+      "regional": 22.2,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 3,
-      "deep": 2,
-      "reserve": 5
+      "fresh": 7,
+      "deep": 1,
+      "reserve": 3
     },
     "delivery": {
       "score": 100,
@@ -273,20 +259,31 @@
     "supply": "Rich",
     "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): people",
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities"
+      "Empty — fresh supply rejected by section gates (quality): availabilities"
     ]
   },
   "logicImpact": {
-    "nearDuplicatesSuppressed": 0,
+    "nearDuplicatesSuppressed": 1,
     "falseLeaksPrevented": {
       "total": 0,
       "routedClean": 0,
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 138,
+    "crossDayPoolRepeatsSuppressed": 118,
     "audit": [
+      {
+        "id": "a2267f6d2eb12b6d1b861281b181446152255a0f",
+        "title": "Silex Microsystems to Locate First US Manufacturing Facility in Pennsylvania, Creating 55 New Jobs - PennWatch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "8bd26aeee433aa424f0c99281459e13881277f05",
+        "title": "JobsOhio Backs $1.5M Union Industrial Facility - Wisevoter",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "7f1d6ddc3e90a0a6c91fa3ecee98b9bca3f22946",
         "title": "Pennsylvania factory sold, $300M expansion planned to support submarine manufacturing - Yahoo",
@@ -296,6 +293,12 @@
       {
         "id": "44118f724a91ad8f83d2985426e3d0461c01f3ce",
         "title": "Private Equity Lags REITs In Getting CRE Portfolios Up To Market Speed",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "ac143853a1020bf05a80377be16b7ade09028e4f",
+        "title": "Data Center Sale-Leasebacks Open a New Lane for Net Lease Capital",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -768,6 +771,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "a3c1cd63ed349ae76cd2950f3352b727ef25d7b5",
+        "title": "The Advance Group consolidates logistics operations from three sites to new facility in Carteret - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "cc3e0a316b1c4699232926e52256863ef1a08aac",
         "title": "N.J. voters divided on data center development nationally, strongly opposed locally: Stockton poll - ROI-NJ",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -862,42 +871,12 @@
         "title": "Tinicum Warehouse Redevelopment Near Philadelphia Airport Secures $153M - DELCO.Today",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
-      },
-      {
-        "id": "1285d5ad5f2ed957591b968a0b9a2167f8a91aef",
-        "title": "NJEDA approves manufacturing award to boost Amneal Pharmaceuticals investment in state - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "2e4da7125bbc51989dfa636142681eced9ad7ce5",
-        "title": "Radnor is weighing strict regulations on data centers as the facilities crop up across Pa. - Inquirer.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
-        "id": "addbd69e8fef8837a84f5acdfa64d3f38fe2aa56",
-        "title": "Amazon’s Same-Day Delivery Expansion Reignites Demand for Last-Mile Logistics - Commercial Observer",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "88dd75157298ff5892814789e8ec6a571ebd4582",
-        "title": "CloudHQ CEO Hossein Fateh On What Could Curb the Data Center Boom",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
       }
     ]
   },
   "dcPolicy": {
     "rejectedOutOfRegion": [],
     "nationalScaleAllowed": [],
-    "unknownLocationAllowed": [
-      {
-        "id": "ac143853a1020bf05a80377be16b7ade09028e4f",
-        "title": "Data Center Sale-Leasebacks Open a New Lane for Net Lease Capital",
-        "unresolvedLocationTokens": []
-      }
-    ]
+    "unknownLocationAllowed": []
   }
 }
