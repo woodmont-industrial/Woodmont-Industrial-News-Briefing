@@ -150,7 +150,7 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -226,7 +226,7 @@
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -302,7 +302,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "PEOPLE_TITLE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -403,16 +403,15 @@
         "name": "Google News REIT Analysis"
       },
       "_source": {
-        "name": "Google News REIT Analysis",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxORmVMMlFzaXJNTWR5cko3UE9jRGd6cGt0TC0xNXVkMmFoRGZXcEVnZU5RcG9Sa2sta3pyUFM4aXB5ZFhIUUY4SGY0RDJ3WUpXQk1NMGFBR0s3M21zT1BHTWFNcFp4WnJmaC05Y3ZRRkZMZHZfTVlZVDNOa1ZWT01iYXpwZWNmMlhNbHJ2LXpJUlZGSzBVeXlyclk3MnU2b2ZoQWhjMw?oc=5",
-        "feedName": "Google News REIT Analysis"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": true,
       "_predictedReason": "WOULD_PUBLISH",
@@ -493,7 +492,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -569,7 +568,7 @@
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": false,
       "_woodmontReason": "Transaction below $10M threshold and 39,000 SF < 50K SF, violates transaction size rule",
       "_woodmontConfidence": 95,
@@ -594,16 +593,15 @@
         "name": "Google News LoopNet NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News LoopNet NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9ON0E0WnY4UEZDNS1zd3RsLVZMZHR5TW5aNjc5aDZUb0VsNG1yYjVWdWtFZEFiOFNjenc1RDQ1emE5QzdsOTBJQU9jYm5uRjZfQ0wweXFlTFQwR0NxZ2RTSjl6UTBfeFRrTkNqZTRyZVZFdDFlSkRLUw?oc=5",
-        "feedName": "Google News LoopNet NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -681,18 +679,18 @@
         "Relevant — Market Trends & Real Estate News",
         "areadevelopment.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontApprove": false,
+      "_woodmontReason": "Anti-DC framing — headline and content focus on community opposition to data centers, matching Rule 3 (anti-data-center editorial framing)",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq",
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-23T03:41:57.490Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
     },
     {
@@ -985,8 +983,8 @@
         "Relevant — Market Trends & Real Estate News",
         "news.google.com"
       ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": null,
@@ -1293,14 +1291,14 @@
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Transaction lacks disclosed dollar amount or square footage, failing the $10M or 50K SF threshold (Rule: Transactions threshold)",
-      "_woodmontConfidence": 90,
+      "_woodmontApprove": true,
+      "_woodmontReason": "Industrial warehouse lease in Florida meets regional and asset criteria (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T21:07:44.556Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:42:49.559Z",
       "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -1446,11 +1444,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region – Hyattsville is in Maryland, outside NJ, PA, or FL (Rule 9)",
+      "_woodmontReason": "Wrong region – Hyattsville is in Maryland, outside NJ/PA/FL (Rule 9)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-21T20:47:41.754Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:42:49.559Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -1507,16 +1505,15 @@
         "name": "Google News Supply Chain Dive Industrial"
       },
       "_source": {
-        "name": "Google News Supply Chain Dive Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPTm9SX0laSHNBTkZ4ekpfM3dMUUdJYTFZWDJXSExaQVhFVFhKRXF4Q0I1czJzQkpYT0VpVXdJZ24tcjJlRERlQnd3SHNZaTQ0c2lFZ1VhVXhrbGJLM3J1ek9mUVoyRGYxa08tOEZPRHk1OTZIYXNCdThNSE1acUdpQzhuU2ZocFh4U1ZmRzlLX3JtdE9WbV9BUE50ZVd5cUxVRzQ2STBfN05FWEwwc0FkZnlpRmtCdw?oc=5",
-        "feedName": "Google News Supply Chain Dive Industrial"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
@@ -1635,7 +1632,7 @@
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "B",
+      "_tier": "C",
       "_woodmontApprove": null,
       "_woodmontReason": null,
       "_woodmontConfidence": null,
@@ -3499,11 +3496,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article focuses on a retailer's in-house last-mile delivery operations, not an industrial real estate transaction or property; violates Rule 5 (wrong asset class) and does not meet industrial real estate criteria",
+      "_woodmontReason": "Wrong asset class – the article focuses on a retailer’s in‑house last‑mile delivery operation, not an industrial real estate transaction or property, matching Rule 5",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-21T20:48:02.712Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:43:10.581Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -5209,11 +5206,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the Flagler Center is a mixed‑use development, not an industrial property (Rule 5)",
+      "_woodmontReason": "Wrong asset class – the Flagler Center is a mixed‑use development with retail, office, and residential components, not an industrial property (Rule 5)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-21T20:48:28.857Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:43:36.726Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -5460,29 +5457,28 @@
         "name": "Google News Data Centers NJ/PA/FL"
       },
       "_source": {
-        "name": "Google News Data Centers NJ/PA/FL",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQeW1jdDhGS0NkRjF0bzBmVTF1M0pYM2VsV19MckhtUU1PclBaNi12SkxjcVVtRkc4bHp6ZjhGc3MxUV9ZRnNpUVN3VUhkZlY0UXJqWGJwU1B6bEZOVHFzakxpMDZhZEVmTUNOQmVDeVNUcjUxaGdRNW9FTlFHRGs1SGxtU1dmd2VQbkE2RXpsankyQ0xuQ2NoUDJtcXFJUThVX0FVWWRTVkItTHFJZXJ5Tk5jamMtemNCNjRzeW5DWUFvS3FwckVHZE0xSTdFcE1Ta2hoZjNRNA?oc=5",
-        "feedName": "Google News Data Centers NJ/PA/FL"
+        "feedName": "news.google.com"
       },
       "category": "relevant",
       "tags": [
         "Relevant — Market Trends & Real Estate News",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontApprove": true,
+      "_woodmontReason": "Neutral pro-development coverage of a Pennsylvania data center buildout, meeting regional and industrial relevance criteria (Rule 3 anti-data-center framing not triggered)",
+      "_woodmontConfidence": 90,
+      "_woodmontClassifier": "groq",
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-23T03:42:23.512Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -6084,11 +6080,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region – Huntington Beach is in California, outside the target regions of NJ, PA, or FL (Rule 9)",
+      "_woodmontReason": "Wrong region – Huntington Beach is in California, outside NJ, PA, or FL (Rule 9)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-22T20:59:02.106Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:43:57.658Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -7148,11 +7144,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline about rebranding data center projects to appease voters matches Rule 3 (anti-data-center editorial framing)",
+      "_woodmontReason": "Anti-DC framing — headline focuses on rebranding to appease voters, matching Rule 3 (anti-data-center editorial framing)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T21:09:33.950Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:44:18.651Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -7570,7 +7566,7 @@
       "_woodmontConfidence": 90,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-21T20:49:15.903Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:44:24.150Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -7680,11 +7676,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region – Davenport is in Iowa, outside the target NJ/PA/FL region (Rule 9)",
+      "_woodmontReason": "Wrong region – Davenport is in Iowa, outside NJ/PA/FL, matches Rule 9",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-22T20:59:27.867Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:44:24.150Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -7790,17 +7786,17 @@
         "news.google.com"
       ],
       "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
+      "_predictedReason": "CAP_OVERFLOW",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Article focuses on USDA funding for fertilizer manufacturing projects, not an industrial real estate transaction or property; violates Rule 5 (Wrong Asset Class)",
-      "_woodmontConfidence": 95,
+      "_woodmontApprove": true,
+      "_woodmontReason": "Macro industrial funding program, primary subject industrial manufacturing, meets Rule 1 (industrial relevance) and Rule 2 (regional or national macro coverage)",
+      "_woodmontConfidence": 70,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T21:27:50.125Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:44:29.707Z",
       "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -8972,11 +8968,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the article focuses on office and data center growth, which is not industrial real estate (Rule 5)",
+      "_woodmontReason": "Wrong asset class – the article focuses on office and data center activity, which are not industrial real estate assets (Rule 5)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T21:28:15.951Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:44:55.687Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -9516,11 +9512,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region – the article focuses on Washington DC, which is outside the target regions of New Jersey, Pennsylvania, or Florida (Rule 9)",
+      "_woodmontReason": "Wrong region – the article focuses on Washington, DC, which is outside the target regions of NJ, PA, or FL (Rule 9)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-19T21:21:06.544Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:45:01.202Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -10705,11 +10701,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction below $10M threshold (Rule: Transactions require ≥$10M or ≥50K SF)",
+      "_woodmontReason": "Transaction amount $9.75M is below the $10M threshold for transactions (Rule: Transactions threshold)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-20T11:29:25.714Z",
+      "_woodmontClassifiedAt": "2026-11-23T03:45:22.118Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -10905,6 +10901,45 @@
       "_woodmontDateValidation": null
     },
     {
+      "id": "6693ef0ab2b1717e908a4f0d428bb17d76a65356",
+      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOY2ZQZ1J1bVVFcVpmcDk5VlJmX24xdVpxQ3BJRld5dFZEZ25sd1phOE9pMlFTdlBHWGN1VVBhcFhyd19ZOXY4MHBKU0YtNDJ5djhyM3VTZDRNZnpMb2IwbUxrTnBtWkl3ZWVJaENvcVdWXzFZV2JROFhuSmw4YmIzWlZYREs2eXFsVmdjZWNvS1gwZzdOSGVlRnhuemZZMXg4cEJxNFRTR2R0VDBLQ0JtYV9hcU81YnE4TUtYcw?oc=5",
+      "title": "SRS Arranges $133M Sale of Central Florida Industrial Property Occupied by Sherwin-Williams - REBusinessOnline",
+      "content_html": "SRS Arranges $133M Sale of Central Florida Industrial Property Occupied by Sherwin-Williams REBusinessOnline",
+      "content_text": "SRS Arranges $133M Sale of Central Florida Industrial Property Occupied by Sherwin-Williams REBusinessOnline",
+      "summary": "SRS Arranges $133M Sale of Central Florida Industrial Property Occupied by Sherwin-Williams REBusinessOnline",
+      "date_published": "2026-10-23T07:00:00.000Z",
+      "date_modified": "2026-11-23T03:38:44.374Z",
+      "image": "http://rebusinessonline.com/wp-content/uploads/2026/10/Sherwin-Williams-Winter-Haven-.jpg",
+      "author": {
+        "name": "Google News Industrial Land"
+      },
+      "_source": {
+        "name": "Google News Industrial Land",
+        "website": "news.google.com",
+        "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOY2ZQZ1J1bVVFcVpmcDk5VlJmX24xdVpxQ3BJRld5dFZEZ25sd1phOE9pMlFTdlBHWGN1VVBhcFhyd19ZOXY4MHBKU0YtNDJ5djhyM3VTZDRNZnpMb2IwbUxrTnBtWkl3ZWVJaENvcVdWXzFZV2JROFhuSmw4YmIzWlZYREs2eXFsVmdjZWNvS1gwZzdOSGVlRnhuemZZMXg4cEJxNFRTR2R0VDBLQ0JtYV9hcU81YnE4TUtYcw?oc=5",
+        "feedName": "Google News Industrial Land"
+      },
+      "category": "transactions",
+      "tags": [
+        "Transactions — Property Sales & Leases",
+        "news.google.com",
+        "US"
+      ],
+      "_predictedPublish": false,
+      "_predictedReason": "CAP_OVERFLOW",
+      "_classificationReason": "TXN_DEAL_SIGNAL",
+      "_tier": "C",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
+      "_woodmontDateValidation": null
+    },
+    {
       "id": "4e1af3723ae5e120a14d86c83d7e756673a318b3",
       "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxONXh6RmhleVlCdlpZQXlFS0RMcmtreVpzNzJpRXh2QVVoYklLMzdYTEN3el9HQnp4SlpRYkhoaV9UMGdNQWFkcWhfMkZZa0dmVi1UTk5hQVZEZXNtTXdudVBoMklqSVhkYVMyS3F2VkY3QVBGNTc5ODFBbEw2WjVlcS1ENTFDWlpKN2w5a3ZiUU9YdVF1WUxxUjQ0T1RMVmZzRXlwcWdyakc3UVdIeEgweUtFSEpfYy1DTmZxVllsRFdrcmhSMDdr?oc=5",
       "title": "Lee & Associates New Jersey arranges $25M East Rutherford warehouse sale - ROI-NJ",
@@ -10940,44 +10975,6 @@
       "_woodmontClassifiedAt": "2026-11-16T23:00:30.463Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "50f30b108dfe2cbfcef7f7e719323fc3dc7f0a62",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQek44dEMxWHptSGVpVWhwSW9kcmVjXzFSWG1GcGRYVjVDR1lKN1RyR3htdzJNeklMZ0VodDFfZnluaHIzSk5yT3dObjZ3VjAtWExIMTQ1ckVuaUtHRzFvVERTYXNRMjVmbmNESXBMZlcta2NIS1dzTDNEOTR4NFBxU0FhY0J4RkpObkJkQ3pZOHY2UEpIR3JESG9idw?oc=5",
-      "title": "Bridge Logistics Acquires Truck Terminal in Off-Market Deal - Connect CRE",
-      "content_html": "Bridge Logistics Acquires Truck Terminal in Off-Market Deal Connect CRE",
-      "content_text": "Bridge Logistics Acquires Truck Terminal in Off-Market Deal Connect CRE",
-      "summary": "Bridge Logistics Acquires Truck Terminal in Off-Market Deal Connect CRE",
-      "date_published": "2026-10-23T00:19:22.000Z",
-      "date_modified": "2026-10-23T16:39:31.139Z",
-      "image": "https://www.connectcre.com/wp-content/uploads/2026/10/CA-12903-Lakeland-Road-Santa-Fe-Springs.jpg",
-      "author": {
-        "name": "Google News ConnectCRE Industrial"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQek44dEMxWHptSGVpVWhwSW9kcmVjXzFSWG1GcGRYVjVDR1lKN1RyR3htdzJNeklMZ0VodDFfZnluaHIzSk5yT3dObjZ3VjAtWExIMTQ1ckVuaUtHRzFvVERTYXNRMjVmbmNESXBMZlcta2NIS1dzTDNEOTR4NFBxU0FhY0J4RkpObkJkQ3pZOHY2UEpIR3JESG9idw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "transactions",
-      "tags": [
-        "Transactions — Property Sales & Leases",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "TXN_DEAL_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
       "_woodmontDateValidation": null
     }
   ]
