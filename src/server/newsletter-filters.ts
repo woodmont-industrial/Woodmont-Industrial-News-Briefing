@@ -14,6 +14,7 @@ import { hasNewsletterTargetRegion, newsletterTargetCount, newsletterTargetMatch
 import { hasVerifiedTargetProperty, newsletterFactFields } from '../shared/newsletter-facts.js';
 import { meetsDealThreshold, getDealScore } from '../shared/deal-threshold.js';
 import { dealEventFromTitleKey, type DealEvent } from '../shared/url-utils.js';
+import { isCorporateAcquisition, corporateDealKind } from '../shared/corporate-deal.js';
 import type { DiagnosticContext, Section } from './newsletter-diagnostics.js';
 import { normTitle, titlesSimilar, recordNearDuplicateSuppressed } from './newsletter-diagnostics.js';
 import { getPublisherName } from '../shared/publisher-name.js';
@@ -440,6 +441,12 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
             if (diag) diag.recordReject('transactions', 'WRONG_PROPERTY_TYPE');
             return false;
         }
+        // A company bought with its plant is corporate M&A, not a property sale. Checked apart from
+        // the property-type guard, whose industrial override a "manufacturing facility" satisfies.
+        if (isCorporateAcquisition(article.title || '')) {
+            if (diag) diag.recordReject('transactions', 'CORPORATE_ACQUISITION');
+            return false;
+        }
         if (!isIndustrialProperty(text)) { if (diag) diag.recordReject('transactions', 'NOT_INDUSTRIAL'); return false; }
         // LISTING EVENT (2026-07-29): a property/site being listed/marketed/offered is an
         // availability, not a transaction — reject it here BEFORE the approval-keyword bypass and
@@ -481,6 +488,13 @@ export function applyTransactionFilter(items: NormalizedItem[], diag?: Diagnosti
  */
 export function isRoutableRegionalDeal(article: NormalizedItem): boolean {
     if (!passesRelevantEditorialVerdict(article)) return false;
+    // Company M&A never reroutes as deal flow. A REIT take-private that names an industrial
+    // portfolio may: its buyout price is a company price, so it is never a Transactions sale, but
+    // it is Relevant news on the same terms as any routed deal (target-region evidence). A
+    // national-only buyout is not routed: from this 30-day pool it arrived stale and was then
+    // removed by the final region gate, displacing a slot (11/18 replay).
+    const corporateKind = corporateDealKind(article.title || '');
+    if (corporateKind && corporateKind !== 'reit-take-private') return false;
     if (isMarketingListingEvent(article.title || '', { headline: true }) || isMarketingListingEvent(getText(article))) return false;
     if (!isTargetRegion(article)) return false;
     const text = getText(article);
