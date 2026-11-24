@@ -11,7 +11,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProvider, getAIProviders, getRetryAfterMs, trackTokenUsage, logTokenUsage, completionModelOptions } from './ai-provider.js';
+import { getAIProvider, getAIProviders, getRetryAfterMs, trackTokenUsage, logTokenUsage, completionModelOptions, HARD_PROVIDER_FAILURES, disableProviderForRun } from './ai-provider.js';
 
 export interface AIClassificationResult {
     category: 'relevant' | 'transactions' | 'availabilities' | 'people' | 'exclude';
@@ -173,6 +173,7 @@ export async function classifyWithAI(
             }
 
             if (!response || !response.ok) {
+                if (response && HARD_PROVIDER_FAILURES.has(response.status)) disableProviderForRun(provider.name, response.status);
                 const errorText = response ? await response.text() : 'No response';
                 console.error(`[${provider.name}] API error:`, response?.status, errorText);
                 if (!isLastProvider) {
@@ -294,7 +295,11 @@ async function classifyMultipleWithAI(
                 console.log(`[${provider.name}] Exhausted retries on 429 (batch) — falling back to ${providers[pIdx + 1].name}`);
                 continue;
             }
-            if (!response || !response.ok) { if (!isLastProvider) continue; return null; }
+            if (!response || !response.ok) {
+                if (response && HARD_PROVIDER_FAILURES.has(response.status)) disableProviderForRun(provider.name, response.status);
+                if (!isLastProvider) continue;
+                return null;
+            }
             const data = await response.json();
             trackTokenUsage(data.usage);
             const content = data.choices?.[0]?.message?.content;

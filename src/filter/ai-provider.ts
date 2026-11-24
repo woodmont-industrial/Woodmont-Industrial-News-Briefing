@@ -85,6 +85,31 @@ const GROQ_CONFIG = {
 const tokenUsage = { prompt: 0, completion: 0, total: 0, requests: 0 };
 
 /**
+ * Account/configuration failures that no retry in this run can fix: 401/403 (key), 402 (billing:
+ * 92 Cerebras 402s in the 2026-11-18 build, one per story), 404/410 (model gone). After one, the
+ * provider is skipped for the rest of the process by every caller.
+ */
+export const HARD_PROVIDER_FAILURES: ReadonlySet<number> = new Set([401, 402, 403, 404, 410]);
+const disabledProviders = new Map<string, number>();
+
+/** Stop calling this provider for the rest of the run. Returns true the first time. */
+export function disableProviderForRun(name: string, status: number): boolean {
+    if (disabledProviders.has(name)) return false;
+    disabledProviders.set(name, status);
+    console.warn(`[AI] ${name} returned HTTP ${status}; not calling it again this run.`);
+    return true;
+}
+
+export function isProviderDisabled(name: string): boolean {
+    return disabledProviders.has(name);
+}
+
+/** Test hook. */
+export function resetDisabledProviders(): void {
+    disabledProviders.clear();
+}
+
+/**
  * Get the best available AI provider.
  * Returns null if no API key is configured.
  */
@@ -115,7 +140,7 @@ export function getAIProviders(): AIProvider[] {
         providers.push({ ...CEREBRAS_CONFIG, model, reasoningEffort: modelReasoningEffort(model), apiKey: cerebrasKey });
     }
 
-    return providers;
+    return providers.filter(p => !disabledProviders.has(p.name));
 }
 
 /**

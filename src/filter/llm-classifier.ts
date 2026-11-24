@@ -24,7 +24,7 @@
  */
 
 import { NormalizedItem } from '../types/index.js';
-import { getAIProviders, getRetryAfterMs, trackTokenUsage, completionModelOptions, type AIProvider } from './ai-provider.js';
+import { getAIProviders, getRetryAfterMs, trackTokenUsage, completionModelOptions, HARD_PROVIDER_FAILURES, disableProviderForRun, isProviderDisabled, type AIProvider } from './ai-provider.js';
 import { WOODMONT_SYSTEM_PROMPT, buildArticleUserPrompt, WOODMONT_RUBRIC_VERSION } from './woodmont-rubric.js';
 
 interface WoodmontVerdict {
@@ -84,7 +84,7 @@ async function classifyOneArticle(
 
     for (const provider of run.providers) {
         if (Date.now() >= run.deadline) break;
-        if ((run.unavailableUntil.get(provider.name) || 0) > Date.now()) continue;
+        if ((run.unavailableUntil.get(provider.name) || 0) > Date.now() || isProviderDisabled(provider.name)) continue;
         try {
             const response = await fetch(provider.url, {
                 method: 'POST',
@@ -103,9 +103,10 @@ async function classifyOneArticle(
             });
             if (!response.ok) {
                 recordFailure(run, provider, 'http-' + response.status);
-                if ([401, 403, 404, 410].includes(response.status)) {
-                    // Configuration/access failures cannot recover by retrying every article.
+                if (HARD_PROVIDER_FAILURES.has(response.status)) {
+                    // Configuration/access/billing failures cannot recover by retrying every article.
                     run.unavailableUntil.set(provider.name, Infinity);
+                    disableProviderForRun(provider.name, response.status);
                 } else if (response.status === 429) {
                     const wait = Math.max(1000, getRetryAfterMs(response) ?? 5000);
                     run.unavailableUntil.set(provider.name, Date.now() + wait);
