@@ -116,6 +116,15 @@ jobs:
                 console.log(`Before the 7:15 AM ET delivery floor (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — deferring to a later trigger or the watchdog.`);
                 return;
               }
+              // LATE CAP (2026-11-24 incident): the dedup below compares a UTC
+              // date, which rolls over at 7 PM EST / 8 PM EDT. An evening build
+              // completion or lagged cron would see "not sent today" and mail the
+              // old edition. No automated send after 12:00 PM ET.
+              if (nyMinutes > 12 * 60) {
+                core.setOutput('skip', 'true');
+                console.log(`After the 12:00 PM ET automated-send cutoff (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — holding.`);
+                return;
+              }
               console.log('Inside the delivery window — will send if not already sent today.');
             }
             // FRESHNESS GATE. The send must never mail yesterday's feed. The

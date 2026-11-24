@@ -94,6 +94,20 @@ jobs:
               console.log('Before 7:30 AM ET — too early to declare a miss; standing down until the next check.');
               return;
             }
+            // UPPER BOUND (2026-11-24 incident): GitHub delivered a watchdog cron
+            // at 00:09 UTC = 7:09 PM ET Monday. The "sent today" check above is a
+            // UTC date, which had already rolled to Tuesday, so the morning's send
+            // looked missing; the watchdog dispatched, a workflow_dispatch bypasses
+            // the freshness/window gates, and Monday's edition went out at 7:14 PM
+            // stamped as Tuesday, which then blocked Tuesday's real 8 AM send.
+            // Before 7 PM ET the UTC and ET dates always agree, so capping auto-
+            // dispatch at noon ET closes the hole without touching the date stamps
+            // and still leaves late-morning recovery for a lagged or missed send.
+            if (ny.getHours() * 60 + ny.getMinutes() > 12 * 60) {
+              console.log('After 12:00 PM ET — too late for an automatic send; watchdog will not dispatch.');
+              core.warning('Newsletter not confirmed sent and it is past 12:00 PM ET — manual review needed (no auto-dispatch).');
+              return;
+            }
             console.log('🚨 Newsletter did NOT send today — auto-dispatching send-only.yml');
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
