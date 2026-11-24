@@ -211,6 +211,29 @@ const todayOf = (iso) => iso.split('T')[0];
     check('watchdog: EST winter 9:00 AM ET unsent -> dispatches', r.dispatches.length === 1);
     r = await runScript(watchdog, { nowUtc: SAT_9AM_EDT, eventName: 'workflow_dispatch', sentFile: EMPTY });
     check('watchdog: weekend (manual run) -> stands down', r.dispatches.length === 0);
+
+    // 2026-11-24 incident replay: a lagged watchdog cron arrived 00:09 UTC
+    // (7:09 PM ET Monday) after Monday's 8 AM send. UTC "today" had rolled to
+    // Tuesday, so it dispatched an evening re-send that blocked Tuesday's send.
+    const MON_709PM_EST = '2026-11-24T00:09:15Z';
+    r = await runScript(watchdog, {
+        nowUtc: MON_709PM_EST, eventName: 'schedule',
+        sentFile: { sent: [{ id: 'm', sentAt: '2026-11-23' }], lastSendDate: '2026-11-23' },
+    });
+    check('watchdog: 7:09 PM ET after a morning send (UTC date rolled) -> no dispatch', r.dispatches.length === 0);
+    check('watchdog: late stand-down raises a warning for a human', r.warnings.length === 1);
+    r = await runScript(watchdog, { nowUtc: '2026-12-07T17:01:00Z', eventName: 'schedule', sentFile: EMPTY });
+    check('watchdog: 12:01 PM ET unsent -> no auto-dispatch (past cutoff)', r.dispatches.length === 0);
+    r = await runScript(watchdog, { nowUtc: '2026-12-07T16:59:00Z', eventName: 'schedule', sentFile: EMPTY });
+    check('watchdog: 11:59 AM ET unsent -> still dispatches', r.dispatches.length === 1);
+
+    // Same incident, send gate: the 8:30 PM ET build-completion trigger.
+    const MON_830PM_EST = '2026-11-24T01:30:22Z';
+    r = await runScript(sendGate, { nowUtc: MON_830PM_EST, eventName: 'workflow_run',
+        sentFile: { sent: [], lastSendDate: '2026-11-23' } });
+    check('send gate: 8:30 PM ET workflow_run (UTC date rolled) -> HOLD', r.skip === 'true');
+    r = await runScript(sendGate, { nowUtc: MON_830PM_EST, eventName: 'schedule', sentFile: EMPTY });
+    check('send gate: evening lagged cron -> HOLD', r.skip === 'true');
 }
 
 
