@@ -1,66 +1,20 @@
 {
-  "runId": "2026-11-23-1300",
-  "generatedAt": "2026-11-23T13:00:40.296Z",
+  "runId": "2026-11-24-0009",
+  "generatedAt": "2026-11-24T00:09:36.529Z",
   "isFriday": false,
   "sections": {
     "relevant": {
       "loaded": 286,
-      "inWindow": 7,
-      "regionPass": 7,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 98,
+      "supplyCandidates": 94,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
-        "EXCLUDED_NON_TARGET_REGION": 0,
-        "REGION_CONFLICT_WEAK_TARGET": 0,
-        "SOURCE_NOT_APPROVED": 0,
-        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
-        "PRIMARY_LOCATION_NON_TARGET": 0,
-        "NOT_INDUSTRIAL": 0,
-        "WRONG_ASSET_CLASS_OFFICE": 0,
-        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
-        "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
-        "POLITICAL_CONTENT": 0,
-        "NO_RELEVANT_KEYWORDS": 0,
-        "NO_PEOPLE_ACTION": 0,
-        "DUPLICATE_ID": 0,
-        "DUPLICATE_SIGNATURE": 0,
-        "DUPLICATE_URL": 0,
-        "STALE_RESERVE_ITEM": 0,
-        "STALE_OUTSIDE_WINDOW": 0,
-        "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
-      },
-      "nearMisses": [],
-      "tierFill": {
-        "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
-        "tier5_manual_include": 0
-      },
-      "underfilled": false,
-      "underfillReason": null
-    },
-    "transactions": {
-      "loaded": 286,
-      "inWindow": 5,
-      "regionPass": 1,
-      "industrialPass": 0,
-      "sectionPass": 1,
-      "dedupRemoved": 0,
-      "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 10,
-      "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 4,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -86,9 +40,54 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 1,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 4,
+        "tier4_reserve": 6,
+        "tier5_manual_include": 0
+      },
+      "underfilled": false,
+      "underfillReason": null
+    },
+    "transactions": {
+      "loaded": 286,
+      "inWindow": 0,
+      "regionPass": 0,
+      "industrialPass": 0,
+      "sectionPass": 0,
+      "dedupRemoved": 0,
+      "stalePruned": 0,
+      "selected": 0,
+      "supplyCandidates": 4,
+      "rejectionReasons": {
+        "NO_TARGET_REGION_EVIDENCE": 0,
+        "EXCLUDED_NON_TARGET_REGION": 0,
+        "REGION_CONFLICT_WEAK_TARGET": 0,
+        "SOURCE_NOT_APPROVED": 0,
+        "GOV_AGENCY_NO_TARGET_PROPERTY": 0,
+        "PRIMARY_LOCATION_NON_TARGET": 0,
+        "NOT_INDUSTRIAL": 0,
+        "WRONG_ASSET_CLASS_OFFICE": 0,
+        "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
+        "WRONG_ASSET_CLASS_RETAIL": 0,
+        "SECTION_RULE_FAILED": 0,
+        "BELOW_DEAL_THRESHOLD": 0,
+        "POLITICAL_CONTENT": 0,
+        "NO_RELEVANT_KEYWORDS": 0,
+        "NO_PEOPLE_ACTION": 0,
+        "DUPLICATE_ID": 0,
+        "DUPLICATE_SIGNATURE": 0,
+        "DUPLICATE_URL": 0,
+        "STALE_RESERVE_ITEM": 0,
+        "STALE_OUTSIDE_WINDOW": 0,
+        "EXCLUDED_BY_LIST": 0,
+        "CATEGORY_MISMATCH": 0
+      },
+      "nearMisses": [],
+      "tierFill": {
+        "tier1_24h": 0,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
       "underfilled": true,
@@ -141,16 +140,16 @@
     },
     "people": {
       "loaded": 286,
-      "inWindow": 2,
-      "regionPass": 1,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
-      "supplyCandidates": 5,
+      "selected": 0,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 1,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -176,42 +175,28 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 1,
+        "tier4_reserve": 0,
         "tier5_manual_include": 0
       },
-      "underfilled": false,
-      "underfillReason": null
+      "underfilled": true,
+      "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     }
   },
   "perFeedBySection": {
-    "NJ Zoning Approvals": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 8,
+      "selected": 4,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 3,
-        "transactions": 3,
+        "relevant": 4,
+        "transactions": 0,
         "availabilities": 0,
-        "people": 2
+        "people": 0
       }
     }
   },
@@ -224,54 +209,102 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 83,
-    "outOf10": 8.3,
-    "grade": "B",
-    "itemCount": 9,
-    "operationalScore": 83,
-    "operationalGrade": "B",
-    "editorialQualityScore": 83,
-    "editorialGrade": "B",
-    "coverageSupplyScore": 80,
+    "score": 53,
+    "outOf10": 5.3,
+    "grade": "F",
+    "itemCount": 4,
+    "operationalScore": 53,
+    "operationalGrade": "F",
+    "editorialQualityScore": 62,
+    "editorialGrade": "D",
+    "coverageSupplyScore": 27,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "FILLED",
+      "transactions": "NO_FRESH_SUPPLY",
       "availabilities": "QUALITY_REJECTED",
-      "people": "FILLED"
+      "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 3,
-    "sectionSupplyCondition": "PARTIAL",
+    "sectionsFilled": 1,
+    "sectionSupplyCondition": "SPARSE",
     "breakdown": {
-      "coverage": 24,
-      "freshness": 16.7,
-      "regional": 22.2,
+      "coverage": 8,
+      "freshness": 9.5,
+      "regional": 15,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 7,
-      "deep": 1,
-      "reserve": 3
+      "fresh": 0,
+      "deep": 4,
+      "reserve": 6
     },
     "delivery": {
-      "score": 100,
-      "grade": "A"
+      "score": 85,
+      "grade": "B"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "late_delivery",
+        "points": 10,
+        "detail": "Delivered ~674 min past the 8:00 AM ET target"
+      },
+      {
+        "type": "manual_send",
+        "points": 5,
+        "detail": "Sent by manual dispatch — the scheduled automation did not self-deliver"
+      }
+    ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): availabilities"
+      "Empty — fresh supply rejected by section gates (quality): availabilities",
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): transactions, people"
     ]
   },
   "logicImpact": {
-    "nearDuplicatesSuppressed": 1,
+    "nearDuplicatesSuppressed": 0,
     "falseLeaksPrevented": {
       "total": 0,
       "routedClean": 0,
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 118,
+    "crossDayPoolRepeatsSuppressed": 125,
     "audit": [
+      {
+        "id": "5f0077d771340e5ccaa516bffca3385196632610",
+        "title": "Hillsborough warehouse plan returns after judge blasts board - Central New Jersey News",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e77b21014802216454d9587d2729e79922b118df",
+        "title": "Montville Industrial Park Archives - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5a34ad01b143dc72cd4b6d79b3fc5557597dc3e3",
+        "title": "Logistics Plus Named 2026 Tech 50 Company Culture Finalist - Erie News Now",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "8eb84d07ce4ad3ccc6fbcebb43921369f640f9a2",
+        "title": "AMD set to lease planned 5C data center in Pennsylvania - Data Center Dynamics",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "354906de08fd47b460c6c626cb0d820ab954e2a3",
+        "title": "Cushman & Wakefield Arranges 274,040 SF Industrial Lease in Lakeland, Florida - REBusinessOnline",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "d3137d07973fec2c4f855e9beff70319800fd71b",
+        "title": "Colliers: Renewals surge in tight New Jersey industrial market - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "a2267f6d2eb12b6d1b861281b181446152255a0f",
         "title": "Silex Microsystems to Locate First US Manufacturing Facility in Pennsylvania, Creating 55 New Jobs - PennWatch",
@@ -825,50 +858,14 @@
         "reason": "sent_signature"
       },
       {
+        "id": "5d6b3fb2f3d2f536afe35cdf620fce0c716e1800",
+        "title": "Industrial equipment exec drops $71M on Naples estate in off-market deal - The Real Deal",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "b6a8017e8448e7f13ab7d5bafd720dbfbc759090",
         "title": "Mack Trucks Site Allentown Warehouse Groundbreaking Oct. 30 - Hoodline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "d22ff0f0b6382fe984a4b9fcbf9c7b1ecb63f33d",
-        "title": "Stockton Poll: N.J. Voters Split on Data Centers Nationally, Oppose Them Locally - Insider NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "eed940c17e855846fade07529a390bc3668ea8fa",
-        "title": "Faropoint adds 182,000 sq. ft. Meadowlands industrial portfolio in $44 million deal - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7bd126cb99a06af3e12e45a0de5107fad5483054",
-        "title": "2027 Supply Chain Outlook: Fast Delivery & Energy Define Logistics Networks",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "dc16930ca9a0809568b93e83aa722cef0e9288ce",
-        "title": "Amneal Pharmaceuticals plans eight-building, 819,000 sq. ft. manufacturing hub in Piscataway with $61 million EDA tax cr",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "5e5b4eeac61d4610169c61d8efe8ede5e26a2474",
-        "title": "Forecast brightens for US industrial property as leasing recovers",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "7120f30eb46f5c0dc930404fbb49b745c51224e1",
-        "title": "Groundbreaking set for new warehouse on former Mack Trucks property in Allentown - LehighValleyLive.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "e94e77e8894ef2845767b8b73df49f7db6a13e2b",
-        "title": "Tinicum Warehouse Redevelopment Near Philadelphia Airport Secures $153M - DELCO.Today",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
