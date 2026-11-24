@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-24-0009",
-  "generatedAt": "2026-11-24T00:09:36.529Z",
+  "runId": "2026-11-24-1542",
+  "generatedAt": "2026-11-24T15:42:46.920Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 286,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 308,
+      "inWindow": 6,
+      "regionPass": 6,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 5,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 4,
-      "supplyCandidates": 94,
+      "selected": 6,
+      "supplyCandidates": 97,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -35,31 +35,32 @@
         "STALE_RESERVE_ITEM": 0,
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
-        "CATEGORY_MISMATCH": 0
+        "CATEGORY_MISMATCH": 0,
+        "WOODMONT_RUBRIC_REJECT": 1
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 4,
-        "tier4_reserve": 6,
-        "tier5_manual_include": 0
+        "tier2_48h_72h": 5,
+        "tier3_30d_deep": 0,
+        "tier4_reserve": 3,
+        "tier5_manual_include": 3
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 286,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 308,
+      "inWindow": 3,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 1,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
+      "selected": 3,
       "supplyCandidates": 4,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 0,
+        "NO_TARGET_REGION_EVIDENCE": 2,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -85,16 +86,16 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
-        "tier3_30d_deep": 0,
+        "tier2_48h_72h": 1,
+        "tier3_30d_deep": 1,
         "tier4_reserve": 0,
-        "tier5_manual_include": 0
+        "tier5_manual_include": 2
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 286,
+      "loaded": 308,
       "inWindow": 1,
       "regionPass": 1,
       "industrialPass": 0,
@@ -102,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 21,
+      "supplyCandidates": 41,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -139,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 286,
+      "loaded": 308,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -185,16 +186,100 @@
     }
   },
   "perFeedBySection": {
+    "Commercial Cafe": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "areadevelopment.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 4,
+      "selected": 3,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 4,
+        "relevant": 2,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "Google News Manufacturing NJ/PA/FL": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
         "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "The Morning Call": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "citybiz": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "South Jersey Industrial": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -209,44 +294,44 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 53,
-    "outOf10": 5.3,
-    "grade": "F",
-    "itemCount": 4,
-    "operationalScore": 53,
-    "operationalGrade": "F",
-    "editorialQualityScore": 62,
-    "editorialGrade": "D",
-    "coverageSupplyScore": 27,
+    "score": 78,
+    "outOf10": 7.8,
+    "grade": "C",
+    "itemCount": 9,
+    "operationalScore": 78,
+    "operationalGrade": "C",
+    "editorialQualityScore": 83,
+    "editorialGrade": "B",
+    "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "NO_FRESH_SUPPLY",
+      "transactions": "FILLED",
       "availabilities": "QUALITY_REJECTED",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 1,
-    "sectionSupplyCondition": "SPARSE",
+    "sectionsFilled": 2,
+    "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 8,
-      "freshness": 9.5,
-      "regional": 15,
+      "coverage": 18,
+      "freshness": 16.7,
+      "regional": 23.3,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 0,
-      "deep": 4,
-      "reserve": 6
+      "fresh": 6,
+      "deep": 1,
+      "reserve": 8
     },
     "delivery": {
-      "score": 85,
+      "score": 86,
       "grade": "B"
     },
     "supply": "Rich",
     "penalties": [
       {
         "type": "late_delivery",
-        "points": 10,
-        "detail": "Delivered ~674 min past the 8:00 AM ET target"
+        "points": 9,
+        "detail": "Delivered ~164 min past the 8:00 AM ET target"
       },
       {
         "type": "manual_send",
@@ -256,7 +341,7 @@
     ],
     "notes": [
       "Empty — fresh supply rejected by section gates (quality): availabilities",
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): transactions, people"
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -267,7 +352,7 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 125,
+    "crossDayPoolRepeatsSuppressed": 122,
     "audit": [
       {
         "id": "5f0077d771340e5ccaa516bffca3385196632610",
@@ -318,6 +403,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "c062afc762620154cd3909e328455f5be2abdf13",
+        "title": "How Home Depot built the missing logistics piece for its Pro business - Supply Chain Dive",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "7f1d6ddc3e90a0a6c91fa3ecee98b9bca3f22946",
         "title": "Pennsylvania factory sold, $300M expansion planned to support submarine manufacturing - Yahoo",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -356,6 +447,12 @@
       {
         "id": "8f2101707a52e48af6241da986dfd0b8219f63a2",
         "title": "Canned water maker's $100 million acquisition includes Florida manufacturing facility - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "24d8f2518d624ecc1a88b668ad04d1dec773ea1c",
+        "title": "Fashion brand nixes dedicated fulfillment model to boost transit times - Supply Chain Dive",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -420,8 +517,20 @@
         "reason": "sent_id"
       },
       {
+        "id": "cf8aa81339f476babe2de56dc1a0a8dd2c320449",
+        "title": "Perryman, Acutec plan western Pennsylvania manufacturing expansions - The Business Journals",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "e42110f5dda73644a12b27179c51525ac81a4e68",
         "title": "Waymo Reportedly Planning 200K SF South Philly Warehouse",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "6c2a6dbb825d15778c875eec1a41483dd27fc41a",
+        "title": "News | Higher fuel costs could shift the math for Philadelphia industrial tenants - CoStar",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -842,30 +951,6 @@
       {
         "id": "78ccd5c481456be44fe02bb9ee24dce2ddd0198b",
         "title": "4,500-Acre Data Center District Approved In Pennsylvania Town",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a26ea4986f40226022eb7629689c2b74983482de",
-        "title": "Colliers Facilitates New Lease for Pennsylvania Manufacturing Expansion - Connect CRE",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "ad329057bf3aaafc0627ae9fe3b42800f835ba91",
-        "title": "Glenmark Pharmaceuticals Inaugurates U.S. Distribution Center in Allentown - StreetInsider",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
-        "id": "5d6b3fb2f3d2f536afe35cdf620fce0c716e1800",
-        "title": "Industrial equipment exec drops $71M on Naples estate in off-market deal - The Real Deal",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b6a8017e8448e7f13ab7d5bafd720dbfbc759090",
-        "title": "Mack Trucks Site Allentown Warehouse Groundbreaking Oct. 30 - Hoodline",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
