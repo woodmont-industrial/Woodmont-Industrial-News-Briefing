@@ -305,7 +305,11 @@ export async function enrichNewsletterFacts(
                 signal: AbortSignal.timeout(Math.max(1, Math.min(15000, remaining))),
             });
             facts = result.facts;
-            if (!facts) stats.corroborationUnknown[result.reason] = (stats.corroborationUnknown[result.reason] || 0) + 1;
+            if (!facts) {
+                stats.corroborationUnknown[result.reason] = (stats.corroborationUnknown[result.reason] || 0) + 1;
+                // Rate limits / server errors are retried next build, never cached as a miss.
+                if (result.reason.startsWith('transient-')) return null;
+            }
         } catch (error) {
             const reason = failureReason(error);
             stats.corroborationUnknown[reason] = (stats.corroborationUnknown[reason] || 0) + 1;

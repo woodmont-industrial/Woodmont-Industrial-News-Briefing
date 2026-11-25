@@ -568,18 +568,11 @@ export async function sendDailyNewsletterWork(): Promise<boolean> {
         diag.recordStage('people', 'sectionPass', people.length);
 
         // Tier 1: 24h or 48-72h initial picks count as tier1/tier2
-        // FRESHNESS BY STORY AGE (2026-11-25): previously every initial pick was labelled
-        // tier2 whenever the window widened to 48/72h, so the 11/25 report showed zero
-        // 24h stories although the CoStar Lakeland item was ~17h old. Count each pick by
-        // its own timestamp; the selection window (timeRange) is unchanged.
-        const ageTier = (a: NormalizedItem): 'tier1_24h' | 'tier2_48h_72h' => {
-            const d = getValidDate(a);
-            return d && Date.now() - d.getTime() <= 24 * 3600 * 1000 ? 'tier1_24h' : 'tier2_48h_72h';
-        };
-        for (const [section, items] of [['relevant', relevant], ['transactions', transactions],
-            ['availabilities', availabilities], ['people', people]] as Array<[Section, NormalizedItem[]]>) {
-            for (const a of items) diag.recordTier(section, ageTier(a), 1);
-        }
+        const initialTier: 'tier1_24h' | 'tier2_48h_72h' = (timeRange === 24) ? 'tier1_24h' : 'tier2_48h_72h';
+        diag.recordTier('relevant', initialTier, relevant.length);
+        diag.recordTier('transactions', initialTier, transactions.length);
+        diag.recordTier('availabilities', initialTier, availabilities.length);
+        diag.recordTier('people', initialTier, people.length);
 
         // Re-categorize: move people articles out of "relevant"/"transactions" into "people"
         const reCat = reCategorizeRelevantAsPeople(relevant, people, transactions);

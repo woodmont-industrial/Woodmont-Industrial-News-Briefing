@@ -88,10 +88,17 @@ const toNumber = (raw: string) => /million/i.test(raw)
     ? Math.round(parseFloat(raw) * 1_000_000) : parseInt(raw.replace(/,/g, ''), 10);
 
 /** Figures tied to the deal itself, with the sentence each came from. */
-export function tiedFigures(text: string, kind: 'lease' | 'sale'): { sf: Map<number, string>; usd: Map<number, string> } {
+export function tiedFigures(
+    text: string, kind: 'lease' | 'sale', about?: { subject: string; place: string },
+): { sf: Map<number, string>; usd: Map<number, string> } {
     const sf = new Map<number, string>();
     const usd = new Map<number, string>();
-    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z])/);
+    // With `about`, a figure counts only when its own sentence names the headline's
+    // subject AND city — a figure for another tenant or another property elsewhere in
+    // the article is ignored (review 2026-11-25: right company + city in the article,
+    // but the lease figure belonged to a different tenant in a different city).
+    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z])/)
+        .filter(s => !about || (norm(s).includes(norm(about.subject)) && norm(s).includes(norm(about.place))));
     const patterns: RegExp[] = kind === 'lease'
         ? [
             new RegExp(NUM + SF_UNIT + String.raw`\s+(?:[a-z-]+\s+){0,3}(?:lease|sublease)\b`, 'gi'),
@@ -151,7 +158,7 @@ export async function corroborateDeal(
 
     const query = encodeURIComponent(`"${subject}" ${place}`);
     const rss = await fetcher(`https://news.google.com/rss/search?q=${query}&hl=en-US&gl=US&ceid=US:en`, opts.signal);
-    if (rss.status !== 200) return { facts: null, reason: 'search-HTTP_' + rss.status };
+    if (rss.status !== 200) return { facts: null, reason: (isTransient(rss.status) ? 'transient-' : '') + 'search-HTTP_' + rss.status };
     const hits = parseRss(rss.text).filter(h => WORDPRESS_FACT_HOSTS.some(w => h.host === w || h.host.endsWith('.' + w)))
         .filter(h => {
             const t = Date.parse(h.pubDate);
@@ -160,6 +167,8 @@ export async function corroborateDeal(
     if (!hits.length) return { facts: null, reason: 'no-approved-coverage' };
 
     let sawArticle = false;
+    let transientStatus = 0;
+    let outsideWindow = false;
     for (const hit of hits) {
         const wanted = cleanHeadline(hit.title);
         // WordPress search fails on "Cushman & Wakefield"-style pairs (live check
@@ -169,7 +178,7 @@ export async function corroborateDeal(
         for (const q of queries) {
             const api = `https://${hit.host}/wp-json/wp/v2/posts?search=${encodeURIComponent(q)}&per_page=3&_fields=date_gmt,link,title,content`;
             const res = await fetcher(api, opts.signal);
-            if (res.status !== 200) break;
+            if (res.status !== 200) { if (isTransient(res.status)) transientStatus = res.status; break; }
             let posts: any[] = [];
             try { posts = JSON.parse(res.text); } catch { break; }
             post = Array.isArray(posts) ? posts.find(p => norm(p?.title?.rendered || '') === norm(wanted)) : null;
@@ -182,10 +191,16 @@ export async function corroborateDeal(
         // Same deal: subject, place and deal kind all present in the corroborating article.
         if (!bodyNorm.includes(norm(subject)) || !bodyNorm.includes(norm(place))) continue;
         if (dealKind(body) !== kind) continue;
+        // Date window on the PUBLISHER POST's own timestamp, not the search hit's:
+        // a recent search result can resolve to an older post. No date -> reject.
         const published = Date.parse((post.date_gmt || '') + 'Z');
-        if (Number.isFinite(published) && published > opts.now.getTime()) continue;
+        if (!Number.isFinite(published) || published > opts.now.getTime()
+            || published < headlineTime - 30 * 86400000 || published > headlineTime + 2 * 86400000) {
+            outsideWindow = true;
+            continue;
+        }
 
-        const { sf, usd } = tiedFigures(body, kind);
+        const { sf, usd } = tiedFigures(body, kind, { subject, place });
         // Ambiguous: two different tied figures -> leave unknown rather than guess.
         if (sf.size > 1 || usd.size > 1) return { facts: null, reason: 'ambiguous-figures' };
         if (!sf.size && !usd.size) return { facts: null, reason: 'no-tied-figure' };
@@ -213,5 +228,14 @@ export async function corroborateDeal(
             },
         };
     }
-    return { facts: null, reason: sawArticle ? 'deal-not-verified' : 'article-not-found' };
+    if (outsideWindow) return { facts: null, reason: 'post-outside-date-window' };
+    if (sawArticle) return { facts: null, reason: 'deal-not-verified' };
+    // A rate limit or server error is not evidence of absence; the caller must not cache it.
+    if (transientStatus) return { facts: null, reason: 'transient-api-HTTP_' + transientStatus };
+    return { facts: null, reason: 'article-not-found' };
+}
+
+/** 429 and 5xx are retryable; callers must not cache these as misses. */
+export function isTransient(status: number): boolean {
+    return status === 429 || status >= 500;
 }

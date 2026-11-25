@@ -24,8 +24,8 @@ const RSS_OK = rss([
     { title: 'Tampa electrical distributor leases Lakeland warehouse - The Business Journals', host: 'www.bizjournals.com', date: 'Wed, 18 Nov 2026 11:59:00 GMT' },
     { title: RB_TITLE + ' - REBusinessOnline', host: 'rebusinessonline.com', date: 'Fri, 20 Nov 2026 15:14:04 GMT' },
 ]);
-const wp = (body: string, title = RB_TITLE, link = RB_LINK) =>
-    JSON.stringify([{ date_gmt: '2026-11-20T15:14:04', link, title: { rendered: title }, content: { rendered: body } }]);
+const wp = (body: string, title = RB_TITLE, link = RB_LINK, date_gmt: string | null = '2026-11-20T15:14:04') =>
+    JSON.stringify([{ date_gmt, link, title: { rendered: title }, content: { rendered: body } }]);
 
 function fetcherFor(opts: { rss?: string; wp?: string; wpStatus?: number; calls?: string[] }): Fetcher {
     return async (url) => {
@@ -101,7 +101,7 @@ ok('sale price tied to the sale', tiedFigures('Acme acquired a 90,000-square-foo
     await unknown('article is about another city', fetcherFor({ wp: wp(RB_BODY.replace(/Lakeland/gi, 'Ocala')) }), /deal-not-verified/);
     await unknown('article describes a sale, headline a lease', fetcherFor({ wp: wp('<p>Acme sold the 520,042-square-foot facility in Lakeland to World Electric Supply for $80 million.</p>') }), /deal-not-verified/);
     await unknown('only the building size is given', fetcherFor({ wp: wp('<p>World Electric Supply has signed a lease at a 520,042-square-foot warehouse in Lakeland.</p>') }), /no-tied-figure/);
-    await unknown('two different leased figures', fetcherFor({ wp: wp('<p>World Electric Supply signed a 150,000-square-foot lease in Lakeland. A second tenant signed a 120,000-square-foot lease nearby.</p>') }), /ambiguous-figures/);
+    await unknown('two different leased figures for the same tenant and city', fetcherFor({ wp: wp('<p>World Electric Supply signed a 150,000-square-foot lease in Lakeland. Another report put World Electric Supply at a 120,000-square-foot lease in Lakeland.</p>') }), /ambiguous-figures/);
     await unknown('WP title does not match the search hit', fetcherFor({ wp: wp(RB_BODY, 'Some other Lakeland story') }), /article-not-found/);
     await unknown('link off the approved host', fetcherFor({ wp: wp(RB_BODY, RB_TITLE, 'https://evil.example.com/x') }), /article-not-found/);
     await unknown('headline without a place', fetcherFor({}), /no-subject-or-place/, item({ title: 'World Electric Supply leases more than half of logistics center - CoStar' }));
@@ -123,6 +123,41 @@ ok('sale price tied to the sale', tiedFigures('Acme acquired a 90,000-square-foo
     // Default fetcher refuses hosts outside the allow list (no CoStar, no arbitrary redirects).
     await assert.rejects(defaultFetcher('https://www.costar.com/article/1', signal), /host not allowed/);
     ok('default fetcher refuses CoStar', true);
+
+    // ---- review 2026-11-25: figure must belong to the same tenant AND property ----
+    await unknown('right company + city in the article, but the lease figure is another tenant in another city',
+        fetcherFor({ wp: wp('<p>World Electric Supply already operates a branch in Lakeland. Separately, Acme Distribution signed a 274,040-square-foot industrial lease at a park in Ocala.</p>') }),
+        /no-tied-figure/);
+    await unknown('figure sentence names the company but a different city',
+        fetcherFor({ wp: wp('<p>World Electric Supply is expanding in Lakeland. Its parent signed a 274,040-square-foot lease with World Electric Supply affiliates in Ocala last year.</p>') }),
+        /no-tied-figure/);
+    const mixed = tiedFigures('World Electric Supply signed a 274,040-square-foot lease in Lakeland. Acme signed a 90,000-square-foot lease in Ocala.',
+        'lease', { subject: 'World Electric Supply', place: 'Lakeland' });
+    ok("another tenant's figure in the same article is ignored, not counted as ambiguity", mixed.sf.size === 1 && mixed.sf.has(274040));
+
+    // ---- review 2026-11-25: date window is enforced on the publisher post's own timestamp ----
+    await unknown('recent search hit resolves to an August post',
+        fetcherFor({ wp: wp(RB_BODY, RB_TITLE, RB_LINK, '2026-08-14T12:00:00') }), /post-outside-date-window/);
+    await unknown('publisher post with no date', fetcherFor({ wp: wp(RB_BODY, RB_TITLE, RB_LINK, null) }), /post-outside-date-window/);
+
+    // ---- review 2026-11-25: 429/5xx are retried next build, never cached as a miss ----
+    for (const [label, f] of [
+        ['search 429', async () => ({ status: 429, text: '' })],
+        ['publisher API 429', fetcherFor({ wpStatus: 429 })],
+        ['publisher API 503', fetcherFor({ wpStatus: 503 })],
+    ] as Array<[string, Fetcher]>) {
+        const cp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'corr-')), 'cache.json');
+        const first = item();
+        const s1 = await enrichNewsletterFacts([first], { cachePath: cp, now, corroborationFetcher: f });
+        ok(`${label}: reported as transient`, Object.keys(s1.corroborationUnknown).some(k => k.startsWith('transient-')) && !first._newsletterFacts);
+        const second = item();
+        await enrichNewsletterFacts([second], { cachePath: cp, now, corroborationFetcher: fetcherFor({}) });
+        ok(`${label}: not cached — next build retries and gets 274,040 SF`, second._newsletterFacts?.squareFeet === 274040);
+    }
+    const cp403 = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'corr-')), 'cache.json');
+    await enrichNewsletterFacts([item()], { cachePath: cp403, now, corroborationFetcher: fetcherFor({ wpStatus: 403 }) });
+    const s403 = await enrichNewsletterFacts([item()], { cachePath: cp403, now, corroborationFetcher: async () => { throw Error('must use cache'); } });
+    ok('a 403 block IS cached as a miss for a day (no hammering a publisher that refuses)', s403.cached === 1);
 
     console.log(`\n${pass} checks passed`);
 })().catch(e => { console.error(e); process.exit(1); });
