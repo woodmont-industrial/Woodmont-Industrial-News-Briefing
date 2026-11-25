@@ -90,6 +90,13 @@ jobs:
               console.log('Weekend in America/New_York — watchdog stands down.');
               return;
             }
+            // HOLIDAY GUARD: keep identical to NO_SEND_DATES in send-only.yml.
+            const NO_SEND_DATES = ['2026-11-26']; // Thanksgiving
+            const nyDate = `${ny.getFullYear()}-${String(ny.getMonth() + 1).padStart(2, '0')}-${String(ny.getDate()).padStart(2, '0')}`;
+            if (NO_SEND_DATES.includes(nyDate)) {
+              console.log(`Holiday (${nyDate}) in America/New_York — watchdog stands down.`);
+              return;
+            }
             if (ny.getHours() * 60 + ny.getMinutes() < 7 * 60 + 30) {
               console.log('Before 7:30 AM ET — too early to declare a miss; standing down until the next check.');
               return;

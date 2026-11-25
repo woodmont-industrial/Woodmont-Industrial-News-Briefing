@@ -385,6 +385,26 @@ const todayOf = (iso) => iso.split('T')[0];
     r = await runScript(sendGate, { nowUtc: '2026-08-31T11:30:00Z', eventName: 'repository_dispatch',
         sentFile: { lastSendDate: '2026-08-31', sent: [] } });
     check('fresh receipt + open window + ALREADY SENT -> dedup still blocks', r.skip === 'true');
+
+    // -- holiday guard (Thanksgiving 2026-11-26, EST = UTC-5) --
+    const THU_8AM_EST = '2026-11-26T13:00:00Z';
+    for (const ev of ['repository_dispatch', 'schedule', 'workflow_run']) {
+        r = await runScript(sendGate, { nowUtc: THU_8AM_EST, eventName: ev, sentFile: EMPTY });
+        check(`Thanksgiving 8:00 AM ET ${ev} -> blocked`, r.skip === 'true');
+    }
+    r = await runScript(sendGate, { nowUtc: THU_8AM_EST, eventName: 'workflow_dispatch', sentFile: EMPTY });
+    check('Thanksgiving human workflow_dispatch -> still allowed', r.skip === 'false');
+    r = await runScript(watchdog, { nowUtc: '2026-11-26T14:30:00Z', eventName: 'schedule', sentFile: EMPTY });
+    check('Thanksgiving 9:30 AM ET watchdog unsent -> no dispatch', r.dispatches.length === 0);
+    r = await runScript(sendGate, { nowUtc: '2026-11-27T13:00:00Z', eventName: 'repository_dispatch', sentFile: EMPTY });
+    check('Friday after Thanksgiving 8:00 AM ET repository_dispatch -> sends', r.skip === 'false');
+    r = await runScript(watchdog, { nowUtc: '2026-11-27T14:30:00Z', eventName: 'schedule', sentFile: EMPTY });
+    check('Friday after Thanksgiving watchdog unsent -> dispatches', r.dispatches.length === 1);
+    r = await runScript(sendGate, { nowUtc: '2026-11-27T00:30:00Z', eventName: 'repository_dispatch', sentFile: EMPTY });
+    check('Wed 7:30 PM ET (UTC already Thu) -> not mistaken for the holiday, window still holds', r.skip === 'true');
+    const listOf = (f) => (fs.readFileSync(path.join(repoRoot, f), 'utf-8').match(/NO_SEND_DATES = (\[[^\]]*\])/) || [])[1];
+    check('holiday lists in send-only.yml and newsletter-watchdog.yml match',
+        listOf('.github/workflows/send-only.yml') && listOf('.github/workflows/send-only.yml') === listOf('.github/workflows/newsletter-watchdog.yml'));
 }
 
 console.log(`\n${pass} checks passed`);
