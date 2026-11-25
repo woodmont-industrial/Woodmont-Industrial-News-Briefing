@@ -98,6 +98,17 @@ jobs:
                 console.log('Weekend in America/New_York — no automated send.');
                 return;
               }
+              // HOLIDAY GUARD: no automated send on these America/New_York dates.
+              // Feed collection and builds keep running; only the email is held.
+              // A human workflow_dispatch can still send. Keep this list identical
+              // to NO_SEND_DATES in newsletter-watchdog.yml (gate-tests checks it).
+              const NO_SEND_DATES = ['2026-11-26']; // Thanksgiving
+              const nyDate = `${ny.getFullYear()}-${String(ny.getMonth() + 1).padStart(2, '0')}-${String(ny.getDate()).padStart(2, '0')}`;
+              if (NO_SEND_DATES.includes(nyDate)) {
+                core.setOutput('skip', 'true');
+                console.log(`Holiday (${nyDate}) in America/New_York — no automated send.`);
+                return;
+              }
             }
             // DELIVERY-WINDOW GUARD for the external scheduler. A dispatch that
             // arrives far outside the approved window is a misconfiguration, not
