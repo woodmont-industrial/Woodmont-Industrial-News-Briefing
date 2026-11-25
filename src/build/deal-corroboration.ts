@@ -93,12 +93,17 @@ export function tiedFigures(
 ): { sf: Map<number, string>; usd: Map<number, string> } {
     const sf = new Map<number, string>();
     const usd = new Map<number, string>();
-    // With `about`, a figure counts only when its own sentence names the headline's
-    // subject AND city — a figure for another tenant or another property elsewhere in
-    // the article is ignored (review 2026-11-25: right company + city in the article,
-    // but the lease figure belonged to a different tenant in a different city).
-    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z])/)
-        .filter(s => !about || (norm(s).includes(norm(about.subject)) && norm(s).includes(norm(about.place))));
+    // With `about`, a figure counts only when its own CLAUSE names the headline's
+    // subject AND city. Reviews 2026-11-25: (1) a figure in an unrelated sentence, and
+    // (2) one sentence joining two deals — "Example Industrial is headquartered in
+    // Lakeland, but Other Tenant leased 274,040 square feet in Orlando" — must not
+    // attach 274,040 SF to the Lakeland deal. Clauses split at semicolons and at
+    // contrast/coordination joints (", but", ", while", ", and", "whereas", ...).
+    const ties = (clause: string) => !about
+        || (norm(clause).includes(norm(about.subject)) && norm(clause).includes(norm(about.place)));
+    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z])/);
+    const clausesOf = (sentence: string) => sentence.split(
+        /\s*;\s*|,\s*(?=(?:but|while|whereas|although|though|and|yet|meanwhile|separately)\b)|\s+(?=(?:but|whereas)\s)/i);
     const patterns: RegExp[] = kind === 'lease'
         ? [
             new RegExp(NUM + SF_UNIT + String.raw`\s+(?:[a-z-]+\s+){0,3}(?:lease|sublease)\b`, 'gi'),
@@ -108,17 +113,21 @@ export function tiedFigures(
             new RegExp(String.raw`\b(?:acquired|purchased|bought|sold|acquisition of|sale of|purchase of)\s+(?:a|an|the)?\s*(?:[\w-]+\s+){0,3}?` + NUM + SF_UNIT, 'gi'),
         ];
     for (const sentence of sentences) {
-        for (const re of patterns) {
-            for (const m of sentence.matchAll(re)) {
-                const value = toNumber(m[1]);
-                if (value >= 1000 && !sf.has(value)) sf.set(value, sentence);
+        for (const clause of clausesOf(sentence)) {
+            if (!ties(clause)) continue;
+            for (const re of patterns) {
+                for (const m of clause.matchAll(re)) {
+                    const value = toNumber(m[1]);
+                    // Evidence stays the full sentence so the reader sees the context.
+                    if (value >= 1000 && !sf.has(value)) sf.set(value, sentence);
+                }
             }
-        }
-        if (kind === 'sale') {
-            const price = /\b(?:for|sold for|purchase price of|price of)\s+(?:approximately\s+|about\s+)?\$(\d+(?:\.\d+)?)\s*(million|billion)\b/i.exec(sentence);
-            if (price && dealKind(sentence) === 'sale') {
-                const value = Math.round(parseFloat(price[1]) * (price[2].toLowerCase() === 'billion' ? 1e9 : 1e6));
-                if (!usd.has(value)) usd.set(value, sentence);
+            if (kind === 'sale') {
+                const price = /\b(?:for|sold for|purchase price of|price of)\s+(?:approximately\s+|about\s+)?\$(\d+(?:\.\d+)?)\s*(million|billion)\b/i.exec(clause);
+                if (price && dealKind(clause) === 'sale') {
+                    const value = Math.round(parseFloat(price[1]) * (price[2].toLowerCase() === 'billion' ? 1e9 : 1e6));
+                    if (!usd.has(value)) usd.set(value, sentence);
+                }
             }
         }
     }
@@ -169,6 +178,8 @@ export async function corroborateDeal(
     let sawArticle = false;
     let transientStatus = 0;
     let outsideWindow = false;
+    let ambiguous = false;
+    let noTiedFigure = false;
     for (const hit of hits) {
         const wanted = cleanHeadline(hit.title);
         // WordPress search fails on "Cushman & Wakefield"-style pairs (live check
@@ -202,8 +213,9 @@ export async function corroborateDeal(
 
         const { sf, usd } = tiedFigures(body, kind, { subject, place });
         // Ambiguous: two different tied figures -> leave unknown rather than guess.
-        if (sf.size > 1 || usd.size > 1) return { facts: null, reason: 'ambiguous-figures' };
-        if (!sf.size && !usd.size) return { facts: null, reason: 'no-tied-figure' };
+        // Keep checking the other hit; the outcome is decided after every hit is tried.
+        if (sf.size > 1 || usd.size > 1) { ambiguous = true; continue; }
+        if (!sf.size && !usd.size) { noTiedFigure = true; continue; }
         const [sfValue, sfSentence] = [...sf.entries()][0] || [null, null];
         const [usdValue, usdSentence] = [...usd.entries()][0] || [null, null];
         const evidence = [...new Set([sfSentence, usdSentence].filter((s): s is string => !!s))]
@@ -228,10 +240,15 @@ export async function corroborateDeal(
             },
         };
     }
+    // No hit verified the deal. If ANY candidate hit a rate limit or server error, the
+    // unseen article might have been the match, so the result stays retryable and the
+    // caller must not cache it (review 2026-11-25: a 503 on one hit plus a stale post on
+    // the other was cached for a day as post-outside-date-window).
+    if (transientStatus) return { facts: null, reason: 'transient-api-HTTP_' + transientStatus };
+    if (ambiguous) return { facts: null, reason: 'ambiguous-figures' };
+    if (noTiedFigure) return { facts: null, reason: 'no-tied-figure' };
     if (outsideWindow) return { facts: null, reason: 'post-outside-date-window' };
     if (sawArticle) return { facts: null, reason: 'deal-not-verified' };
-    // A rate limit or server error is not evidence of absence; the caller must not cache it.
-    if (transientStatus) return { facts: null, reason: 'transient-api-HTTP_' + transientStatus };
     return { facts: null, reason: 'article-not-found' };
 }
 

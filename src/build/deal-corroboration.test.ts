@@ -159,5 +159,44 @@ ok('sale price tied to the sale', tiedFigures('Acme acquired a 90,000-square-foo
     const s403 = await enrichNewsletterFacts([item()], { cachePath: cp403, now, corroborationFetcher: async () => { throw Error('must use cache'); } });
     ok('a 403 block IS cached as a miss for a day (no hammering a publisher that refuses)', s403.cached === 1);
 
+    // ---- review 2 (2026-11-25): one sentence joining two deals ----
+    const about = { subject: 'Example Industrial', place: 'Lakeland' };
+    ok('"X is headquartered in Lakeland, but Other Tenant leased 274,040 SF in Orlando" -> no figure for X',
+        tiedFigures('Example Industrial is headquartered in Lakeland, but Other Tenant leased 274,040 square feet in Orlando.', 'lease', about).sf.size === 0);
+    ok('same with "; " joint', tiedFigures('Example Industrial is based in Lakeland; Other Tenant signed a 274,040-square-foot lease in Orlando.', 'lease', about).sf.size === 0);
+    ok('same with ", while" joint', tiedFigures('Example Industrial expanded in Lakeland, while Other Tenant leased 274,040 square feet in Orlando.', 'lease', about).sf.size === 0);
+    ok('same with "whereas" joint', tiedFigures('Example Industrial stayed in Lakeland whereas Other Tenant leased 274,040 square feet in Orlando.', 'lease', about).sf.size === 0);
+    ok('control: tenant, city and figure in one clause still counts',
+        tiedFigures('Example Industrial leased 274,040 square feet in Lakeland, near Orlando.', 'lease', about).sf.has(274040));
+    await unknown('end to end: tenant + city in one clause, another deal\'s figure in the next',
+        fetcherFor({ wp: wp('<p>World Electric Supply is headquartered in Lakeland, but Other Tenant leased 274,040 square feet in Orlando.</p>') }),
+        /no-tied-figure/);
+
+    // ---- review 2 (2026-11-25): a 503 on one hit + a stale post on the other stays retryable ----
+    const OTHER_TITLE = 'World Electric Supply Expands in Lakeland, Florida';
+    const twoHits = rss([
+        { title: OTHER_TITLE + ' - REBusinessOnline', host: 'rebusinessonline.com', date: 'Sat, 21 Nov 2026 12:00:00 GMT' },
+        { title: RB_TITLE + ' - REBusinessOnline', host: 'rebusinessonline.com', date: 'Fri, 20 Nov 2026 15:14:04 GMT' },
+    ]);
+    for (const order of ['503 first', '503 second']) {
+        const f: Fetcher = async (url) => {
+            if (url.startsWith('https://news.google.com/')) return { status: 200, text: twoHits };
+            const isOther = decodeURIComponent(url).includes('Expands');
+            const fails = order === '503 first' ? isOther : !isOther;
+            if (fails) return { status: 503, text: '' };
+            // The other hit resolves to a stale August post.
+            return { status: 200, text: isOther
+                ? wp(RB_BODY, OTHER_TITLE, RB_LINK, '2026-08-14T12:00:00')
+                : wp(RB_BODY, RB_TITLE, RB_LINK, '2026-08-14T12:00:00') };
+        };
+        const r2 = await corroborateDeal(item(), { now, signal, fetcher: f });
+        ok(`${order} + stale post on the other hit -> transient, not post-outside-date-window`, r2.facts === null && r2.reason.startsWith('transient-'));
+        const cp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'corr-')), 'cache.json');
+        await enrichNewsletterFacts([item()], { cachePath: cp, now, corroborationFetcher: f });
+        const retried = item();
+        await enrichNewsletterFacts([retried], { cachePath: cp, now, corroborationFetcher: fetcherFor({}) });
+        ok(`${order}: not cached — next build retries and gets 274,040 SF`, retried._newsletterFacts?.squareFeet === 274040);
+    }
+
     console.log(`\n${pass} checks passed`);
 })().catch(e => { console.error(e); process.exit(1); });
