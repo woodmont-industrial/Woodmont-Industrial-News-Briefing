@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-24-1542",
-  "generatedAt": "2026-11-24T15:42:46.920Z",
+  "runId": "2026-11-25-1300",
+  "generatedAt": "2026-11-25T13:00:44.134Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 308,
-      "inWindow": 6,
-      "regionPass": 6,
+      "loaded": 325,
+      "inWindow": 8,
+      "regionPass": 8,
       "industrialPass": 0,
-      "sectionPass": 5,
+      "sectionPass": 4,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 6,
-      "supplyCandidates": 97,
+      "selected": 4,
+      "supplyCandidates": 100,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -24,7 +24,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 0,
+        "SECTION_RULE_FAILED": 1,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 1
+        "WOODMONT_RUBRIC_REJECT": 3
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 5,
-        "tier3_30d_deep": 0,
-        "tier4_reserve": 3,
-        "tier5_manual_include": 3
+        "tier2_48h_72h": 4,
+        "tier3_30d_deep": 1,
+        "tier4_reserve": 5,
+        "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 308,
-      "inWindow": 3,
-      "regionPass": 1,
+      "loaded": 325,
+      "inWindow": 7,
+      "regionPass": 2,
       "industrialPass": 0,
-      "sectionPass": 1,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 3,
-      "supplyCandidates": 4,
+      "selected": 0,
+      "supplyCandidates": 2,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 2,
+        "NO_TARGET_REGION_EVIDENCE": 5,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 2,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,24 +86,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 1,
-        "tier3_30d_deep": 1,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 0,
         "tier4_reserve": 0,
-        "tier5_manual_include": 2
+        "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 308,
-      "inWindow": 1,
-      "regionPass": 1,
+      "loaded": 325,
+      "inWindow": 0,
+      "regionPass": 0,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 41,
+      "supplyCandidates": 43,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -115,7 +115,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
+        "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -140,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 308,
+      "loaded": 325,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,21 +186,7 @@
     }
   },
   "perFeedBySection": {
-    "Commercial Cafe": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "areadevelopment.com": {
+    "Google News Palm Beach County FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -218,17 +204,17 @@
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 3,
+      "selected": 2,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
         "relevant": 2,
-        "transactions": 1,
+        "transactions": 0,
         "availabilities": 0,
         "people": 0
       }
     },
-    "Google News Manufacturing NJ/PA/FL": {
+    "Google News Data Centers NJ/PA/FL": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -238,48 +224,6 @@
       "bySection": {
         "relevant": 1,
         "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "The Morning Call": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "citybiz": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "South Jersey Industrial": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
-        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -294,54 +238,43 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 78,
-    "outOf10": 7.8,
-    "grade": "C",
-    "itemCount": 9,
-    "operationalScore": 78,
-    "operationalGrade": "C",
-    "editorialQualityScore": 83,
-    "editorialGrade": "B",
-    "coverageSupplyScore": 60,
+    "score": 67,
+    "outOf10": 6.7,
+    "grade": "D",
+    "itemCount": 4,
+    "operationalScore": 67,
+    "operationalGrade": "D",
+    "editorialQualityScore": 72,
+    "editorialGrade": "C",
+    "coverageSupplyScore": 27,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "FILLED",
-      "availabilities": "QUALITY_REJECTED",
+      "transactions": "QUALITY_REJECTED",
+      "availabilities": "NO_FRESH_SUPPLY",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 2,
-    "sectionSupplyCondition": "PARTIAL",
+    "sectionsFilled": 1,
+    "sectionSupplyCondition": "SPARSE",
     "breakdown": {
-      "coverage": 18,
-      "freshness": 16.7,
-      "regional": 23.3,
+      "coverage": 8,
+      "freshness": 13.5,
+      "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 6,
+      "fresh": 4,
       "deep": 1,
-      "reserve": 8
+      "reserve": 5
     },
     "delivery": {
-      "score": 86,
-      "grade": "B"
+      "score": 100,
+      "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "late_delivery",
-        "points": 9,
-        "detail": "Delivered ~164 min past the 8:00 AM ET target"
-      },
-      {
-        "type": "manual_send",
-        "points": 5,
-        "detail": "Sent by manual dispatch — the scheduled automation did not self-deliver"
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): availabilities",
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
+      "Empty — fresh supply rejected by section gates (quality): transactions",
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
     ]
   },
   "logicImpact": {
@@ -352,8 +285,50 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 122,
+    "crossDayPoolRepeatsSuppressed": 127,
     "audit": [
+      {
+        "id": "178ea9b9f6961e96ae8afd302c5a5d661d392806",
+        "title": "Assembly Committee advances bill to address transparency on data center development - ROI-NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "a959c8e05301dee8dc12e0389fbc51ac900a46d4",
+        "title": "Brennan Investment Group's Opportunity Fund Acquires 100,790 Square-Foot Industrial Facility in Bethlehem, Pennsylvania ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
+      },
+      {
+        "id": "69e8aecd9735ad875a934c1f048ac99a1fa70579",
+        "title": "As Tenants Move to Class A, What Happens to Class B Industrial?",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "9ada5a2b277abd033f26faaaf8368668f5d6fe0b",
+        "title": "Freedom Electronics Expands Operations with New Tampa, FL Warehouse - The Journal News | lohud.com",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "bfa5948f2f69791f06ec0433215d50027e2ed000",
+        "title": "WuXi Biologics' New Jersey Plant Enters Commercial Manufacturing - BioPharm International",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "9fd99e60d52756732b3d934a56a305fc38cfcb57",
+        "title": "Walgreens scales micro-fulfillment strategy with Pennsylvania site - Supply Chain Dive",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e30aa5d16629efa7d92700f158a044efc016bcff",
+        "title": "Winnebago Industries’ Lithionics Expands Florida Manufacturing Facility to 54,000 Square Feet - citybiz",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
       {
         "id": "5f0077d771340e5ccaa516bffca3385196632610",
         "title": "Hillsborough warehouse plan returns after judge blasts board - Central New Jersey News",
@@ -387,6 +362,12 @@
       {
         "id": "d3137d07973fec2c4f855e9beff70319800fd71b",
         "title": "Colliers: Renewals surge in tight New Jersey industrial market - Real Estate NJ",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "1b18c1f68e25ec86d938314e2aef551c6552f884",
+        "title": "WCRE inks sale of 54,000 sq. ft Camden County industrial building - Real Estate NJ",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -903,54 +884,6 @@
       {
         "id": "86f2658e6b9169e32fce35ef154e2af372251c92",
         "title": "Industrial Report: Construction Rebounds Despite Rising Development Costs",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "138e59501f6352c1669a289e080345b40b67865d",
-        "title": "AY: Moving, logistics firm takes 94,000 sq. ft. at new Link Logistics warehouse in Carteret - Real Estate NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "a3c1cd63ed349ae76cd2950f3352b727ef25d7b5",
-        "title": "The Advance Group consolidates logistics operations from three sites to new facility in Carteret - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "cc3e0a316b1c4699232926e52256863ef1a08aac",
-        "title": "N.J. voters divided on data center development nationally, strongly opposed locally: Stockton poll - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
-        "id": "e26622640adf84365e04f833184ad8567ffeeaff",
-        "title": "Orlando Industrial Real Estate - Orlando Commercial Listings & Brokers - LoopNet",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c6439aedf30b6b28ce6a96c43c924c1f7c93aa6e",
-        "title": "'We've got grit': Pennsylvania residents win fight against data center planned on 37 acres - The Cool Down",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "c8bd1d8cce5a3599acdf3607e8357f8236f9c291",
-        "title": "Glenmark stock: US distribution hub expands supply chain - ad-hoc-news.de",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "85943a55b76053a1d16b3c1081b88b2928d1a177",
-        "title": "Q3 2026 Industrial Market: Demand Hits Highs as Vacancy Eases - Connect CRE",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "78ccd5c481456be44fe02bb9ee24dce2ddd0198b",
-        "title": "4,500-Acre Data Center District Approved In Pennsylvania Town",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
