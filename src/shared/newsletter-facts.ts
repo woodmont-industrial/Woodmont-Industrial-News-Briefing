@@ -2,7 +2,9 @@ import { hasNewsletterTargetRegion } from './newsletter-geography.js';
 
 export const FACT_SOURCE_DOMAINS = ['businesswire.com','rebusinessonline.com','bisnow.com','connectcre.com','webull.com'];
 export type NewsletterFacts = { version:1; sourceUrl:string; checkedAt:string; evidence:string[];
-    squareFeet:number|null; priceUsd:number|null; propertyLocationEvidence:string|null };
+    squareFeet:number|null; priceUsd:number|null; propertyLocationEvidence:string|null;
+    /** Set when the figures came from other coverage of the same deal (deal-corroboration.ts). */
+    corroboration?:{ headline:string; publishedAt:string|null; matchedOn:{ subject:string; place:string; kind:string } } };
 
 export function approvedFactUrl(raw:string):boolean {
     try {

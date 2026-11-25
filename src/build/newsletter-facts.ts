@@ -9,12 +9,14 @@ import { approvedFactUrl, newsletterFactFields, type NewsletterFacts } from '../
 import { hasNewsletterTargetRegion } from '../shared/newsletter-geography.js';
 import { newsletterCategory } from '../shared/development-signal.js';
 import references from '../feeds/article-source-references.json' with { type: 'json' };
+import { corroborateDeal, corroborationTarget, type Fetcher } from './deal-corroboration.js';
 
 type FactArticle = NormalizedItem & { url?: string; _newsletterFacts?: NewsletterFacts };
 type Page = { url: string; html: string };
 type CacheEntry = { checkedAt: string; facts: NewsletterFacts | null };
 type SourceReference = { articleId: string; sourceUrl: string; alternateUrls?: string[] };
 const EXTRACTION_CACHE_VERSION = 'property-facts-v2';
+const CORROBORATION_CACHE_VERSION = 'deal-corroboration-v1';
 
 interface FactRecoveryOptions {
     cachePath: string;
@@ -23,6 +25,10 @@ interface FactRecoveryOptions {
     budgetMs?: number;
     loader?: (url: string, signal: AbortSignal) => Promise<Page>;
     sourceReferences?: SourceReference[];
+    /** Look up other coverage for title-only Google News transactions (default on). */
+    corroborate?: boolean;
+    maxCorroborations?: number;
+    corroborationFetcher?: Fetcher;
 }
 
 export interface FactRecoveryStats {
@@ -42,6 +48,10 @@ export interface FactRecoveryStats {
     unavailable: number;
     noFacts: number;
     failures: Record<string, number>;
+    corroborationAttempted: number;
+    corroborated: number;
+    /** Why a corroboration attempt left the size unknown (blocked, no match, ambiguous...). */
+    corroborationUnknown: Record<string, number>;
 }
 
 function plain(html: string): string {
@@ -240,7 +250,74 @@ export async function enrichNewsletterFacts(
         referenced: 0, direct: 0, unresolved: 0, budgetDeferred: 0,
         attempted: 0, httpRequests: 0, cached: 0, enriched: 0, unavailable: 0,
         noFacts: 0, failures: {},
+        corroborationAttempted: 0, corroborated: 0, corroborationUnknown: {},
         unresolvedReasons: { opaqueProxy: 0, unapprovedDirect: 0, missingUrl: 0 },
+    };
+    const maxCorroborations = Math.max(0, Math.min(8, options.maxCorroborations ?? 8));
+    const applyFacts = (item: FactArticle, facts: NewsletterFacts): boolean => {
+        if (!newsletterFactFields({ _newsletterFacts: facts })._newsletterFacts) return false;
+        const normalized = [
+            facts.squareFeet !== null ? `${facts.squareFeet.toLocaleString('en-US')} SF` : null,
+            facts.priceUsd !== null ? `$${facts.priceUsd.toLocaleString('en-US')}` : null,
+        ].filter(Boolean).join('; ');
+        // Refresh the suffix instead of accumulating excerpts every build.
+        item.description = (item.description || '').split('\nVerified publisher facts:')[0]
+            + '\nVerified publisher facts: '
+            // Corroborated figures come from other coverage of the same deal; say whose.
+            + (facts.corroboration
+                ? `(${new URL(facts.sourceUrl).hostname.replace(/^www\./, '')}`
+                    + `${facts.corroboration.publishedAt ? ', ' + facts.corroboration.publishedAt.slice(0, 10) : ''}) `
+                : '')
+            + facts.evidence.join(' ')
+            + (normalized ? ' [' + normalized + ']' : '');
+        item._newsletterFacts = facts;
+        item.category = newsletterCategory(item);
+        stats.enriched++;
+        if (facts.corroboration) stats.corroborated++;
+        return true;
+    };
+    const corroborateWithCache = async (item: FactArticle): Promise<NewsletterFacts | null> => {
+        const key = createHash('sha256').update(CORROBORATION_CACHE_VERSION + '\n' + item.id + '\n' + item.title).digest('hex');
+        const prior = cache[key];
+        const age = prior ? now.getTime() - Date.parse(prior.checkedAt) : Infinity;
+        if (age >= 0 && age < (prior?.facts ? 7 * 86400000 : 86400000)) { stats.cached++; return prior.facts; }
+        // Free checks first so unparseable or stale headlines never spend a lookup.
+        const target = corroborationTarget(item.title || '');
+        if ('reason' in target) {
+            stats.corroborationUnknown[target.reason] = (stats.corroborationUnknown[target.reason] || 0) + 1;
+            return null;
+        }
+        const ageMs = now.getTime() - Date.parse(item.pubDate || '');
+        if (!(ageMs <= 7 * 86400000)) {
+            stats.corroborationUnknown['older-than-7d'] = (stats.corroborationUnknown['older-than-7d'] || 0) + 1;
+            return null;
+        }
+        if (stats.corroborationAttempted >= maxCorroborations || Date.now() - started >= budget) {
+            stats.budgetDeferred++;
+            return null;
+        }
+        stats.corroborationAttempted++;
+        const remaining = budget - (Date.now() - started);
+        let facts: NewsletterFacts | null = null;
+        try {
+            const result = await corroborateDeal(item, {
+                now, fetcher: options.corroborationFetcher,
+                signal: AbortSignal.timeout(Math.max(1, Math.min(15000, remaining))),
+            });
+            facts = result.facts;
+            if (!facts) {
+                stats.corroborationUnknown[result.reason] = (stats.corroborationUnknown[result.reason] || 0) + 1;
+                // Rate limits / server errors are retried next build, never cached as a miss.
+                if (result.reason.startsWith('transient-')) return null;
+            }
+        } catch (error) {
+            const reason = failureReason(error);
+            stats.corroborationUnknown[reason] = (stats.corroborationUnknown[reason] || 0) + 1;
+            // Transient failures are not cached, so the next build retries.
+            return null;
+        }
+        cache[key] = { checkedAt: now.toISOString(), facts };
+        return facts;
     };
     const candidates = [...items].sort((left, right) =>
         Number(reference.has(right.id)) - Number(reference.has(left.id))
@@ -267,12 +344,20 @@ export async function enrichNewsletterFacts(
         const urls = (reference.get(item.id) || [item.link || item.url || ''])
             .slice(0, 3).filter(approvedFactUrl);
         if (!urls.length) {
-            stats.unresolved++;
             const link = item.link || item.url || '';
-            try {
-                if (new URL(link).hostname === 'news.google.com') stats.unresolvedReasons.opaqueProxy++;
-                else stats.unresolvedReasons.unapprovedDirect++;
-            } catch { stats.unresolvedReasons.missingUrl++; }
+            let opaque = false;
+            try { opaque = new URL(link).hostname === 'news.google.com'; } catch { /* counted below */ }
+            // Title-only Google News transaction with no size/price: look for other
+            // coverage of the same deal on an approved source (deal-corroboration.ts).
+            if (opaque && item.category === 'transactions' && !hasRequiredQuantity
+                && (options.corroborate ?? (!options.loader || !!options.corroborationFetcher))) {
+                const facts = await corroborateWithCache(item);
+                if (facts) { applyFacts(item, facts); continue; }
+            }
+            stats.unresolved++;
+            if (opaque) stats.unresolvedReasons.opaqueProxy++;
+            else if (link) stats.unresolvedReasons.unapprovedDirect++;
+            else stats.unresolvedReasons.missingUrl++;
             continue;
         }
         if (hasReference) stats.referenced++;
@@ -314,19 +399,8 @@ export async function enrichNewsletterFacts(
             if (facts) break;
         }
         if (deferred && !facts) stats.budgetDeferred++;
-        if (!facts || !newsletterFactFields({ _newsletterFacts: facts })._newsletterFacts) continue;
-
-        const normalized = [
-            facts.squareFeet !== null ? `${facts.squareFeet.toLocaleString('en-US')} SF` : null,
-            facts.priceUsd !== null ? `$${facts.priceUsd.toLocaleString('en-US')}` : null,
-        ].filter(Boolean).join('; ');
-        // Refresh the suffix instead of accumulating excerpts every build.
-        item.description = (item.description || '').split('\nVerified publisher facts:')[0]
-            + '\nVerified publisher facts: ' + facts.evidence.join(' ')
-            + (normalized ? ' [' + normalized + ']' : '');
-        item._newsletterFacts = facts;
-        item.category = newsletterCategory(item);
-        stats.enriched++;
+        if (!facts) continue;
+        applyFacts(item, facts);
     }
 
     const bounded = Object.fromEntries(Object.entries(cache)
