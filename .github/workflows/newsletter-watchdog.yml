@@ -113,6 +113,10 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'send-only.yml',
-              ref: 'main'
+              ref: 'main',
+              // Mark the run as automated so send-only.yml still applies the
+              // freshness gate: without this, a failed morning build would HOLD
+              // the send and then this dispatch would mail yesterday's feed.
+              inputs: { watchdog: 'true' }
             });
             core.notice('Newsletter had not sent by ' + ny.toTimeString().slice(0, 5) + ' ET — watchdog auto-dispatched send-only.yml.');

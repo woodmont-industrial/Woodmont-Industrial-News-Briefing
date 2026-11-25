@@ -56,7 +56,7 @@ function frozenDateClass(iso) {
     };
 }
 
-async function runScript(script, { nowUtc, eventName, forceSend = 'false', sentFile, receiptFile, inProgress = false }) {
+async function runScript(script, { nowUtc, eventName, forceSend = 'false', watchdogInput = '', sentFile, receiptFile, inProgress = false }) {
     // The send gate reads TWO files: docs/build-receipt.json (freshness) and
     // docs/sent-articles.json (dedup). Tests predating the freshness gate assert
     // floor/weekend/dedup behaviour, so they get a receipt dated to the frozen
@@ -68,7 +68,8 @@ async function runScript(script, { nowUtc, eventName, forceSend = 'false', sentF
         buildDate: `${_ny.getFullYear()}-${_pad(_ny.getMonth() + 1)}-${_pad(_ny.getDate())}`,
         completedAt: nowUtc, trigger: 'repository_dispatch', runId: '1', success: true,
     } : receiptFile;
-    const rendered = script.replaceAll('${{ inputs.force_send }}', forceSend);
+    const rendered = script.replaceAll('${{ inputs.force_send }}', forceSend)
+        .replaceAll('${{ inputs.watchdog }}', watchdogInput);
     const dispatches = [];
     const core = {
         outputs: {}, notices: [], warnings: [],
@@ -234,6 +235,21 @@ const todayOf = (iso) => iso.split('T')[0];
     check('send gate: 8:30 PM ET workflow_run (UTC date rolled) -> HOLD', r.skip === 'true');
     r = await runScript(sendGate, { nowUtc: MON_830PM_EST, eventName: 'schedule', sentFile: EMPTY });
     check('send gate: evening lagged cron -> HOLD', r.skip === 'true');
+
+    // Watchdog-origin dispatches are automated: they must not bypass freshness.
+    const MON_8AM_EST = '2026-12-07T13:00:00Z';
+    const STALE = { buildDate: '2026-12-04', completedAt: '2026-12-04T11:30:00Z', trigger: 'repository_dispatch', runId: '9', success: true };
+    r = await runScript(watchdog, { nowUtc: MON_8AM_EST, eventName: 'schedule', sentFile: EMPTY });
+    check('watchdog dispatch is tagged inputs.watchdog=true',
+        r.dispatches.length === 1 && r.dispatches[0].inputs && r.dispatches[0].inputs.watchdog === 'true');
+    r = await runScript(sendGate, { nowUtc: MON_8AM_EST, eventName: 'workflow_dispatch', watchdogInput: 'true', sentFile: EMPTY, receiptFile: STALE });
+    check('watchdog-origin send + stale receipt (build failed) -> HOLD, no stale edition', r.skip === 'true');
+    r = await runScript(sendGate, { nowUtc: MON_8AM_EST, eventName: 'workflow_dispatch', watchdogInput: 'true', sentFile: EMPTY });
+    check('watchdog-origin send + fresh receipt -> SENDS', r.skip === 'false');
+    r = await runScript(sendGate, { nowUtc: '2026-12-07T18:00:00Z', eventName: 'workflow_dispatch', watchdogInput: 'true', sentFile: EMPTY });
+    check('watchdog-origin send at 1 PM ET -> HOLD', r.skip === 'true');
+    r = await runScript(sendGate, { nowUtc: MON_8AM_EST, eventName: 'workflow_dispatch', watchdogInput: 'false', sentFile: EMPTY, receiptFile: STALE });
+    check('human dispatch + stale receipt -> still allowed (deliberate override unchanged)', r.skip === 'false');
 }
 
 

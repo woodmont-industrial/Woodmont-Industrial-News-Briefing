@@ -35,6 +35,11 @@ on:
         required: false
         type: boolean
         default: false
+      watchdog:
+        description: 'Set by newsletter-watchdog.yml: treat as an AUTOMATED send (freshness + cutoff gates apply). Humans leave false.'
+        required: false
+        type: boolean
+        default: false
   # AUTO-RECOVERY: GitHub silently drops scheduled crons under load (esp. the Monday
   # after a holiday — 2026-07-06 the send cron never fired). The build pipeline still
   # runs reliably, so we also fire the send when the build COMPLETES. This means a
@@ -127,6 +132,17 @@ jobs:
               }
               console.log('Inside the delivery window — will send if not already sent today.');
             }
+            // WATCHDOG-ORIGIN dispatches arrive as workflow_dispatch but are
+            // automated, not a human decision. They get the same weekday, noon
+            // cutoff and freshness gates as a cron (2026-11-24 audit).
+            const fromWatchdog = context.eventName === 'workflow_dispatch' && '${{ inputs.watchdog }}' === 'true';
+            if (fromWatchdog) {
+              if (ny.getDay() === 0 || ny.getDay() === 6 || nyMinutes < FLOOR || nyMinutes > 12 * 60) {
+                core.setOutput('skip', 'true');
+                console.log(`Watchdog dispatch outside the automated window (NY now ${ny.getHours()}:${String(ny.getMinutes()).padStart(2, '0')}) — holding.`);
+                return;
+              }
+            }
             // FRESHNESS GATE. The send must never mail yesterday's feed. The
             // build writes docs/build-receipt.json on every successful build;
             // without a receipt dated today the content cannot be proven fresh,
@@ -134,7 +150,7 @@ jobs:
             // Any successful build today satisfies this (external OR fallback
             // cron) — requiring the external trigger specifically would make the
             // fallback build unable to ever deliver, which is strictly worse.
-            if (context.eventName !== 'workflow_dispatch') {
+            if (context.eventName !== 'workflow_dispatch' || fromWatchdog) {
               let receiptOk = false, receiptWhy = 'no receipt found';
               try {
                 const r = await github.rest.repos.getContent({
