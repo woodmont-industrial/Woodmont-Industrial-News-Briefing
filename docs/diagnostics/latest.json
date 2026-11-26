@@ -1,14 +1,14 @@
 {
-  "runId": "2026-11-25-1300",
-  "generatedAt": "2026-11-25T13:00:44.134Z",
+  "runId": "2026-11-26-1300",
+  "generatedAt": "2026-11-26T13:00:38.972Z",
   "isFriday": false,
   "sections": {
     "relevant": {
-      "loaded": 325,
-      "inWindow": 8,
-      "regionPass": 8,
+      "loaded": 331,
+      "inWindow": 5,
+      "regionPass": 5,
       "industrialPass": 0,
-      "sectionPass": 4,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
@@ -36,31 +36,31 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 3
+        "WOODMONT_RUBRIC_REJECT": 2
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 4,
-        "tier3_30d_deep": 1,
-        "tier4_reserve": 5,
+        "tier2_48h_72h": 2,
+        "tier3_30d_deep": 2,
+        "tier4_reserve": 4,
         "tier5_manual_include": 0
       },
       "underfilled": false,
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 325,
-      "inWindow": 7,
-      "regionPass": 2,
+      "loaded": 331,
+      "inWindow": 6,
+      "regionPass": 3,
       "industrialPass": 0,
-      "sectionPass": 0,
+      "sectionPass": 2,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 0,
-      "supplyCandidates": 2,
+      "selected": 2,
+      "supplyCandidates": 3,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 5,
+        "NO_TARGET_REGION_EVIDENCE": 3,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -71,7 +71,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 2,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -86,7 +86,7 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 0,
+        "tier2_48h_72h": 2,
         "tier3_30d_deep": 0,
         "tier4_reserve": 0,
         "tier5_manual_include": 0
@@ -95,7 +95,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 325,
+      "loaded": 331,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -103,7 +103,7 @@
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 43,
+      "supplyCandidates": 44,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -140,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 325,
+      "loaded": 331,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,7 +186,35 @@
     }
   },
   "perFeedBySection": {
-    "Google News Palm Beach County FL": {
+    "credaily.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "commercialsearch.com": {
+      "fetched": 0,
+      "candidates": 0,
+      "passedFinalGate": 0,
+      "selected": 1,
+      "duplicates": 0,
+      "rejections": {},
+      "bySection": {
+        "relevant": 1,
+        "transactions": 0,
+        "availabilities": 0,
+        "people": 0
+      }
+    },
+    "bisnow.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -208,13 +236,13 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 2,
-        "transactions": 0,
+        "relevant": 1,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
     },
-    "Google News Data Centers NJ/PA/FL": {
+    "Bisnow Philadelphia": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
@@ -222,8 +250,8 @@
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 0,
+        "relevant": 0,
+        "transactions": 1,
         "availabilities": 0,
         "people": 0
       }
@@ -238,42 +266,52 @@
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 67,
-    "outOf10": 6.7,
+    "score": 64,
+    "outOf10": 6.4,
     "grade": "D",
-    "itemCount": 4,
-    "operationalScore": 67,
+    "itemCount": 6,
+    "operationalScore": 64,
     "operationalGrade": "D",
-    "editorialQualityScore": 72,
+    "editorialQualityScore": 76,
     "editorialGrade": "C",
-    "coverageSupplyScore": 27,
+    "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
-      "transactions": "QUALITY_REJECTED",
+      "transactions": "FILLED",
       "availabilities": "NO_FRESH_SUPPLY",
       "people": "NO_FRESH_SUPPLY"
     },
-    "sectionsFilled": 1,
-    "sectionSupplyCondition": "SPARSE",
+    "sectionsFilled": 2,
+    "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
-      "coverage": 8,
-      "freshness": 13.5,
-      "regional": 25,
+      "coverage": 18,
+      "freshness": 14,
+      "regional": 17.5,
       "relevanceIntegrity": 20
     },
     "age": {
       "fresh": 4,
-      "deep": 1,
-      "reserve": 5
+      "deep": 2,
+      "reserve": 4
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [],
+    "penalties": [
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Data Center Financing: Show Me the Power\""
+      },
+      {
+        "type": "weak_item",
+        "points": 3,
+        "detail": "Borderline / off-topic: \"Nvidia Lost Its Dealmaker. 6 Ways Jensen Huang's\""
+      }
+    ],
     "notes": [
-      "Empty — fresh supply rejected by section gates (quality): transactions",
       "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
     ]
   },
@@ -285,13 +323,37 @@
       "mixedComparison": 0
     },
     "peopleRescued": 0,
-    "crossDayPoolRepeatsSuppressed": 127,
+    "crossDayPoolRepeatsSuppressed": 128,
     "audit": [
       {
-        "id": "178ea9b9f6961e96ae8afd302c5a5d661d392806",
-        "title": "Assembly Committee advances bill to address transparency on data center development - ROI-NJ",
+        "id": "16d7d180fcca7513da54a47ed11f10dee0b17d96",
+        "title": "Brennan Investment Group Acquires 101K-SF Industrial Facility in PA - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "29220a89c8b9fe01986676d440d0b49e16c6bd49",
+        "title": "Project Tango attorney threatened legal action days before Palm Beach County approved data center expansion - WPTV",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "5ed21fbc0e3de0713579aaa2fcde7e030cb124d6",
+        "title": "News | World Electric Supply leases more than half of logistics center in Lakeland, Florida - CoStar",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "4e96a47e78c5785fe21bfd12b790a5ecae8ea5b9",
+        "title": "Florida county delays decision on new data centers as neighboring communities introduce development restrictions - Yahoo",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "103ffcbb5d49b3d73ea67501e2282b675f3287bf",
+        "title": "Miami Industrial Pipeline Grows, Rents Climb - CommercialSearch",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "a959c8e05301dee8dc12e0389fbc51ac900a46d4",
@@ -304,6 +366,12 @@
         "title": "As Tenants Move to Class A, What Happens to Class B Industrial?",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "87479f6ba546495af9627fc20ca5ce69f5a35c9d",
+        "title": "Silex Microsystems plans to open MEMS manufacturing facility in Pennsylvania - Plant Services",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "9ada5a2b277abd033f26faaaf8368668f5d6fe0b",
@@ -854,36 +922,6 @@
       {
         "id": "b89ffe613946d6c553a5647fb8480b03a8e6ca73",
         "title": "BKM Capital buys 3rd Broward warehouse this year for $33M - The Business Journals",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "cabe8daf6b75f8fb147178cc47c55d3b4c16a3e5",
-        "title": "Last Mile $200M Joint Venture Forms for Logistic Assets",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b459ba4b50ad3cb167fd300592925fcca59c75e5",
-        "title": "Glenmark Pharmaceuticals Plans Allentown, Pennsylvania, Distribution Operations",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bb878ecb0b3afaeef1c9e715560096e73899a110",
-        "title": "Should your neighborhood have data centers? These 2 N.J. towns will let voters decide. - NJ.com",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
-        "id": "72a67868280d5f4ee29d0ecc4640ebba9035e2a2",
-        "title": "USDA to fund 8 fertilizer manufacturing projects totaling more than $1.3B - Supply Chain Dive",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "86f2658e6b9169e32fce35ef154e2af372251c92",
-        "title": "Industrial Report: Construction Rebounds Despite Rising Development Costs",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
