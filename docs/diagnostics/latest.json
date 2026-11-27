@@ -1,18 +1,18 @@
 {
-  "runId": "2026-11-26-1300",
-  "generatedAt": "2026-11-26T13:00:38.972Z",
-  "isFriday": false,
+  "runId": "2026-11-27-1300",
+  "generatedAt": "2026-11-27T13:00:44.332Z",
+  "isFriday": true,
   "sections": {
     "relevant": {
-      "loaded": 331,
-      "inWindow": 5,
-      "regionPass": 5,
+      "loaded": 323,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 4,
-      "supplyCandidates": 100,
+      "supplyCandidates": 95,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -24,7 +24,7 @@
         "WRONG_ASSET_CLASS_OFFICE": 0,
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
-        "SECTION_RULE_FAILED": 1,
+        "SECTION_RULE_FAILED": 0,
         "BELOW_DEAL_THRESHOLD": 0,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
@@ -36,13 +36,13 @@
         "STALE_OUTSIDE_WINDOW": 0,
         "EXCLUDED_BY_LIST": 0,
         "CATEGORY_MISMATCH": 0,
-        "WOODMONT_RUBRIC_REJECT": 2
+        "WOODMONT_RUBRIC_REJECT": 4
       },
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
-        "tier3_30d_deep": 2,
+        "tier2_48h_72h": 0,
+        "tier3_30d_deep": 5,
         "tier4_reserve": 4,
         "tier5_manual_include": 0
       },
@@ -50,17 +50,17 @@
       "underfillReason": null
     },
     "transactions": {
-      "loaded": 331,
-      "inWindow": 6,
-      "regionPass": 3,
+      "loaded": 323,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
-      "sectionPass": 2,
+      "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
-      "selected": 2,
+      "selected": 1,
       "supplyCandidates": 3,
       "rejectionReasons": {
-        "NO_TARGET_REGION_EVIDENCE": 3,
+        "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
         "REGION_CONFLICT_WEAK_TARGET": 0,
         "SOURCE_NOT_APPROVED": 0,
@@ -86,24 +86,24 @@
       "nearMisses": [],
       "tierFill": {
         "tier1_24h": 0,
-        "tier2_48h_72h": 2,
+        "tier2_48h_72h": 0,
         "tier3_30d_deep": 0,
-        "tier4_reserve": 0,
+        "tier4_reserve": 1,
         "tier5_manual_include": 0
       },
       "underfilled": true,
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "availabilities": {
-      "loaded": 331,
-      "inWindow": 0,
-      "regionPass": 0,
+      "loaded": 323,
+      "inWindow": 1,
+      "regionPass": 1,
       "industrialPass": 0,
       "sectionPass": 0,
       "dedupRemoved": 0,
       "stalePruned": 0,
       "selected": 0,
-      "supplyCandidates": 44,
+      "supplyCandidates": 43,
       "rejectionReasons": {
         "NO_TARGET_REGION_EVIDENCE": 0,
         "EXCLUDED_NON_TARGET_REGION": 0,
@@ -116,7 +116,7 @@
         "WRONG_ASSET_CLASS_MULTIFAMILY": 0,
         "WRONG_ASSET_CLASS_RETAIL": 0,
         "SECTION_RULE_FAILED": 0,
-        "BELOW_DEAL_THRESHOLD": 0,
+        "BELOW_DEAL_THRESHOLD": 1,
         "POLITICAL_CONTENT": 0,
         "NO_RELEVANT_KEYWORDS": 0,
         "NO_PEOPLE_ACTION": 0,
@@ -140,7 +140,7 @@
       "underfillReason": "SECTION_UNDERFILLED_QUALITY_PROTECTED"
     },
     "people": {
-      "loaded": 331,
+      "loaded": 323,
       "inWindow": 0,
       "regionPass": 0,
       "industrialPass": 0,
@@ -186,71 +186,15 @@
     }
   },
   "perFeedBySection": {
-    "credaily.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "commercialsearch.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "bisnow.com": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 1,
-        "transactions": 0,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
     "news.google.com": {
       "fetched": 0,
       "candidates": 0,
       "passedFinalGate": 0,
-      "selected": 2,
+      "selected": 5,
       "duplicates": 0,
       "rejections": {},
       "bySection": {
-        "relevant": 1,
-        "transactions": 1,
-        "availabilities": 0,
-        "people": 0
-      }
-    },
-    "Bisnow Philadelphia": {
-      "fetched": 0,
-      "candidates": 0,
-      "passedFinalGate": 0,
-      "selected": 1,
-      "duplicates": 0,
-      "rejections": {},
-      "bySection": {
-        "relevant": 0,
+        "relevant": 4,
         "transactions": 1,
         "availabilities": 0,
         "people": 0
@@ -258,61 +202,51 @@
     }
   },
   "weekInReview": {
-    "totalCandidates": 0,
-    "afterAgeFilter": 0,
-    "afterDedup": 0,
-    "selected": 0,
+    "totalCandidates": 5,
+    "afterAgeFilter": 5,
+    "afterDedup": 5,
+    "selected": 5,
     "windowDays": 7
   },
   "quality": {
     "scoringVersion": "2026-10-30-shared-geography-v1",
-    "score": 64,
-    "outOf10": 6.4,
-    "grade": "D",
-    "itemCount": 6,
-    "operationalScore": 64,
-    "operationalGrade": "D",
-    "editorialQualityScore": 76,
+    "score": 73,
+    "outOf10": 7.3,
+    "grade": "C",
+    "itemCount": 5,
+    "operationalScore": 73,
+    "operationalGrade": "C",
+    "editorialQualityScore": 78,
     "editorialGrade": "C",
     "coverageSupplyScore": 60,
     "supplyStatus": {
       "relevant": "FILLED",
       "transactions": "FILLED",
-      "availabilities": "NO_FRESH_SUPPLY",
+      "availabilities": "QUALITY_REJECTED",
       "people": "NO_FRESH_SUPPLY"
     },
     "sectionsFilled": 2,
     "sectionSupplyCondition": "PARTIAL",
     "breakdown": {
       "coverage": 18,
-      "freshness": 14,
-      "regional": 17.5,
+      "freshness": 10,
+      "regional": 25,
       "relevanceIntegrity": 20
     },
     "age": {
-      "fresh": 4,
-      "deep": 2,
-      "reserve": 4
+      "fresh": 0,
+      "deep": 5,
+      "reserve": 5
     },
     "delivery": {
       "score": 100,
       "grade": "A"
     },
     "supply": "Rich",
-    "penalties": [
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Data Center Financing: Show Me the Power\""
-      },
-      {
-        "type": "weak_item",
-        "points": 3,
-        "detail": "Borderline / off-topic: \"Nvidia Lost Its Dealmaker. 6 Ways Jensen Huang's\""
-      }
-    ],
+    "penalties": [],
     "notes": [
-      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): availabilities, people"
+      "Empty — fresh supply rejected by section gates (quality): availabilities",
+      "Empty — no fresh in-window supply (NO_FRESH_SUPPLY): people"
     ]
   },
   "logicImpact": {
@@ -326,10 +260,28 @@
     "crossDayPoolRepeatsSuppressed": 128,
     "audit": [
       {
+        "id": "035b5ca60209cf730077f75700ff3816c803325e",
+        "title": "New Northeast Philly Warehouse Sells For $32M: The Philadelphia Deal Sheet",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "59b6b90bbd71a1d6bfd1afa4dedd22b5cfa42b95",
+        "title": "Blackstone parts with Pompano Beach warehouse for $56M amid industrial selling spree - The Real Deal",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "16d7d180fcca7513da54a47ed11f10dee0b17d96",
         "title": "Brennan Investment Group Acquires 101K-SF Industrial Facility in PA - Connect CRE",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_signature"
+      },
+      {
+        "id": "18823c3f03502a27b621fa3eb89be268bcd54b48",
+        "title": "Data Center Suppliers Now Drive 14% of Industrial Leasing",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
       },
       {
         "id": "29220a89c8b9fe01986676d440d0b49e16c6bd49",
@@ -354,6 +306,12 @@
         "title": "Miami Industrial Pipeline Grows, Rents Climb - CommercialSearch",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "edf672d56102a082d29cd8f45e88f719ff428396",
+        "title": "November 2026 Industrial Report: E-Commerce Anchors Resilient Industrial Growth Amid Cost & Supply Shifts",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_title"
       },
       {
         "id": "a959c8e05301dee8dc12e0389fbc51ac900a46d4",
@@ -400,6 +358,12 @@
       {
         "id": "5f0077d771340e5ccaa516bffca3385196632610",
         "title": "Hillsborough warehouse plan returns after judge blasts board - Central New Jersey News",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
+        "id": "e8764b34dbbd7b4b85e98080cb6ab742c76c7589",
+        "title": "Data Center Financing: Show Me the Power",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       },
@@ -554,12 +518,6 @@
         "reason": "sent_id"
       },
       {
-        "id": "5e38dadc0eed92ef32006e919b879b5ecb59891a",
-        "title": "Crow Holdings Development, PGIM say construction has started at industrial campus in Logan Township - ROI-NJ",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
         "id": "0aba00d057183364e9c5c120808f309aadd70a99",
         "title": "3-alarm fire damages manufacturing facility in Morris County; no injuries reported - WRNJ Radio",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -608,6 +566,12 @@
         "reason": "sent_id"
       },
       {
+        "id": "e890300bad5af39afa9ac2a814331d6cf3d60eb1",
+        "title": "Nvidia Lost Its Dealmaker. 6 Ways Jensen Huang's Exit Could Hit Data Centers, CRE",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_id"
+      },
+      {
         "id": "760883f26beb4f9b4d8d490e716938d022d8bc15",
         "title": "The Importance of a Unified Language for AI Development in CRE",
         "kind": "cross_day_pool_repeat_suppressed",
@@ -624,6 +588,12 @@
         "title": "Inside a Dauphin County data center as Pennsylvania communities battle AI development - FOX43",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
+      },
+      {
+        "id": "5ef30d257b73b3671ebaccdb4904f7050a63eed1",
+        "title": "Blackstone Targets $3B Fundraise For Real Estate Secondaries",
+        "kind": "cross_day_pool_repeat_suppressed",
+        "reason": "sent_signature"
       },
       {
         "id": "72293551e9b2e03c4f30b40d71d3bf483d37e334",
@@ -886,42 +856,6 @@
       {
         "id": "2d75705e68a9df33b57057ffaa162b28c170a0ec",
         "title": "Economists Question How Long AI Can Fuel Industrial Real Estate Demand",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "980e15f04d17f2381557cd0792326bf1462a8116",
-        "title": "What to know about Pennsylvania’s data center tax exemption and the shifting attitudes surrounding it - WPSU",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "6c0b824723b1bbf6e4bbf3bf6230ae76b1c515b4",
-        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations - Area Development",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "bb7b56351508e9fd6183d05314622cba10bee8df",
-        "title": "Tronix3D Expands Pittsburgh, Pennsylvania, Manufacturing Operations",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_signature"
-      },
-      {
-        "id": "e49f1b7bec26b71fc7ddc1ee68a977d6d29a263c",
-        "title": "Data Centers on the Tax Rolls: Classification, Valuation, and the Real Property/Personal Property Divide Under New Jerse",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "fb4150a5d322c2f9287613a1f009f8a20a5a4724",
-        "title": "Salem Township Approves 4,466-Acre Data Center Overlay District in Northeast Pennsylvania - REBusinessOnline",
-        "kind": "cross_day_pool_repeat_suppressed",
-        "reason": "sent_id"
-      },
-      {
-        "id": "b89ffe613946d6c553a5647fb8480b03a8e6ca73",
-        "title": "BKM Capital buys 3rd Broward warehouse this year for $33M - The Business Journals",
         "kind": "cross_day_pool_repeat_suppressed",
         "reason": "sent_id"
       }
