@@ -23,29 +23,28 @@
         "name": "Google News Industrial RE"
       },
       "_source": {
-        "name": "Google News Industrial RE",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQeUJMc1dzVXFsU1ZGQllsQjJZMXZRZzA5SG9sbnRNV0wySnNjeWx5c3JuU3R2TXB2YXNiNlJyWWtZMkR6a21NamRwVE1MYUVKbmFtdDlraUI1QUhrMTYyNDNCNnB2Q1UxMDRXc1g1R2NOYWdIaVQtVHp0RkhIbVotRXBXLWxqbkkzZDA4cGw2d1BQOElUMjJEYWFzV3N5YVJ4RURwXzdUR0FnLTluMFJMSEJKS3VEYlZ6MHFHTjY4SjVxUQ?oc=5",
-        "feedName": "Google News Industrial RE"
+        "feedName": "news.google.com"
       },
       "category": "transactions",
       "tags": [
         "Transactions — Property Sales & Leases",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontApprove": true,
+      "_woodmontReason": "Pro-development data center transaction in Pennsylvania meets industrial real estate criteria (Rule: APPROVE criteria all met)",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq",
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-27T11:26:06.858Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     },
     {
@@ -62,16 +61,15 @@
         "name": "Google News LoopNet Industrial"
       },
       "_source": {
-        "name": "Google News LoopNet Industrial",
+        "name": "news.google.com",
         "website": "news.google.com",
         "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5MT2pqNWFrd0pHUzI4bzdUNWFWNldMRHdrcV9Lc2E3ZVN3U19hZXdLaVlnMEpqWFNmakZWUG93QVBETV9COGp3b25LRzltSndObGtJNXJCWVN5eW15WXljWU5NUVpxbVpUcDJWa0tGd0J4eHZWdk1xeDRJTmRfdw?oc=5",
-        "feedName": "Google News LoopNet Industrial"
+        "feedName": "news.google.com"
       },
       "category": "availabilities",
       "tags": [
         "Availabilities — Properties for Sale or Lease",
-        "news.google.com",
-        "US"
+        "news.google.com"
       ],
       "_predictedPublish": false,
       "_predictedReason": "FAILED_PUBLISH_FILTER",
@@ -154,11 +152,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline references data center development concerns, matching Rule 3",
+      "_woodmontReason": "Anti-DC framing — headline references data center development concerns, matching Rule 3 (anti-data-center editorial framing)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:12:43.243Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:26:34.193Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -306,11 +304,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline references legal action against data center expansion, matching Rule 3 anti-data-center editorial framing",
+      "_woodmontReason": "Anti-DC framing — headline indicates opposition to data center expansion, matching Rule 3",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:19:18.551Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:26:34.193Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -453,18 +451,18 @@
         "Relevant — Market Trends & Real Estate News",
         "news.google.com"
       ],
-      "_predictedPublish": true,
-      "_predictedReason": "WOULD_PUBLISH",
+      "_predictedPublish": false,
+      "_predictedReason": "FAILED_PUBLISH_FILTER",
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
+      "_woodmontApprove": false,
+      "_woodmontReason": "Anti-DC framing — headline indicates opposition to data center development, matching Rule 3",
+      "_woodmontConfidence": 95,
+      "_woodmontClassifier": "groq",
+      "_woodmontRubricVersion": "2026-10-28-v4",
+      "_woodmontClassifiedAt": "2026-11-27T11:26:36.633Z",
+      "_woodmontModel": "openai/gpt-oss-20b",
+      "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
     },
     {
@@ -610,11 +608,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — the warehouse is located outside Baytown, Texas, not in NJ, PA, or FL (Rule 9)",
+      "_woodmontReason": "Wrong region – the warehouse is outside Baytown, Texas, not in NJ, PA, or FL (Rule 9)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:19:43.615Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:19:22.282Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -693,6 +691,45 @@
       "_woodmontClassifiedAt": "2026-11-26T11:27:19.591Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": true,
+      "_woodmontDateValidation": null
+    },
+    {
+      "id": "edf672d56102a082d29cd8f45e88f719ff428396",
+      "url": "https://www.commercialcafe.com/blog/national-industrial-report/",
+      "title": "November 2026 Industrial Report: E-Commerce Anchors Resilient Industrial Growth Amid Cost & Supply Shifts",
+      "content_html": "November 2026 Industrial Report: E-Commerce Anchors Resilient Industrial Growth Amid Cost & Supply Shifts",
+      "content_text": "November 2026 Industrial Report: E-Commerce Anchors Resilient Industrial Growth Amid Cost & Supply Shifts",
+      "summary": "November 2026 Industrial Report: E-Commerce Anchors Resilient Industrial Growth Amid Cost & Supply Shifts",
+      "date_published": "2026-11-24T12:30:04.000Z",
+      "date_modified": "2026-11-27T11:22:54.172Z",
+      "image": "https://picsum.photos/seed/y4w3bw/640/360",
+      "author": {
+        "name": "Diana Sabau"
+      },
+      "_source": {
+        "name": "Commercial Cafe",
+        "website": "commercialcafe.com",
+        "url": "https://www.commercialcafe.com/blog/national-industrial-report/",
+        "feedName": "Commercial Cafe"
+      },
+      "category": "relevant",
+      "tags": [
+        "Relevant — Market Trends & Real Estate News",
+        "commercialcafe.com",
+        "US"
+      ],
+      "_predictedPublish": true,
+      "_predictedReason": "WOULD_PUBLISH",
+      "_classificationReason": "RELEVANT_CRE_SIGNAL",
+      "_tier": "B",
+      "_woodmontApprove": null,
+      "_woodmontReason": null,
+      "_woodmontConfidence": null,
+      "_woodmontClassifier": null,
+      "_woodmontRubricVersion": null,
+      "_woodmontClassifiedAt": null,
+      "_woodmontModel": null,
+      "_woodmontModelApprove": null,
       "_woodmontDateValidation": null
     },
     {
@@ -876,11 +913,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong asset class – the article discusses utility rate changes due to data center power usage, not industrial real estate (Rule 5)",
+      "_woodmontReason": "Wrong asset class – the article concerns electricity rate changes due to data center power usage, not an industrial real estate transaction or market report (Rule 5)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:19:45.491Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:26:59.756Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -956,7 +993,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:13:22.473Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:27:21.707Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -1370,11 +1407,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "No industrial real estate transaction or market content provided; the article is a personal profile, not a relevant industrial CRE story (Rule 5: Wrong asset class)",
+      "_woodmontReason": "Article is a personal profile of an investment analyst, not an industrial real estate transaction or market report (Rule 5: Wrong asset class / Rule 1: Not relevant content)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:20:05.161Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:20:03.754Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -1674,11 +1711,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region — Manassas is in Virginia, outside NJ/PA/FL (Rule 9)",
+      "_woodmontReason": "Wrong region – Manassas is in Virginia, outside the target regions of NJ, PA, or FL (Rule 9)",
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:20:23.344Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:27:25.900Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -1978,11 +2015,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction size below 50,000 SF threshold for transactions (Rule: Transactions threshold)",
+      "_woodmontReason": "Transaction below threshold: $7M and 39,000 SF <50K SF, violates transaction size rule",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:20:22.586Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:27:48.728Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -2324,7 +2361,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:20:33.912Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:28:10.967Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -2400,7 +2437,7 @@
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:20:41.698Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:21:09.714Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -2586,11 +2623,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction amount $1.5M is below the $10M threshold for transactions (Rule: Transactions floor), so the article is not eligible for inclusion.",
+      "_woodmontReason": "Transaction amount $1.5M is below the $10M threshold for transactions (Rule: Transactions threshold)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:01.791Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:28:14.097Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -2894,7 +2931,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:28:35.857Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:28:35.068Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -2970,7 +3007,7 @@
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:05.840Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:21:28.946Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3198,7 +3235,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:31.886Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:28:57.069Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3384,11 +3421,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Article focuses on Amazon's surcharge policy, not an industrial real estate transaction or market report (Rule 5 Wrong Asset Class)",
+      "_woodmontReason": "Article is about Amazon's internal surcharge policy, not an industrial real estate transaction or market report (Rule 5 Wrong Asset Class)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:38.245Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:03.125Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3578,7 +3615,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:38.245Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:21:55.067Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3692,7 +3729,7 @@
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:15:13.758Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:07.347Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -3802,11 +3839,11 @@
       "_classificationReason": "TXN_DEAL_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction size or square footage not provided; cannot confirm it meets the $10M or 50K SF threshold required for transaction approval (Rule: Transactions threshold)",
-      "_woodmontConfidence": 90,
+      "_woodmontReason": "Transaction details lack dollar amount or square footage, cannot confirm ≥$10M or ≥50K SF threshold (Rule: Transactions threshold not met)",
+      "_woodmontConfidence": 80,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:21:40.937Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:07.347Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -4372,11 +4409,11 @@
       "_classificationReason": "AVAIL_TITLE_LEASE_SALE",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Wrong region – the article does not specify a location in NJ, PA, or FL, so it fails Rule 9",
+      "_woodmontReason": "Wrong region – the article does not specify a location in NJ, PA, or FL, and the facility is likely outside the target regions (Rule 9)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:29:04.067Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:22:17.281Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -4638,11 +4675,11 @@
       "_classificationReason": "TXN_SF_IN_TITLE",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Transaction size below threshold (25,000 SF < 50,000 SF) violates Rule 1 for transactions",
+      "_woodmontReason": "Transaction below threshold: 25,000 sq. ft. is less than the required 50,000 sq. ft. for a transaction (Rule: Transactions threshold)",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:29:22.231Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:09.739Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -5246,11 +5283,11 @@
       "_classificationReason": "RELEVANT_CRE_SIGNAL",
       "_tier": "C",
       "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline references Pennsylvania communities battling AI development, matching Rule 3 (anti-data-center editorial framing)",
+      "_woodmontReason": "Anti-DC framing — headline focuses on community opposition to AI development at a data center, matching Rule 3",
       "_woodmontConfidence": 95,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T22:22:05.430Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:34.764Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -6048,7 +6085,7 @@
       "_woodmontConfidence": 100,
       "_woodmontClassifier": "groq",
       "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-26T11:22:30.075Z",
+      "_woodmontClassifiedAt": "2026-11-27T11:29:40.917Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
       "_woodmontDateValidation": null
@@ -12257,272 +12294,6 @@
       "_woodmontClassifiedAt": "2026-11-24T01:18:29.557Z",
       "_woodmontModel": "openai/gpt-oss-20b",
       "_woodmontModelApprove": false,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "88dd75157298ff5892814789e8ec6a571ebd4582",
-      "url": "https://commercialobserver.com/2026/10/cloudhq-hossein-fateh-data-centers/",
-      "title": "CloudHQ CEO Hossein Fateh On What Could Curb the Data Center Boom",
-      "content_html": "It’s been a — mostly — great time to be a data center developer. The market was already on the upswing when the rise of artificial intelligence companies kicked that into overdrive by clamoring for server space to run their models. In the first half of the year, the United States added a record number […]",
-      "content_text": "It’s been a — mostly — great time to be a data center developer. The market was already on the upswing when the rise of artificial intelligence companies kicked that into overdrive by clamoring for server space to run their models. In the first half of the year, the United States added a record number […]",
-      "summary": "It’s been a — mostly — great time to be a data center developer. The market was already on the upswing when the rise of artificial intelligence companies kicked that into overdrive by clamoring for se...",
-      "date_published": "2026-10-27T10:29:13.000Z",
-      "date_modified": "2026-10-27T17:38:42.629Z",
-      "image": "https://commercialobserver.com/wp-content/uploads/sites/3/2026/10/GarconJon-3Y3A9920a-WEB.jpg?quality=80&amp;crop=0px%2C1154px%2C2000px%2C1051px&amp;resize=1200%2C630&amp;strip",
-      "author": {
-        "name": "Tom Acitelli"
-      },
-      "_source": {
-        "name": "commercialobserver.com",
-        "website": "commercialobserver.com",
-        "url": "https://commercialobserver.com/2026/10/cloudhq-hossein-fateh-data-centers/",
-        "feedName": "commercialobserver.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "commercialobserver.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Anti-DC framing — headline focuses on curbing data center boom, matching Rule 3 (anti-data-center editorial framing)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-23T11:29:49.649Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "46f1f17af1148ec532d8bb7ae19dce271e70f3b2",
-      "url": "https://www.credaily.com/newsletters/national/issue/industrial-outdoor-storage-rents-climb-32-on-the-data-center-boom/",
-      "title": "Industrial Outdoor Storage Rents Climb 32% on the Data Center Boom",
-      "content_html": "The AI build-out’s hunger for staging space is making low-slung storage yards unexpectedly valuable.",
-      "content_text": "The AI build-out’s hunger for staging space is making low-slung storage yards unexpectedly valuable.",
-      "summary": "The AI build-out’s hunger for staging space is making low-slung storage yards unexpectedly valuable.",
-      "date_published": "2026-10-27T06:21:26-04:00",
-      "date_modified": "2026-10-27T17:37:02.091Z",
-      "image": "https://cdn.credaily.com/uploads/2026/10/landscape_thumb-default__1_-18.webp",
-      "author": {
-        "name": "CRE Daily"
-      },
-      "_source": {
-        "name": "credaily.com",
-        "website": "credaily.com",
-        "url": "https://www.credaily.com/newsletters/national/issue/industrial-outdoor-storage-rents-climb-32-on-the-data-center-boom/",
-        "feedName": "credaily.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "credaily.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Industrial outdoor storage (IOS) is a valid asset class and the article discusses market rent growth tied to data center development, which is pro-industry and not anti-DC framing (Rule 3). The story is regionally neutral but acceptable as a national industrial market report (Rule: APPROVE criteria ",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-16T22:59:46.559Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "2b250e10b7ce6235797e5f7536609d4b40f2b8c3",
-      "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFA2cWhjREVmbUZnV044VW80M25GMzgtQ3ZuVndNMks0OThCeUlxemZ5bzViMjA0aDRXTTZBUGZZLU9ZREczUVhwQVRhUXVReVJJdTk1a3RMN21RNG9Tc1ZBNGMzLXFiU0FiMURSYzljZUU?oc=5",
-      "title": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease - LoopNet",
-      "content_html": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease LoopNet",
-      "content_text": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease LoopNet",
-      "summary": "55 Hook Rd, Bayonne, NJ 07002 - Industrial for Lease LoopNet",
-      "date_published": "2026-10-27T07:00:00.000Z",
-      "date_modified": "2026-11-24T01:20:42.284Z",
-      "image": "https://picsum.photos/seed/nr7b1c/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFA2cWhjREVmbUZnV044VW80M25GMzgtQ3ZuVndNMks0OThCeUlxemZ5bzViMjA0aDRXTTZBUGZZLU9ZREczUVhwQVRhUXVReVJJdTk1a3RMN21RNG9Tc1ZBNGMzLXFiU0FiMURSYzljZUU?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "805cef45216c5257b02f2a85a61747fa3316155c",
-      "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1iMzRPekZPblNUYVRCX3ppQWdCWEJabDctclFNbDlhZUttUHZJSUlrNk5qMTZNUnRtbC13R3lLU3ZJZjg1LVdFMHplQ0M3ZGxwOGo2MWZVU1dnN2ZQODVSWmZ4TU56RDNLTGloUXY4TURkbVJVWWtn?oc=5",
-      "title": "673 S 21st St, Irvington, NJ 07111 - Industrial for Lease - LoopNet",
-      "content_html": "673 S 21st St, Irvington, NJ 07111 - Industrial for Lease LoopNet",
-      "content_text": "673 S 21st St, Irvington, NJ 07111 - Industrial for Lease LoopNet",
-      "summary": "673 S 21st St, Irvington, NJ 07111 - Industrial for Lease LoopNet",
-      "date_published": "2026-10-27T07:00:00.000Z",
-      "date_modified": "2026-11-14T19:39:59.726Z",
-      "image": "https://picsum.photos/seed/wd4efu/640/360",
-      "author": {
-        "name": "Google News LoopNet NJ/PA/FL"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1iMzRPekZPblNUYVRCX3ppQWdCWEJabDctclFNbDlhZUttUHZJSUlrNk5qMTZNUnRtbC13R3lLU3ZJZjg1LVdFMHplQ0M3ZGxwOGo2MWZVU1dnN2ZQODVSWmZ4TU56RDNLTGloUXY4TURkbVJVWWtn?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "availabilities",
-      "tags": [
-        "Availabilities — Properties for Sale or Lease",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "AVAIL_LOOPNET_LISTING",
-      "_tier": "C",
-      "_woodmontApprove": null,
-      "_woodmontReason": null,
-      "_woodmontConfidence": null,
-      "_woodmontClassifier": null,
-      "_woodmontRubricVersion": null,
-      "_woodmontClassifiedAt": null,
-      "_woodmontModel": null,
-      "_woodmontModelApprove": null,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "340de25fdbabd4380d7d2fcb70cd8ba2a6c88a47",
-      "url": "https://www.commercialcafe.com/blog/national-industrial-report/",
-      "title": "October 2026 Industrial Report: Volume of Construction Starts Rises Despite Ongoing Challenges",
-      "content_html": "October 2026 Industrial Report: Volume of Construction Starts Rises Despite Ongoing Challenges",
-      "content_text": "October 2026 Industrial Report: Volume of Construction Starts Rises Despite Ongoing Challenges",
-      "summary": "October 2026 Industrial Report: Volume of Construction Starts Rises Despite Ongoing Challenges",
-      "date_published": "2026-10-27T04:25:46.000Z",
-      "date_modified": "2026-10-30T10:19:11.181Z",
-      "image": "https://picsum.photos/seed/y4w3bw/640/360",
-      "author": {
-        "name": "Diana Sabau"
-      },
-      "_source": {
-        "name": "commercialcafe.com",
-        "website": "commercialcafe.com",
-        "url": "https://www.commercialcafe.com/blog/national-industrial-report/",
-        "feedName": "commercialcafe.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "commercialcafe.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "National industrial market report with neutral, pro-industry framing; meets approval criteria (Rule: APPROVE criteria all met)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-16T22:52:43.929Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "d6f2b051a24bc3320c07913fcfb04c8c43f18042",
-      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPbDJfbTNSNFdyQU5taXVoTGZEbEl5OWQtamR3Y2hjYzdVWU1HWFFWMjNONGlJOU5lZ2hINFlMc3Z1MVg0YnFQMk9yX1dfdFRQS2dKZTNxUHlaXzI2MWtCVEZ2RFJWcGFPODRVSVd1SXdqQ2lDVXZ3azkwcEFXTEdOV3NzTE1CdS1XY3FFeUpXcXg0THVWM1hMMHZSSnJsVDVqeGtzR0FEVVZHZw?oc=5",
-      "title": "Watch UPS CEO on Earnings, Data Center Logistics and Trade - Bloomberg.com",
-      "content_html": "Watch UPS CEO on Earnings, Data Center Logistics and Trade Bloomberg.com",
-      "content_text": "Watch UPS CEO on Earnings, Data Center Logistics and Trade Bloomberg.com",
-      "summary": "Watch UPS CEO on Earnings, Data Center Logistics and Trade Bloomberg.com",
-      "date_published": "2026-10-27T00:00:00.000Z",
-      "date_modified": "2026-11-03T20:06:51.959Z",
-      "image": "https://picsum.photos/seed/y5u6ag/640/360",
-      "author": {
-        "name": "Google News Bloomberg CRE"
-      },
-      "_source": {
-        "name": "news.google.com",
-        "website": "news.google.com",
-        "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPbDJfbTNSNFdyQU5taXVoTGZEbEl5OWQtamR3Y2hjYzdVWU1HWFFWMjNONGlJOU5lZ2hINFlMc3Z1MVg0YnFQMk9yX1dfdFRQS2dKZTNxUHlaXzI2MWtCVEZ2RFJWcGFPODRVSVd1SXdqQ2lDVXZ3azkwcEFXTEdOV3NzTE1CdS1XY3FFeUpXcXg0THVWM1hMMHZSSnJsVDVqeGtzR0FEVVZHZw?oc=5",
-        "feedName": "news.google.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "news.google.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "FAILED_PUBLISH_FILTER",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": false,
-      "_woodmontReason": "Title indicates a video/podcast format (Rule 15: Vendor video/promo), not a news article about industrial real estate transactions or market data",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-16T22:59:46.559Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": false,
-      "_woodmontDateValidation": null
-    },
-    {
-      "id": "5bdd289ebacb52e903312065a7501fe2df398522",
-      "url": "https://www.bisnow.com/news/national/data-center-development/anthropic-leasing-data-centers-to-limit-reliance-on-amazon-microsoft-and-google",
-      "title": "Anthropic Plans To Lease Its Own Data Centers, Cutting Reliance On Amazon, Google And Microsoft",
-      "content_html": "Anthropic is shifting to direct data centers, reducing cloud reliance and marking a strategic pivot.",
-      "content_text": "Anthropic is shifting to direct data centers, reducing cloud reliance and marking a strategic pivot.",
-      "summary": "Anthropic is shifting to direct data centers, reducing cloud reliance and marking a strategic pivot.",
-      "date_published": "2026-10-26T22:52:59.000Z",
-      "date_modified": "2026-10-28T10:20:04.633Z",
-      "image": "https://a-us.storyblok.com/f/571151439874644/2000x1334/4c37dd45c5/anthropic-ceo-dario-amodei.jpg",
-      "author": {
-        "name": "Bisnow National"
-      },
-      "_source": {
-        "name": "bisnow.com",
-        "website": "bisnow.com",
-        "url": "https://www.bisnow.com/news/national/data-center-development/anthropic-leasing-data-centers-to-limit-reliance-on-amazon-microsoft-and-google",
-        "feedName": "bisnow.com"
-      },
-      "category": "relevant",
-      "tags": [
-        "Relevant — Market Trends & Real Estate News",
-        "bisnow.com"
-      ],
-      "_predictedPublish": false,
-      "_predictedReason": "CAP_OVERFLOW",
-      "_classificationReason": "RELEVANT_CRE_SIGNAL",
-      "_tier": "C",
-      "_woodmontApprove": true,
-      "_woodmontReason": "Pro-development data center coverage with neutral framing, meets industrial relevance criteria (Rule 3 anti-data-center framing not applicable)",
-      "_woodmontConfidence": 95,
-      "_woodmontClassifier": "groq",
-      "_woodmontRubricVersion": "2026-10-28-v4",
-      "_woodmontClassifiedAt": "2026-11-13T20:32:43.675Z",
-      "_woodmontModel": "openai/gpt-oss-20b",
-      "_woodmontModelApprove": true,
       "_woodmontDateValidation": null
     }
   ]
